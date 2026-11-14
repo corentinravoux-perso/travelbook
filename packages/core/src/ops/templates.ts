@@ -1,6 +1,5 @@
 import { produce } from 'immer';
 import { newElement, newId } from '../factory';
-import { sideOfElement } from '../geometry';
 import type { Book, Element, PhotoElement, Rect, Side, Spread, TextElement } from '../schema';
 import {
   layoutTemplate,
@@ -17,10 +16,17 @@ type Target = Side | 'spread';
 const bleedOf = (book: Book, spread: Spread): number =>
   spread.kind === 'cover' ? book.coverBleed : book.bleed;
 
-/** Elements whose centre is on the target page (all of them for a whole spread). */
-function elementsOnTarget(book: Book, spread: Spread, target: Target): Element[] {
-  if (target === 'spread') return spread.elements;
-  return spread.elements.filter((el) => sideOfElement(book, spread, el) === target);
+/**
+ * Elements whose centre is inside the target box. A page box excludes the cover's spine zone,
+ * so spine text and stickers never count as part of the front or the back. Pages abut at x:
+ * a centre exactly on the spine line of an inner spread is on the right page.
+ */
+function elementsOnTarget(spread: Spread, box: Rect): Element[] {
+  return spread.elements.filter((el) => {
+    const cx = el.x + el.w / 2;
+    const cy = el.y + el.h / 2;
+    return cx >= box.x && cx < box.x + box.w && cy >= box.y && cy <= box.y + box.h;
+  });
 }
 
 /**
@@ -92,7 +98,7 @@ export function applyTemplate(
   const box = targetBox(book, spread, target);
   const slots = clipAtSpine(layoutTemplate(t, box, bleedOf(book, spread), p), box, target, t);
 
-  const onTarget = elementsOnTarget(book, spread, target);
+  const onTarget = elementsOnTarget(spread, box);
   const photos = readingOrder(onTarget.filter(isPhoto));
   const filled = photos.filter((el) => el.assetId !== null);
   const photoSlotCount = slots.filter((s) => s.kind === 'photo').length;
@@ -155,7 +161,7 @@ export function captureTemplate(
   });
   const slots: FreeSlot[] = [];
   const decorations: Element[] = [];
-  for (const el of elementsOnTarget(book, spread, target)) {
+  for (const el of elementsOnTarget(spread, box)) {
     if (el.type === 'photo') {
       slots.push({ kind: 'photo', ...unit(el), rotation: el.rotation, mask: { ...el.mask } });
     } else if (el.type === 'text') {
