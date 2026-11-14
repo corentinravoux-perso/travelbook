@@ -349,7 +349,11 @@ export const BookSchema = z
   })
   .superRefine((book, ctx) => {
     if (book.cover.kind !== 'cover') {
-      ctx.addIssue({ code: 'custom', path: ['cover', 'kind'], message: 'cover.kind must be "cover"' });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['cover', 'kind'],
+        message: 'cover.kind must be "cover"',
+      });
     }
     book.spreads.forEach((s, i) => {
       const last = book.spreads.length - 1;
