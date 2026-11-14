@@ -6,3 +6,4 @@ export * from './geometry';
 export * from './template';
 export * from './ops';
 export * from './typography';
+export * from './snap';
