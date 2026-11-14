@@ -1,14 +1,9 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import type { RecentProject } from '../../shared/api';
 import { serialize, writeFileAtomic } from './atomic-write';
 
-export interface RecentProject {
-  dir: string;
-  title: string;
-  /** ISO 8601. */
-  openedAt: string;
-  coverThumb?: string;
-}
+export type { RecentProject };
 
 export const MAX_RECENT_PROJECTS = 20;
 const FILE_NAME = 'recent-projects.json';
