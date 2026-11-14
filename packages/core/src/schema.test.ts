@@ -19,7 +19,7 @@ describe('newBook', () => {
     expect(b.format).toEqual({ width: 210, height: 297 });
     expect(b.bleed).toBe(3);
     expect(b.coverBleed).toBe(3);
-    expect(b.safeMargin).toBe(6);
+    expect(b.safeMargin).toBe(8);
     expect(b.settings).toEqual({ frenchTypography: true, dpiGood: 250, dpiLow: 150 });
     expect(b.spreads.map((s) => s.kind)).toEqual([
       'first',
