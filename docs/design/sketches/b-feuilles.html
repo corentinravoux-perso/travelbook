@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction B, feuilles</title>
+<!--
+  travelbook, visual direction B: "Feuilles" (sheets on a desk)
+
+  Idea      A quiet desk. The tools are loose sheets laid around the book: one sheet for the
+            rail and its panel, one for the inspector, one for the spreads. The book itself
+            lies on the desk, with no frame around it. Two voices: a serif for everything that
+            belongs to the book (its title, page numbers, captions), a sans for everything that
+            belongs to the tool. One ink-blue accent, used only for selection and the main action.
+  Density   Airy. Fewer, larger targets; the inspector speaks in words and sliders before numbers.
+  Type      Source Sans 3 for the tool and Source Serif 4 for the book (both OFL, to be bundled;
+            system fallbacks Ubuntu Sans / Noto Serif). Minor-third scale: 12 / 14 (base) / 17 / 20 / 24 px.
+            Line height 1.5 for the sans, 1.55 for the serif.
+  Spacing   4 px base, used in steps of 4, 8, 12, 16, 24, 32, 48. Sheets sit 12 px apart.
+  Radii     6 px controls, 10 px cards, 14 px sheets.
+  Icons     Phosphor, Light weight (@iconify-json/ph, the *-light names). Inline SVGs below are
+            hand-drawn in that style (thin, round, soft corners) for the sketch.
+  Motion    160 ms ease-out cubic-bezier(.2,.7,.2,1). Panel content cross-fades and rises 6 px when the
+            rail changes; selection handles fade in over 120 ms. prefers-reduced-motion: opacity only.
+  Colour roles (light / dark)
+            --desk        workspace               #e9ecee / #15181b
+            --sheet       floating sheets         #ffffff / #1f2327
+            --sheet-2     rail, quiet zones       #f4f6f7 / #1a1e21
+            --line        separators              #e1e5e8 / #2c3238
+            --ink         primary text            #22272c / #e5e8eb
+            --ink-2       secondary text          #5e6770 / #a5adb5
+            --accent      selection, Exporter     #2d4f7c / #9db8e0
+            --accent-soft selected backgrounds    #e7eef7 / #25334a
+            --good / --fair / --low               #2f7d5b / #a26b12 / #b23a3a (dark: lighter tints)
+  Self-contained: no network request, no image file. Photos are CSS gradients.
+-->
+<style>
+:root{
+  --u:1.64px;
+  --f-ui:"Source Sans 3","Ubuntu Sans","Noto Sans",system-ui,sans-serif;
+  --f-book:"Source Serif 4","Noto Serif","P052",serif;
+  --t-xs:12px;--t-sm:14px;--t-md:17px;--t-lg:20px;--t-xl:24px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
+  --r1:6px;--r2:10px;--r3:14px;
+  --ease:cubic-bezier(.2,.7,.2,1);--d:160ms;--d-sel:120ms;
+
+  --desk:#e9ecee;--sheet:#ffffff;--sheet-2:#f4f6f7;--line:#e1e5e8;
+  --ink:#22272c;--ink-2:#5e6770;--ink-3:#8e979f;
+  --accent:#2d4f7c;--accent-on:#ffffff;--accent-soft:#e7eef7;
+  --good:#2f7d5b;--fair:#a26b12;--low:#b23a3a;--fair-soft:#f8efe0;
+  --lift:0 1px 2px rgba(30,40,50,.06),0 6px 20px rgba(30,40,50,.06);
+  --paper-shadow:0 2px 4px rgba(30,40,50,.08),0 18px 40px rgba(30,40,50,.12);
+}
+:root[data-theme="dark"]{
+  --desk:#15181b;--sheet:#1f2327;--sheet-2:#1a1e21;--line:#2c3238;
+  --ink:#e5e8eb;--ink-2:#a5adb5;--ink-3:#737c85;
+  --accent:#9db8e0;--accent-on:#0f1a2a;--accent-soft:#25334a;
+  --good:#7cc4a1;--fair:#dcab5c;--low:#e08a85;--fair-soft:#3a2f1c;
+  --lift:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  --paper-shadow:0 2px 4px rgba(0,0,0,.3),0 18px 40px rgba(0,0,0,.45);
+}
+@media (prefers-reduced-motion: reduce){:root{--d:0ms;--d-sel:0ms}}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:400 var(--t-sm)/1.5 var(--f-ui);color:var(--ink);background:var(--desk);overflow:hidden;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.app{display:grid;height:100vh;min-width:1200px;gap:12px;padding:0 12px 12px;
+  grid-template-columns:364px 1fr 272px;
+  grid-template-rows:60px 1fr 116px;
+  grid-template-areas:"top top top" "left canvas insp" "left strip insp"}
+.sheet{background:var(--sheet);border-radius:var(--r3);box-shadow:var(--lift);min-height:0}
+
+/* ---------- top bar: on the desk, no sheet ---------- */
+.top{grid-area:top;display:flex;align-items:center;gap:var(--s2);padding:0 var(--s1)}
+.mark{font-size:var(--t-sm);font-weight:600;color:var(--ink-2);margin-right:var(--s3)}
+.book-title{font:400 var(--t-lg)/1 var(--f-book);letter-spacing:-.01em}
+.book-meta{font-size:var(--t-xs);color:var(--ink-3);margin-left:var(--s2)}
+.grow{flex:1}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--r1);
+  color:var(--ink-2);transition:background var(--d) var(--ease),color var(--d) var(--ease)}
+.ib:hover{background:var(--sheet);color:var(--ink)}
+.ib[disabled]{opacity:.35;cursor:default}
+.zoom{display:flex;align-items:center;gap:var(--s2);margin:0 var(--s3);color:var(--ink-2);font-size:var(--t-xs)}
+.slider{position:relative;width:96px;height:4px;border-radius:2px;background:var(--line)}
+.slider i{position:absolute;left:0;top:0;bottom:0;width:var(--v);border-radius:2px;background:var(--ink-3)}
+.slider b{position:absolute;top:50%;left:var(--v);width:14px;height:14px;border-radius:50%;background:var(--sheet);
+  border:1px solid var(--ink-3);transform:translate(-50%,-50%);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.btn{display:inline-flex;align-items:center;gap:var(--s2);height:38px;padding:0 var(--s4);border-radius:var(--r2);
+  font-size:var(--t-sm);font-weight:500;transition:background var(--d) var(--ease)}
+.btn.ghost{color:var(--ink)}
+.btn.ghost:hover{background:var(--sheet)}
+.btn.primary{background:var(--accent);color:var(--accent-on);padding:0 var(--s5)}
+.vr{width:1px;height:22px;background:var(--line);margin:0 var(--s1)}
+
+/* ---------- left sheet: rail + panel ---------- */
+.left{grid-area:left;display:grid;grid-template-columns:76px 1fr;overflow:hidden}
+.rail{display:flex;flex-direction:column;gap:var(--s1);padding:var(--s3) var(--s2);background:var(--sheet-2);border-right:1px solid var(--line)}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:var(--s2) 0;border-radius:var(--r2);
+  font-size:var(--t-xs);color:var(--ink-2);transition:background var(--d) var(--ease),color var(--d) var(--ease)}
+.rail button:hover{color:var(--ink)}
+.rail button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.rail button svg.i{width:24px;height:24px}
+.panel{display:flex;flex-direction:column;min-height:0}
+.p-head{padding:var(--s4) var(--s4) var(--s2)}
+.p-head h2{margin:0;font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em}
+.p-head p{margin:2px 0 0;font-size:var(--t-xs);color:var(--ink-3)}
+.search{margin:var(--s2) var(--s4);display:flex;align-items:center;gap:var(--s2);height:36px;padding:0 var(--s3);
+  background:var(--sheet-2);border-radius:var(--r2);color:var(--ink-3)}
+.search input{border:0;background:none;outline:none;flex:1;font-size:var(--t-sm);color:var(--ink)}
+.filters{display:flex;gap:var(--s4);padding:var(--s1) var(--s4) var(--s2);border-bottom:1px solid var(--line)}
+.filters button{padding:var(--s1) 0;font-size:var(--t-sm);color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-9px;padding-bottom:7px}
+.filters button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.filters span{color:var(--ink-3);font-weight:400;margin-left:3px}
+.scroll{overflow:auto;flex:1;padding:var(--s2) var(--s4) var(--s4)}
+.day{font-size:var(--t-xs);color:var(--ink-2);margin:var(--s3) 0 var(--s2)}
+.jrow{display:flex;gap:6px;margin-bottom:6px}
+.t{position:relative;flex:var(--r) 1 0;aspect-ratio:var(--r);border-radius:4px;overflow:hidden}
+.t .ph{position:absolute;inset:0}
+.t .used{position:absolute;left:5px;bottom:5px;display:flex;align-items:center;gap:3px;height:20px;padding:0 7px 0 4px;border-radius:10px;
+  background:var(--sheet);color:var(--accent);font-size:11px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.t .used svg{width:13px;height:13px;stroke-width:2}
+.t.on{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--accent)}
+.p-foot{padding:var(--s3) var(--s4);border-top:1px solid var(--line)}
+.p-foot .btn{width:100%;justify-content:center;background:var(--sheet-2);color:var(--ink)}
+
+/* ---------- canvas: the book on the desk ---------- */
+.canvas{grid-area:canvas;position:relative;display:grid;place-items:center;min-height:0}
+.spread{position:relative;width:calc(420*var(--u));height:calc(297*var(--u));box-shadow:var(--paper-shadow);margin-top:-8px}
+.spread::after{content:"";position:absolute;left:calc(210*var(--u) - 14px);top:0;bottom:0;width:28px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.07) 48%,rgba(0,0,0,.1) 50%,rgba(0,0,0,.04) 52%,transparent)}
+.page{position:absolute;top:0;width:calc(210*var(--u));height:calc(297*var(--u));background:#fff}
+.page.l{left:0}.page.r{left:calc(210*var(--u))}
+.folio{position:absolute;bottom:calc(-34px);font:italic 400 var(--t-sm)/1 var(--f-book);color:var(--ink-3)}
+.page.l .folio{left:0}.page.r .folio{right:0}
+.el{position:absolute;left:calc(var(--x)*var(--u));top:calc(var(--y)*var(--u));width:calc(var(--w)*var(--u));height:calc(var(--h)*var(--u))}
+.caption{font-family:var(--f-book);color:#2a2e33}
+.caption h3{margin:0 0 calc(2.4*var(--u));font-weight:400;font-style:italic;font-size:calc(7.4*var(--u));line-height:1.15}
+.caption p{margin:0;font-size:calc(5*var(--u));line-height:1.5;max-width:58ch}
+.guides{position:absolute;inset:0;pointer-events:none}
+.g{position:absolute;border:0 solid var(--accent)}
+.g.bleed{inset:calc(-3*var(--u));border-width:1px;border-style:dashed;opacity:.45;border-radius:1px}
+.g.safe{border-width:1px;border-style:dashed;opacity:.35}
+.g.safe.l{left:calc(12*var(--u));top:calc(12*var(--u));width:calc(186*var(--u));height:calc(273*var(--u))}
+.g.safe.r{left:calc(222*var(--u));top:calc(12*var(--u));width:calc(186*var(--u));height:calc(273*var(--u))}
+.sel{outline:2px solid var(--accent);outline-offset:0}
+:root[data-theme="dark"] .sel{outline-color:#9db8e0}
+.hd{position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;border:1.5px solid #2d4f7c;transform:translate(-50%,-50%);
+  animation:hd var(--d-sel) var(--ease) both}
+@keyframes hd{from{opacity:0}to{opacity:1}}
+.hd.n{left:50%;top:0}.hd.s{left:50%;top:100%}.hd.e{left:100%;top:50%}.hd.w{left:0;top:50%}
+.hd.nw{left:0;top:0}.hd.ne{left:100%;top:0}.hd.swatch{left:0;top:100%}.hd.se{left:100%;top:100%}
+.rot{position:absolute;left:50%;top:-26px;width:20px;height:20px;border-radius:50%;background:#fff;border:1.5px solid #2d4f7c;
+  transform:translateX(-50%);display:grid;place-items:center;color:#2d4f7c}
+.rot svg{width:12px;height:12px;stroke-width:2}
+.badge{position:absolute;left:8px;bottom:8px;display:flex;align-items:center;gap:6px;height:24px;padding:0 10px 0 8px;border-radius:12px;
+  background:rgba(255,255,255,.94);color:#22272c;font:600 12px/1 var(--f-ui);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.badge i{width:8px;height:8px;border-radius:50%;background:#c58a22}
+.view{position:absolute;left:var(--s1);bottom:var(--s1);display:flex;gap:2px;padding:4px;border-radius:var(--r2);background:var(--sheet);box-shadow:var(--lift)}
+.view button{display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:var(--r1);font-size:var(--t-xs);color:var(--ink-2)}
+.view button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+
+/* ---------- inspector ---------- */
+.insp{grid-area:insp;display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;gap:2px;margin:var(--s3);padding:3px;border-radius:var(--r2);background:var(--sheet-2)}
+.tabs button{flex:1;height:30px;border-radius:7px;font-size:var(--t-xs);color:var(--ink-2)}
+.tabs button[aria-selected="true"]{background:var(--sheet);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.isec{padding:var(--s3) var(--s4)}
+.isec+.isec{border-top:1px solid var(--line)}
+.isec h3{margin:0 0 var(--s2);font-size:var(--t-sm);font-weight:600}
+.what{display:flex;gap:var(--s3);align-items:center}
+.what .ph{width:48px;height:36px;border-radius:4px;flex:none}
+.what p{margin:0;font-size:var(--t-xs);color:var(--ink-2);line-height:1.4}
+.what strong{display:block;font-size:var(--t-sm);color:var(--ink)}
+.quality{border-radius:var(--r2);background:var(--fair-soft);padding:var(--s3)}
+.quality strong{display:flex;align-items:center;gap:8px;font-size:var(--t-sm);font-weight:600}
+.quality strong i{width:8px;height:8px;border-radius:50%;background:var(--fair)}
+.quality p{margin:4px 0 0;font-size:var(--t-xs);color:var(--ink-2);line-height:1.45}
+.ctl{display:grid;grid-template-columns:1fr auto;align-items:center;row-gap:6px;column-gap:var(--s3);margin-bottom:var(--s3)}
+.ctl label{font-size:var(--t-sm)}
+.ctl output{font-size:var(--t-xs);color:var(--ink-2)}
+.ctl .slider{grid-column:1 / -1;width:auto}
+.ctl .slider i{background:var(--accent)}
+.ctl .slider b{border-color:var(--accent)}
+.disclose{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:var(--t-sm);color:var(--ink)}
+.disclose span{color:var(--ink-3);font-size:var(--t-xs)}
+.actions{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--r1);background:var(--sheet-2);font-size:var(--t-xs)}
+.chip svg.i{width:16px;height:16px}
+
+/* ---------- strip ---------- */
+.strip{grid-area:strip;display:flex;align-items:center;gap:var(--s4);padding:0 var(--s4);overflow:hidden}
+.sp{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none}
+.mini{display:flex;height:56px;border-radius:2px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.mini .pg{position:relative;width:40px;height:56px;background:#fff}
+.mini .pg+.pg{box-shadow:inset 1px 0 0 #e4e6e8}
+.mini .ph{position:absolute}
+.sp small{font:400 var(--t-xs)/1 var(--f-book);color:var(--ink-3)}
+.sp.on .mini{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--accent)}
+.sp.on small{color:var(--ink);font-weight:600}
+.add{flex:none;width:40px;height:40px;margin-bottom:18px;border-radius:50%;background:var(--sheet-2);color:var(--ink-2);display:grid;place-items:center}
+
+/* ---------- placeholder photos ---------- */
+.p-lagon{background:radial-gradient(ellipse 16% 5% at 28% 66%,#f2f7f9 60%,transparent 64%),radial-gradient(ellipse 9% 3% at 66% 74%,#e2edf2 60%,transparent 64%),radial-gradient(ellipse 6% 2.5% at 46% 82%,#d6e6ee 60%,transparent 64%),linear-gradient(176deg,transparent 0 43%,#3b4950 43.3% 47%,transparent 47.3%),linear-gradient(180deg,#dfe6e9 0%,#c3d1d8 40%,#7fb0c4 47%,#2c6b86 100%)}
+.p-plage{background:linear-gradient(#1b1d1e,#1b1d1e) 72% 34%/5% 20% no-repeat,linear-gradient(#1b1d1e,#1b1d1e) 80% 38%/3% 14% no-repeat,linear-gradient(180deg,#a9b3b8 0%,#d4d9db 40%,#66757c 40.5%,#495860 55%,#eef0f0 56.5%,#2a2c2e 60%,#141516 100%)}
+.p-mousse{background:radial-gradient(circle at 22% 30%,#9db262 0 10%,transparent 30%),radial-gradient(circle at 72% 58%,#5f7a34 0 14%,transparent 36%),radial-gradient(circle at 40% 82%,#b4bf73 0 7%,transparent 24%),radial-gradient(circle at 85% 18%,#7d9445 0 8%,transparent 26%),linear-gradient(160deg,#4f6431,#36451f)}
+.p-aurore{background:radial-gradient(ellipse 55% 22% at 38% 34%,rgba(110,232,168,.85),transparent 70%),radial-gradient(ellipse 30% 40% at 62% 30%,rgba(90,210,190,.35),transparent 70%),radial-gradient(ellipse 38% 16% at 74% 20%,rgba(150,120,225,.5),transparent 70%),linear-gradient(174deg,transparent 0 70%,#06090c 70.4%),linear-gradient(180deg,#071320 0%,#0f2a3d 72%)}
+.p-fjord{background:linear-gradient(158deg,transparent 0 52%,#3b3448 52.4%) 0 0/62% 100% no-repeat,linear-gradient(204deg,transparent 0 56%,#2e2a3c 56.4%) 100% 0/55% 100% no-repeat,linear-gradient(180deg,#f4c48c 0%,#e8916b 34%,#a35e6c 50%,#2c3450 62%,#1c2236 100%)}
+.p-cascade{background:radial-gradient(ellipse 34% 18% at 50% 86%,rgba(255,255,255,.85),transparent 70%),linear-gradient(90deg,#2b3a2d 0 40%,#9fb1b4 43%,#eef3f4 47% 53%,#9fb1b4 57%,#2b3a2d 60%),linear-gradient(180deg,#c9d7dc 0 16%,transparent 16%)}
+.p-maison{background:linear-gradient(#a8452e,#a8452e) 46% 78%/8% 16% no-repeat,linear-gradient(#e9e4d8,#e9e4d8) 40% 82%/24% 22% no-repeat,linear-gradient(168deg,transparent 0 48%,#5a7a35 48.5%) 38% 56%/30% 18% no-repeat,linear-gradient(192deg,transparent 0 48%,#4f6d2f 48.5%) 62% 56%/22% 18% no-repeat,linear-gradient(180deg,#d6e2e9 0 52%,#7f9c52 52% 100%)}
+.p-route{background:linear-gradient(#e7e0b4,#e7e0b4) 50% 100%/1% 50% no-repeat,linear-gradient(180deg,transparent 0 46%,#3b3d40 46%) 50% 100%/22% 100% no-repeat,linear-gradient(180deg,#bcc8cf 0 44%,#7e8a72 44% 100%)}
+.p-glace{background:linear-gradient(135deg,#e9f3f7 0 20%,#b7d6e3 20% 34%,#f5fafc 34% 52%,#8fbfd3 52% 60%,#dcecf2 60% 78%,#6ea6bd 78%)}
+.p-sable{background:radial-gradient(ellipse 60% 30% at 50% 100%,#3a3530,transparent 70%),linear-gradient(180deg,#e7d7bd 0%,#c9b28d 50%,#8d7a5d 100%)}
+
+/* ---------- direction notes ---------- */
+.notes{position:fixed;right:296px;top:72px;width:400px;max-height:calc(100vh - 96px);overflow:auto;z-index:10;
+  background:var(--sheet);border-radius:var(--r3);padding:var(--s5);box-shadow:0 12px 40px rgba(0,0,0,.22);font-size:var(--t-sm)}
+.notes h2{margin:0 0 var(--s2);font:400 var(--t-xl)/1.2 var(--f-book)}
+.notes h3{margin:var(--s4) 0 var(--s1);font-size:var(--t-sm);font-weight:600}
+.notes p{margin:0 0 var(--s2);color:var(--ink-2);max-width:60ch}
+.notes ul{margin:0;padding:0;list-style:none}
+.notes li{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line);font-size:var(--t-xs);color:var(--ink-2)}
+.swatch{width:16px;height:16px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);flex:none}
+.ts span{display:block;line-height:1.3;margin:3px 0}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Phosphor Light style: thin strokes, rounded joins, soft corners -->
+  <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="15.5" cy="9.5" r="1.5"/><path d="M3 16.5l5.2-5.2a1.5 1.5 0 0 1 2.1 0L17 18M14 15l1.8-1.8a1.5 1.5 0 0 1 2.1 0L21 16.3"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M10 3.5v17M10 12h10.5"/></symbol>
+  <symbol id="i-sticker" viewBox="0 0 24 24"><path d="M15 20.5H7A3.5 3.5 0 0 1 3.5 17V7A3.5 3.5 0 0 1 7 3.5h10A3.5 3.5 0 0 1 20.5 7v8z"/><path d="M15 20.5V17a2 2 0 0 1 2-2h3.5"/><path d="M9 10h.01M15 10h.01M9 14.5c1.5 1 3.5 1 5 0"/></symbol>
+  <symbol id="i-bg" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 15c3-2 6-2 9 0s5.5 2 8 .5M3.5 10c3-2 6-2 9 0s5.5 2 8 .5"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M3.5 18L8 6l4.5 12M5.2 14h5.6"/><circle cx="17" cy="15.5" r="2.6"/><path d="M19.6 12.5v6"/></symbol>
+  <symbol id="i-shapes" viewBox="0 0 24 24"><circle cx="7.5" cy="8" r="4"/><path d="M15.5 4l4.5 8h-9z"/><rect x="11" y="14" width="7" height="6.5" rx="1"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M7.5 9.5H3.5v-4"/><path d="M6.3 17.7A8 8 0 1 0 4 9.5"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M16.5 9.5h4v-4"/><path d="M17.7 17.7A8 8 0 1 1 20 9.5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M12 5.5C5 5.5 2.5 12 2.5 12s2.5 6.5 9.5 6.5 9.5-6.5 9.5-6.5-2.5-6.5-9.5-6.5z"/><circle cx="12" cy="12" r="3.2"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M8 7.5l4-4 4 4M12 3.5v11"/><path d="M15.5 9.5h3a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19v-8a1.5 1.5 0 0 1 1.5-1.5h3"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.2 15.2L20.5 20.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M4 12h16M12 4v16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M16.5 9.5h4v-4"/><path d="M17.7 17.7A8 8 0 1 1 20 9.5"/></symbol>
+  <symbol id="i-crop" viewBox="0 0 24 24"><path d="M6.5 2.5v14a1 1 0 0 0 1 1h14M2.5 6.5h14a1 1 0 0 1 1 1v14"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="11.5" rx="2"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M16 3.5l3.5 3.5L16 10.5M19.5 7h-15M8 13.5L4.5 17 8 20.5M4.5 17h15"/></symbol>
+  <symbol id="i-guides" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><rect x="7.5" y="7.5" width="9" height="9" rx="1" stroke-dasharray="1.5 2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7c-2-2-5.5-2.5-8.5-2v13.5c3-.5 6.5 0 8.5 2 2-2 5.5-2.5 8.5-2V5c-3-.5-6.5 0-8.5 2zM12 7v13.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M11 11.5h1V16.5h1M12 8h.01"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="top" aria-label="Barre du haut">
+    <span class="mark">travelbook</span>
+    <span class="book-title">Islande 2026</span>
+    <span class="book-meta">21 × 29,7 cm, 24 pages, enregistré</span>
+    <span class="grow"></span>
+    <button class="ib" title="Annuler (Ctrl+Z)" aria-label="Annuler"><svg class="i"><use href="#i-undo"/></svg></button>
+    <button class="ib" title="Rétablir (Ctrl+Maj+Z)" aria-label="Rétablir" disabled><svg class="i"><use href="#i-redo"/></svg></button>
+    <div class="zoom" role="group" aria-label="Zoom">
+      <span class="slider" style="--v:58%" aria-hidden="true"><i></i><b></b></span><span>86 %</span>
+    </div>
+    <span class="vr"></span>
+    <button class="btn ghost"><svg class="i"><use href="#i-book"/></svg>Aperçu</button>
+    <button class="btn primary"><svg class="i"><use href="#i-export"/></svg>Exporter</button>
+    <span class="vr"></span>
+    <button class="ib" id="theme" title="Thème clair ou sombre" aria-label="Changer de thème"><svg class="i"><use href="#i-moon"/></svg></button>
+    <button class="ib" id="notesBtn" title="Notes de direction" aria-label="Notes de direction" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+  </header>
+
+  <div class="left sheet">
+    <nav class="rail" aria-label="Outils">
+      <button aria-pressed="true"><svg class="i"><use href="#i-photo"/></svg>Photos</button>
+      <button aria-pressed="false"><svg class="i"><use href="#i-layout"/></svg>Modèles</button>
+      <button aria-pressed="false"><svg class="i"><use href="#i-sticker"/></svg>Stickers</button>
+      <button aria-pressed="false"><svg class="i"><use href="#i-bg"/></svg>Fonds</button>
+      <button aria-pressed="false"><svg class="i"><use href="#i-text"/></svg>Texte</button>
+      <button aria-pressed="false"><svg class="i"><use href="#i-shapes"/></svg>Formes</button>
+    </nav>
+    <section class="panel" aria-label="Panneau Photos">
+      <div class="p-head"><h2>Photos</h2><p>48 photos, dont 17 placées dans le livre</p></div>
+      <label class="search"><svg class="i" style="width:18px;height:18px"><use href="#i-search"/></svg><input placeholder="Rechercher" aria-label="Rechercher"></label>
+      <div class="filters" role="group" aria-label="Filtrer">
+        <button aria-pressed="true">Toutes<span>48</span></button>
+        <button aria-pressed="false">Libres<span>31</span></button>
+        <button aria-pressed="false">Placées<span>17</span></button>
+      </div>
+      <div class="scroll">
+        <div class="day">Mercredi 10 juin</div>
+        <div class="jrow">
+          <div class="t" style="--r:1.5"><div class="ph p-route"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>1</span></div>
+          <div class="t" style="--r:.75"><div class="ph p-cascade"></div></div>
+        </div>
+        <div class="jrow">
+          <div class="t" style="--r:1"><div class="ph p-maison"></div></div>
+          <div class="t" style="--r:1.5"><div class="ph p-mousse"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>1</span></div>
+        </div>
+        <div class="jrow">
+          <div class="t" style="--r:.75"><div class="ph p-sable"></div></div>
+          <div class="t" style="--r:1.33"><div class="ph p-glace"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>2</span></div>
+        </div>
+        <div class="day">Jeudi 11 juin</div>
+        <div class="jrow">
+          <div class="t on" style="--r:1.5"><div class="ph p-aurore"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>1</span></div>
+          <div class="t" style="--r:.75"><div class="ph p-cascade"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>1</span></div>
+        </div>
+        <div class="jrow">
+          <div class="t" style="--r:1.33"><div class="ph p-lagon"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>1</span></div>
+          <div class="t" style="--r:1.33"><div class="ph p-plage"></div><span class="used"><svg class="i"><use href="#i-check"/></svg>1</span></div>
+        </div>
+        <div class="jrow">
+          <div class="t" style="--r:1.5"><div class="ph p-fjord"></div></div>
+          <div class="t" style="--r:1"><div class="ph p-glace"></div></div>
+        </div>
+      </div>
+      <div class="p-foot"><button class="btn"><svg class="i"><use href="#i-plus"/></svg>Importer des photos</button></div>
+    </section>
+  </div>
+
+  <main class="canvas" aria-label="Double page 4–5">
+    <div class="spread">
+      <div class="page l">
+        <div class="el ph p-lagon" style="--x:-3;--y:-3;--w:213;--h:303"></div>
+        <span class="folio">4</span>
+      </div>
+      <div class="page r">
+        <div class="el ph p-aurore sel" style="--x:12;--y:12;--w:186;--h:124">
+          <span class="badge" aria-label="Résolution acceptable : 212 ppp"><i></i>212 ppp</span>
+          <span class="rot"><svg class="i"><use href="#i-rotate"/></svg></span>
+          <span class="hd nw"></span><span class="hd n"></span><span class="hd ne"></span><span class="hd e"></span>
+          <span class="hd se"></span><span class="hd s"></span><span class="hd sw"></span><span class="hd w"></span>
+        </div>
+        <div class="el ph p-cascade" style="--x:12;--y:142;--w:90;--h:90"></div>
+        <div class="el ph p-plage" style="--x:108;--y:142;--w:90;--h:90"></div>
+        <div class="el caption" style="--x:12;--y:242;--w:186;--h:43">
+          <h3>Snæfellsnes, la deuxième nuit</h3>
+          <p>Debout à cinq heures pour les aurores. Il faisait −4 °C et personne ne parlait.</p>
+        </div>
+        <span class="folio">5</span>
+      </div>
+      <div class="guides" aria-hidden="true"><span class="g bleed"></span><span class="g safe l"></span><span class="g safe r"></span></div>
+    </div>
+    <div class="view" role="group" aria-label="Repères">
+      <button aria-pressed="true"><svg class="i" style="width:16px;height:16px"><use href="#i-guides"/></svg>Repères</button>
+      <button aria-pressed="false">Grille</button>
+    </div>
+  </main>
+
+  <aside class="insp sheet" aria-label="Inspecteur">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true">Réglages</button>
+      <button role="tab" aria-selected="false">Calques</button>
+      <button role="tab" aria-selected="false">Historique</button>
+    </div>
+    <div class="isec">
+      <div class="what"><span class="ph p-aurore"></span><p><strong>Photo</strong>IMG_4471.jpg<br>11 juin, 1&nbsp;h&nbsp;52</p></div>
+    </div>
+    <div class="isec">
+      <div class="quality">
+        <strong><i></i>Qualité d'impression acceptable</strong>
+        <p>212 ppp à cette taille. Elle sera nette au-dessus de 250 ppp : réduisez le cadre ou le zoom.</p>
+      </div>
+    </div>
+    <div class="isec">
+      <div class="ctl"><label>Zoom dans le cadre</label><output>254 %</output><span class="slider" style="--v:52%"><i></i><b></b></span></div>
+      <div class="ctl"><label>Bordure</label><output>Aucune</output><span class="slider" style="--v:0%"><i></i><b></b></span></div>
+      <div class="ctl"><label>Coins arrondis</label><output>0 mm</output><span class="slider" style="--v:0%"><i></i><b></b></span></div>
+    </div>
+    <div class="isec">
+      <button class="disclose">Position et taille <span>186 × 124 mm</span></button>
+    </div>
+    <div class="isec">
+      <div class="actions">
+        <button class="chip"><svg class="i"><use href="#i-crop"/></svg>Recadrer</button>
+        <button class="chip"><svg class="i"><use href="#i-swap"/></svg>Remplacer</button>
+        <button class="chip"><svg class="i"><use href="#i-lock"/></svg>Verrouiller</button>
+      </div>
+    </div>
+  </aside>
+
+  <footer class="strip sheet" aria-label="Doubles pages">
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-sable" style="inset:0"></div></div><div class="pg"><div class="ph p-glace" style="inset:7px"></div></div></div><small>Couverture</small></div>
+    <div class="sp"><div class="mini"><div class="pg" style="background:#f1f2f3"></div><div class="pg"><div class="ph p-route" style="inset:9px 7px 20px"></div></div></div><small>1</small></div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-maison" style="inset:0"></div></div><div class="pg"><div class="ph p-mousse" style="inset:5px 5px 30px"></div><div class="ph p-fjord" style="inset:29px 5px 5px"></div></div></div><small>2 – 3</small></div>
+    <div class="sp on"><div class="mini"><div class="pg"><div class="ph p-lagon" style="inset:0"></div></div><div class="pg"><div class="ph p-aurore" style="inset:3px 3px 32px"></div><div class="ph p-cascade" style="left:3px;top:27px;width:16px;height:16px"></div><div class="ph p-plage" style="right:3px;top:27px;width:16px;height:16px"></div></div></div><small>4 – 5</small></div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-glace" style="inset:5px"></div></div><div class="pg"><div class="ph p-glace" style="inset:5px"></div></div></div><small>6 – 7</small></div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-fjord" style="inset:5px 5px 22px"></div></div><div class="pg"><div class="ph p-sable" style="inset:0"></div></div></div><small>8 – 9</small></div>
+    <div class="sp"><div class="mini"><div class="pg"></div><div class="pg"></div></div><small>10 – 11</small></div>
+    <button class="add" aria-label="Ajouter une double page" title="Ajouter une double page"><svg class="i"><use href="#i-plus"/></svg></button>
+  </footer>
+</div>
+
+<aside class="notes" id="dir-notes" aria-label="Notes de direction" hidden>
+  <h2>B. Feuilles</h2>
+  <p>Un bureau calme. Les outils sont des feuilles posées autour du livre ; le livre est posé sur le bureau, sans cadre. Deux voix : une serif pour tout ce qui appartient au livre (titre, folios, légendes), une sans pour l'outil. Un seul bleu encre, réservé à la sélection et à l'action principale.</p>
+  <h3>Échelle typographique</h3>
+  <p>Source Sans 3 et Source Serif 4 (OFL, embarquées). Tierce mineure, base 14 px.</p>
+  <div class="ts">
+    <span style="font:400 24px var(--f-book)">24 px serif, titre du livre</span>
+    <span style="font-size:20px;font-weight:600">20 px, titre de panneau</span>
+    <span style="font-size:17px">17 px, intitulés importants</span>
+    <span style="font-size:14px">14 px, texte courant</span>
+    <span style="font-size:12px">12 px, compteurs et aides</span>
+  </div>
+  <h3>Espacements</h3>
+  <p>Base 4 px : 4, 8, 12, 16, 24, 32, 48. Feuilles espacées de 12 px. Rayons 6, 10, 14 px.</p>
+  <h3>Rôles de couleur (clair puis sombre)</h3>
+  <ul>
+    <li><span class="swatch" style="background:#e9ecee"></span><span class="swatch" style="background:#15181b"></span>Bureau</li>
+    <li><span class="swatch" style="background:#ffffff"></span><span class="swatch" style="background:#1f2327"></span>Feuilles</li>
+    <li><span class="swatch" style="background:#22272c"></span><span class="swatch" style="background:#e5e8eb"></span>Encre</li>
+    <li><span class="swatch" style="background:#2d4f7c"></span><span class="swatch" style="background:#9db8e0"></span>Accent bleu encre</li>
+    <li><span class="swatch" style="background:#2f7d5b"></span><span class="swatch" style="background:#a26b12"></span><span class="swatch" style="background:#b23a3a"></span>Résolution bonne, acceptable, faible</li>
+  </ul>
+  <h3>Icônes</h3>
+  <p>Phosphor, graisse Light (@iconify-json/ph).</p>
+  <h3>Mouvement</h3>
+  <p>160 ms, sortie douce. Le contenu du panneau se fond et monte de 6 px ; les poignées apparaissent en 120 ms. Mouvement réduit : fondus seulement.</p>
+  <h3>Compromis</h3>
+  <p>Le plus accueillant, et le livre a l'air d'un vrai livre. Coûte de la place : la page est plus petite que dans A, et les réglages numériques sont repliés.</p>
+</aside>
+
+<script>
+(function(){
+  var root=document.documentElement, notes=document.getElementById("dir-notes"), nb=document.getElementById('notesBtn');
+  document.getElementById('theme').addEventListener('click',function(){
+    root.dataset.theme = root.dataset.theme==='dark' ? 'light' : 'dark';
+  });
+  nb.addEventListener('click',function(){
+    notes.hidden=!notes.hidden; nb.setAttribute('aria-expanded',String(!notes.hidden));
+  });
+  var h=location.hash;
+  if(h.indexOf('light')>-1) root.dataset.theme='light';
+  if(h.indexOf('dark')>-1) root.dataset.theme='dark';
+  if(h.indexOf('notes')>-1){notes.hidden=false;nb.setAttribute('aria-expanded','true');}
+})();
+</script>
+</body>
+</html>

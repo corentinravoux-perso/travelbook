@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction A, gris neutre</title>
+<!--
+  travelbook, visual direction A: "Gris neutre" (the neutral-grey lab)
+
+  Idea      The workspace is a colour-judging booth. The canvas sits on a neutral mid-grey
+            surround (the logic of ISO 3664 viewing conditions), and the chrome has zero chroma.
+            The interface owns no hue at all: active states invert contrast, selection is a
+            white-and-black double outline that reads on any photo, guides use difference
+            blending. The only hues in the UI are the three resolution states.
+  Density   Compact, docked, hairline-separated panels; the most canvas per pixel.
+  Type      IBM Plex Sans (OFL, to be bundled; system fallback Noto Sans) with tabular figures.
+            Major-second scale: 11 / 12 / 13 (base) / 14.5 / 16 px. Line height 1.35.
+            Book content on the page uses the book's own fonts, never the UI face.
+  Spacing   4 px base: 2, 4, 6, 8, 12, 16, 24, 32.
+  Radii     2 px controls, 4 px panels' inner cards. Nothing rounder.
+  Icons     Tabler Icons (@iconify-json/tabler), outline, stroke 1.5 at 18 px.
+            The inline SVGs below are hand-drawn in that style for the sketch.
+  Motion    80 ms for hover and press, 120 ms linear-out for panel swaps, no easing flourishes,
+            nothing that moves by itself. prefers-reduced-motion: all transitions 0 ms.
+  Colour roles (light / dark)
+            --ground      workspace surround       #9b9b9b / #474747
+            --chrome      bars, rail, panels       #ececec / #262626
+            --surface     fields, cards            #f7f7f7 / #2f2f2f
+            --line        hairlines                #cfcfcf / #3a3a3a
+            --ink         primary text             #1f1f1f / #e8e8e8
+            --ink-2       secondary text           #5c5c5c / #a3a3a3
+            --invert-bg   active and primary fill  = --ink
+            --good / --fair / --low                #3f7f52 / #a8741a / #b0413e (dark: lighter tints)
+  Self-contained: no network request, no image file. Photos are CSS gradients.
+-->
+<style>
+:root{
+  --u:1.72px;               /* 1 mm of paper at this zoom */
+  --f-ui:"IBM Plex Sans","Noto Sans","DejaVu Sans",system-ui,sans-serif;
+  --f-book:"Noto Serif","P052","DejaVu Serif",serif;
+  --t-xs:11px;--t-sm:12px;--t-md:13px;--t-lg:14.5px;--t-xl:16px;
+  --s1:2px;--s2:4px;--s3:6px;--s4:8px;--s5:12px;--s6:16px;--s7:24px;--s8:32px;
+  --r1:2px;--r2:4px;
+  --fast:80ms;--swap:120ms;
+
+  --ground:#9b9b9b;--chrome:#ececec;--surface:#f7f7f7;--line:#cfcfcf;
+  --ink:#1f1f1f;--ink-2:#5c5c5c;--ink-3:#8a8a8a;
+  --invert-bg:var(--ink);--invert-fg:#f7f7f7;
+  --good:#3f7f52;--fair:#a8741a;--low:#b0413e;
+  --paper:#ffffff;
+}
+:root[data-theme="dark"]{
+  --ground:#474747;--chrome:#262626;--surface:#2f2f2f;--line:#3a3a3a;
+  --ink:#e8e8e8;--ink-2:#a3a3a3;--ink-3:#767676;
+  --invert-fg:#1f1f1f;
+  --good:#6fb283;--fair:#d6a24a;--low:#e07a76;
+}
+@media (prefers-reduced-motion: reduce){:root{--fast:0ms;--swap:0ms}}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:400 var(--t-md)/1.35 var(--f-ui);color:var(--ink);background:var(--chrome);
+  font-variant-numeric:tabular-nums;overflow:hidden;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.app{display:grid;height:100vh;min-width:1200px;
+  grid-template-columns:60px 272px 1fr 264px;
+  grid-template-rows:44px 1fr 96px;
+  grid-template-areas:"top top top top" "rail panel canvas insp" "strip strip strip strip"}
+
+/* ---------- top bar ---------- */
+.top{grid-area:top;display:flex;align-items:center;gap:var(--s4);padding:0 var(--s4) 0 var(--s5);
+  border-bottom:1px solid var(--line);background:var(--chrome)}
+.mark{font-weight:600;letter-spacing:-.01em;font-size:var(--t-md)}
+.sep{width:1px;height:20px;background:var(--line);margin:0 var(--s2)}
+.title{font-size:var(--t-md);font-weight:500}
+.saved{font-size:var(--t-sm);color:var(--ink-3)}
+.grow{flex:1}
+.ib{display:inline-flex;align-items:center;justify-content:center;height:28px;min-width:28px;padding:0 var(--s3);
+  border-radius:var(--r1);color:var(--ink-2);transition:background var(--fast),color var(--fast)}
+.ib:hover{background:var(--surface);color:var(--ink)}
+.ib[disabled]{opacity:.4;cursor:default}
+.zoom{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r1);height:28px}
+.zoom .ib{height:26px}
+.zoom output{min-width:48px;text-align:center;font-size:var(--t-sm)}
+.btn{display:inline-flex;align-items:center;gap:var(--s3);height:28px;padding:0 var(--s5);border-radius:var(--r1);
+  border:1px solid var(--line);font-size:var(--t-sm);font-weight:500;transition:background var(--fast)}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--invert-bg);color:var(--invert-fg);border-color:var(--invert-bg)}
+.btn.primary:hover{opacity:.9}
+
+/* ---------- rail ---------- */
+.rail{grid-area:rail;display:flex;flex-direction:column;gap:var(--s1);padding:var(--s3) var(--s2);
+  border-right:1px solid var(--line);background:var(--chrome)}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--s3) 0 5px;border-radius:var(--r1);
+  color:var(--ink-2);font-size:10.5px;transition:background var(--fast),color var(--fast)}
+.rail button:hover{color:var(--ink);background:var(--surface)}
+.rail button[aria-pressed="true"]{background:var(--invert-bg);color:var(--invert-fg)}
+
+/* ---------- panel ---------- */
+.panel{grid-area:panel;display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--chrome);min-height:0}
+.ph-head{display:flex;align-items:center;justify-content:space-between;padding:var(--s4) var(--s5) var(--s3)}
+.ph-head h2{margin:0;font-size:var(--t-lg);font-weight:600}
+.count{color:var(--ink-3);font-weight:400}
+.search{margin:0 var(--s5) var(--s4);display:flex;align-items:center;gap:var(--s3);height:28px;padding:0 var(--s4);
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r1);color:var(--ink-3)}
+.search input{border:0;background:none;outline:none;flex:1;font-size:var(--t-sm);color:var(--ink)}
+.seg{display:flex;margin:0 var(--s5) var(--s4);border:1px solid var(--line);border-radius:var(--r1);overflow:hidden}
+.seg button{flex:1;height:24px;font-size:var(--t-xs);color:var(--ink-2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--invert-bg);color:var(--invert-fg)}
+.scroll{overflow:auto;flex:1;padding:0 var(--s5) var(--s5)}
+.day{display:flex;justify-content:space-between;font-size:var(--t-xs);color:var(--ink-2);margin:var(--s4) 0 var(--s3)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.th{position:relative;aspect-ratio:1;border-radius:1px;overflow:hidden}
+.th .ph{position:absolute;inset:0}
+.th .used{position:absolute;right:3px;top:3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;
+  background:#1f1f1f;color:#f2f2f2;font-size:10px;line-height:16px;text-align:center;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+.th.on{outline:2px solid var(--ink);outline-offset:1px}
+.import{margin:var(--s4) var(--s5) var(--s5);justify-content:center}
+
+/* ---------- canvas ---------- */
+.canvas{grid-area:canvas;position:relative;background:var(--ground);display:grid;place-items:center;overflow:hidden}
+.canvas-tools{position:absolute;left:var(--s4);top:var(--s4);display:flex;gap:var(--s1);
+  background:var(--chrome);border:1px solid var(--line);border-radius:var(--r1);padding:2px}
+.canvas-tools .ib{height:24px;font-size:var(--t-xs);gap:4px}
+.canvas-tools .ib[aria-pressed="true"]{color:var(--ink);background:var(--surface)}
+.spread-label{position:absolute;bottom:var(--s4);left:50%;transform:translateX(-50%);font-size:var(--t-xs);color:var(--ink);opacity:.75}
+
+.spread{position:relative;width:calc(420*var(--u));height:calc(297*var(--u));box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.page{position:absolute;top:0;width:calc(210*var(--u));height:calc(297*var(--u));background:var(--paper)}
+.page.l{left:0}.page.r{left:calc(210*var(--u))}
+.el{position:absolute;left:calc(var(--x)*var(--u));top:calc(var(--y)*var(--u));
+  width:calc(var(--w)*var(--u));height:calc(var(--h)*var(--u))}
+.caption{font-family:var(--f-book);color:#2b2b2b}
+.caption h3{margin:0 0 calc(2*var(--u));font-weight:400;font-size:calc(7*var(--u));letter-spacing:-.005em}
+.caption p{margin:0;font-size:calc(4.4*var(--u));line-height:1.45;max-width:60ch}
+
+/* guides: difference blending keeps them visible on any photo without a hue */
+.guides{position:absolute;inset:0;pointer-events:none;mix-blend-mode:difference}
+.g{position:absolute;border:0 solid rgba(255,255,255,.8)}
+.g.bleed{inset:calc(-3*var(--u));border-width:1px;border-style:dashed;opacity:.7}
+.g.safe{border-width:1px;border-style:dotted;opacity:.8}
+.g.safe.l{left:calc(10*var(--u));top:calc(10*var(--u));width:calc(190*var(--u));height:calc(277*var(--u))}
+.g.safe.r{left:calc(220*var(--u));top:calc(10*var(--u));width:calc(190*var(--u));height:calc(277*var(--u))}
+.g.gutter{left:calc(210*var(--u));top:calc(-3*var(--u));bottom:calc(-3*var(--u));border-left-width:1px}
+
+/* selection: white + black double outline reads on light and dark photos alike */
+.sel{outline:1px solid #fff;box-shadow:0 0 0 2px #000}
+.hd{position:absolute;width:8px;height:8px;background:#fff;border:1px solid #000;transform:translate(-50%,-50%)}
+.hd.n{left:50%;top:0}.hd.s{left:50%;top:100%}.hd.e{left:100%;top:50%}.hd.w{left:0;top:50%}
+.hd.nw{left:0;top:0}.hd.ne{left:100%;top:0}.hd.swatch{left:0;top:100%}.hd.se{left:100%;top:100%}
+.rot{position:absolute;left:50%;top:-22px;width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #000;transform:translateX(-50%)}
+.rot::after{content:"";position:absolute;left:50%;top:9px;width:1px;height:12px;background:#000}
+.badge{position:absolute;left:6px;bottom:6px;display:flex;align-items:center;gap:5px;height:18px;padding:0 6px;
+  border-radius:2px;background:rgba(20,20,20,.82);color:#f2f2f2;font:500 10.5px/1 var(--f-ui)}
+.badge i{width:7px;height:7px;border-radius:50%;background:#d6a24a}
+
+/* ---------- inspector ---------- */
+.insp{grid-area:insp;border-left:1px solid var(--line);background:var(--chrome);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 var(--s4)}
+.tabs button{height:36px;padding:0 var(--s4);font-size:var(--t-sm);color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.sec{padding:var(--s5);border-bottom:1px solid var(--line)}
+.sec h3{margin:0 0 var(--s4);font-size:var(--t-sm);font-weight:600}
+.file{font-size:var(--t-sm);color:var(--ink-2);margin:-4px 0 0}
+.props{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+.f{display:flex;align-items:center;height:26px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r1);
+  font-size:var(--t-sm);padding:0 var(--s3)}
+.f b{font-weight:400;color:var(--ink-3);width:18px}
+.f span{flex:1;text-align:right}
+.f em{font-style:normal;color:var(--ink-3);margin-left:4px;font-size:var(--t-xs)}
+.meter{position:relative;height:6px;border-radius:1px;margin:var(--s4) 0 var(--s2);
+  background:linear-gradient(90deg,var(--low) 0 37.5%,var(--fair) 37.5% 62.5%,var(--good) 62.5%);opacity:.85}
+.meter i{position:absolute;top:-4px;left:53%;width:2px;height:14px;background:var(--ink)}
+.scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3)}
+.res{display:flex;justify-content:space-between;align-items:baseline}
+.res strong{font-size:var(--t-xl);font-weight:500}
+.res span{font-size:var(--t-sm);color:var(--fair)}
+.row{display:flex;justify-content:space-between;align-items:center;height:28px;font-size:var(--t-sm)}
+.row span:last-child{color:var(--ink-2)}
+.tools{display:flex;gap:var(--s1)}
+.tools .ib{border:1px solid var(--line);height:26px;width:30px}
+
+/* ---------- spreads strip ---------- */
+.strip{grid-area:strip;display:flex;align-items:center;gap:var(--s5);padding:0 var(--s5);border-top:1px solid var(--line);background:var(--chrome);overflow:hidden}
+.sp{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;font-size:var(--t-xs);color:var(--ink-2)}
+.mini{display:flex;height:50px;outline:1px solid var(--line);background:var(--paper)}
+.mini .pg{position:relative;width:35px;height:50px;background:#fff}
+.mini .pg+.pg{border-left:1px solid #e3e3e3}
+.mini .ph{position:absolute}
+.sp.on .mini{outline:2px solid var(--ink);outline-offset:1px}
+.sp.on{color:var(--ink);font-weight:500}
+.add{flex:none;height:50px;margin-bottom:17px;width:72px;border:1px dashed var(--ink-3);border-radius:var(--r1);color:var(--ink-2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:var(--t-xs)}
+.pages{margin-left:auto;font-size:var(--t-xs);color:var(--ink-3);flex:none}
+
+/* ---------- placeholder photos (abstract Icelandic scenes) ---------- */
+.ph{background-size:cover}
+.p-lagon{background:
+  radial-gradient(ellipse 16% 5% at 28% 66%,#f2f7f9 60%,transparent 64%),
+  radial-gradient(ellipse 9% 3% at 66% 74%,#e2edf2 60%,transparent 64%),
+  radial-gradient(ellipse 6% 2.5% at 46% 82%,#d6e6ee 60%,transparent 64%),
+  linear-gradient(176deg,transparent 0 43%,#3b4950 43.3% 47%,transparent 47.3%),
+  linear-gradient(180deg,#dfe6e9 0%,#c3d1d8 40%,#7fb0c4 47%,#2c6b86 100%)}
+.p-plage{background:
+  linear-gradient(#1b1d1e,#1b1d1e) 72% 34%/5% 20% no-repeat,
+  linear-gradient(#1b1d1e,#1b1d1e) 80% 38%/3% 14% no-repeat,
+  linear-gradient(180deg,#a9b3b8 0%,#d4d9db 40%,#66757c 40.5%,#495860 55%,#eef0f0 56.5%,#2a2c2e 60%,#141516 100%)}
+.p-mousse{background:
+  radial-gradient(circle at 22% 30%,#9db262 0 10%,transparent 30%),
+  radial-gradient(circle at 72% 58%,#5f7a34 0 14%,transparent 36%),
+  radial-gradient(circle at 40% 82%,#b4bf73 0 7%,transparent 24%),
+  radial-gradient(circle at 85% 18%,#7d9445 0 8%,transparent 26%),
+  linear-gradient(160deg,#4f6431,#36451f)}
+.p-aurore{background:
+  radial-gradient(ellipse 55% 22% at 38% 34%,rgba(110,232,168,.85),transparent 70%),
+  radial-gradient(ellipse 30% 40% at 62% 30%,rgba(90,210,190,.35),transparent 70%),
+  radial-gradient(ellipse 38% 16% at 74% 20%,rgba(150,120,225,.5),transparent 70%),
+  linear-gradient(174deg,transparent 0 70%,#06090c 70.4%),
+  linear-gradient(180deg,#071320 0%,#0f2a3d 72%)}
+.p-fjord{background:
+  linear-gradient(158deg,transparent 0 52%,#3b3448 52.4%) 0 0/62% 100% no-repeat,
+  linear-gradient(204deg,transparent 0 56%,#2e2a3c 56.4%) 100% 0/55% 100% no-repeat,
+  linear-gradient(180deg,#f4c48c 0%,#e8916b 34%,#a35e6c 50%,#2c3450 62%,#1c2236 100%)}
+.p-cascade{background:
+  radial-gradient(ellipse 34% 18% at 50% 86%,rgba(255,255,255,.85),transparent 70%),
+  linear-gradient(90deg,#2b3a2d 0 40%,#9fb1b4 43%,#eef3f4 47% 53%,#9fb1b4 57%,#2b3a2d 60%),
+  linear-gradient(180deg,#c9d7dc 0 16%,transparent 16%)}
+.p-maison{background:
+  linear-gradient(#a8452e,#a8452e) 46% 78%/8% 16% no-repeat,
+  linear-gradient(#e9e4d8,#e9e4d8) 40% 82%/24% 22% no-repeat,
+  linear-gradient(168deg,transparent 0 48%,#5a7a35 48.5%) 38% 56%/30% 18% no-repeat,
+  linear-gradient(192deg,transparent 0 48%,#4f6d2f 48.5%) 62% 56%/22% 18% no-repeat,
+  linear-gradient(180deg,#d6e2e9 0 52%,#7f9c52 52% 100%)}
+.p-route{background:
+  linear-gradient(#e7e0b4,#e7e0b4) 50% 100%/1% 50% no-repeat,
+  linear-gradient(180deg,transparent 0 46%,#3b3d40 46%) 50% 100%/22% 100% no-repeat,
+  linear-gradient(180deg,#bcc8cf 0 44%,#7e8a72 44% 100%)}
+.p-glace{background:
+  linear-gradient(135deg,#e9f3f7 0 20%,#b7d6e3 20% 34%,#f5fafc 34% 52%,#8fbfd3 52% 60%,#dcecf2 60% 78%,#6ea6bd 78%)}
+.p-sable{background:
+  radial-gradient(ellipse 60% 30% at 50% 100%,#3a3530,transparent 70%),
+  linear-gradient(180deg,#e7d7bd 0%,#c9b28d 50%,#8d7a5d 100%)}
+
+/* ---------- direction notes ---------- */
+.notes{position:fixed;right:12px;top:52px;bottom:104px;width:380px;overflow:auto;z-index:10;
+  background:var(--chrome);border:1px solid var(--line);border-radius:var(--r2);padding:var(--s6) var(--s6) var(--s7);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:var(--t-sm)}
+.notes h2{margin:0 0 var(--s3);font-size:var(--t-xl);font-weight:600}
+.notes h3{margin:var(--s6) 0 var(--s3);font-size:var(--t-md);font-weight:600}
+.notes p{margin:0 0 var(--s4);color:var(--ink-2);max-width:60ch}
+.notes table{border-collapse:collapse;width:100%}
+.notes td{padding:3px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:1px;border:1px solid var(--line);vertical-align:-3px;margin-right:6px}
+.ts span{display:block;line-height:1.25;margin:2px 0}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Tabler Icons style: 24 grid, outline, stroke 1.5, round caps -->
+  <symbol id="i-photo" viewBox="0 0 24 24"><path d="M15 8h.01"/><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 16l5-5c.93-.9 2.07-.9 3 0l5 5"/><path d="M14 14l1-1c.93-.9 2.07-.9 3 0l3 3"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 11h16M11 11v9"/></symbol>
+  <symbol id="i-sticker" viewBox="0 0 24 24"><path d="M20 12l-2 .5A6 6 0 0 1 11.5 6l.5-2 8 8"/><path d="M20 12a8 8 0 1 1-8-8"/></symbol>
+  <symbol id="i-bg" viewBox="0 0 24 24"><path d="M4 8l4-4M14 4L4 14M4 20L20 4M20 10L10 20M20 16l-4 4"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M6 5h12M12 5v14M9 19h6"/></symbol>
+  <symbol id="i-shapes" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M15 4l4 6h-8z"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 1 1 0 8h-1"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l4-4-4-4"/><path d="M19 10H8a4 4 0 1 0 0 8h1"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M21 12c-2.4 4-5.4 6-9 6s-6.6-2-9-6c2.4-4 5.4-6 9-6s6.6 2 9 6"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M11.5 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v5"/><path d="M15 19h7M19 16l3 3-3 3"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3h.4a7.5 7.5 0 0 0 7.9 12.4A9 9 0 1 1 12 3z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></symbol>
+  <symbol id="i-guides" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M7 7h10v10H7z" stroke-dasharray="2 2"/></symbol>
+  <symbol id="i-crop" viewBox="0 0 24 24"><path d="M8 5v10a1 1 0 0 0 1 1h10"/><path d="M5 8h10a1 1 0 0 1 1 1v10"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 1 1 8 0v4"/></symbol>
+  <symbol id="i-al" viewBox="0 0 24 24"><path d="M4 4v16M8 6h12v4H8zM8 14h7v4H8z"/></symbol>
+  <symbol id="i-ac" viewBox="0 0 24 24"><path d="M12 4v16M6 6h12v4H6zM8 14h8v4H8z"/></symbol>
+  <symbol id="i-ar" viewBox="0 0 24 24"><path d="M20 4v16M4 6h12v4H4zM9 14h7v4H9z"/></symbol>
+  <symbol id="i-front" viewBox="0 0 24 24"><path d="M12 4l-8 4 8 4 8-4-8-4"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="top" aria-label="Barre du haut">
+    <span class="mark">travelbook</span>
+    <span class="sep"></span>
+    <span class="title">Islande 2026</span>
+    <span class="saved">Enregistré</span>
+    <span class="grow"></span>
+    <button class="ib" title="Annuler (Ctrl+Z)" aria-label="Annuler"><svg class="i"><use href="#i-undo"/></svg></button>
+    <button class="ib" title="Rétablir (Ctrl+Maj+Z)" aria-label="Rétablir" disabled><svg class="i"><use href="#i-redo"/></svg></button>
+    <span class="sep"></span>
+    <div class="zoom" role="group" aria-label="Zoom">
+      <button class="ib" aria-label="Zoom arrière"><svg class="i"><use href="#i-minus"/></svg></button>
+      <output>86 %</output>
+      <button class="ib" aria-label="Zoom avant"><svg class="i"><use href="#i-plus"/></svg></button>
+    </div>
+    <span class="sep"></span>
+    <button class="btn"><svg class="i"><use href="#i-eye"/></svg>Aperçu</button>
+    <button class="btn primary"><svg class="i"><use href="#i-export"/></svg>Exporter</button>
+    <span class="sep"></span>
+    <button class="ib" id="theme" title="Thème clair ou sombre" aria-label="Changer de thème"><svg class="i"><use href="#i-moon"/></svg></button>
+    <button class="ib" id="notesBtn" title="Notes de direction" aria-label="Notes de direction" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+  </header>
+
+  <nav class="rail" aria-label="Outils">
+    <button aria-pressed="true"><svg class="i"><use href="#i-photo"/></svg>Photos</button>
+    <button aria-pressed="false"><svg class="i"><use href="#i-layout"/></svg>Modèles</button>
+    <button aria-pressed="false"><svg class="i"><use href="#i-sticker"/></svg>Stickers</button>
+    <button aria-pressed="false"><svg class="i"><use href="#i-bg"/></svg>Fonds</button>
+    <button aria-pressed="false"><svg class="i"><use href="#i-text"/></svg>Texte</button>
+    <button aria-pressed="false"><svg class="i"><use href="#i-shapes"/></svg>Formes</button>
+  </nav>
+
+  <section class="panel" aria-label="Panneau Photos">
+    <div class="ph-head"><h2>Photos <span class="count">48</span></h2></div>
+    <label class="search"><svg class="i" style="width:15px;height:15px"><use href="#i-search"/></svg><input placeholder="Rechercher un nom ou une date" aria-label="Rechercher"></label>
+    <div class="seg" role="group" aria-label="Filtrer">
+      <button aria-pressed="true">Toutes 48</button>
+      <button aria-pressed="false">Libres 31</button>
+      <button aria-pressed="false">Placées 17</button>
+    </div>
+    <div class="scroll">
+      <div class="day"><span>Jour 1, mercredi 10 juin</span><span>14</span></div>
+      <div class="grid">
+        <div class="th"><div class="ph p-route"></div><span class="used" title="Placée 1 fois">1</span></div>
+        <div class="th"><div class="ph p-maison"></div></div>
+        <div class="th"><div class="ph p-mousse"></div><span class="used">1</span></div>
+        <div class="th"><div class="ph p-plage"></div></div>
+        <div class="th"><div class="ph p-sable"></div></div>
+        <div class="th"><div class="ph p-glace"></div><span class="used">2</span></div>
+        <div class="th"><div class="ph p-cascade"></div></div>
+        <div class="th"><div class="ph p-fjord"></div></div>
+        <div class="th"><div class="ph p-route" style="filter:brightness(.9)"></div></div>
+      </div>
+      <div class="day"><span>Jour 2, jeudi 11 juin</span><span>21</span></div>
+      <div class="grid">
+        <div class="th on"><div class="ph p-aurore"></div><span class="used">1</span></div>
+        <div class="th"><div class="ph p-lagon"></div><span class="used">1</span></div>
+        <div class="th"><div class="ph p-cascade"></div><span class="used">1</span></div>
+        <div class="th"><div class="ph p-plage"></div><span class="used">1</span></div>
+        <div class="th"><div class="ph p-glace"></div></div>
+        <div class="th"><div class="ph p-mousse"></div></div>
+        <div class="th"><div class="ph p-fjord"></div></div>
+        <div class="th"><div class="ph p-sable"></div></div>
+        <div class="th"><div class="ph p-maison"></div></div>
+        <div class="th"><div class="ph p-lagon"></div></div>
+        <div class="th"><div class="ph p-aurore"></div></div>
+        <div class="th"><div class="ph p-route"></div></div>
+      </div>
+    </div>
+    <button class="btn import"><svg class="i"><use href="#i-plus"/></svg>Importer des photos</button>
+  </section>
+
+  <main class="canvas" aria-label="Double page 4–5">
+    <div class="canvas-tools" role="group" aria-label="Repères">
+      <button class="ib" aria-pressed="true"><svg class="i" style="width:15px;height:15px"><use href="#i-guides"/></svg>Repères</button>
+      <button class="ib" aria-pressed="true">Fond perdu</button>
+      <button class="ib" aria-pressed="true">Marges</button>
+      <button class="ib" aria-pressed="true">Pli</button>
+    </div>
+
+    <div class="spread">
+      <div class="page l">
+        <div class="el ph p-lagon" style="--x:-3;--y:-3;--w:213;--h:303"></div>
+      </div>
+      <div class="page r">
+        <div class="el ph p-aurore sel" style="--x:10;--y:10;--w:190;--h:128">
+          <span class="badge" aria-label="Résolution acceptable : 212 ppp"><i></i>212 ppp</span>
+          <span class="rot"></span>
+          <span class="hd nw"></span><span class="hd n"></span><span class="hd ne"></span><span class="hd e"></span>
+          <span class="hd se"></span><span class="hd s"></span><span class="hd sw"></span><span class="hd w"></span>
+        </div>
+        <div class="el ph p-cascade" style="--x:10;--y:143;--w:92.5;--h:92"></div>
+        <div class="el ph p-plage" style="--x:107.5;--y:143;--w:92.5;--h:92"></div>
+        <div class="el caption" style="--x:10;--y:246;--w:190;--h:41">
+          <h3>Snæfellsnes, la deuxième nuit</h3>
+          <p>Debout à cinq heures pour les aurores. Il faisait −4 °C et personne ne parlait.</p>
+        </div>
+      </div>
+      <div class="guides" aria-hidden="true">
+        <span class="g bleed"></span><span class="g safe l"></span><span class="g safe r"></span><span class="g gutter"></span>
+      </div>
+    </div>
+    <span class="spread-label">Pages 4 et 5</span>
+  </main>
+
+  <aside class="insp" aria-label="Inspecteur">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true">Propriétés</button>
+      <button role="tab" aria-selected="false">Calques</button>
+      <button role="tab" aria-selected="false">Historique</button>
+    </div>
+    <div class="sec">
+      <h3>Photo</h3>
+      <p class="file">IMG_4471.jpg, 4032 × 3024</p>
+    </div>
+    <div class="sec">
+      <div class="props">
+        <div class="f"><b>X</b><span>10,0</span><em>mm</em></div>
+        <div class="f"><b>Y</b><span>10,0</span><em>mm</em></div>
+        <div class="f"><b>L</b><span>190,0</span><em>mm</em></div>
+        <div class="f"><b>H</b><span>128,0</span><em>mm</em></div>
+        <div class="f"><b>↻</b><span>0</span><em>°</em></div>
+        <div class="f"><b>%</b><span>254</span><em>zoom</em></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>Résolution à l'impression</h3>
+      <div class="res"><strong>212 ppp</strong><span>Acceptable</span></div>
+      <div class="meter"><i></i></div>
+      <div class="scale"><span>Faible</span><span>150</span><span>250</span><span>Bonne</span></div>
+    </div>
+    <div class="sec">
+      <div class="row"><span>Bordure</span><span>0 mm</span></div>
+      <div class="row"><span>Coins arrondis</span><span>0 mm</span></div>
+      <div class="row"><span>Opacité</span><span>100 %</span></div>
+      <div class="row"><span>Recadrer</span><button class="ib" aria-label="Recadrer"><svg class="i"><use href="#i-crop"/></svg></button></div>
+    </div>
+    <div class="sec">
+      <h3>Disposer</h3>
+      <div class="tools">
+        <button class="ib" aria-label="Aligner à gauche"><svg class="i"><use href="#i-al"/></svg></button>
+        <button class="ib" aria-label="Centrer"><svg class="i"><use href="#i-ac"/></svg></button>
+        <button class="ib" aria-label="Aligner à droite"><svg class="i"><use href="#i-ar"/></svg></button>
+        <button class="ib" aria-label="Premier plan"><svg class="i"><use href="#i-front"/></svg></button>
+        <button class="ib" aria-label="Verrouiller"><svg class="i"><use href="#i-lock"/></svg></button>
+      </div>
+    </div>
+  </aside>
+
+  <footer class="strip" aria-label="Doubles pages">
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-sable" style="inset:0"></div></div><div class="pg"><div class="ph p-glace" style="inset:6px"></div></div></div>Couverture</div>
+    <div class="sp"><div class="mini"><div class="pg" style="background:#f2f2f2"></div><div class="pg"><div class="ph p-route" style="inset:8px 6px 18px"></div></div></div>1</div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-maison" style="inset:0"></div></div><div class="pg"><div class="ph p-mousse" style="inset:4px 4px 26px"></div><div class="ph p-fjord" style="inset:26px 4px 4px"></div></div></div>2–3</div>
+    <div class="sp on"><div class="mini"><div class="pg"><div class="ph p-lagon" style="inset:0"></div></div><div class="pg"><div class="ph p-aurore" style="inset:2px 2px 28px"></div><div class="ph p-cascade" style="left:2px;top:24px;width:15px;height:15px"></div><div class="ph p-plage" style="right:2px;top:24px;width:15px;height:15px"></div></div></div>4–5</div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-glace" style="inset:4px"></div></div><div class="pg"><div class="ph p-glace" style="inset:4px"></div></div></div>6–7</div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-fjord" style="inset:4px 4px 20px"></div></div><div class="pg"><div class="ph p-sable" style="inset:0"></div></div></div>8–9</div>
+    <div class="sp"><div class="mini"><div class="pg"><div class="ph p-mousse" style="inset:0"></div></div><div class="pg"><div class="ph p-route" style="inset:0"></div></div></div>10–11</div>
+    <div class="sp"><div class="mini"><div class="pg"></div><div class="pg"></div></div>12–13</div>
+    <div class="sp"><div class="mini"><div class="pg"></div><div class="pg"></div></div>14–15</div>
+    <div class="sp"><div class="mini"><div class="pg"></div><div class="pg"></div></div>16–17</div>
+    <button class="add"><svg class="i"><use href="#i-plus"/></svg>Double page</button>
+    <span class="pages">24 pages, 21 × 29,7 cm</span>
+  </footer>
+</div>
+
+<aside class="notes" id="dir-notes" aria-label="Notes de direction" hidden>
+  <h2>A. Gris neutre</h2>
+  <p>Une cabine de jugement des couleurs. La page repose sur un gris moyen neutre, l'interface n'a aucune teinte. Les états actifs inversent le contraste, la sélection est un double filet blanc et noir lisible sur toute photo, les repères se dessinent en mode différence. Seuls les trois niveaux de résolution portent une couleur.</p>
+  <h3>Échelle typographique</h3>
+  <p>IBM Plex Sans (OFL, embarquée), chiffres tabulaires. Seconde majeure, base 13 px.</p>
+  <div class="ts">
+    <span style="font-size:16px">16 px, titres de panneau importants</span>
+    <span style="font-size:14.5px">14,5 px, titre de panneau</span>
+    <span style="font-size:13px">13 px, texte courant</span>
+    <span style="font-size:12px">12 px, champs et boutons</span>
+    <span style="font-size:11px">11 px, légendes et compteurs</span>
+  </div>
+  <h3>Espacements</h3>
+  <p>Base 4 px : 2, 4, 6, 8, 12, 16, 24, 32. Rayons 2 et 4 px seulement.</p>
+  <h3>Rôles de couleur (clair, sombre)</h3>
+  <table>
+    <tr><td><span class="swatch" style="background:#9b9b9b"></span><span class="swatch" style="background:#474747"></span>Entourage du plan de travail</td></tr>
+    <tr><td><span class="swatch" style="background:#ececec"></span><span class="swatch" style="background:#262626"></span>Barres, rail, panneaux</td></tr>
+    <tr><td><span class="swatch" style="background:#f7f7f7"></span><span class="swatch" style="background:#2f2f2f"></span>Champs et surfaces</td></tr>
+    <tr><td><span class="swatch" style="background:#1f1f1f"></span><span class="swatch" style="background:#e8e8e8"></span>Encre, et fond des états actifs</td></tr>
+    <tr><td><span class="swatch" style="background:#3f7f52"></span><span class="swatch" style="background:#a8741a"></span><span class="swatch" style="background:#b0413e"></span>Résolution bonne, acceptable, faible</td></tr>
+  </table>
+  <h3>Icônes</h3>
+  <p>Tabler Icons (@iconify-json/tabler), contour, trait 1,5 à 18 px.</p>
+  <h3>Mouvement</h3>
+  <p>80 ms pour survol et pression, 120 ms linéaire pour changer de panneau. Rien ne bouge seul. Mouvement réduit : 0 ms.</p>
+  <h3>Compromis</h3>
+  <p>Le plus fidèle pour juger les couleurs et le plus dense. Peut sembler austère et « logiciel pro » pour un album de vacances.</p>
+</aside>
+
+<script>
+(function(){
+  var root=document.documentElement, notes=document.getElementById("dir-notes"), nb=document.getElementById('notesBtn');
+  document.getElementById('theme').addEventListener('click',function(){
+    root.dataset.theme = root.dataset.theme==='dark' ? 'light' : 'dark';
+  });
+  nb.addEventListener('click',function(){
+    notes.hidden=!notes.hidden; nb.setAttribute('aria-expanded',String(!notes.hidden));
+  });
+  var h=location.hash;
+  if(h.indexOf('light')>-1) root.dataset.theme='light';
+  if(h.indexOf('dark')>-1) root.dataset.theme='dark';
+  if(h.indexOf('notes')>-1){notes.hidden=false;nb.setAttribute('aria-expanded','true');}
+})();
+</script>
+</body>
+</html>
