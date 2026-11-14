@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ensureFixtures, fixturePath } from '../../../tests/fixtures/make-fixtures';
+import type { Template } from '@travelbook/core';
 import type { TbApi } from '../src/shared/api';
 import { launchApp } from './launch';
 
@@ -140,6 +141,108 @@ test('the renderer creates a project, imports two photos and shows them through 
   expect(reopened.recent).toEqual([done.dir]);
 });
 
+test('the user library keeps files, serves them through tb://library and copies them into the album', async () => {
+  const done = await page.evaluate(
+    async ({ file }) => {
+      const tb = (window as unknown as Win).tb;
+      const [item] = await tb.library.add('sticker', [file]);
+      if (!item) throw new Error('add returned nothing');
+      await tb.library.setFavourite(item.id, true);
+      const favourites = await tb.library.list('sticker', { favourite: true });
+      const unused = await tb.library.list('sticker', { recent: 3 });
+      const asset = await tb.assets.fromLibrary(item.id);
+      const again = await tb.assets.fromLibrary(item.id);
+      const recent = await tb.library.list('sticker', { recent: 3 });
+      const found = await tb.library.list('sticker', { text: 'ALPHA' });
+      return { item, favourites, unused, asset, again, recent, found };
+    },
+    { file: fixturePath('alpha.png') },
+  );
+  expect(done.item.id).toMatch(/^sticker-[0-9a-f]{16}$/);
+  expect(done.favourites.map((i) => i.id)).toEqual([done.item.id]);
+  expect(done.found.map((i) => i.id)).toEqual([done.item.id]);
+  expect(done.unused).toEqual([]);
+  expect(done.recent.map((i) => i.id)).toEqual([done.item.id]);
+  expect(done.asset).toMatchObject({
+    id: done.item.id,
+    kind: 'sticker',
+    pixel: { w: 400, h: 300 },
+  });
+  expect(done.again).toEqual(done.asset);
+  expect(await imageWidth(`tb://library/${done.item.id}`)).toBe(400);
+  expect(await imageWidth(`tb://asset/${done.asset.id}?v=original`)).toBe(400);
+
+  const removed = await page.evaluate(async (id) => {
+    const tb = (window as unknown as Win).tb;
+    await tb.library.remove(id);
+    return tb.library.list('sticker');
+  }, done.item.id);
+  expect(removed).toEqual([]);
+  // `fetch` with no-store: the <img> above may be served from the page's memory cache.
+  const gone = await page.evaluate(
+    async (id) => (await fetch(`tb://library/${id}`, { cache: 'no-store' })).status,
+    done.item.id,
+  );
+  expect(gone).toBe(404);
+  // The album keeps its copy.
+  expect(await imageWidth(`tb://asset/${done.asset.id}?v=original`)).toBe(400);
+});
+
+test('user templates are saved, listed and deleted through the typed API', async () => {
+  const result = await page.evaluate(async () => {
+    const tb = (window as unknown as Win).tb;
+    const template: Template = {
+      id: 'deux-photos',
+      name: 'Deux photos',
+      category: 'photos',
+      scope: 'page',
+      photoCount: 2,
+      origin: 'user',
+      grid: {
+        root: { split: 'row', weights: [1, 1], children: [{ slot: 'photo' }, { slot: 'photo' }] },
+        fullBleed: false,
+      },
+    };
+    await tb.library.userTemplates.save(template);
+    const saved = await tb.library.userTemplates.list();
+    await tb.library.userTemplates.delete(template.id);
+    return { template, saved, left: await tb.library.userTemplates.list() };
+  });
+  expect(result.saved).toEqual([result.template]);
+  expect(result.left).toEqual([]);
+});
+
+test('the library is read again after a restart, before anything lists it', async () => {
+  const userData = join(work, 'library restart');
+  const first = await launchApp(userData);
+  const firstPage = await first.firstWindow();
+  await firstPage.waitForLoadState('domcontentloaded');
+  const id = await firstPage.evaluate(async (file) => {
+    const [item] = await (window as unknown as Win).tb.library.add('sticker', [file]);
+    return item?.id ?? '';
+  }, fixturePath('plain.svg'));
+  expect(id).toMatch(/^sticker-[0-9a-f]{16}$/);
+  await first.close();
+
+  const second = await launchApp(userData);
+  try {
+    const secondPage = await second.firstWindow();
+    await secondPage.waitForLoadState('domcontentloaded');
+    // The first thing the page does is ask for the file: nothing has listed the library yet.
+    const status = await secondPage.evaluate(
+      async (itemId) => (await fetch(`tb://library/${itemId}`)).status,
+      id,
+    );
+    expect(status).toBe(200);
+    const items = await secondPage.evaluate(() =>
+      (window as unknown as Win).tb.library.list('sticker'),
+    );
+    expect(items.map((i) => i.id)).toEqual([id]);
+  } finally {
+    await second.close();
+  }
+});
+
 test('tb:// refuses ids and paths that escape, and unknown assets', async () => {
   const urls = [
     'tb://asset/nope?v=thumb',
@@ -184,6 +287,9 @@ test('main refuses what the renderer should never ask for', async () => {
       relative: await message(() => tb.photos.import(['relative/path.jpg'])),
       photoKind: await message(() => tb.assets.importFiles('photo' as 'font', ['/tmp/a.png'])),
       library: await message(() => tb.assets.fromLibrary('item1')),
+      template: await message(() => tb.library.add('template' as 'sticker', ['/tmp/a.png'])),
+      badTemplate: await message(() => tb.library.userTemplates.save({} as never)),
+      badFavourite: await message(() => tb.library.setFavourite('../x', true)),
     };
   });
   expect(errors.http).toMatch(/app:openExternal.*https/);
@@ -192,5 +298,8 @@ test('main refuses what the renderer should never ask for', async () => {
   expect(errors.snapshotId).toMatch(/project:readSnapshot/);
   expect(errors.relative).toMatch(/photos:import/);
   expect(errors.photoKind).toMatch(/assets:importFiles/);
-  expect(errors.library).toMatch(/not implemented yet/);
+  expect(errors.library).toMatch(/Unknown library item/);
+  expect(errors.template).toMatch(/library:add/);
+  expect(errors.badTemplate).toMatch(/library:saveTemplate/);
+  expect(errors.badFavourite).toMatch(/library:setFavourite/);
 });

@@ -3,9 +3,10 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
+import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { ensureProxies } from './photos/proxies';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
-import { currentSession, tbRoots } from './session';
+import { currentSession, setLibraryFileLookup, tbRoots } from './session';
 import { restrictToAppPage } from './window-guard';
 
 // Must run before the app is ready.
@@ -52,12 +53,18 @@ function isTrustedSender(event: IpcMainInvokeEvent): boolean {
   return frame !== null && frame === event.sender.mainFrame && isTrustedPage(frame.url, appPage);
 }
 
-void app.whenReady().then(() => {
+void app.whenReady().then(async () => {
   // The folder holding the bundled resources; Task 8.1 ships them next to the app when packaged.
   const resourcesDir = app.isPackaged
     ? join(process.resourcesPath, 'resources')
     : join(app.getAppPath(), 'resources');
-  const libraryDir = join(app.getPath('userData'), 'library');
+  const libraryDir = join(app.getPath('userData'), LIBRARY_FOLDER);
+
+  // tb://library/<id> is answered from the library index, which is read once before any window.
+  setLibraryFileLookup(libraryFile);
+  await primeLibraryLookup().catch((error: unknown) => {
+    console.warn('Could not read the user library:', error);
+  });
 
   installTbProtocol(protocol, {
     roots: () => tbRoots(currentSession(), { libraryDir, resourcesDir }),

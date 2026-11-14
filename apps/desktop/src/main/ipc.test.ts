@@ -4,11 +4,12 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { newBook, type AssetRef, type Book } from '@travelbook/core';
+import { newBook, type AssetRef, type Book, type Template } from '@travelbook/core';
 import { fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
 import type {
   ImportReport,
+  LibraryItem,
   OpenedProject,
   ProjectInfo,
   RecentProject,
@@ -22,8 +23,10 @@ import {
   type Host,
   type IpcHandlers,
 } from './ipc';
+import { addToLibrary, listLibrary } from './library/userLibrary';
 import { recentProjects } from './project/recent';
 import { setUserDataDir } from './user-data';
+import { resolveTbUrl } from './protocol';
 import { closeSession, currentSession, knownAssets, tbRoots } from './session';
 import { AUTO_SNAPSHOTS_KEPT } from './project/snapshots';
 
@@ -541,15 +544,110 @@ describe('assets', () => {
   });
 
   describe('fromLibrary', () => {
-    it('is not there before Task 3.4', async () => {
+    const licence = {
+      source: 'Openclipart',
+      author: 'Une auteure',
+      licence: 'CC0 1.0',
+      url: 'https://openclipart.org/detail/1',
+      requiresAttribution: false,
+    };
+    const stickerItem = (title = 'Étoile'): Promise<LibraryItem> =>
+      addToLibrary('sticker', { path: fixturePath('alpha.png'), ext: '.png' }, { title, licence });
+
+    it('copies the item into assets/, indexes the asset and serves it through tb://', async () => {
+      const created = await create();
+      const item = await stickerItem();
+      const asset = await call<AssetRef>(CHANNEL.assetsFromLibrary, item.id);
+      expect(asset).toMatchObject({
+        id: item.id,
+        kind: 'sticker',
+        originalName: 'Étoile.png',
+        pixel: { w: 400, h: 300 },
+        licence,
+      });
+      expect(asset.file).toBe(`assets/${item.id.split('-')[1]}.png`);
+      expect(await exists(join(created.dir, asset.file))).toBe(true);
+      const session = currentSession();
+      expect(session && knownAssets(session)).toEqual({ [asset.id]: asset });
+      const resolved = resolveTbUrl(
+        `tb://asset/${asset.id}?v=original`,
+        tbRoots(session, { libraryDir: '/lib', resourcesDir: '/res' }),
+      );
+      expect(resolved).toMatchObject({ ok: true, path: join(created.dir, asset.file) });
+    });
+
+    it('gives the same asset as importFiles for the same bytes (plus the licence it lacked)', async () => {
       await create();
-      await expect(call(CHANNEL.assetsFromLibrary, 'item1')).rejects.toThrow(/not implemented yet/);
+      const item = await stickerItem();
+      const [imported] = await call<AssetRef[]>(CHANNEL.assetsImportFiles, 'sticker', [
+        fixturePath('alpha.png'),
+      ]);
+      const asset = await call<AssetRef>(CHANNEL.assetsFromLibrary, item.id);
+      expect(asset).toEqual({ ...imported, licence });
+      expect(await readdir(join(currentSession()?.dir ?? '', 'assets'))).toHaveLength(1);
+      const session = currentSession();
+      expect(session && knownAssets(session)).toEqual({ [asset.id]: asset });
+    });
+
+    it('marks the item as used, each time', async () => {
+      await create();
+      const item = await stickerItem();
+      expect(await listLibrary('sticker', { recent: 5 })).toEqual([]);
+      await call(CHANNEL.assetsFromLibrary, item.id);
+      const [used] = await listLibrary('sticker', { recent: 5 });
+      expect(used?.id).toBe(item.id);
+      const first = used?.lastUsedAt ?? '';
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      await call(CHANNEL.assetsFromLibrary, item.id);
+      expect(((await listLibrary('sticker', { recent: 5 }))[0]?.lastUsedAt ?? '') > first).toBe(
+        true,
+      );
+    });
+
+    it('twice, even at the same time, gives one file and one asset', async () => {
+      const created = await create();
+      const item = await stickerItem();
+      const results = await Promise.all([
+        call<AssetRef>(CHANNEL.assetsFromLibrary, item.id),
+        call<AssetRef>(CHANNEL.assetsFromLibrary, item.id),
+        call<AssetRef>(CHANNEL.assetsFromLibrary, item.id),
+      ]);
+      expect(new Set(results.map((a) => JSON.stringify(a))).size).toBe(1);
+      expect(await readdir(join(created.dir, 'assets'))).toHaveLength(1);
+      const session = currentSession();
+      expect(session && Object.keys(knownAssets(session))).toEqual([item.id]);
+    });
+
+    it('answers with the asset the book already holds once the renderer saved it', async () => {
+      await create();
+      const item = await stickerItem();
+      const first = await call<AssetRef>(CHANNEL.assetsFromLibrary, item.id);
+      const session = currentSession();
+      const book = { ...(session?.book ?? newBook({ title: 'x' })), assets: { [first.id]: first } };
+      await call(CHANNEL.projectSave, book);
+      expect(await call<AssetRef>(CHANNEL.assetsFromLibrary, item.id)).toEqual(first);
+    });
+
+    it('needs an open project', async () => {
+      const item = await stickerItem();
+      await expect(call(CHANNEL.assetsFromLibrary, item.id)).rejects.toThrow(/No project is open/);
+      expect(await listLibrary('sticker', { recent: 5 })).toEqual([]);
+    });
+
+    it('rejects an item the library does not hold, and indexes nothing', async () => {
+      await create();
+      await expect(call(CHANNEL.assetsFromLibrary, 'sticker-0000000000000000')).rejects.toThrow(
+        /Unknown library item/,
+      );
+      const session = currentSession();
+      expect(session && knownAssets(session)).toEqual({});
     });
 
     it.each([
       ['no id', []],
       ['an id with a separator', ['a/b']],
       ['a number', [1]],
+      ['two ids', ['a', 'b']],
     ])('rejects %s', async (_label, args) => {
       await expect(call(CHANNEL.assetsFromLibrary, ...args)).rejects.toThrow(/assets:fromLibrary/);
     });
@@ -614,6 +712,201 @@ describe('assets', () => {
     ])('rejects %s', async (_label, ids) => {
       await create();
       await expect(call(CHANNEL.assetsPalette, ids)).rejects.toThrow(/assets:palette/);
+    });
+  });
+});
+
+describe('library', () => {
+  const add = (kind: string, ...paths: string[]): Promise<LibraryItem[]> =>
+    call<LibraryItem[]>(CHANNEL.libraryAdd, kind, paths);
+  const list = (kind: string, query?: unknown): Promise<LibraryItem[]> =>
+    call<LibraryItem[]>(CHANNEL.libraryList, kind, query);
+
+  describe('add and list', () => {
+    it('keeps copies of files, titled with the file name, and lists them', async () => {
+      const [a, b] = await add('sticker', fixturePath('alpha.png'), fixturePath('évasion n°1.jpg'));
+      expect([a?.title, b?.title]).toEqual(['alpha', 'évasion n°1']);
+      expect([a?.kind, b?.kind]).toEqual(['sticker', 'sticker']);
+      expect(a?.id).toMatch(/^sticker-[0-9a-f]{16}$/);
+      expect(await list('sticker')).toEqual([b, a]);
+      expect(await list('background')).toEqual([]);
+    });
+
+    it('gives the existing item for the same bytes, once even if named twice', async () => {
+      const [first] = await add('sticker', fixturePath('alpha.png'));
+      const again = await add('sticker', fixturePath('alpha.png'), fixturePath('alpha.png'));
+      expect(again).toEqual([first]);
+      expect(await list('sticker')).toHaveLength(1);
+    });
+
+    it('takes fonts, and answers an empty list with nothing', async () => {
+      const font = join(root, 'Inter.woff2');
+      await writeFile(font, 'font bytes');
+      const [item] = await add('font', font);
+      expect(item).toMatchObject({ kind: 'font', title: 'Inter', file: `files/${item?.id}.woff2` });
+      expect(await add('sticker')).toEqual([]);
+    });
+
+    it('stops at a file it refuses, names it, and keeps the files before it', async () => {
+      await expect(
+        add(
+          'sticker',
+          fixturePath('alpha.png'),
+          fixturePath('truncated.jpg'),
+          fixturePath('opaque.png'),
+        ),
+      ).rejects.toThrow(/truncated\.jpg/);
+      expect((await list('sticker')).map((i) => i.title)).toEqual(['alpha']);
+    });
+
+    it('refuses a file of the wrong type for the kind, and a missing file', async () => {
+      await expect(add('font', fixturePath('alpha.png'))).rejects.toThrow(/alpha\.png/);
+      await expect(add('sticker', join(root, 'absent.png'))).rejects.toThrow(/absent\.png/);
+      expect(await list('sticker')).toEqual([]);
+    });
+
+    it('searches and filters like listLibrary', async () => {
+      const [a, b] = await add('sticker', fixturePath('alpha.png'), fixturePath('opaque.png'));
+      await call(CHANNEL.librarySetFavourite, a?.id, true);
+      expect((await list('sticker', { text: 'OPAQ' })).map((i) => i.id)).toEqual([b?.id]);
+      expect((await list('sticker', { favourite: true })).map((i) => i.id)).toEqual([a?.id]);
+      expect(await list('sticker', { recent: 3 })).toEqual([]);
+      expect(await list('sticker', undefined)).toHaveLength(2);
+      expect(await list('sticker', {})).toHaveLength(2);
+    });
+
+    it.each([
+      ['no kind', []],
+      ['an unknown kind', ['video']],
+      ['a pattern (not a library kind)', ['pattern']],
+      ['an unknown query key', ['sticker', { colour: 'red' }]],
+      ['a text that is not a string', ['sticker', { text: 1 }]],
+      ['a favourite that is not a boolean', ['sticker', { favourite: 'yes' }]],
+      ['a negative recent', ['sticker', { recent: -1 }]],
+      ['a fractional recent', ['sticker', { recent: 1.5 }]],
+      ['a huge recent', ['sticker', { recent: 1e9 }]],
+      ['a query that is not an object', ['sticker', 'x']],
+      ['too many arguments', ['sticker', {}, 'x']],
+    ])('list rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.libraryList, ...args)).rejects.toThrow(/library:list/);
+    });
+
+    it.each([
+      ['no arguments', []],
+      ['the template kind', ['template', [fixturePath('alpha.png')]]],
+      ['an unknown kind', ['video', [fixturePath('alpha.png')]]],
+      ['paths that are not a list', ['sticker', fixturePath('alpha.png')]],
+      ['a relative path', ['sticker', ['alpha.png']]],
+      ['a path with a NUL', ['sticker', ['/tmp/a\0.png']]],
+      ['an empty path', ['sticker', ['']]],
+    ])('add rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.libraryAdd, ...args)).rejects.toThrow(/library:add/);
+      expect(await list('sticker')).toEqual([]);
+    });
+  });
+
+  describe('setFavourite and remove', () => {
+    it('flips the favourite flag', async () => {
+      const [item] = await add('sticker', fixturePath('alpha.png'));
+      await call(CHANNEL.librarySetFavourite, item?.id, true);
+      expect((await list('sticker'))[0]?.favourite).toBe(true);
+      await call(CHANNEL.librarySetFavourite, item?.id, false);
+      expect((await list('sticker'))[0]?.favourite).toBe(false);
+    });
+
+    it('rejects an unknown item', async () => {
+      await expect(
+        call(CHANNEL.librarySetFavourite, 'sticker-0000000000000000', true),
+      ).rejects.toThrow(/Unknown library item/);
+    });
+
+    it('removes an item and its file; removing it again is fine', async () => {
+      const [item] = await add('sticker', fixturePath('alpha.png'));
+      const file = join(root, 'userdata', 'library', item?.file ?? '');
+      expect(await exists(file)).toBe(true);
+      await call(CHANNEL.libraryRemove, item?.id);
+      await call(CHANNEL.libraryRemove, item?.id);
+      expect(await list('sticker')).toEqual([]);
+      expect(await exists(file)).toBe(false);
+    });
+
+    it('leaves the copy that an album already holds', async () => {
+      const info = await create();
+      const [item] = await add('sticker', fixturePath('alpha.png'));
+      const asset = await call<AssetRef>(CHANNEL.assetsFromLibrary, item?.id);
+      await call(CHANNEL.libraryRemove, item?.id);
+      expect(await exists(join(info.dir, asset.file))).toBe(true);
+    });
+
+    it.each([
+      ['setFavourite with no flag', CHANNEL.librarySetFavourite, ['sticker-1']],
+      ['setFavourite with a non-boolean flag', CHANNEL.librarySetFavourite, ['sticker-1', 1]],
+      ['setFavourite with a bad id', CHANNEL.librarySetFavourite, ['../x', true]],
+      ['remove with no id', CHANNEL.libraryRemove, []],
+      ['remove with a bad id', CHANNEL.libraryRemove, ['a/b']],
+      ['remove with a number', CHANNEL.libraryRemove, [1]],
+    ])('rejects %s', async (_label, channel, args) => {
+      await expect(call(channel, ...args)).rejects.toThrow(new RegExp(channel));
+    });
+  });
+
+  describe('user templates', () => {
+    const template = (id: string, name = 'Deux photos'): Template => ({
+      id,
+      name,
+      category: 'photos',
+      scope: 'page',
+      photoCount: 2,
+      origin: 'user',
+      grid: {
+        root: { split: 'row', weights: [1, 1], children: [{ slot: 'photo' }, { slot: 'photo' }] },
+        fullBleed: false,
+      },
+    });
+
+    it('saves, lists and deletes', async () => {
+      await call(CHANNEL.libraryTemplateSave, template('t1', 'B'));
+      await call(CHANNEL.libraryTemplateSave, template('t2', 'A'));
+      expect(await call<Template[]>(CHANNEL.libraryTemplateList)).toEqual([
+        template('t2', 'A'),
+        template('t1', 'B'),
+      ]);
+      await call(CHANNEL.libraryTemplateDelete, 't1');
+      await call(CHANNEL.libraryTemplateDelete, 't1');
+      expect((await call<Template[]>(CHANNEL.libraryTemplateList)).map((t) => t.id)).toEqual([
+        't2',
+      ]);
+    });
+
+    it.each([
+      ['an empty object', {}],
+      ['a template with a bad scope', { ...template('t1'), scope: 'book' }],
+      ['a template with neither grid nor free', { ...template('t1'), grid: undefined }],
+      ['a template with a negative photo count', { ...template('t1'), photoCount: -1 }],
+      ['a string', 'template'],
+    ])('rejects %s before writing', async (_label, value) => {
+      await expect(call(CHANNEL.libraryTemplateSave, value)).rejects.toThrow(
+        /library:saveTemplate/,
+      );
+      expect(await call(CHANNEL.libraryTemplateList)).toEqual([]);
+    });
+
+    it('rejects a bundled template and an id that is not a plain file name', async () => {
+      await expect(
+        call(CHANNEL.libraryTemplateSave, { ...template('t1'), origin: 'bundled' }),
+      ).rejects.toThrow(/user/);
+      await expect(call(CHANNEL.libraryTemplateSave, template('../escape'))).rejects.toThrow();
+      expect(await call(CHANNEL.libraryTemplateList)).toEqual([]);
+    });
+
+    it.each([
+      ['save with no argument', CHANNEL.libraryTemplateSave, []],
+      ['save with two arguments', CHANNEL.libraryTemplateSave, [{}, {}]],
+      ['list with an argument', CHANNEL.libraryTemplateList, ['x']],
+      ['delete with no id', CHANNEL.libraryTemplateDelete, []],
+      ['delete with a bad id', CHANNEL.libraryTemplateDelete, ['../t1']],
+    ])('rejects %s', async (_label, channel, args) => {
+      await expect(call(channel, ...args)).rejects.toThrow(new RegExp(channel));
     });
   });
 });

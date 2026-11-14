@@ -33,7 +33,17 @@ const tb: TbApi = {
     fromLibrary: (itemId) => ipcRenderer.invoke(CHANNEL.assetsFromLibrary, itemId),
     palette: (assetIds) => ipcRenderer.invoke(CHANNEL.assetsPalette, assetIds),
   },
-  library: {},
+  library: {
+    list: (kind, query) => ipcRenderer.invoke(CHANNEL.libraryList, kind, query),
+    add: (kind, paths) => ipcRenderer.invoke(CHANNEL.libraryAdd, kind, paths),
+    setFavourite: (itemId, on) => ipcRenderer.invoke(CHANNEL.librarySetFavourite, itemId, on),
+    remove: (itemId) => ipcRenderer.invoke(CHANNEL.libraryRemove, itemId),
+    userTemplates: {
+      save: (template) => ipcRenderer.invoke(CHANNEL.libraryTemplateSave, template),
+      list: () => ipcRenderer.invoke(CHANNEL.libraryTemplateList),
+      delete: (templateId) => ipcRenderer.invoke(CHANNEL.libraryTemplateDelete, templateId),
+    },
+  },
   exporter: {},
   app: {
     version: () => ipcRenderer.invoke(CHANNEL.appVersion),
