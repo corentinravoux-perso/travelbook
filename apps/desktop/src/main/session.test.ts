@@ -60,6 +60,24 @@ describe('session', () => {
     expect(knownAssets(session)['a1']?.file).toBe('originals/a1.png');
   });
 
+  it('keeps a photo and an asset of the same bytes apart', () => {
+    const session = openSession('/p/a.travelbook', newBook({ title: 'A' }));
+    const photo = asset('abc123');
+    const background = {
+      ...asset('background-abc123', 'background', 'assets/abc123.jpg'),
+      sha256: photo.sha256,
+    };
+    recordAssets(session, [photo, background]);
+    recordAssets(session, [{ ...background, kind: 'background' }]);
+    expect(Object.keys(knownAssets(session)).sort()).toEqual(['abc123', 'background-abc123']);
+    const roots = tbRoots(session, { libraryDir: '/lib', resourcesDir: '/res' });
+    expect(roots.asset('abc123')).toEqual({ file: 'originals/abc123.jpg', proxies: true });
+    expect(roots.asset('background-abc123')).toEqual({
+      file: 'assets/abc123.jpg',
+      proxies: false,
+    });
+  });
+
   it('describes the open project as the roots of the tb: scheme', () => {
     const book = {
       ...newBook({ title: 'A' }),

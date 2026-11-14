@@ -36,7 +36,7 @@ describe('importAssetFiles', () => {
     const sha = await sha256(src);
     expect(rest).toEqual([]);
     expect(asset).toEqual({
-      id: sha.slice(0, 16),
+      id: `sticker-${sha.slice(0, 16)}`,
       kind: 'sticker',
       file: `assets/${sha.slice(0, 16)}.png`,
       originalName: 'alpha.png',
@@ -47,12 +47,41 @@ describe('importAssetFiles', () => {
     expect(await listAssets()).toEqual([`${sha.slice(0, 16)}.png`]);
   });
 
-  it('uses the same ids as the photo import', async () => {
+  it('names an asset <kind>-<sha16> and keeps the file name <sha16>.<ext>', async () => {
+    const png = fixturePath('alpha.png');
+    const sha16 = (await sha256(png)).slice(0, 16);
+    for (const kind of ['sticker', 'background', 'pattern'] as const) {
+      const [asset] = await importAssetFiles(project, kind, [png]);
+      expect(asset?.id).toBe(`${kind}-${sha16}`);
+      expect(asset?.file).toBe(`assets/${sha16}.png`);
+    }
+    const font = join(work, 'Inter.woff2');
+    await writeFile(font, 'font bytes');
+    const [asset] = await importAssetFiles(project, 'font', [font]);
+    expect(asset?.id).toBe(`font-${(await sha256(font)).slice(0, 16)}`);
+  });
+
+  it('never gives an asset the id of a photo with the same bytes', async () => {
     const src = fixturePath('small.jpg');
     const report = await importPhotos(project, newBook({ title: 'A' }), [src]);
-    const [asset] = await importAssetFiles(project, 'background', [src]);
-    expect(asset?.id).toBe(report.added[0]?.id);
-    expect(asset?.sha256).toBe(report.added[0]?.sha256);
+    const photo = report.added[0];
+    const [background] = await importAssetFiles(project, 'background', [src]);
+    // The photo keeps the bare sha16 (Task 3.2); the asset lives in its own id space.
+    expect(photo?.id).toMatch(/^[0-9a-f]{16}$/);
+    expect(background?.id).toBe(`background-${photo?.id}`);
+    expect(background?.id).not.toBe(photo?.id);
+    expect(background?.sha256).toBe(photo?.sha256);
+    expect(background?.file).toBe(`assets/${photo?.id}.jpg`);
+    expect(photo?.file).toBe(`originals/${photo?.id}.jpg`);
+  });
+
+  it('keeps one file and two assets when the same bytes come as two kinds', async () => {
+    const src = fixturePath('alpha.png');
+    const [sticker] = await importAssetFiles(project, 'sticker', [src]);
+    const [pattern] = await importAssetFiles(project, 'pattern', [src]);
+    expect(sticker?.id).not.toBe(pattern?.id);
+    expect(sticker?.file).toBe(pattern?.file);
+    expect(await listAssets()).toHaveLength(1);
   });
 
   it('measures the size after EXIF orientation', async () => {
