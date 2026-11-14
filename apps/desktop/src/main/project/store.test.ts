@@ -13,7 +13,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BookFormatError, newBook, setIdSource, type AssetRef, type Book } from '@travelbook/core';
-import { recentProjects, setUserDataDir } from './recent';
+import { setUserDataDir } from '../user-data';
+import { recentProjects } from './recent';
 import { listSnapshots, readSnapshot, writeSnapshot } from './snapshots';
 import { createProject, openProject, saveBook, slugify } from './store';
 
