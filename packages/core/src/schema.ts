@@ -85,8 +85,13 @@ export interface PhotoElement extends ElementBase {
   };
 }
 
+/** What a text frame is for. Templates have text slots of a role; a text element remembers its own. */
+export type TextRole = 'title' | 'caption' | 'body';
+
 export interface TextElement extends ElementBase {
   type: 'text';
+  /** Role of the slot this text was created in, if any: applying a template moves it to a slot of the same role. */
+  textRole?: TextRole;
   /** Tiptap JSON document. */
   doc: unknown;
   style: {
@@ -241,9 +246,12 @@ const PhotoSchema = z.object({
   }),
 });
 
+export const TextRoleSchema = z.enum(['title', 'caption', 'body']);
+
 const TextSchema = z.object({
   ...elementBase,
   type: z.literal('text'),
+  textRole: TextRoleSchema.optional(),
   doc: z.custom<unknown>(
     (v) => typeof v === 'object' && v !== null && (v as { type?: unknown }).type === 'doc',
     { message: 'doc must be a Tiptap document ({ type: "doc", ... })' },

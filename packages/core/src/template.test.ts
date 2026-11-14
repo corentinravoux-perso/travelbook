@@ -4,6 +4,7 @@ import { newElement } from './factory';
 import {
   TemplateSchema,
   layoutTemplate,
+  readingOrder,
   type FreeSlot,
   type LayoutNode,
   type Template,
@@ -138,6 +139,27 @@ describe('layoutTemplate', () => {
     );
     const out = layoutTemplate(t, box, 0, { margin: 0, gap: 0 });
     expect(out[1]).toMatchObject({ kind: 'text', textRole: 'caption' });
+  });
+});
+
+describe('readingOrder', () => {
+  const r = (x: number, y: number, tag: string) => ({ x, y, w: 10, h: 10, tag });
+
+  it('sorts any rectangles top to bottom, then left to right', () => {
+    const out = readingOrder([r(50, 0, 'b'), r(0, 40, 'c'), r(0, 0, 'a')]);
+    expect(out.map((o) => o.tag)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('keeps the extra fields of its input and does not mutate the input array', () => {
+    const input = [r(5, 5, 'b'), r(0, 0, 'a')];
+    const out = readingOrder(input);
+    expect(out[0]).toBe(input[1]);
+    expect(input.map((o) => o.tag)).toEqual(['b', 'a']);
+  });
+
+  it('treats a y difference of at most 0.5 mm as the same row', () => {
+    const out = readingOrder([r(50, 0, 'right'), r(0, 0.5, 'left'), r(0, 0.6, 'below')]);
+    expect(out.map((o) => o.tag)).toEqual(['left', 'right', 'below']);
   });
 });
 
