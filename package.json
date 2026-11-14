@@ -1,0 +1,40 @@
+{
+  "name": "travelbook",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Desktop app for composing printed travel photo albums.",
+  "license": "MIT",
+  "author": "Corentin Ravoux",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "postinstall": "install-electron",
+    "dev": "npm run dev -w @travelbook/desktop",
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "e2e": "npm run e2e -w @travelbook/desktop",
+    "dist:linux": "npm run dist:linux -w @travelbook/desktop",
+    "dist:win": "npm run dist:win -w @travelbook/desktop"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.6.6",
+    "eslint": "10.15.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "prettier": "3.10.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vitest": "5.1.0"
+  },
+  "allowScripts": {
+    "electron-winstaller": false
+  }
+}
