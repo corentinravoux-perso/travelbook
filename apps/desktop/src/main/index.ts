@@ -8,7 +8,7 @@ function createWindow(): BrowserWindow {
     title: 'travelbook',
     show: false,
     webPreferences: {
-      preload: join(import.meta.dirname, '../preload/index.mjs'),
+      preload: join(import.meta.dirname, '../preload/index.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,

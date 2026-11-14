@@ -13,6 +13,18 @@ test('the app starts and the window title is travelbook', async () => {
     const page = await app.firstWindow();
     await expect(page).toHaveTitle('travelbook');
     await expect(page.locator('h1')).toHaveText('travelbook');
+
+    // The sandboxed preload ran and exposed its marker through contextBridge.
+    expect(await page.evaluate(() => (window as unknown as { tb?: unknown }).tb)).toEqual({
+      ready: true,
+    });
+    // The renderer is isolated: no Node globals.
+    expect(await page.evaluate(() => typeof (window as { require?: unknown }).require)).toBe(
+      'undefined',
+    );
+    expect(await page.evaluate(() => typeof (window as { process?: unknown }).process)).toBe(
+      'undefined',
+    );
   } finally {
     await app.close();
   }
