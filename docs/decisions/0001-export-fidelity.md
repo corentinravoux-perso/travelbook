@@ -21,12 +21,12 @@ Commands run from `spikes/export-fidelity/`; PDF flags noted per measurement.
 
 Target 216 x 303 mm = 612.283 x 858.898 pt.
 
-| `printToPDF` options | Result (pt) | mm | delta (mm) |
-| --- | --- | --- | --- |
-| only CSS `@page` (Electron default, `preferCSSPageSize` false) | 612 x 792 | 215.900 x 279.400 | CSS ignored, Letter |
-| `preferCSSPageSize: true` | 612 x 858.96 | 215.900 x 303.022 | -0.100 / +0.022 |
-| `pageSize: {width: 216/25.4, height: 303/25.4}` (inches) | 612.96 x 858.96 | 216.239 x 303.022 | +0.239 / +0.022 |
-| `pageSize` in microns (216000 x 303000) | no PDF: `Failed to generate PDF: Printing failed` (printToPDF takes inches) | - | - |
+| `printToPDF` options                                           | Result (pt)                                                                 | mm                | delta (mm)          |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------- | ------------------- |
+| only CSS `@page` (Electron default, `preferCSSPageSize` false) | 612 x 792                                                                   | 215.900 x 279.400 | CSS ignored, Letter |
+| `preferCSSPageSize: true`                                      | 612 x 858.96                                                                | 215.900 x 303.022 | -0.100 / +0.022     |
+| `pageSize: {width: 216/25.4, height: 303/25.4}` (inches)       | 612.96 x 858.96                                                             | 216.239 x 303.022 | +0.239 / +0.022     |
+| `pageSize` in microns (216000 x 303000)                        | no PDF: `Failed to generate PDF: Printing failed` (printToPDF takes inches) | -                 | -                   |
 
 Chromium quantises page sizes (other widths tried: 210 mm gives 209.889, 217 gives 217.001, 218 gives 218.017, 230 gives 230.039).
 Verdict: `preferCSSPageSize: true` is the only usable mode. Height is exact; width is short by exactly 0.100 mm,
@@ -35,13 +35,13 @@ BleedBox are set there anyway).
 
 ### 2. Image pixel sizes and encoding (`pdfimages -list out/out-prefer-css.pdf`)
 
-| Photo | Source | In PDF | Encoding | Size in PDF |
-| --- | --- | --- | --- | --- |
-| frame (rounded corners + shadow) | 2551 x 1700, 1,867,543 B | 2551 x 1700 | `jpeg`, passthrough (not re-encoded) | 1824K (= source) |
-| opacity .8 + rotate 7 degrees | 1600 x 1200, 843,614 B | 1600 x 1200 | `jpeg`, passthrough | 824K (= source) |
-| ellipse clip + `filter` | 1800 x 1800, 1,403,955 B | **948 x 797** | **`image` (Flate, lossless re-encode)** | **2116K + 2.2K smask** |
-| PNG sticker (alpha, rotated) | 600 x 600 | 600 x 600 + 600 x 600 smask | Flate (lossless) | 78K + 30K |
-| SVG sticker | - | no image object: vector | - | - |
+| Photo                            | Source                   | In PDF                      | Encoding                                | Size in PDF            |
+| -------------------------------- | ------------------------ | --------------------------- | --------------------------------------- | ---------------------- |
+| frame (rounded corners + shadow) | 2551 x 1700, 1,867,543 B | 2551 x 1700                 | `jpeg`, passthrough (not re-encoded)    | 1824K (= source)       |
+| opacity .8 + rotate 7 degrees    | 1600 x 1200, 843,614 B   | 1600 x 1200                 | `jpeg`, passthrough                     | 824K (= source)        |
+| ellipse clip + `filter`          | 1800 x 1800, 1,403,955 B | **948 x 797**               | **`image` (Flate, lossless re-encode)** | **2116K + 2.2K smask** |
+| PNG sticker (alpha, rotated)     | 600 x 600                | 600 x 600 + 600 x 600 smask | Flate (lossless)                        | 78K + 30K              |
+| SVG sticker                      | -                        | no image object: vector     | -                                       | -                      |
 
 Extra raster objects Chromium creates, not photos: box-shadow mask 2469 x 1713 gray JPEG (300 dpi, 35K); text-shadow mask
 1177 x 158 gray JPEG (300 dpi, 8K).
@@ -54,26 +54,26 @@ The 948 x 797 size is the bounding box of the clipped ellipse at 300 dpi.
 
 ### 4. Effects, each alone (`... run.mjs --prefer-css --variants`, `out/var-*.pdf`; one photo, one effect, `pdfimages -list`)
 
-| Effect alone | Photo in PDF | Result |
-| --- | --- | --- |
-| plain (no effect) | 2551 x 1700 jpeg | passthrough |
-| `border-radius` + `overflow: hidden` | 2551 x 1700 jpeg | passthrough |
-| `box-shadow` | 2551 x 1700 jpeg + 2469 x 1713 gray shadow mask | passthrough, shadow is a separate 300 dpi mask |
-| `clip-path: ellipse()` | 1800 x 1800 jpeg | passthrough |
-| `filter: saturate(1.3) contrast(1.1)` (no clip) | **950 x 950 rgb Flate** (+ smask) | **photo rasterised at 300 dpi of its 80 mm frame, 1800 px source downsampled, 2.5 MB** |
-| `opacity: .8` | 1600 x 1200 jpeg | passthrough |
-| `transform: rotate(7deg)` | 1600 x 1200 jpeg | passthrough |
-| `text-shadow` | text vector + 1177 x 158 gray mask | text unaffected |
-| PNG sticker, SVG sticker (rotated) | 600 x 600 Flate + smask; SVG vector | fine |
+| Effect alone                                    | Photo in PDF                                    | Result                                                                                 |
+| ----------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| plain (no effect)                               | 2551 x 1700 jpeg                                | passthrough                                                                            |
+| `border-radius` + `overflow: hidden`            | 2551 x 1700 jpeg                                | passthrough                                                                            |
+| `box-shadow`                                    | 2551 x 1700 jpeg + 2469 x 1713 gray shadow mask | passthrough, shadow is a separate 300 dpi mask                                         |
+| `clip-path: ellipse()`                          | 1800 x 1800 jpeg                                | passthrough                                                                            |
+| `filter: saturate(1.3) contrast(1.1)` (no clip) | **950 x 950 rgb Flate** (+ smask)               | **photo rasterised at 300 dpi of its 80 mm frame, 1800 px source downsampled, 2.5 MB** |
+| `opacity: .8`                                   | 1600 x 1200 jpeg                                | passthrough                                                                            |
+| `transform: rotate(7deg)`                       | 1600 x 1200 jpeg                                | passthrough                                                                            |
+| `text-shadow`                                   | text vector + 1177 x 158 gray mask              | text unaffected                                                                        |
+| PNG sticker, SVG sticker (rotated)              | 600 x 600 Flate + smask; SVG vector             | fine                                                                                   |
 
 Only `filter` rasterises, and it rasterises that photo alone. No effect rasterised the whole page.
 
 ### 5. Captures (`run.mjs --prefer-css --dpi=300|600`, `Emulation.setDeviceMetricsOverride` + `Page.captureScreenshot` with `clip.scale`, offscreen window)
 
-| dpi | Output (px) | Time | Peak memory |
-| --- | --- | --- | --- |
+| dpi | Output (px) | Time                                | Peak memory                                                                                                                                                 |
+| --- | ----------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 300 | 2551 x 3579 | 1.7 s capture (2.8 s whole process) | `/usr/bin/time -v` max RSS of the Electron main process 384 MB; `app.getAppMetrics` peak working set: Browser 384 MB, GPU 260 MB, Tab 231 MB, Utility 90 MB |
-| 600 | 5102 x 7157 | 6.6 s capture (7.8 s whole process) | max RSS 941 MB; Browser 941 MB, GPU 802 MB, Tab 359 MB, Utility 88 MB (sum of peaks about 2.2 GB) |
+| 600 | 5102 x 7157 | 6.6 s capture (7.8 s whole process) | max RSS 941 MB; Browser 941 MB, GPU 802 MB, Tab 359 MB, Utility 88 MB (sum of peaks about 2.2 GB)                                                           |
 
 Both succeed with the exact sizes required. A plain hidden window does not paint: `captureScreenshot` hangs, so captures need
 `offscreen: true` (and `printToPDF` hangs offscreen, so the PDF needs a separate plain hidden window).
