@@ -454,3 +454,93 @@ describe('captureTemplate', () => {
     expect(() => captureTemplate(book, book.spreads[0]!.id, 'left', 'x')).toThrow(OpError);
   });
 });
+
+describe('cover spine zone and page membership', () => {
+  /** Cover with a 10 mm spine: back 0..210, spine 210..220, front 220..430. */
+  function coverWithSpine(): { book: Book; cid: string } {
+    const book: Book = { ...freshBook(1), spineWidth: 10 };
+    const spineText = {
+      ...text('spineText', 211, 100, undefined, 'Spine'),
+      rotation: 90,
+      w: 8,
+      h: 90,
+    };
+    const spineSticker: Element = {
+      ...newElement('sticker', { x: 212, y: 20, w: 6, h: 6 }),
+      id: 'spineSticker',
+    };
+    book.cover.elements.push(
+      photo('back', 20, 20, 100, 100, 'B'),
+      photo('spinePhoto', 211, 0, 8, 8, 'S'),
+      spineText,
+      spineSticker,
+      photo('front', 250, 20, 100, 100, 'F'),
+    );
+    return { book, cid: book.cover.id };
+  }
+
+  it('applyTemplate on the front leaves spine photos, text and stickers alone', () => {
+    const { book, cid } = coverWithSpine();
+    const t = grid({ split: 'col', weights: [3, 1], children: [photoSlot, { slot: 'text' }] }, 1);
+    const out = applyTemplate(book, cid, 'right', t, P);
+    const result = els(out, cid);
+    for (const id of ['back', 'spinePhoto', 'spineText', 'spineSticker']) {
+      expect(byId(out, cid, id)).toBe(byId(book, cid, id));
+    }
+    expect(result.some((e) => e.id === 'front')).toBe(false);
+    const created = result.filter((e) => !book.cover.elements.includes(e));
+    expect(created.map((e) => e.type)).toEqual(['photo', 'text']);
+    expect((created[0] as PhotoElement).assetId).toBe('F');
+    expect(JSON.stringify((created[1] as TextElement).doc)).not.toContain('Spine');
+    expect(rectOf(created[0]!)).toMatchObject({ x: 230, w: 190 });
+  });
+
+  it('applyTemplate on the back leaves the spine and the front alone', () => {
+    const { book, cid } = coverWithSpine();
+    const out = applyTemplate(book, cid, 'left', grid(photoSlot, 1), P);
+    for (const id of ['spinePhoto', 'spineText', 'spineSticker', 'front']) {
+      expect(byId(out, cid, id)).toBe(byId(book, cid, id));
+    }
+    expect(
+      (els(out, cid).find((e) => !book.cover.elements.includes(e)) as PhotoElement).assetId,
+    ).toBe('B');
+  });
+
+  it('applyTemplate on the whole cover spread still takes the spine along', () => {
+    const { book, cid } = coverWithSpine();
+    const wide = grid({ slot: 'photo' }, 1, { scope: 'spread' });
+    const out = applyTemplate(book, cid, 'spread', wide, P);
+    const photos = els(out, cid).filter((e) => e.type === 'photo') as PhotoElement[];
+    // 3 photos in the target, 1 slot: the first in reading order (spine photo at y 0) is placed
+    expect(photos.map((e) => e.assetId)).toEqual(['S', 'B', 'F']);
+  });
+
+  it('captureTemplate on the front ignores the spine: every slot is inside 0..1', () => {
+    const { book, cid } = coverWithSpine();
+    const t = captureTemplate(book, cid, 'right', 'Face');
+    expect(t.free!.slots).toHaveLength(1);
+    expect(t.free!.slots[0]!.x).toBeCloseTo((250 - 220) / 210, 12);
+    expect(t.free!.decorations).toHaveLength(0);
+    const back = captureTemplate(book, cid, 'left', 'Dos');
+    expect(back.free!.slots).toHaveLength(1);
+    expect(back.free!.decorations).toHaveLength(0);
+  });
+
+  it('captureTemplate on the whole cover keeps the spine elements', () => {
+    const { book, cid } = coverWithSpine();
+    const t = captureTemplate(book, cid, 'spread', 'Couverture');
+    expect(t.free!.slots).toHaveLength(4);
+    expect(t.free!.decorations).toHaveLength(1);
+  });
+
+  it('on an inner spread an element centred on the spine line belongs to the right page', () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.elements.push(photo('mid', 185, 10, 50, 50, 'M'), photo('l', 10, 10, 50, 50, 'L'));
+    expect(captureTemplate(book, s.id, 'right', 'R').free!.slots).toHaveLength(1);
+    expect(captureTemplate(book, s.id, 'left', 'L').free!.slots).toHaveLength(1);
+    const out = applyTemplate(book, s.id, 'left', grid(photoSlot, 1), P);
+    expect(byId(out, s.id, 'mid')).toBe(byId(book, s.id, 'mid'));
+    expect((els(out, s.id) as PhotoElement[]).map((e) => e.assetId)).toEqual(['M', 'L']);
+  });
+});
