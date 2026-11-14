@@ -15,6 +15,7 @@
     "dev": "npm run dev -w @travelbook/desktop",
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
+    "fixtures": "node tests/fixtures/make-fixtures.ts",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
