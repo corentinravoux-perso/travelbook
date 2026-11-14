@@ -1,6 +1,6 @@
 // TbApi and all IPC payload types live here. Types only: this file is compiled for the renderer,
 // the preload and the main process alike.
-import type { AssetRef, Book } from '@travelbook/core';
+import type { AssetRef, Book, Licence } from '@travelbook/core';
 
 /** One entry of a project's `history/` folder. */
 export interface SnapshotInfo {
@@ -49,7 +49,39 @@ export interface OpenedProject extends ProjectInfo {
 /** Assets the user brings in as files; photos have their own import. */
 export type ImportedAssetKind = Exclude<AssetRef['kind'], 'photo'>;
 
-/** Filled in by Task 3.4 and phase 6. */
+/** What a user library item is: a file the user keeps across albums. */
+export type LibraryItemKind = 'sticker' | 'background' | 'font' | 'template';
+
+/** The kinds `library.add` takes: templates are kept by `library.userTemplates`, not as files. */
+export type LibraryFileKind = Exclude<LibraryItemKind, 'template'>;
+
+export interface LibraryItem {
+  /** `<kind>-<sha16>` of the file's bytes; also the `tb://library/<id>` address. */
+  id: string;
+  kind: LibraryItemKind;
+  /** Relative to the library folder: `files/<id>.<ext>`. */
+  file: string;
+  title: string;
+  tags: string[];
+  /** Where the file comes from, when that is known. */
+  licence?: Licence;
+  /** ISO 8601. */
+  addedAt: string;
+  favourite: boolean;
+  /** ISO 8601; set each time the item is copied into an album. */
+  lastUsedAt?: string;
+}
+
+export interface LibraryQuery {
+  /** Every word must appear in the title or in a tag; case and accents do not matter. */
+  text?: string;
+  /** `true` keeps the favourites only. */
+  favourite?: boolean;
+  /** The `n` items copied into an album most recently (never-used items are left out). */
+  recent?: number;
+}
+
+/** Filled in by Task 3.4 (wired up) and phase 6. */
 export type LibraryApi = Record<string, never>;
 
 /** Filled in by phase 7. */

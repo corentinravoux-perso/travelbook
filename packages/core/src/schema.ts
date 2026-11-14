@@ -180,7 +180,7 @@ const unit = z.number().min(0).max(1);
 const color = z.string();
 const id = z.string().min(1);
 
-const LicenceSchema = z.object({
+export const LicenceSchema = z.object({
   source: z.string(),
   author: z.string().optional(),
   licence: z.string(),
