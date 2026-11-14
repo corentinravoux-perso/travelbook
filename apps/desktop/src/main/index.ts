@@ -13,6 +13,8 @@ import { restrictToAppPage } from './window-guard';
 protocol.registerSchemesAsPrivileged([{ scheme: TB_SCHEME, privileges: { ...TB_PRIVILEGES } }]);
 
 const rendererFile = join(import.meta.dirname, '../renderer/index.html');
+/** Test-only page of the render visual spec: never in a packaged app. */
+const renderFixture = !app.isPackaged && process.env['TB_RENDER_FIXTURE'] === '1';
 const devUrl = app.isPackaged ? undefined : process.env['ELECTRON_RENDERER_URL'];
 /** The one page allowed to talk to the main process. */
 const appPage: AppPage = devUrl ? { origin: new URL(devUrl).origin } : { file: rendererFile };
@@ -41,7 +43,7 @@ function createWindow(): BrowserWindow {
   if (devUrl) {
     void win.loadURL(devUrl);
   } else {
-    void win.loadFile(rendererFile);
+    void win.loadFile(rendererFile, renderFixture ? { hash: 'render-fixture' } : undefined);
   }
   mainWindow = win;
   return win;
