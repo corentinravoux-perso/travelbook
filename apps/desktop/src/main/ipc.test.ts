@@ -22,7 +22,8 @@ import {
   type Host,
   type IpcHandlers,
 } from './ipc';
-import { recentProjects, setUserDataDir } from './project/recent';
+import { recentProjects } from './project/recent';
+import { setUserDataDir } from './user-data';
 import { closeSession, currentSession, knownAssets, tbRoots } from './session';
 import { AUTO_SNAPSHOTS_KEPT } from './project/snapshots';
 

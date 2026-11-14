@@ -21,7 +21,7 @@ import {
   fixturePath,
   type FixtureName,
 } from '../../../../../tests/fixtures/make-fixtures';
-import { setUserDataDir } from '../project/recent';
+import { setUserDataDir } from '../user-data';
 import { createProject } from '../project/store';
 import { importPhotos, type ImportReport } from './import';
 

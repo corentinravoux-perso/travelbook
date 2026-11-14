@@ -2,7 +2,8 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { addRecentProject, recentProjects, setUserDataDir } from './recent';
+import { setUserDataDir } from '../user-data';
+import { addRecentProject, recentProjects } from './recent';
 
 let userData: string;
 

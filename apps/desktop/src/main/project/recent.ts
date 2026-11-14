@@ -1,26 +1,13 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RecentProject } from '../../shared/api';
+import { userDataDir } from '../user-data';
 import { serialize, writeFileAtomic } from './atomic-write';
 
 export type { RecentProject };
 
 export const MAX_RECENT_PROJECTS = 20;
 const FILE_NAME = 'recent-projects.json';
-
-let injectedDir: string | null = null;
-
-/** Point the recent list at a directory (tests). Pass null to use Electron's userData again. */
-export function setUserDataDir(dir: string | null): void {
-  injectedDir = dir;
-}
-
-async function userDataDir(): Promise<string> {
-  if (injectedDir !== null) return injectedDir;
-  // Loaded lazily so that importing this module never requires Electron (unit tests).
-  const { app } = await import('electron');
-  return app.getPath('userData');
-}
 
 function isRecentProject(value: unknown): value is RecentProject {
   if (typeof value !== 'object' || value === null) return false;
