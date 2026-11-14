@@ -183,7 +183,7 @@ const LicenceSchema = z.object({
   requiresAttribution: z.boolean(),
 });
 
-const AssetRefSchema = z.object({
+export const AssetRefSchema = z.object({
   id,
   kind: z.enum(['photo', 'sticker', 'background', 'pattern', 'font']),
   file: z.string().min(1),
@@ -244,7 +244,10 @@ const PhotoSchema = z.object({
 const TextSchema = z.object({
   ...elementBase,
   type: z.literal('text'),
-  doc: z.unknown(),
+  doc: z.custom<unknown>(
+    (v) => typeof v === 'object' && v !== null && (v as { type?: unknown }).type === 'doc',
+    { message: 'doc must be a Tiptap document ({ type: "doc", ... })' },
+  ),
   style: z.object({
     fontFamily: z.string(),
     fontSizePt: z.number().positive(),
@@ -278,14 +281,14 @@ const ShapeSchema = z.object({
   points: z.number().int().min(3),
 });
 
-const ElementSchema = z.discriminatedUnion('type', [
+export const ElementSchema = z.discriminatedUnion('type', [
   PhotoSchema,
   TextSchema,
   StickerSchema,
   ShapeSchema,
 ]);
 
-const BackgroundSchema = z.discriminatedUnion('kind', [
+export const BackgroundSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('color'), color }),
   z.object({
     kind: z.literal('gradient'),
@@ -310,7 +313,7 @@ const BackgroundSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
-const SpreadSchema = z.object({
+export const SpreadSchema = z.object({
   id,
   kind: z.enum(['cover', 'first', 'inner', 'last']),
   background: z.object({
@@ -321,7 +324,7 @@ const SpreadSchema = z.object({
   elements: z.array(ElementSchema),
 });
 
-export const BookSchema: z.ZodType<Book> = z
+export const BookSchema = z
   .object({
     schemaVersion: z.literal(1),
     id,

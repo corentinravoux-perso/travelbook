@@ -1,5 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
+import type { z } from 'zod';
 import {
+  AssetRefSchema,
+  BackgroundSchema,
+  ElementSchema,
+  SpreadSchema,
+  type AssetRef,
+  type Background,
+  type Book,
+  type Element,
+  type Spread,
   BookFormatError,
   BookSchema,
   migrate,
@@ -134,5 +144,22 @@ describe('migrate', () => {
   it('reports invalid v1 content as BookFormatError', () => {
     const b = { ...newBook({ title: 'T' }), bleed: -1 };
     expect(() => migrate(b)).toThrow(BookFormatError);
+  });
+});
+
+describe('schema and interfaces agree (compile-time, checked by typecheck)', () => {
+  it('z.output equals the hand-written types', () => {
+    expectTypeOf<z.output<typeof BookSchema>>().toEqualTypeOf<Book>();
+    expectTypeOf<z.output<typeof ElementSchema>>().toEqualTypeOf<Element>();
+    expectTypeOf<z.output<typeof SpreadSchema>>().toEqualTypeOf<Spread>();
+    expectTypeOf<z.output<typeof BackgroundSchema>>().toEqualTypeOf<Background>();
+    expectTypeOf<z.output<typeof AssetRefSchema>>().toEqualTypeOf<AssetRef>();
+  });
+  it('rejects a text element without doc', () => {
+    const t = newElement('text', rect) as unknown as Record<string, unknown>;
+    delete t['doc'];
+    expect(ElementSchema.safeParse(t).success).toBe(false);
+    t['doc'] = { type: 'paragraph' };
+    expect(ElementSchema.safeParse(t).success).toBe(false);
   });
 });
