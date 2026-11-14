@@ -56,4 +56,19 @@ describe('TextView', () => {
     const { container } = render(<TextView el={el} />);
     expect(container.querySelector('.tb-text__content')?.innerHTML).toBe('');
   });
+
+  it('drops colours that are not CSS colours', () => {
+    const el = textEl({
+      style: { ...textEl().style, color: 'red; background:url(x)' },
+      box: { fill: 'url(javascript:x)', padding: 0 },
+      outline: { width: 0.5, color: '#000; x:y' },
+      shadow: { dx: 1, dy: 1, blur: 1, color: 'blue)' },
+    });
+    const { container } = render(<TextView el={el} />);
+    const box = container.querySelector('.tb-text') as HTMLElement;
+    expect(box.style.getPropertyValue('--tb-text-color')).toBe('');
+    expect(box.style.background).toBe('');
+    expect(box.style.outline).toBe('');
+    expect(box.style.filter).toBe('');
+  });
 });

@@ -9,7 +9,7 @@ const DEV_CSP =
   "font-src 'self' tb:; style-src 'self' 'unsafe-inline'; " +
   "connect-src 'self' tb: ws://localhost:* http://localhost:*";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   main: {
     // Dependencies of this package stay external (sharp and exifr must load from node_modules),
     // except @travelbook/core: its `main` is TypeScript source, which Node cannot load.
@@ -20,6 +20,8 @@ export default defineConfig({
     build: { rollupOptions: { output: { format: 'cjs', entryFileNames: '[name].cjs' } } },
   },
   renderer: {
+    // The render fixture page (and its test fonts) exists only in the `e2e` build.
+    define: { __RENDER_FIXTURE__: JSON.stringify(mode === 'e2e') },
     plugins: [
       react(),
       {
@@ -34,4 +36,4 @@ export default defineConfig({
     ],
     resolve: { alias: { '@renderer': resolve(import.meta.dirname, 'src/renderer') } },
   },
-});
+}));
