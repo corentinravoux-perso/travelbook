@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BookFormatError, newBook, setIdSource, type AssetRef, type Book } from '@travelbook/core';
 import { recentProjects, setUserDataDir } from './recent';
+import { listSnapshots, readSnapshot, writeSnapshot } from './snapshots';
 import { createProject, openProject, saveBook, slugify } from './store';
 
 // Pass-through wrapper so a single test can make `rename` fail (atomic-save test).
@@ -156,6 +157,29 @@ describe('createProject / openProject', () => {
     const { dir } = await createProject({ name: 'Résilient', parentDir });
     await expect(openProject(dir)).resolves.toMatchObject({ dir });
     expect(warn).toHaveBeenCalled();
+  });
+});
+
+describe('paths with spaces and accents (review focus 3)', () => {
+  it('creates, opens, saves, snapshots and lists a project under "Été 2026/Mes albums n°1"', async () => {
+    const odd = join(root, 'Été 2026', 'Mes albums n°1');
+    const created = await createProject({ name: 'Côte d’Azur', parentDir: odd });
+    expect(created.dir).toBe(join(odd, 'cote-d-azur.travelbook'));
+    for (const sub of ['originals', 'assets', 'cache', 'history']) {
+      expect((await stat(join(created.dir, sub))).isDirectory()).toBe(true);
+    }
+
+    await writeFile(join(created.dir, 'originals', 'a1.jpg'), 'one');
+    await saveBook(created.dir, { ...created.book, assets: { a1: photoAsset('a1') } });
+    const opened = await openProject(created.dir);
+    expect(opened.book.assets['a1']).toEqual(photoAsset('a1'));
+    expect(opened.missing).toEqual([]);
+
+    const snapshot = await writeSnapshot(created.dir, opened.book, 'manual');
+    expect((await listSnapshots(created.dir)).map((s) => s.id)).toEqual([snapshot.id]);
+    expect((await readSnapshot(created.dir, snapshot.id)).title).toBe('Côte d’Azur');
+
+    expect((await recentProjects())[0]?.dir).toBe(created.dir);
   });
 });
 
