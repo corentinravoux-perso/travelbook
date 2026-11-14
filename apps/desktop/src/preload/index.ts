@@ -1,6 +1,44 @@
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 import type { TbApi } from '../shared/api';
+import { CHANNEL, PROGRESS_CHANNEL } from '../shared/channels';
 
-// Placeholder: Task 3.3 replaces this marker with the real TbApi.
-const tb: TbApi = { ready: true };
+// The only door between the renderer and the main process: each method invokes one channel and
+// returns its answer. Main validates every argument; nothing here exposes `ipcRenderer` itself.
+const tb: TbApi = {
+  project: {
+    create: (options) => ipcRenderer.invoke(CHANNEL.projectCreate, options),
+    open: (dir) => ipcRenderer.invoke(CHANNEL.projectOpen, dir),
+    save: (book) => ipcRenderer.invoke(CHANNEL.projectSave, book),
+    recent: () => ipcRenderer.invoke(CHANNEL.projectRecent),
+    snapshot: (label) => ipcRenderer.invoke(CHANNEL.projectSnapshot, label),
+    listSnapshots: () => ipcRenderer.invoke(CHANNEL.projectListSnapshots),
+    readSnapshot: (id) => ipcRenderer.invoke(CHANNEL.projectReadSnapshot, id),
+    reveal: () => ipcRenderer.invoke(CHANNEL.projectReveal),
+  },
+  photos: {
+    pick: () => ipcRenderer.invoke(CHANNEL.photosPick),
+    import: (paths) => ipcRenderer.invoke(CHANNEL.photosImport, paths),
+    onProgress: (cb) => {
+      // The event (and its sender) stays here: the renderer only sees the numbers.
+      const listener = (_event: IpcRendererEvent, done: number, total: number): void =>
+        cb(done, total);
+      ipcRenderer.on(PROGRESS_CHANNEL, listener);
+      return () => {
+        ipcRenderer.removeListener(PROGRESS_CHANNEL, listener);
+      };
+    },
+  },
+  assets: {
+    importFiles: (kind, paths) => ipcRenderer.invoke(CHANNEL.assetsImportFiles, kind, paths),
+    fromLibrary: (itemId) => ipcRenderer.invoke(CHANNEL.assetsFromLibrary, itemId),
+    palette: (assetIds) => ipcRenderer.invoke(CHANNEL.assetsPalette, assetIds),
+  },
+  library: {},
+  exporter: {},
+  app: {
+    version: () => ipcRenderer.invoke(CHANNEL.appVersion),
+    openExternal: (url) => ipcRenderer.invoke(CHANNEL.appOpenExternal, url),
+  },
+};
+
 contextBridge.exposeInMainWorld('tb', tb);

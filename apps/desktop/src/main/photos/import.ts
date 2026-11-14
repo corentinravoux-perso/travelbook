@@ -3,15 +3,12 @@ import { constants, createReadStream, type Dirent } from 'node:fs';
 import { copyFile, mkdir, readdir, rm, stat } from 'node:fs/promises';
 import { basename, extname, join } from 'node:path';
 import type { AssetRef, Book } from '@travelbook/core';
+import type { ImportReport } from '../../shared/api';
 import { readPhotoMeta } from './exif';
 import { createLimiter } from './limit';
 import { ensureProxies } from './proxies';
 
-export interface ImportReport {
-  added: AssetRef[];
-  duplicates: { path: string; assetId: string }[];
-  failed: { path: string; reason: string }[];
-}
+export type { ImportReport };
 
 export interface ImportOptions {
   /** Go into sub-folders of the given folders too. Default: one level only. */
@@ -25,7 +22,7 @@ const PHOTO_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const IMPORT_CONCURRENCY = 4;
 
 /** Hex digits of the SHA-256 that make an asset id. */
-const ID_LENGTH = 16;
+export const ID_LENGTH = 16;
 
 type Candidate = { path: string } | { path: string; failure: string };
 
@@ -34,7 +31,7 @@ const isProjectFolder = (name: string): boolean => name.toLowerCase().endsWith('
 
 const isPhotoName = (name: string): boolean => PHOTO_EXTENSIONS.has(extname(name).toLowerCase());
 
-function describeError(error: unknown): string {
+export function describeError(error: unknown): string {
   const code = (error as NodeJS.ErrnoException | undefined)?.code;
   if (code === 'ENOENT') return 'File not found';
   if (code === 'EACCES' || code === 'EPERM') return 'Permission denied';
@@ -99,7 +96,7 @@ async function expand(paths: string[], recursive: boolean): Promise<Candidate[]>
   return candidates;
 }
 
-async function sha256File(path: string): Promise<string> {
+export async function sha256File(path: string): Promise<string> {
   const hash = createHash('sha256');
   for await (const chunk of createReadStream(path)) hash.update(chunk as Buffer);
   return hash.digest('hex');
