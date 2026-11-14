@@ -9,5 +9,9 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "immer": "11.2.10",
+    "zod": "4.6.7"
   }
 }
