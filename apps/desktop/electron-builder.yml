@@ -1,0 +1,7 @@
+# Minimal for now; Task 8.1 completes packaging.
+appId: fr.ravoux.travelbook
+productName: travelbook
+directories:
+  output: dist
+files:
+  - out/**
