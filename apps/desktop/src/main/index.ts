@@ -6,6 +6,7 @@ import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { ensureProxies } from './photos/proxies';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
 import { currentSession, tbRoots } from './session';
+import { restrictToAppPage } from './window-guard';
 
 // Must run before the app is ready.
 protocol.registerSchemesAsPrivileged([{ scheme: TB_SCHEME, privileges: { ...TB_PRIVILEGES } }]);
@@ -30,6 +31,7 @@ function createWindow(): BrowserWindow {
       sandbox: true,
     },
   });
+  restrictToAppPage(win.webContents, appPage);
   win.once('ready-to-show', () => win.show());
   win.on('closed', () => {
     if (mainWindow === win) mainWindow = null;
