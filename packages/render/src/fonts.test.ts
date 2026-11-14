@@ -24,29 +24,44 @@ describe('fontFaceCss', () => {
 });
 
 describe('whenFontsReady', () => {
-  const stub = (load: (q: string) => Promise<unknown>) =>
-    vi.stubGlobal('document', { fonts: { load } });
+  const stub = (
+    load: (q: string) => Promise<unknown>,
+    check: (q: string) => boolean = () => true,
+  ) => vi.stubGlobal('document', { fonts: { load, check } });
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
-  it('resolves once every family has settled, a failed load included', async () => {
+  it('resolves once every family has loaded', async () => {
     const asked: string[] = [];
     stub((q) => {
       asked.push(q);
-      return q.includes('Bad') ? Promise.reject(new Error('404')) : Promise.resolve([]);
+      return Promise.resolve([]);
     });
-    await expect(whenFontsReady(['Good', 'Bad'])).resolves.toBeUndefined();
+    await expect(whenFontsReady(['Good', 'Fine'])).resolves.toBeUndefined();
     expect(asked.some((q) => q.includes('"Good"'))).toBe(true);
-    expect(asked.some((q) => q.includes('"Bad"'))).toBe(true);
+    expect(asked.some((q) => q.includes('"Fine"'))).toBe(true);
+  });
+
+  it('rejects naming the families whose load failed, and only those', async () => {
+    stub((q) => (q.includes('Bad') ? Promise.reject(new Error('404')) : Promise.resolve([])));
+    const result = whenFontsReady(['Good', 'Bad']);
+    await expect(result).rejects.toThrow(/: Bad$/);
+  });
+
+  it('rejects a family that settled but is not loaded', async () => {
+    stub(
+      () => Promise.resolve([]),
+      (q) => !q.includes('Ghost'),
+    );
+    await expect(whenFontsReady(['Ghost'])).rejects.toThrow(/Ghost/);
   });
 
   it('rejects with the families named when a load never settles', async () => {
     vi.useFakeTimers();
-    stub(() => new Promise(() => undefined));
-    const result = whenFontsReady(['Slow', 'Slower'], 5000);
-    const check = expect(result).rejects.toThrow(/Slow, Slower/);
+    stub((q) => (q.includes('Slow') ? new Promise(() => undefined) : Promise.resolve([])));
+    const check = expect(whenFontsReady(['Slow', 'Quick'], 5000)).rejects.toThrow(/: Slow$/);
     await vi.advanceTimersByTimeAsync(5000);
     await check;
   });

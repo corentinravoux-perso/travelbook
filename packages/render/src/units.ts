@@ -14,4 +14,4 @@ export const pct = (n: number): string => `${round(n, 3)}%`;
 
 /** A CSS `url()` of any string: quotes and backslashes are escaped, so a URL cannot end it early. */
 export const cssUrl = (url: string): string =>
-  `url("${url.replace(/[\\"]/g, '\\$&').replace(/\n/g, '\\a ')}")`;
+  `url("${url.replace(/[\\"()]/g, '\\$&').replace(/[\n\r]/g, '\\a ')}")`;

@@ -1,5 +1,6 @@
 import type { TextElement } from '@travelbook/core';
 import { useMemo, type CSSProperties, type ReactElement } from 'react';
+import { validColor } from '../cssValues';
 import '../text.css';
 import { textHtml } from '../textHtml';
 import { mm, round } from '../units';
@@ -17,22 +18,26 @@ export function textBoxStyle(el: TextElement): CSSProperties {
     '--tb-text-padding': mm(el.box.padding),
     '--tb-text-family': style.fontFamily,
     '--tb-text-size': `${round(style.fontSizePt)}pt`,
-    '--tb-text-color': style.color,
+    ...(validColor(style.color) ? { '--tb-text-color': validColor(style.color) as string } : {}),
     '--tb-text-line-height': `${round(style.lineHeight)}`,
     '--tb-text-letter-spacing': `${round(style.letterSpacing)}em`,
     '--tb-text-align': el.align,
     '--tb-text-valign': V_ALIGN[el.vAlign],
   };
+  const fill = validColor(el.box.fill);
+  const outlineColor = outline ? validColor(outline.color) : null;
+  const shadowColor = shadow ? validColor(shadow.color) : null;
   return {
     ...elementBoxStyle(el),
     ...vars,
-    background: el.box.fill ?? undefined,
+    background: fill ?? undefined,
     // Inside the box, like the stroke of a shape.
-    outline: outline ? `${mm(outline.width)} solid ${outline.color}` : undefined,
-    outlineOffset: outline ? mm(-outline.width) : undefined,
-    filter: shadow
-      ? `drop-shadow(${mm(shadow.dx)} ${mm(shadow.dy)} ${mm(shadow.blur)} ${shadow.color})`
-      : undefined,
+    outline: outline && outlineColor ? `${mm(outline.width)} solid ${outlineColor}` : undefined,
+    outlineOffset: outline && outlineColor ? mm(-outline.width) : undefined,
+    filter:
+      shadow && shadowColor
+        ? `drop-shadow(${mm(shadow.dx)} ${mm(shadow.dy)} ${mm(shadow.blur)} ${shadowColor})`
+        : undefined,
   };
 }
 

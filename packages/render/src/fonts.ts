@@ -27,26 +27,32 @@ export function fontFaceCss(fonts: FontFile[]): string {
 const FACES = ['400 16px', '700 16px', 'italic 400 16px', 'italic 700 16px'];
 
 /**
- * Resolves once the browser has settled loading every face of every family (a family with no face
- * settles at once). Rejects with an Error naming the families if that takes more than `timeoutMs`.
+ * Resolves once every face of every family has loaded. Rejects with an Error naming the families
+ * that failed to load, or that were not loaded within `timeoutMs`: drawing with them would silently
+ * use a fallback font.
  */
 export async function whenFontsReady(families: string[], timeoutMs = 5000): Promise<void> {
   const unique = [...new Set(families)];
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () => reject(new Error(`Fonts not ready after ${timeoutMs} ms: ${unique.join(', ')}`)),
-      timeoutMs,
-    );
-  });
-  const loading = Promise.allSettled(
-    unique.flatMap((family) =>
+  const failed = new Set<string>();
+  const loadFamily = async (family: string): Promise<void> => {
+    const results = await Promise.allSettled(
       FACES.map((face) => document.fonts.load(`${face} ${cssString(family)}`)),
-    ),
-  ).then(() => undefined);
+    );
+    const rejected = results.some((r) => r.status === 'rejected');
+    if (rejected || !document.fonts.check(`16px ${cssString(family)}`)) failed.add(family);
+  };
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const settled = new Set<string>();
+  const timeout = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, timeoutMs);
+  });
+  const loading = Promise.all(unique.map((f) => loadFamily(f).then(() => settled.add(f))));
   try {
     await Promise.race([loading, timeout]);
   } finally {
     clearTimeout(timer);
   }
+  const bad = unique.filter((f) => failed.has(f) || !settled.has(f));
+  if (bad.length > 0)
+    throw new Error(`Fonts not loaded (${timeoutMs} ms limit): ${bad.join(', ')}`);
 }
