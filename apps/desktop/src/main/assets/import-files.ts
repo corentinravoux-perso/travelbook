@@ -11,7 +11,7 @@ const RASTER_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
 const RASTER_FORMATS = new Set(['png', 'jpeg', 'webp']);
 
 /** Lower-case, with the dot. */
-const EXTENSIONS: Record<ImportedAssetKind, ReadonlySet<string>> = {
+export const ASSET_EXTENSIONS: Record<ImportedAssetKind, ReadonlySet<string>> = {
   sticker: new Set([...RASTER_EXTENSIONS, '.svg']),
   background: new Set([...RASTER_EXTENSIONS, '.svg']),
   pattern: new Set([...RASTER_EXTENSIONS, '.svg']),
@@ -26,11 +26,11 @@ const CHECK_EDGE = 64;
  * the entire file, which rejects a truncated one) and give their size after EXIF orientation.
  * An SVG must parse but has no pixel size, and is not sanitised here (Task 6.2).
  */
-async function inspectImage(
-  path: string,
+export async function inspectImage(
+  input: string | Buffer,
   ext: string,
 ): Promise<{ w: number; h: number } | undefined> {
-  const meta = await sharp(path).metadata();
+  const meta = await sharp(input).metadata();
   if (ext === '.svg') {
     if (meta.format !== 'svg') throw new Error('Not an SVG file');
     return undefined;
@@ -41,8 +41,27 @@ async function inspectImage(
   const w = meta.autoOrient.width;
   const h = meta.autoOrient.height;
   if (!(w > 0 && h > 0)) throw new Error('The image has no readable size');
-  await sharp(path).resize({ width: CHECK_EDGE, height: CHECK_EDGE, fit: 'inside' }).toBuffer();
+  await sharp(input).resize({ width: CHECK_EDGE, height: CHECK_EDGE, fit: 'inside' }).toBuffer();
   return { w, h };
+}
+
+/**
+ * Copy `src` to `dest` under a temporary name, check that the copy has the hash the caller
+ * measured on the source, and only then rename it into place: `dest` never holds a partial file,
+ * and a source that changed while it was being copied is refused. Nothing is left on failure.
+ */
+export async function copyFileVerified(src: string, dest: string, sha256: string): Promise<void> {
+  const tmp = `${dest}.${randomUUID()}.tmp`;
+  try {
+    await copyFile(src, tmp, constants.COPYFILE_FICLONE);
+    if ((await sha256File(tmp)) !== sha256) {
+      throw new Error('The copy does not match the source: the file changed during the import');
+    }
+    await rename(tmp, dest);
+  } catch (error) {
+    await rm(tmp, { force: true }).catch(() => undefined);
+    throw error;
+  }
 }
 
 const exists = (path: string): Promise<boolean> =>
@@ -68,7 +87,7 @@ export async function importAssetFiles(
   kind: ImportedAssetKind,
   paths: string[],
 ): Promise<AssetRef[]> {
-  const extensions = EXTENSIONS[kind];
+  const extensions = ASSET_EXTENSIONS[kind];
   if (extensions === undefined) throw new Error(`Unsupported asset kind: ${String(kind)}`);
   const assets = new Map<string, AssetRef>();
   /** Files this call put in `assets/`. */
@@ -91,18 +110,7 @@ export async function importAssetFiles(
     const stored = join(dir, file);
     if (!(await exists(stored))) {
       await mkdir(join(dir, 'assets'), { recursive: true });
-      // Copied under a temporary name and renamed, so that `assets/` never holds a partial file.
-      const tmp = `${stored}.${randomUUID()}.tmp`;
-      try {
-        await copyFile(path, tmp, constants.COPYFILE_FICLONE);
-        if ((await sha256File(tmp)) !== sha256) {
-          throw new Error('The copy does not match the source: the file changed during the import');
-        }
-        await rename(tmp, stored);
-      } catch (error) {
-        await rm(tmp, { force: true }).catch(() => undefined);
-        throw error;
-      }
+      await copyFileVerified(path, stored, sha256);
       created.push(stored);
     }
     assets.set(id, {

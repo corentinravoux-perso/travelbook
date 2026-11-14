@@ -22,13 +22,13 @@ export function serialize<T>(key: string, task: () => Promise<T>): Promise<T> {
  * content or the new one, never a mix: write `<path>.tmp`, fsync it, close it, rename it over
  * `path`. Writes to the same path are serialised so they cannot share the temporary file.
  */
-export function writeFileAtomic(path: string, data: string): Promise<void> {
+export function writeFileAtomic(path: string, data: string | Uint8Array): Promise<void> {
   return serialize(`write:${path}`, async () => {
     const tmp = `${path}.tmp`;
     try {
       const handle = await open(tmp, 'w');
       try {
-        await handle.writeFile(data, 'utf8');
+        await handle.writeFile(data);
         await handle.sync();
       } finally {
         await handle.close();
