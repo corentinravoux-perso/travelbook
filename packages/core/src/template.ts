@@ -1,7 +1,13 @@
 import { z } from 'zod';
-import { ElementSchema, type Element, type Mm, type PhotoElement, type Rect } from './schema';
-
-export type TextRole = 'title' | 'caption' | 'body';
+import {
+  ElementSchema,
+  TextRoleSchema,
+  type Element,
+  type Mm,
+  type PhotoElement,
+  type Rect,
+  type TextRole,
+} from './schema';
 
 export type LayoutNode =
   | { slot: 'photo' | 'text'; textRole?: TextRole }
@@ -44,11 +50,9 @@ export interface LayoutParams {
   gap: Mm;
 }
 
-const textRole = z.enum(['title', 'caption', 'body']);
-
 const LayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
   z.union([
-    z.object({ slot: z.enum(['photo', 'text']), textRole: textRole.optional() }),
+    z.object({ slot: z.enum(['photo', 'text']), textRole: TextRoleSchema.optional() }),
     z
       .object({
         split: z.enum(['row', 'col']),
@@ -68,7 +72,7 @@ const FreeSlotSchema = z.object({
   w: z.number().finite().positive(),
   h: z.number().finite().positive(),
   rotation: z.number().finite(),
-  textRole: textRole.optional(),
+  textRole: TextRoleSchema.optional(),
   mask: z
     .object({
       kind: z.enum(['rect', 'rounded', 'ellipse', 'preset']),
@@ -123,14 +127,17 @@ function layoutNode(node: LayoutNode, box: Rect, gap: Mm, out: SlotRect[]): void
 /** Float noise from weighted splits can make two slots of one visual row differ in y by ~1e-14 mm. */
 const ROW_TOLERANCE_MM = 0.5;
 
-/** Top to bottom; slots whose y is within 0.5 mm of the row's first slot sort left to right. */
-function readingOrder(slots: SlotRect[]): SlotRect[] {
-  const byY = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
-  const out: SlotRect[] = [];
+/**
+ * Top to bottom; rectangles whose y is within 0.5 mm of the row's first one sort left to right.
+ * Works on any rectangle-like items (slots, elements). Returns a new array.
+ */
+export function readingOrder<T extends Rect>(items: readonly T[]): T[] {
+  const byY = [...items].sort((a, b) => a.y - b.y || a.x - b.x);
+  const out: T[] = [];
   let i = 0;
   while (i < byY.length) {
     const rowY = byY[i]!.y;
-    const row: SlotRect[] = [];
+    const row: T[] = [];
     while (i < byY.length && byY[i]!.y - rowY <= ROW_TOLERANCE_MM) row.push(byY[i++]!);
     out.push(...row.sort((a, b) => a.x - b.x));
   }

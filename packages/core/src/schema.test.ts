@@ -112,6 +112,16 @@ describe('BookSchema', () => {
     expect(BookSchema.safeParse(b).success).toBe(false);
   });
 
+  it('accepts a text element with a textRole and rejects an unknown one', () => {
+    const b = newBook({ title: 'T', innerSpreads: 1 });
+    const t = newElement('text', rect);
+    t.textRole = 'title';
+    b.spreads[1]!.elements.push(t);
+    expect(BookSchema.safeParse(b).success).toBe(true);
+    (t as { textRole: string }).textRole = 'headline';
+    expect(BookSchema.safeParse(b).success).toBe(false);
+  });
+
   it('rejects a first spread of kind inner', () => {
     const b = newBook({ title: 'T' });
     b.spreads[0]!.kind = 'inner';
