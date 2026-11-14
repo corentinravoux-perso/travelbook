@@ -1,14 +1,24 @@
-import { isAbsolute, join, resolve } from 'node:path';
+import { basename, extname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
-import { BookSchema } from '@travelbook/core';
+import { BookSchema, TemplateSchema } from '@travelbook/core';
 import { z } from 'zod';
+import type { LibraryItem } from '../shared/api';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
 import { importAssetFiles } from './assets/import-files';
 import { dominantColours } from './assets/palette';
+import { deleteUserTemplate, listUserTemplates, saveUserTemplate } from './library/templates';
+import {
+  addToLibrary,
+  copyIntoProject,
+  listLibrary,
+  removeFromLibrary,
+  setFavourite,
+  touchUsed,
+} from './library/userLibrary';
 import { projectFilePath } from './protocol';
 import { serialize } from './project/atomic-write';
-import { importPhotos } from './photos/import';
+import { describeError, importPhotos } from './photos/import';
 import { ensureProxies } from './photos/proxies';
 import { recentProjects } from './project/recent';
 import {
@@ -63,6 +73,14 @@ const identifier = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/, 'must be a plain i
 
 const pageSize = z.number().finite().positive().max(5000);
 
+const libraryKind = z.enum(['sticker', 'background', 'font', 'template']);
+const libraryFileKind = z.enum(['sticker', 'background', 'font']);
+const libraryQuery = z.strictObject({
+  text: z.string().max(200).optional(),
+  favourite: z.boolean().optional(),
+  recent: z.number().int().min(0).max(1000).optional(),
+});
+
 const isHttps = (value: string): boolean => {
   try {
     return new URL(value).protocol === 'https:';
@@ -87,6 +105,11 @@ const schemas = {
   paths: z.tuple([pathList]),
   importFiles: z.tuple([z.enum(['sticker', 'background', 'pattern', 'font']), pathList]),
   libraryItem: z.tuple([identifier]),
+  libraryList: z.tuple([libraryKind, libraryQuery.optional()]),
+  libraryAdd: z.tuple([libraryFileKind, pathList]),
+  libraryFavourite: z.tuple([identifier, z.boolean()]),
+  template: z.tuple([TemplateSchema]),
+  templateId: z.tuple([identifier]),
   palette: z.tuple([z.array(identifier).max(500)]),
   externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),
 };
@@ -218,14 +241,67 @@ export function createHandlers(host: Host): IpcHandlers {
     },
 
     [CHANNEL.assetsFromLibrary]: async (_ctx, ...args) => {
-      parseArgs(CHANNEL.assetsFromLibrary, schemas.libraryItem, args);
-      throw new Error('assets.fromLibrary is not implemented yet (the user library comes later)');
+      const [itemId] = parseArgs(CHANNEL.assetsFromLibrary, schemas.libraryItem, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        // The book as the renderer will have it: saved assets, plus every import since.
+        const book = { ...session.book, assets: knownAssets(session) };
+        const asset = await copyIntoProject(session.dir, book, itemId);
+        recordAssets(session, [asset]);
+        await touchUsed(itemId);
+        return asset;
+      });
     },
 
     [CHANNEL.assetsPalette]: async (_ctx, ...args) => {
       const [ids] = parseArgs(CHANNEL.assetsPalette, schemas.palette, args);
       const session = requireSession();
       return dominantColours(await paletteFiles(session, ids));
+    },
+
+    [CHANNEL.libraryList]: async (_ctx, ...args) => {
+      const [kind, query] = parseArgs(CHANNEL.libraryList, schemas.libraryList, args);
+      return listLibrary(kind, query);
+    },
+
+    [CHANNEL.libraryAdd]: async (_ctx, ...args) => {
+      const [kind, paths] = parseArgs(CHANNEL.libraryAdd, schemas.libraryAdd, args);
+      const added = new Map<string, LibraryItem>();
+      for (const path of paths) {
+        try {
+          const ext = extname(path);
+          const item = await addToLibrary(kind, { path, ext }, { title: basename(path, ext) });
+          added.set(item.id, item);
+        } catch (error) {
+          throw new Error(`${basename(path)}: ${describeError(error)}`, { cause: error });
+        }
+      }
+      return [...added.values()];
+    },
+
+    [CHANNEL.librarySetFavourite]: async (_ctx, ...args) => {
+      const [itemId, on] = parseArgs(CHANNEL.librarySetFavourite, schemas.libraryFavourite, args);
+      await setFavourite(itemId, on);
+    },
+
+    [CHANNEL.libraryRemove]: async (_ctx, ...args) => {
+      const [itemId] = parseArgs(CHANNEL.libraryRemove, schemas.libraryItem, args);
+      await removeFromLibrary(itemId);
+    },
+
+    [CHANNEL.libraryTemplateSave]: async (_ctx, ...args) => {
+      const [template] = parseArgs(CHANNEL.libraryTemplateSave, schemas.template, args);
+      await saveUserTemplate(template);
+    },
+
+    [CHANNEL.libraryTemplateList]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.libraryTemplateList, schemas.none, args);
+      return listUserTemplates();
+    },
+
+    [CHANNEL.libraryTemplateDelete]: async (_ctx, ...args) => {
+      const [templateId] = parseArgs(CHANNEL.libraryTemplateDelete, schemas.templateId, args);
+      await deleteUserTemplate(templateId);
     },
 
     [CHANNEL.appVersion]: async (_ctx, ...args) => {

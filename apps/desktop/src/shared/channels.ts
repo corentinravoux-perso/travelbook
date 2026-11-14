@@ -16,6 +16,13 @@ export const CHANNEL = {
   assetsImportFiles: 'assets:importFiles',
   assetsFromLibrary: 'assets:fromLibrary',
   assetsPalette: 'assets:palette',
+  libraryList: 'library:list',
+  libraryAdd: 'library:add',
+  librarySetFavourite: 'library:setFavourite',
+  libraryRemove: 'library:remove',
+  libraryTemplateSave: 'library:saveTemplate',
+  libraryTemplateList: 'library:listTemplates',
+  libraryTemplateDelete: 'library:deleteTemplate',
   appVersion: 'app:version',
   appOpenExternal: 'app:openExternal',
 } as const;

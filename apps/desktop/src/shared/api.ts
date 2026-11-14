@@ -1,6 +1,6 @@
 // TbApi and all IPC payload types live here. Types only: this file is compiled for the renderer,
 // the preload and the main process alike.
-import type { AssetRef, Book, Licence } from '@travelbook/core';
+import type { AssetRef, Book, Licence, Template } from '@travelbook/core';
 
 /** One entry of a project's `history/` folder. */
 export interface SnapshotInfo {
@@ -81,8 +81,27 @@ export interface LibraryQuery {
   recent?: number;
 }
 
-/** Filled in by Task 3.4 (wired up) and phase 6. */
-export type LibraryApi = Record<string, never>;
+/** Filled in further by phase 6 (online sources). */
+export interface LibraryApi {
+  /** Newest first, or most recently used first with `query.recent`. */
+  list(kind: LibraryItemKind, query?: LibraryQuery): Promise<LibraryItem[]>;
+  /**
+   * Keep copies of files in the library. The title is the file name without its extension. A file
+   * already there (same bytes) gives the existing item. A refused file stops the call: the files
+   * before it stay added.
+   */
+  add(kind: LibraryFileKind, paths: string[]): Promise<LibraryItem[]>;
+  setFavourite(itemId: string, on: boolean): Promise<void>;
+  /** Forget an item and delete its file. Albums that already hold a copy keep it. */
+  remove(itemId: string): Promise<void>;
+  /** The user's own templates (`origin: 'user'`), one JSON file each. */
+  userTemplates: {
+    /** Replaces the template with the same id. */
+    save(template: Template): Promise<void>;
+    list(): Promise<Template[]>;
+    delete(templateId: string): Promise<void>;
+  };
+}
 
 /** Filled in by phase 7. */
 export type ExportApi = Record<string, never>;
@@ -121,7 +140,10 @@ export interface TbApi {
      * `<kind>-<sha16>`, so they never collide with the id of a photo of the same bytes.
      */
     importFiles(kind: ImportedAssetKind, paths: string[]): Promise<AssetRef[]>;
-    /** Not implemented before Task 3.4: rejects. */
+    /**
+     * Copy a library item into the open project's `assets/` (once, whatever the number of calls),
+     * and mark the item as used. Same asset shape and id as `importFiles`, plus the item's licence.
+     */
     fromLibrary(itemId: string): Promise<AssetRef>;
     /** Up to 6 dominant colours of the given assets, as `#rrggbb`, most present first. */
     palette(assetIds: string[]): Promise<string[]>;
