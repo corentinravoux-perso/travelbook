@@ -8,3 +8,4 @@ export * from './ops';
 export * from './typography';
 export * from './snap';
 export * from './preflight';
+export * from './history';
