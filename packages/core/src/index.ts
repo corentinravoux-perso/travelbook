@@ -5,3 +5,4 @@ export { migrate, BookFormatError } from './migrate';
 export * from './geometry';
 export * from './template';
 export * from './ops';
+export * from './typography';
