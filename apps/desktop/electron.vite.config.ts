@@ -2,14 +2,19 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 
-// Dev-only CSP: Vite's HMR needs an inline preamble script and a WebSocket.
-// The production build keeps the strict policy of src/renderer/index.html.
+// Dev-only CSP: the policy of src/renderer/index.html plus what Vite's HMR needs (an inline
+// preamble script and a WebSocket). The production build keeps the strict policy.
 const DEV_CSP =
-  "default-src 'self' tb:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; " +
-  "connect-src 'self' ws://localhost:* http://localhost:*; img-src 'self' tb: data:";
+  "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' tb: data:; " +
+  "font-src 'self' tb:; style-src 'self' 'unsafe-inline'; " +
+  "connect-src 'self' tb: ws://localhost:* http://localhost:*";
 
 export default defineConfig({
-  main: {},
+  main: {
+    // Dependencies of this package stay external (sharp and exifr must load from node_modules),
+    // except @travelbook/core: its `main` is TypeScript source, which Node cannot load.
+    build: { externalizeDeps: { exclude: ['@travelbook/core'] } },
+  },
   preload: {
     // Sandboxed preloads cannot be ES modules: emit CommonJS.
     build: { rollupOptions: { output: { format: 'cjs', entryFileNames: '[name].cjs' } } },

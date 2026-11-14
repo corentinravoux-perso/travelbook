@@ -10,7 +10,8 @@ export type { SnapshotInfo };
 export const AUTO_SNAPSHOTS_KEPT = 50;
 
 const HISTORY_DIR = 'history';
-const ID_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z-(auto|manual)$/;
+export const SNAPSHOT_ID_PATTERN =
+  /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z-(auto|manual)$/;
 
 interface SnapshotEntry {
   id: string;
@@ -24,7 +25,7 @@ function safeTimestamp(at: Date): string {
 }
 
 function parseId(id: string): SnapshotEntry | null {
-  const m = ID_PATTERN.exec(id);
+  const m = SNAPSHOT_ID_PATTERN.exec(id);
   if (!m) return null;
   const [, date, hh, mm, ss, ms, label] = m;
   return { id, at: `${date}T${hh}:${mm}:${ss}.${ms}Z`, label: label as SnapshotInfo['label'] };

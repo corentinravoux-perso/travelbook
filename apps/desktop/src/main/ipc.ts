@@ -1,0 +1,292 @@
+import { isAbsolute, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { IpcMain, IpcMainInvokeEvent } from 'electron';
+import { BookSchema } from '@travelbook/core';
+import { z } from 'zod';
+import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
+import { importAssetFiles } from './assets/import-files';
+import { dominantColours } from './assets/palette';
+import { projectFilePath } from './protocol';
+import { serialize } from './project/atomic-write';
+import { importPhotos } from './photos/import';
+import { ensureProxies } from './photos/proxies';
+import { recentProjects } from './project/recent';
+import {
+  SNAPSHOT_ID_PATTERN,
+  listSnapshots,
+  pruneSnapshots,
+  readSnapshot,
+  writeSnapshot,
+} from './project/snapshots';
+import { createProject, openProject, saveBook } from './project/store';
+import {
+  knownAssets,
+  openSession,
+  recordAssets,
+  recordBook,
+  requireSession,
+  type Session,
+} from './session';
+
+/** What the handlers need from the desktop: dialogs, the shell and the app itself. */
+export interface Host {
+  /** A folder picker; `null` when the user cancels. `create` picks where a new album goes. */
+  pickFolder(purpose: 'create' | 'open'): Promise<string | null>;
+  /** An image file picker (several files); empty when the user cancels. */
+  pickPhotos(): Promise<string[]>;
+  openExternal(url: string): Promise<void>;
+  showInFolder(path: string): void;
+  version(): string;
+}
+
+export interface HandlerContext {
+  /** Tell the window that asked how far an import has got. */
+  progress(done: number, total: number): void;
+}
+
+export type IpcHandlers = Record<
+  InvokeChannel,
+  (ctx: HandlerContext, ...args: unknown[]) => Promise<unknown>
+>;
+
+/** Source paths of photos and files named by the renderer: absolute, and a sane number of them. */
+const absolutePath = z
+  .string()
+  .min(1)
+  .max(4096)
+  .refine((path) => !path.includes('\0') && isAbsolute(path), 'must be an absolute path');
+const MAX_PATHS = 10_000;
+const pathList = z.array(absolutePath).max(MAX_PATHS);
+
+/** Same alphabet as asset ids and library item ids (see `protocol.ts`). */
+const identifier = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/, 'must be a plain identifier');
+
+const pageSize = z.number().finite().positive().max(5000);
+
+const isHttps = (value: string): boolean => {
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const schemas = {
+  none: z.tuple([]),
+  create: z.tuple([
+    z.strictObject({
+      name: z.string().trim().min(1).max(200),
+      parentDir: absolutePath.optional(),
+      format: z.strictObject({ width: pageSize, height: pageSize }).optional(),
+    }),
+  ]),
+  open: z.tuple([absolutePath.optional()]),
+  save: z.tuple([BookSchema]),
+  snapshotLabel: z.tuple([z.enum(['auto', 'manual'])]),
+  snapshotId: z.tuple([z.string().regex(SNAPSHOT_ID_PATTERN, 'not a snapshot id')]),
+  paths: z.tuple([pathList]),
+  importFiles: z.tuple([z.enum(['sticker', 'background', 'pattern', 'font']), pathList]),
+  libraryItem: z.tuple([identifier]),
+  palette: z.tuple([z.array(identifier).max(500)]),
+  externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),
+};
+
+/** Check what a renderer sent. The message names the channel and the first thing that is wrong. */
+function parseArgs<S extends z.ZodType>(channel: InvokeChannel, schema: S, args: unknown[]) {
+  const result = schema.safeParse(args);
+  if (result.success) return result.data as z.output<S>;
+  const issue = result.error.issues[0];
+  const where = issue && issue.path.length > 0 ? `${issue.path.join('.')}: ` : '';
+  throw new Error(`Invalid arguments for ${channel}: ${where}${issue?.message ?? 'invalid'}`);
+}
+
+/** Imports into a project run one at a time: two of them could remove each other's files. */
+const importQueue = (session: Session): string => `import:${resolve(session.dir)}`;
+
+/** The files the palette is counted on: thumbnails of photos, the files of the other assets. */
+async function paletteFiles(session: Session, ids: readonly string[]): Promise<string[]> {
+  const files: string[] = [];
+  for (const id of new Set(ids)) {
+    const asset = session.assets.get(id);
+    if (asset === undefined) throw new Error(`Unknown asset: ${id}`);
+    if (asset.kind === 'font') continue;
+    if (asset.kind === 'photo') {
+      files.push((await ensureProxies(session.dir, asset)).thumb);
+      continue;
+    }
+    const file = projectFilePath(session.dir, asset.file);
+    if (file === null) throw new Error(`Asset ${id} has no usable file`);
+    files.push(file);
+  }
+  return files;
+}
+
+/**
+ * The handler of every channel, as plain functions of `(context, ...arguments)`. Each one checks
+ * its arguments before it does anything, and works on the project main has open, never on a
+ * folder named by the renderer after that.
+ */
+export function createHandlers(host: Host): IpcHandlers {
+  return {
+    [CHANNEL.projectCreate]: async (_ctx, ...args) => {
+      const [options] = parseArgs(CHANNEL.projectCreate, schemas.create, args);
+      const parentDir = options.parentDir ?? (await host.pickFolder('create'));
+      if (parentDir === null) return null;
+      const { dir, book } = await createProject({
+        name: options.name,
+        parentDir,
+        ...(options.format ? { format: options.format } : {}),
+      });
+      openSession(dir, book);
+      return { dir, book };
+    },
+
+    [CHANNEL.projectOpen]: async (_ctx, ...args) => {
+      const [given] = parseArgs(CHANNEL.projectOpen, schemas.open, args);
+      const dir = given ?? (await host.pickFolder('open'));
+      if (dir === null) return null;
+      const opened = await openProject(dir);
+      openSession(opened.dir, opened.book);
+      return opened;
+    },
+
+    [CHANNEL.projectSave]: async (_ctx, ...args) => {
+      const [book] = parseArgs(CHANNEL.projectSave, schemas.save, args);
+      const session = requireSession();
+      await saveBook(session.dir, book);
+      recordBook(session, book);
+    },
+
+    [CHANNEL.projectRecent]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.projectRecent, schemas.none, args);
+      return recentProjects();
+    },
+
+    [CHANNEL.projectSnapshot]: async (_ctx, ...args) => {
+      const [label] = parseArgs(CHANNEL.projectSnapshot, schemas.snapshotLabel, args);
+      const session = requireSession();
+      const info = await writeSnapshot(session.dir, session.book, label);
+      try {
+        await pruneSnapshots(session.dir);
+      } catch (error) {
+        // The snapshot is safe: pruning can wait for the next one.
+        console.warn('Could not prune the snapshots:', error);
+      }
+      return info;
+    },
+
+    [CHANNEL.projectListSnapshots]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.projectListSnapshots, schemas.none, args);
+      return listSnapshots(requireSession().dir);
+    },
+
+    [CHANNEL.projectReadSnapshot]: async (_ctx, ...args) => {
+      const [id] = parseArgs(CHANNEL.projectReadSnapshot, schemas.snapshotId, args);
+      return readSnapshot(requireSession().dir, id);
+    },
+
+    [CHANNEL.projectReveal]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.projectReveal, schemas.none, args);
+      host.showInFolder(join(requireSession().dir, 'book.json'));
+    },
+
+    [CHANNEL.photosPick]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.photosPick, schemas.none, args);
+      return host.pickPhotos();
+    },
+
+    [CHANNEL.photosImport]: async (ctx, ...args) => {
+      const [paths] = parseArgs(CHANNEL.photosImport, schemas.paths, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        // The book as the renderer will have it: saved assets, plus every import since.
+        const book = { ...session.book, assets: knownAssets(session) };
+        const report = await importPhotos(session.dir, book, paths, ctx.progress);
+        recordAssets(session, report.added);
+        return report;
+      });
+    },
+
+    [CHANNEL.assetsImportFiles]: async (_ctx, ...args) => {
+      const [kind, paths] = parseArgs(CHANNEL.assetsImportFiles, schemas.importFiles, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        const assets = await importAssetFiles(session.dir, kind, paths);
+        recordAssets(session, assets);
+        return assets;
+      });
+    },
+
+    [CHANNEL.assetsFromLibrary]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.assetsFromLibrary, schemas.libraryItem, args);
+      throw new Error('assets.fromLibrary is not implemented yet (the user library comes later)');
+    },
+
+    [CHANNEL.assetsPalette]: async (_ctx, ...args) => {
+      const [ids] = parseArgs(CHANNEL.assetsPalette, schemas.palette, args);
+      const session = requireSession();
+      return dominantColours(await paletteFiles(session, ids));
+    },
+
+    [CHANNEL.appVersion]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.appVersion, schemas.none, args);
+      return host.version();
+    },
+
+    [CHANNEL.appOpenExternal]: async (_ctx, ...args) => {
+      const [url] = parseArgs(CHANNEL.appOpenExternal, schemas.externalUrl, args);
+      // The normalised form: what is opened is what was checked.
+      await host.openExternal(new URL(url).href);
+    },
+  };
+}
+
+/** Where the app page lives: a file (built app) or the dev server (`npm run dev`). */
+export type AppPage = { file: string } | { origin: string };
+
+/**
+ * Is `url`, the URL of the frame that sent a message, the app's own page? A file page is
+ * compared as a path, so that the way the URL encodes it does not matter; a dev server page by
+ * origin. Anything else (another file, a web page, an unparsable URL) is not trusted.
+ */
+export function isTrustedPage(url: string, page: AppPage): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if ('origin' in page) return parsed.origin === page.origin;
+  if (parsed.protocol !== 'file:') return false;
+  try {
+    const path = resolve(fileURLToPath(parsed));
+    const want = resolve(page.file);
+    return process.platform === 'win32' ? path.toLowerCase() === want.toLowerCase() : path === want;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Handle every channel on `ipcMain`. A message is served only if `isTrusted` accepts the event
+ * (the sender must be the app's own page); progress goes back to the window that asked.
+ */
+export function registerIpc(
+  ipcMain: Pick<IpcMain, 'handle'>,
+  host: Host,
+  isTrusted: (event: IpcMainInvokeEvent) => boolean,
+): void {
+  const handlers = createHandlers(host);
+  for (const channel of Object.values(CHANNEL)) {
+    ipcMain.handle(channel, (event, ...args: unknown[]) => {
+      if (!isTrusted(event)) return Promise.reject(new Error(`Untrusted sender for ${channel}`));
+      const ctx: HandlerContext = {
+        progress: (done, total) => {
+          // The window can close in the middle of an import; the import must still finish.
+          if (!event.sender.isDestroyed()) event.sender.send(PROGRESS_CHANNEL, done, total);
+        },
+      };
+      return handlers[channel](ctx, ...args);
+    });
+  }
+}
