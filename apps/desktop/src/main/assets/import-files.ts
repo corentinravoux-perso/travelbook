@@ -52,10 +52,12 @@ const exists = (path: string): Promise<boolean> =>
   );
 
 /**
- * Copy files into the project's `assets/` as `assets/<id>.<ext>`, where the id is the first 16 hex
- * digits of the SHA-256 (the id of a photo with the same bytes) and the extension is lower-cased.
- * A file already there is not copied again, so the same bytes give the same asset however often
- * they come. Raster images are decoded to prove they are whole and are measured; fonts are taken
+ * Copy files into the project's `assets/` as `assets/<sha16>.<ext>`, where `sha16` is the first
+ * 16 hex digits of the SHA-256 and the extension is lower-cased. A file already there is not
+ * copied again. The asset's id is `<kind>-<sha16>`, not the bare `sha16` of a photo: ids key
+ * `Book.assets`, and a photo used as a background (same bytes) must not replace the photo, nor
+ * be mistaken for it by the photo import. The same bytes give the same asset of a given kind
+ * however often they come, and one file is shared by the kinds. Raster images are decoded to prove they are whole and are measured; fonts are taken
  * as they are. The assets are returned in the order of `paths`, once each.
  *
  * All or nothing: if any file is refused, the files this call copied are removed and the error
@@ -82,9 +84,10 @@ export async function importAssetFiles(
     const pixel = kind === 'font' ? undefined : await inspectImage(path, ext);
 
     const sha256 = await sha256File(path);
-    const id = sha256.slice(0, ID_LENGTH);
+    const hash16 = sha256.slice(0, ID_LENGTH);
+    const id = `${kind}-${hash16}`;
     if (assets.has(id)) return;
-    const file = `assets/${id}${ext}`;
+    const file = `assets/${hash16}${ext}`;
     const stored = join(dir, file);
     if (!(await exists(stored))) {
       await mkdir(join(dir, 'assets'), { recursive: true });

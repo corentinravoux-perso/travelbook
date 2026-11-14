@@ -447,6 +447,71 @@ describe('assets', () => {
       );
     });
 
+    describe('a photo and an asset with the same bytes', () => {
+      const src = (): string => fixturePath('small.jpg');
+      const roots = () => tbRoots(currentSession(), { libraryDir: '/lib', resourcesDir: '/res' });
+
+      it('photo first: both stay in the index, the photo keeps its proxies', async () => {
+        await create();
+        const imported = await call<ImportReport>(CHANNEL.photosImport, [src()]);
+        const photo = imported.added[0] as AssetRef;
+        const [background] = await call<AssetRef[]>(CHANNEL.assetsImportFiles, 'background', [
+          src(),
+        ]);
+        expect(background?.id).toBe(`background-${photo.id}`);
+        const session = currentSession();
+        expect(session && Object.keys(knownAssets(session)).sort()).toEqual(
+          [photo.id, `background-${photo.id}`].sort(),
+        );
+        expect(roots().asset(photo.id)).toEqual({ file: photo.file, proxies: true });
+        expect(roots().asset(`background-${photo.id}`)).toEqual({
+          file: background?.file,
+          proxies: false,
+        });
+        // The photo is still a photo: importing it again is a duplicate of that photo.
+        const again = await call<ImportReport>(CHANNEL.photosImport, [src()]);
+        expect(again.added).toEqual([]);
+        expect(again.duplicates).toEqual([{ path: src(), assetId: photo.id }]);
+      });
+
+      it('background first: the photo is still imported, under its own id', async () => {
+        const created = await create();
+        const [background] = await call<AssetRef[]>(CHANNEL.assetsImportFiles, 'background', [
+          src(),
+        ]);
+        const imported = await call<ImportReport>(CHANNEL.photosImport, [src()]);
+        expect(imported.duplicates).toEqual([]);
+        expect(imported.failed).toEqual([]);
+        expect(imported.added).toHaveLength(1);
+        const photo = imported.added[0] as AssetRef;
+        expect(photo.kind).toBe('photo');
+        expect(photo.id).toMatch(/^[0-9a-f]{16}$/);
+        expect(background?.id).toBe(`background-${photo.id}`);
+        expect(await exists(join(created.dir, photo.file))).toBe(true);
+        expect(roots().asset(photo.id)).toEqual({ file: photo.file, proxies: true });
+        expect(roots().asset(`background-${photo.id}`)?.proxies).toBe(false);
+      });
+
+      it('both can be saved in one book and reopened', async () => {
+        const created = await create();
+        const imported = await call<ImportReport>(CHANNEL.photosImport, [src()]);
+        const [background] = await call<AssetRef[]>(CHANNEL.assetsImportFiles, 'background', [
+          src(),
+        ]);
+        const photo = imported.added[0] as AssetRef;
+        await call(CHANNEL.projectSave, {
+          ...created.book,
+          assets: { [photo.id]: photo, [(background as AssetRef).id]: background },
+        });
+        const opened = await call<OpenedProject>(CHANNEL.projectOpen, created.dir);
+        expect(Object.keys(opened.book.assets).sort()).toEqual(
+          [photo.id, (background as AssetRef).id].sort(),
+        );
+        expect(opened.missing).toEqual([]);
+        expect(roots().asset(photo.id)?.proxies).toBe(true);
+      });
+    });
+
     it('needs an open project', async () => {
       await expect(
         call(CHANNEL.assetsImportFiles, 'sticker', [fixturePath('alpha.png')]),

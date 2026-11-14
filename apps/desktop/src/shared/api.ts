@@ -84,7 +84,10 @@ export interface TbApi {
     onProgress(cb: (done: number, total: number) => void): () => void;
   };
   assets: {
-    /** Copy stickers, backgrounds, patterns or fonts into the open project's `assets/`. */
+    /**
+     * Copy stickers, backgrounds, patterns or fonts into the open project's `assets/`. Ids are
+     * `<kind>-<sha16>`, so they never collide with the id of a photo of the same bytes.
+     */
     importFiles(kind: ImportedAssetKind, paths: string[]): Promise<AssetRef[]>;
     /** Not implemented before Task 3.4: rejects. */
     fromLibrary(itemId: string): Promise<AssetRef>;
