@@ -4,3 +4,4 @@ export { newBook, newSpread, newElement, pageCount, setIdSource } from './factor
 export { migrate, BookFormatError } from './migrate';
 export * from './geometry';
 export * from './template';
+export * from './ops';

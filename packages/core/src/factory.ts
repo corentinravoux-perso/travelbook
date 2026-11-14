@@ -1,4 +1,4 @@
-import type { Book, Element, Rect, Spread } from './schema';
+import type { Book, Crop, Element, Rect, Spread } from './schema';
 
 type IdSource = () => string;
 
@@ -17,6 +17,11 @@ export function setIdSource(source: IdSource | null): void {
 
 export function newId(): string {
   return idSource();
+}
+
+/** A photo that has not been panned or zoomed: cover fit, centred. */
+export function defaultCrop(): Crop {
+  return { scale: 1, cx: 0.5, cy: 0.5 };
 }
 
 export function newSpread(kind: Spread['kind']): Spread {
@@ -42,7 +47,7 @@ export function newElement<T extends Element['type']>(
         ...base,
         type: 'photo',
         assetId: null,
-        crop: { scale: 1, cx: 0.5, cy: 0.5 },
+        crop: defaultCrop(),
         flipH: false,
         flipV: false,
         mask: { kind: 'rect' },
