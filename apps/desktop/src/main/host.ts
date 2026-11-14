@@ -1,0 +1,35 @@
+import { app, dialog, shell, type BrowserWindow, type OpenDialogOptions } from 'electron';
+import { fr } from '../renderer/strings/fr';
+import type { Host } from './ipc';
+
+/** Extensions the photo import takes (see `PHOTO_EXTENSIONS` in `photos/import.ts`). */
+const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+
+/** The real desktop: native dialogs over `window`, the system shell and the app. */
+export function createElectronHost(window: () => BrowserWindow | null): Host {
+  async function pick(options: OpenDialogOptions): Promise<string[]> {
+    const parent = window();
+    const result = parent
+      ? await dialog.showOpenDialog(parent, options)
+      : await dialog.showOpenDialog(options);
+    return result.canceled ? [] : result.filePaths;
+  }
+  return {
+    pickFolder: async (purpose) => {
+      const [folder] = await pick({
+        title: purpose === 'create' ? fr.dialogs.chooseAlbumFolder : fr.dialogs.chooseAlbumToOpen,
+        properties: purpose === 'create' ? ['openDirectory', 'createDirectory'] : ['openDirectory'],
+      });
+      return folder ?? null;
+    },
+    pickPhotos: () =>
+      pick({
+        title: fr.dialogs.choosePhotos,
+        properties: ['openFile', 'multiSelections'],
+        filters: [{ name: fr.dialogs.imageFilter, extensions: IMAGE_EXTENSIONS }],
+      }),
+    openExternal: (url) => shell.openExternal(url),
+    showInFolder: (path) => shell.showItemInFolder(path),
+    version: () => app.getVersion(),
+  };
+}
