@@ -86,7 +86,7 @@ describe('SpreadView elements', () => {
     expect(node.style.opacity).toBe('0.5');
   });
 
-  it('draws a text element as a placeholder box only', () => {
+  it('draws a text element as a box in mm', () => {
     const el = { ...shape({ x: 5, y: 6, w: 70, h: 20 }), id: 't' } as Element;
     const text: Element = {
       ...el,

@@ -12,7 +12,7 @@ import { Background } from './Background';
 import { PhotoView } from './elements/PhotoView';
 import { ShapeView } from './elements/ShapeView';
 import { StickerView } from './elements/StickerView';
-import { TextPlaceholder } from './elements/TextPlaceholder';
+import { TextView } from './elements/TextView';
 import type { SpreadViewProps } from './types';
 import { mm } from './units';
 
@@ -45,7 +45,7 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
     case 'shape':
       return <ShapeView key={el.id} el={el} />;
     case 'text':
-      return <TextPlaceholder key={el.id} el={el} />;
+      return <TextView key={el.id} el={el} />;
   }
 }
 

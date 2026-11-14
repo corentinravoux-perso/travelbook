@@ -1,0 +1,83 @@
+/*
+ * The one style sheet of text boxes. `TextView` draws a static box with it, and the Tiptap editor of
+ * the app mounts inside the same classes, so edited and static text break lines identically.
+ * Per-box values (font, size, colour, line height, letter spacing, alignment, padding) arrive as
+ * inline custom properties on `.tb-text`; nothing else may style the text.
+ */
+.tb-text {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: var(--tb-text-padding, 0);
+  font-family: var(--tb-text-family, serif);
+  font-size: var(--tb-text-size, 12pt);
+  font-weight: 400;
+  font-style: normal;
+  color: var(--tb-text-color, #000);
+  line-height: var(--tb-text-line-height, 1.3);
+  letter-spacing: var(--tb-text-letter-spacing, 0);
+  text-align: var(--tb-text-align, left);
+  justify-content: var(--tb-text-valign, flex-start);
+  /* The browser must never invent hyphens: the design asks for none. */
+  hyphens: none;
+  /* ProseMirror turns ligatures off and breaks on spaces this way; the static text must agree. */
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0;
+  white-space: break-spaces;
+  overflow-wrap: break-word;
+}
+
+.tb-text__content {
+  flex: none;
+  min-width: 0;
+  outline: none;
+}
+
+.tb-text__content > :first-child {
+  margin-top: 0;
+}
+
+.tb-text p,
+.tb-text h1,
+.tb-text h2,
+.tb-text h3 {
+  margin: 0;
+}
+
+.tb-text h1 {
+  font-size: 2em;
+  font-weight: 700;
+}
+.tb-text h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+}
+.tb-text h3 {
+  font-size: 1.17em;
+  font-weight: 700;
+}
+
+.tb-text ul,
+.tb-text ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+.tb-text ul {
+  list-style: disc;
+}
+.tb-text ol {
+  list-style: decimal;
+}
+.tb-text li > p {
+  margin: 0;
+}
+
+.tb-text strong {
+  font-weight: 700;
+}
+.tb-text em {
+  font-style: italic;
+}
+.tb-text u {
+  text-decoration: underline;
+}
