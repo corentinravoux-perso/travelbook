@@ -10,7 +10,10 @@ const DEV_CSP =
 
 export default defineConfig({
   main: {},
-  preload: {},
+  preload: {
+    // Sandboxed preloads cannot be ES modules: emit CommonJS.
+    build: { rollupOptions: { output: { format: 'cjs', entryFileNames: '[name].cjs' } } },
+  },
   renderer: {
     plugins: [
       react(),
