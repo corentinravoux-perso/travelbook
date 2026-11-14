@@ -9,6 +9,7 @@ import {
 } from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
 import { createRoot } from 'react-dom/client';
+import { installTextFixture, type TextFixture } from './TextFixture';
 
 /**
  * Test-only page of the visual spec `e2e/render.spec.ts`: one fixed book drawn by `SpreadView` at
@@ -96,6 +97,8 @@ declare global {
       /** The clip, in mm. */
       clip: Rect;
       mount(images: FixtureImages): void;
+      /** Replaces the page by the text comparison of `e2e/render.spec.ts`. */
+      text: TextFixture;
     };
   }
 }
@@ -104,6 +107,7 @@ export function installFixture(host: HTMLElement): void {
   const { book, spread } = fixtureBook();
   const root = createRoot(host);
   window.__fixture = {
+    text: installTextFixture(host),
     clip: CLIP,
     crops: () =>
       spread.elements.flatMap((el) =>

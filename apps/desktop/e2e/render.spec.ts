@@ -8,11 +8,18 @@ import { launchApp } from './launch';
 /** Largest mean absolute difference between two renderings of the same view. */
 const MAX_MEAN_DIFF = 0.02;
 
+/** What `TextFixture.tsx` measures of a text box. */
+type Measure = { box: number; content: number; lines: string[] };
+
 /** The page `src/renderer/render-fixture/RenderFixture.tsx` puts on `window`. */
 type FixtureWindow = {
   __fixture: {
     crops(): { id: string; sx: number; sy: number; sw: number; sh: number; w: number; h: number }[];
     mount(images: unknown): void;
+    text: {
+      mount(): Promise<void>;
+      measure(): { view: Measure; editor: Measure };
+    };
   };
 };
 
@@ -121,6 +128,46 @@ test('thumb, preview and export qualities draw the same spread', async () => {
     // The comparison would pass on a blank page: the preview has to show the photo's colours.
     const { channels } = await sharp(shots['preview'] as Buffer).stats();
     expect((channels[0]?.stdev ?? 0) > 20).toBe(true);
+  } finally {
+    await app.close();
+    if (previous === undefined) delete process.env['TB_RENDER_FIXTURE'];
+    else process.env['TB_RENDER_FIXTURE'] = previous;
+    await rm(work, { recursive: true, force: true });
+  }
+});
+
+/** Largest difference in height, in CSS px, between the static text and the editor's. */
+const MAX_TEXT_DELTA_PX = 0.5;
+
+test('TextView lays text out like a mounted, non-focused Tiptap editor', async () => {
+  const work = await mkdtemp(join(tmpdir(), 'travelbook-e2e-text-'));
+  const previous = process.env['TB_RENDER_FIXTURE'];
+  process.env['TB_RENDER_FIXTURE'] = '1';
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    const page = await app.firstWindow();
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForFunction(() => '__fixture' in window);
+    // Mounting waits for the two @fontsource fonts: no system font takes part.
+    await page.evaluate(() => (window as unknown as FixtureWindow).__fixture.text.mount());
+    const { view, editor } = await page.evaluate(() =>
+      (window as unknown as FixtureWindow).__fixture.text.measure(),
+    );
+    // The comparison is void on an empty or one-line box.
+    expect(view.lines.length).toBeGreaterThan(8);
+    expect(view.lines).toEqual(editor.lines);
+    expect(Math.abs(view.content - editor.content)).toBeLessThanOrEqual(MAX_TEXT_DELTA_PX);
+    expect(Math.abs(view.box - editor.box)).toBeLessThanOrEqual(MAX_TEXT_DELTA_PX);
+    // The fonts really loaded, or the check would compare two fallbacks.
+    const loaded = await page.evaluate(() => [
+      document.fonts.check('16px "Inter"'),
+      document.fonts.check('italic 16px "Lora"'),
+      [...document.fonts].filter((f) => f.status === 'loaded').length,
+    ]);
+    expect(loaded[0]).toBe(true);
+    expect(loaded[1]).toBe(true);
+    expect(loaded[2]).toBeGreaterThanOrEqual(4);
+    await page.getByTestId('text-view').screenshot();
   } finally {
     await app.close();
     if (previous === undefined) delete process.env['TB_RENDER_FIXTURE'];
