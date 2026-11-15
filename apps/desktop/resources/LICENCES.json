@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "note": "The licence of every file of resources/ that backgrounds.json, fonts.json and stickers/packs/manifest.json do not describe. Our own work; the test scripts/resources-licences.test.ts fails for a file without an entry.",
+  "entries": [
+    {
+      "files": [
+        "icons/icon.svg",
+        "icons/icon.png",
+        "icons/icon.ico",
+        "icons/png/16x16.png",
+        "icons/png/24x24.png",
+        "icons/png/32x32.png",
+        "icons/png/48x48.png",
+        "icons/png/64x64.png",
+        "icons/png/128x128.png",
+        "icons/png/256x256.png",
+        "icons/png/512x512.png"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "templates/covers.json",
+        "templates/openings.json",
+        "templates/photos.json",
+        "templates/spreads.json",
+        "templates/texte.json",
+        "templates/themes.json"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "backgrounds.json",
+        "fonts.json",
+        "stickers/fr-keywords.json",
+        "stickers/packs/manifest.json"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
+    }
+  ]
+}
