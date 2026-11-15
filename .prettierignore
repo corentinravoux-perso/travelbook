@@ -5,3 +5,5 @@ coverage
 test-results
 package-lock.json
 .superpowers
+# Hand-made, self-contained sketches kept exactly as drawn (task 5.0 gate).
+docs/design/sketches/*.html
