@@ -9,6 +9,7 @@
     "electron.vite.config.ts",
     "playwright.config.ts",
     "playwright.packaged.config.ts",
+    "playwright.stress.config.ts",
     "src/main",
     "src/preload",
     "src/shared",

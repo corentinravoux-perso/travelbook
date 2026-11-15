@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "e2e": "npm run e2e -w @travelbook/desktop",
     "e2e:packaged": "npm run e2e:packaged -w @travelbook/desktop",
+    "e2e:stress": "npm run e2e:stress -w @travelbook/desktop",
     "dist:linux": "npm run dist:linux -w @travelbook/desktop",
     "dist:win": "npm run dist:win -w @travelbook/desktop"
   },
