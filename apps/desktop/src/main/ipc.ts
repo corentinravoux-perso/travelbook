@@ -8,6 +8,7 @@ import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channel
 import { clipboardPayload, readElements, writeElements, type ClipboardHost } from './clipboard';
 import { importAssetFiles } from './assets/import-files';
 import { dominantColours } from './assets/palette';
+import { bundledBackgrounds, importBundledBackground } from './library/backgrounds';
 import {
   bundledTemplates,
   deleteUserTemplate,
@@ -133,6 +134,11 @@ const schemas = {
   libraryFavourite: z.tuple([identifier, z.boolean()]),
   template: z.tuple([TemplateSchema]),
   templateId: z.tuple([identifier]),
+  bundledFile: z.tuple([
+    z
+      .string()
+      .regex(/^(patterns|textures)\/[A-Za-z0-9_-]+\.[a-z]{3,4}$/, 'must be a bundled background'),
+  ]),
   palette: z.tuple([z.array(identifier).max(500)]),
   clipboardWrite: z.tuple([clipboardPayload]),
   externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),
@@ -293,10 +299,25 @@ export function createHandlers(host: Host): IpcHandlers {
       });
     },
 
+    [CHANNEL.assetsFromBundled]: async (_ctx, ...args) => {
+      const [file] = parseArgs(CHANNEL.assetsFromBundled, schemas.bundledFile, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        const asset = await importBundledBackground(session.dir, file);
+        recordAssets(session, [asset]);
+        return asset;
+      });
+    },
+
     [CHANNEL.assetsPalette]: async (_ctx, ...args) => {
       const [ids] = parseArgs(CHANNEL.assetsPalette, schemas.palette, args);
       const session = requireSession();
       return dominantColours(await paletteFiles(session, ids));
+    },
+
+    [CHANNEL.libraryBundledBackgrounds]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.libraryBundledBackgrounds, schemas.none, args);
+      return bundledBackgrounds();
     },
 
     [CHANNEL.libraryList]: async (_ctx, ...args) => {
