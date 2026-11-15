@@ -1,7 +1,13 @@
 import { basename, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
-import { BookSchema, TemplateSchema, fontFamiliesUsed, type Book } from '@travelbook/core';
+import {
+  BookSchema,
+  LicenceSchema,
+  TemplateSchema,
+  fontFamiliesUsed,
+  type Book,
+} from '@travelbook/core';
 import { z } from 'zod';
 import type { CaptureRect, ExportOptions, ExportProgress, LibraryItem } from '../shared/api';
 import {
@@ -11,6 +17,7 @@ import {
   type InvokeChannel,
 } from '../shared/channels';
 import { clipboardPayload, readElements, writeElements, type ClipboardHost } from './clipboard';
+import { assetFromSvg } from './assets/from-svg';
 import { importAssetFiles } from './assets/import-files';
 import { dominantColours } from './assets/palette';
 import { bundledBackgrounds, importBundledBackground } from './library/backgrounds';
@@ -148,6 +155,8 @@ const stickerSearch = z.strictObject({
   noAttribution: z.boolean().optional(),
 });
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+/** Longest SVG text `assets:fromSvg` accepts (a poster illustration is a few kB). */
+const MAX_SVG_CHARS = 2_000_000;
 
 /** A failed online call reaches the renderer as `SourceError:<kind>`, which it maps to French. */
 async function viaSource<T>(task: () => Promise<T>): Promise<T> {
@@ -211,6 +220,10 @@ const schemas = {
       .regex(/^(patterns|textures)\/[A-Za-z0-9_-]+\.[a-z]{3,4}$/, 'must be a bundled background'),
   ]),
   palette: z.tuple([z.array(identifier).max(500)]),
+  fromSvg: z.tuple([
+    z.string().min(1).max(MAX_SVG_CHARS),
+    z.object({ name: z.string().min(1).max(200), licence: LicenceSchema }).strict(),
+  ]),
   clipboardWrite: z.tuple([clipboardPayload]),
   externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),
 };
@@ -418,6 +431,16 @@ export function createHandlers(host: Host): IpcHandlers {
       const session = requireSession();
       return serialize(importQueue(session), async () => {
         const asset = await importBundledBackground(session.dir, file);
+        recordAssets(session, [asset]);
+        return asset;
+      });
+    },
+
+    [CHANNEL.assetsFromSvg]: async (_ctx, ...args) => {
+      const [svg, meta] = parseArgs(CHANNEL.assetsFromSvg, schemas.fromSvg, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        const asset = await assetFromSvg(session.dir, svg, meta);
         recordAssets(session, [asset]);
         return asset;
       });
