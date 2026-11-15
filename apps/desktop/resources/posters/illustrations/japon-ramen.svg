@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 20 940 760" data-tb-style="pixory">
+  <!-- Chopsticks behind -->
+  <path fill="#2b2723" d="M640 300L930 40l14 12L668 314z"/>
+  <path fill="#2b2723" d="M690 312L990 92l10 14L716 324z"/>
+  <!-- Foot and body of the bowl -->
+  <path fill="#8f2721" d="M372 690h256l22 70H350z"/>
+  <path fill="#c8382f" d="M100 300C100 560 300 712 500 712S900 560 900 300z"/>
+  <path fill="#8f2721" d="M900 300C900 560 700 712 500 712C660 690 810 560 830 300z"/>
+  <!-- Wave band on the bowl -->
+  <path fill="#f6e6bd" d="M153 340a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M203 377a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M253 403a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M303 422a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M353 436a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M403 445a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M453 449a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M503 449a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M553 445a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M603 436a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M653 422a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M703 403a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M753 377a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <path fill="#f6e6bd" d="M803 340a22 22 0 0 1 44 0h-8a14 14 0 0 0-28 0z"/>
+  <!-- Rim, inner wall and broth -->
+  <ellipse fill="#c8382f" cx="500" cy="300" rx="400" ry="110"/>
+  <ellipse fill="#8f2721" cx="500" cy="304" rx="380" ry="96"/>
+  <ellipse fill="#e3a04a" cx="500" cy="318" rx="356" ry="80"/>
+  <!-- Nori sheets at the back -->
+  <path fill="#2b2723" d="M610 178l104 -14 22 150-104 14z"/>
+  <path fill="#2b2723" d="M700 196l84 -8 10 136-84 8z"/>
+  <!-- Noodles -->
+  <path fill="#f6e6bd" d="M220 290q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0v8q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0z"/>
+  <path fill="#f6e6bd" d="M226 306q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0v8q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0z"/>
+  <path fill="#f6e6bd" d="M232 322q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0v8q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0z"/>
+  <path fill="#f6e6bd" d="M238 338q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0q14 -12 28 0q14 12 28 0v8q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0q-14 12 -28 0q-14 -12 -28 0z"/>
+  <!-- Noodles lifted by the chopsticks -->
+  <path fill="#f6e6bd" d="M640 300c6-40 30-60 40-100 6 30-14 70-24 104z"/>
+  <path fill="#f6e6bd" d="M666 312c10-44 30-70 46-110 4 34-16 76-30 114z"/>
+  <!-- Egg halves -->
+  <ellipse fill="#f6e6bd" cx="520" cy="360" rx="58" ry="38"/>
+  <ellipse fill="#f0a12c" cx="524" cy="358" rx="30" ry="20"/>
+  <ellipse fill="#f6e6bd" cx="610" cy="344" rx="58" ry="38"/>
+  <ellipse fill="#f0a12c" cx="614" cy="342" rx="30" ry="20"/>
+  <!-- Naruto slices -->
+  <ellipse fill="#f6e6bd" cx="330" cy="352" rx="40" ry="26"/>
+  <ellipse fill="#ef8fa0" cx="330" cy="352" rx="30" ry="19"/>
+  <ellipse fill="#f6e6bd" cx="332" cy="352" rx="19" ry="12"/>
+  <ellipse fill="#ef8fa0" cx="333" cy="352" rx="9" ry="6"/>
+  <ellipse fill="#f6e6bd" cx="410" cy="372" rx="40" ry="26"/>
+  <ellipse fill="#ef8fa0" cx="410" cy="372" rx="30" ry="19"/>
+  <ellipse fill="#f6e6bd" cx="412" cy="372" rx="19" ry="12"/>
+  <ellipse fill="#ef8fa0" cx="413" cy="372" rx="9" ry="6"/>
+  <!-- Spring onions -->
+  <ellipse fill="#6f7f3e" cx="450" cy="306" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="450" cy="306" rx="5" ry="3"/>
+  <ellipse fill="#6f7f3e" cx="470" cy="330" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="470" cy="330" rx="5" ry="3"/>
+  <ellipse fill="#6f7f3e" cx="700" cy="352" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="700" cy="352" rx="5" ry="3"/>
+  <ellipse fill="#6f7f3e" cx="730" cy="330" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="730" cy="330" rx="5" ry="3"/>
+  <ellipse fill="#6f7f3e" cx="290" cy="316" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="290" cy="316" rx="5" ry="3"/>
+  <ellipse fill="#6f7f3e" cx="560" cy="300" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="560" cy="300" rx="5" ry="3"/>
+  <ellipse fill="#6f7f3e" cx="380" cy="330" rx="12" ry="8"/>
+  <ellipse fill="#f6e6bd" cx="380" cy="330" rx="5" ry="3"/>
+  <!-- Shadow under the bowl -->
+  <ellipse fill="#8f2721" cx="500" cy="760" rx="280" ry="20"/>
+</svg>
+
