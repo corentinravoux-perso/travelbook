@@ -15,8 +15,14 @@ describe('PosterSpecSchema', () => {
     const bad = { ...validSpec, colors: { ...validSpec.colors, title: 'red' } };
     expect(PosterSpecSchema.safeParse(bad).success).toBe(false);
   });
+  it('requires a decor colour', () => {
+    const colors: Partial<typeof validSpec.colors> = { ...validSpec.colors };
+    delete colors.decor;
+    expect(PosterSpecSchema.safeParse({ ...validSpec, colors }).success).toBe(false);
+  });
   it('rejects an unknown layout or font', () => {
     expect(PosterSpecSchema.safeParse({ ...validSpec, layout: 'x' }).success).toBe(false);
+    expect(PosterSpecSchema.safeParse({ ...validSpec, layout: 'bas' }).success).toBe(false);
     expect(PosterSpecSchema.safeParse({ ...validSpec, font: 'Inter' }).success).toBe(false);
   });
 });

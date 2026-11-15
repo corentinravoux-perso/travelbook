@@ -11,6 +11,7 @@ export const validSpec: PosterSpec = {
     background: '#f1ece4',
     title: '#b5452f',
     accent: '#2b3a4a',
+    decor: '#e8c9a9',
     illustration: { main: '#b5452f', shade: '#7d2f20' },
   },
   illustration: { set: 'affiches', id: 'japon-torii' },
