@@ -2,12 +2,16 @@ import { MM_TO_PX, spreadSize } from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
 import { useEffect, useRef } from 'react';
 import { assetUrl } from './assetUrl';
+import { coverThumbs } from '../store/project';
 import { stage, useStage, type StageRequest } from './coverThumb';
 
 /** Long edge of the cover as drawn for the capture, in CSS px: the thumbnail's long edge. */
 const STAGE_EDGE = 320;
-/** Give up waiting for the images after this long and capture what is there. */
-const IMAGES_TIMEOUT_MS = 4000;
+/**
+ * Give up waiting for the images after this long and capture what is there. It leaves the rest of
+ * `CAPTURE_BUDGET_MS` for two frames and the capture itself.
+ */
+const IMAGES_TIMEOUT_MS = 700;
 
 const frame = (): Promise<void> => new Promise((done) => requestAnimationFrame(() => done()));
 
@@ -22,13 +26,15 @@ async function imagesReady(root: HTMLElement): Promise<void> {
 /**
  * Where the cover thumbnail is drawn from. Only `SpreadView` turns a document into pixels, and
  * main can capture only what the window shows: so the cover is drawn at thumbnail size, in the
- * top layer (above any dialog), for the few frames a capture takes. It is never interactive.
- * Always mounted in the editor; renders nothing until `captureCoverThumb` asks.
+ * top layer (above any dialog), for the few frames a capture takes (`CAPTURE_BUDGET_MS` at most).
+ * It is never interactive. Always mounted in the editor; renders nothing until
+ * `captureCoverThumb` asks.
  */
 export function CoverStage() {
   const request = useStage((s) => s.request);
   useEffect(() => {
     stage.mounted = true;
+    void coverThumbs.buildIfMissing(); // an album without a thumbnail gets one as it opens
     return () => {
       stage.mounted = false;
     };
