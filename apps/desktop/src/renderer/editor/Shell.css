@@ -382,6 +382,7 @@
   display: flex;
   align-items: center;
   gap: var(--s5);
+  min-width: 0;
   padding: 0 var(--s5);
   border-top: 1px solid var(--line);
   background: var(--chrome);
@@ -389,6 +390,274 @@
 }
 .shell-strip > .shell-empty {
   padding: 0;
+}
+.strip__list {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 0;
+  padding: var(--s2) 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.strip__tools {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s3);
+  max-width: 34ch;
+}
+.strip__count {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  font-size: var(--t-xs);
+  line-height: 1.25;
+  color: var(--ink-2);
+  text-align: right;
+}
+.strip__count[data-warning] {
+  color: var(--fair);
+}
+.strip__buttons {
+  display: flex;
+}
+
+/* A spread as a tile: its thumbnail and page numbers. Used by the strip and by the overview. */
+.tile {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s2);
+  border: 1px solid transparent;
+  border-radius: var(--r1);
+  color: var(--ink-2);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+.tile:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.tile[aria-current='true'] {
+  border-color: var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+}
+.tile[data-dragging] {
+  opacity: 0.4;
+}
+.tile[data-drop]::before {
+  content: '';
+  position: absolute;
+  top: var(--s2);
+  bottom: var(--s2);
+  width: 2px;
+  background: var(--ink);
+}
+.tile[data-drop='before']::before {
+  left: calc(-1 * var(--s2));
+}
+.tile[data-drop='after']::before {
+  right: calc(-1 * var(--s2));
+}
+.tile[draggable='true'] {
+  cursor: grab;
+}
+.tile__caption {
+  line-height: 1.2;
+}
+
+.thumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--line);
+  pointer-events: none;
+}
+.thumb__paper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  transform-origin: 0 0;
+}
+.thumb__void {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--ground) 55%, var(--chrome));
+}
+.thumb__spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+/* ---------- overview of the spreads ---------- */
+.overview {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+}
+.overview__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  height: var(--top-h);
+  padding: 0 var(--s4) 0 var(--s5);
+  border-bottom: 1px solid var(--line);
+  background: var(--chrome);
+}
+.overview__title {
+  font-size: var(--t-md);
+  font-weight: var(--w-semibold);
+}
+.overview__hint {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.overview__grid {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--s6) var(--s7);
+  margin: 0;
+  padding: var(--s7) var(--s7) var(--s7) calc(var(--s7) + var(--s6));
+  overflow: auto;
+  list-style: none;
+}
+.overview__item {
+  position: relative;
+}
+.overview .tile {
+  background: var(--chrome);
+  color: var(--ink);
+}
+.overview .tile:hover {
+  background: var(--surface);
+}
+/* The insert point sits in the gap before a thumbnail; it shows when pointed at or focused. */
+.overview__insert {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * var(--s7) + var(--s2));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--s7) - var(--s4));
+  border-radius: var(--r1);
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity var(--fast);
+}
+.overview__insert:hover,
+.overview__insert:focus-visible {
+  opacity: 1;
+  background: var(--chrome);
+}
+
+/* ---------- cover: the spine zone and the cover's tools ---------- */
+.spine-zone {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 14%, transparent) 0 2px,
+    transparent 2px 6px
+  );
+}
+.spine-zone__label {
+  padding-top: var(--s4);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  writing-mode: vertical-rl;
+}
+.cover-tools {
+  position: absolute;
+  top: var(--s4);
+  left: var(--s4);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  max-width: calc(100% - 2 * var(--s4));
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--chrome);
+}
+.cover-tools__hint {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+/* The cover as drawn for the thumbnail capture: top layer, top left, never interactive. */
+.cover-stage {
+  position: fixed;
+  inset: auto;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: var(--paper);
+  pointer-events: none;
+}
+
+/* ---------- book settings dialog ---------- */
+/* The dialog is taller than a small window: it scrolls instead of leaving the screen. */
+.dialog--scroll {
+  max-height: calc(100vh - 2 * var(--s7));
+  overflow: auto;
+}
+.settings-group {
+  gap: var(--s4);
+}
+.settings-group > legend {
+  margin-bottom: var(--s4);
+  padding: 0;
+  font-size: var(--t-md);
+  font-weight: var(--w-semibold);
+  color: var(--ink);
+}
+.settings-group__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s5) var(--s6);
+}
+.settings-group__wide {
+  grid-column: 1 / -1;
+}
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s4);
+  font-size: var(--t-sm);
+}
+.check input {
+  margin-top: 2px;
+}
+.check .field__help {
+  display: block;
 }
 
 /* ---------- resize handles: a wide hit zone over the hairline, ink only when touched ---------- */

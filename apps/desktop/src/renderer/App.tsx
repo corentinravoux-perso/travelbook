@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { Shell } from './editor/Shell';
 import { Home } from './home/Home';
 import { editorStore } from './store/editor';
-import { projectStore, useProject } from './store/project';
+import { coverThumbs, projectStore, useProject } from './store/project';
 
 export { initTheme } from './theme/theme';
 
@@ -20,7 +20,10 @@ export function App() {
 
   useEffect(() => {
     // Main asks for a save before the window closes; a rejection makes it ask the user.
-    const unregister = window.tb.app.onCloseRequest(() => editorStore.getState().flush());
+    const unregister = window.tb.app.onCloseRequest(async () => {
+      await editorStore.getState().flush();
+      await coverThumbs.flush(); // never rejects: the thumbnail is a cache
+    });
     const stopSnapshots = projectStore.getState().startAutoSnapshots();
     const onKey = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {

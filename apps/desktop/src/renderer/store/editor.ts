@@ -51,6 +51,8 @@ export interface EditorState {
   tool: Tool;
   panel: PanelId;
   guides: Guides;
+  /** True while the full-screen overview of the spreads is open. */
+  overview: boolean;
   /** A short message to show over the canvas (a paste that failed, say); `null` for none. */
   notice: string | null;
   saveStatus: SaveStatus;
@@ -82,6 +84,10 @@ export interface EditorState {
   undo(): void;
   redo(): void;
   setPanel(panel: PanelId): void;
+  /** Edit the spread `id` (the cover or an inner spread); the selection is emptied. */
+  goToSpread(id: string): void;
+  /** Open or close the overview of the spreads. */
+  setOverview(open: boolean): void;
   /** Replace the selection (ids of the current spread). */
   select(ids: string[]): void;
   /** Zoom to `zoom` (clamped) and stop fitting. */
@@ -177,10 +183,27 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       }
     };
 
+    /**
+     * The spread to show once `next` replaces `previous`: the current one if it survived, else
+     * the one that took its place (or the one before it, at the end of the book).
+     */
+    const surviving = (previous: Book | null, next: Book): string | null => {
+      const id = get().currentSpreadId;
+      if (id === null || findSpread(next, id)) return id;
+      const at = previous?.spreads.findIndex((s) => s.id === id) ?? -1;
+      return (next.spreads[Math.min(Math.max(at, 0), next.spreads.length - 1)] ?? next.cover).id;
+    };
+
     /** Show `next` if it differs from the current book, and save it. */
     const commit = (next: Book) => {
-      if (next === get().book) return;
-      set({ book: next, history: snapshot() });
+      const previous = get().book;
+      if (next === previous) return;
+      const currentSpreadId = surviving(previous, next);
+      set({
+        book: next,
+        history: snapshot(),
+        ...(currentSpreadId !== get().currentSpreadId ? { currentSpreadId, selection: [] } : {}),
+      });
       scheduleSave();
     };
 
@@ -201,6 +224,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
         currentSpreadId: book.spreads[0]?.id ?? null,
         selection: [],
         fit: true,
+        overview: false,
         saveStatus: 'saved',
       });
     };
@@ -215,6 +239,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       tool: 'select',
       panel: 'photos',
       guides: { bleed: true, trim: true, safe: true, gutter: true },
+      overview: false,
       notice: null,
       saveStatus: 'saved',
       opening: false,
@@ -248,6 +273,14 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       },
       setPanel(panel) {
         set({ panel });
+      },
+      goToSpread(id) {
+        const { book, currentSpreadId } = get();
+        if (!findSpread(book, id) || id === currentSpreadId) return;
+        set({ currentSpreadId: id, selection: [] });
+      },
+      setOverview(open) {
+        if (get().overview !== open) set({ overview: open });
       },
       select(ids) {
         const current = get().selection;
