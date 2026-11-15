@@ -12,7 +12,7 @@
 <path d="M110 146 C119.8 137.2, 127.6 126.9, 150 106" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M266 140 C276.6 128.6, 288.9 116.5, 314 92" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M290 146 C301.2 135.2, 310.5 125.3, 330 106" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M168.7 -21 C163.4 -34.6, 156.3 -50.1, 145.6 -84.4" fill="none" stroke="#1d1b1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M220 -30 C220.1 -45.5, 221.2 -61.8, 220 -97.5" fill="none" stroke="#1d1b1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M271.3 -21 C275.9 -36.5, 281.5 -51.6, 294.4 -84.4" fill="none" stroke="#1d1b1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M168.7 -21 C164.7 -31.2, 158.9 -43.2, 150.7 -70.3" fill="none" stroke="#1d1b1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M220 -30 C220 -41.9, 221.1 -54.5, 220 -82.5" fill="none" stroke="#1d1b1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M271.3 -21 C274.6 -33.1, 279 -44.8, 289.3 -70.3" fill="none" stroke="#1d1b1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

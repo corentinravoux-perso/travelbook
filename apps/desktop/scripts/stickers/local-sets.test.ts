@@ -2,7 +2,14 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { STICKERS_SRC_DIR, categoryOf, localSetFiles, localSetIds, readLocalSet, readLocalSets } from './local-sets.ts';
+import {
+  STICKERS_SRC_DIR,
+  categoryOf,
+  localSetFiles,
+  localSetIds,
+  readLocalSet,
+  readLocalSets,
+} from './local-sets.ts';
 
 let dir: string;
 beforeEach(async () => {
@@ -10,7 +17,8 @@ beforeEach(async () => {
 });
 afterEach(() => rm(dir, { recursive: true, force: true }));
 
-const svg = (view: string): string => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}">\n<path d="M0 0h1"/>\n</svg>\n`;
+const svg = (view: string): string =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}">\n<path d="M0 0h1"/>\n</svg>\n`;
 
 async function makeSet(id: string, meta: object, files: Record<string, string>): Promise<void> {
   await mkdir(join(dir, id));
@@ -32,8 +40,17 @@ describe('readLocalSet', () => {
   it('packs each file with its viewBox, category label and keywords', async () => {
     await makeSet(
       'croquis',
-      { name: 'Croquis', order: 2, categories: { objet: 'Objets', meteo: 'Météo' }, keywords: { 'objet-tasse': ['café'] } },
-      { 'objet-tasse.svg': svg('0 0 40 30'), 'meteo-eclair.svg': svg('0 0 30 40'), 'notes.txt': 'x' },
+      {
+        name: 'Croquis',
+        order: 2,
+        categories: { objet: 'Objets', meteo: 'Météo' },
+        keywords: { 'objet-tasse': ['café'] },
+      },
+      {
+        'objet-tasse.svg': svg('0 0 40 30'),
+        'meteo-eclair.svg': svg('0 0 30 40'),
+        'notes.txt': 'x',
+      },
     );
     const set = await readLocalSet('croquis', dir);
     expect(set).toMatchObject({ id: 'croquis', name: 'Croquis', order: 2, picks: [] });
@@ -45,19 +62,31 @@ describe('readLocalSet', () => {
   });
 
   it('refuses a file whose id has no known category', async () => {
-    await makeSet('s', { name: 'S', order: 1, categories: { objet: 'Objets' } }, { 'autre-chose.svg': svg('0 0 1 1') });
+    await makeSet(
+      's',
+      { name: 'S', order: 1, categories: { objet: 'Objets' } },
+      { 'autre-chose.svg': svg('0 0 1 1') },
+    );
     await expect(readLocalSet('s', dir)).rejects.toThrow(/no known category/);
   });
 
   it('refuses a file without a viewBox', async () => {
-    await makeSet('s', { name: 'S', order: 1, categories: { objet: 'Objets' } }, { 'objet-x.svg': '<svg></svg>' });
+    await makeSet(
+      's',
+      { name: 'S', order: 1, categories: { objet: 'Objets' } },
+      { 'objet-x.svg': '<svg></svg>' },
+    );
     await expect(readLocalSet('s', dir)).rejects.toThrow(/viewBox/);
   });
 });
 
 describe('readLocalSets', () => {
   it('lists the folders with a meta.json, by order', async () => {
-    await makeSet('b', { name: 'B', order: 1, categories: { x: 'X' } }, { 'x-1.svg': svg('0 0 1 1') });
+    await makeSet(
+      'b',
+      { name: 'B', order: 1, categories: { x: 'X' } },
+      { 'x-1.svg': svg('0 0 1 1') },
+    );
     await makeSet('a', { name: 'A', order: 5, categories: { x: 'X' } }, {});
     await mkdir(join(dir, 'not-a-set'));
     expect(await localSetIds(dir)).toEqual(['a', 'b']);
@@ -89,10 +118,14 @@ describe('the committed drawn sets', () => {
     const { DRAWN_SETS } = await import('./draw-stickers.ts');
     const { render } = await import('./draw/core.ts');
     for (const { SET, DRAWINGS } of DRAWN_SETS) {
-      const files = (await readdir(join(STICKERS_SRC_DIR, SET.id))).filter((n) => n.endsWith('.svg'));
+      const files = (await readdir(join(STICKERS_SRC_DIR, SET.id))).filter((n) =>
+        n.endsWith('.svg'),
+      );
       expect(files.sort(), SET.id).toEqual(DRAWINGS.map((d) => `${d.id}.svg`).sort());
       for (const d of DRAWINGS) {
-        expect(await readFile(join(STICKERS_SRC_DIR, SET.id, `${d.id}.svg`), 'utf8'), d.id).toBe(render(d));
+        expect(await readFile(join(STICKERS_SRC_DIR, SET.id, `${d.id}.svg`), 'utf8'), d.id).toBe(
+          render(d),
+        );
       }
     }
   });

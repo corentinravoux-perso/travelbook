@@ -37,7 +37,15 @@ function place(d: string, colour: string, x: number, y: number, deg = 0, s = 1):
 }
 
 /** `n` copies of a petal around (cx, cy). */
-function ring(cx: number, cy: number, n: number, d: string, colour: string, offset = 0, s = 1): string[] {
+function ring(
+  cx: number,
+  cy: number,
+  n: number,
+  d: string,
+  colour: string,
+  offset = 0,
+  s = 1,
+): string[] {
   const out: string[] = [];
   for (let i = 0; i < n; i++) out.push(place(d, colour, cx, cy, offset + (360 / n) * i, s));
   return out;
@@ -57,7 +65,9 @@ function notched(r: number, k = 0.5): string {
 /** A petal broad at its tip (frangipani, pansy-like). */
 function obovate(r: number, k = 0.6): string {
   const w = k * r;
-  return tidy(`M0 0C${w * 0.3} ${-r * 0.3} ${w * 1.1} ${-r * 0.6} ${w * 0.6} ${-r}C${w * 0.2} ${-r * 1.08} ${-w * 1.1} ${-r * 0.9} 0 0Z`);
+  return tidy(
+    `M0 0C${w * 0.3} ${-r * 0.3} ${w * 1.1} ${-r * 0.6} ${w * 0.6} ${-r}C${w * 0.2} ${-r * 1.08} ${-w * 1.1} ${-r * 0.9} 0 0Z`,
+  );
 }
 
 /** A plain stroke in colour, no fill, round ends. */
@@ -69,7 +79,15 @@ const lf = (x: number, y: number, l: number, deg: number, colour: string, k = 0.
   tidy(leaf(x, y, l, deg, colour, k));
 
 /** A leaf with a darker half, for a bit of volume. */
-function lf2(x: number, y: number, l: number, deg: number, colour: string, shade: string, k = 0.32): string[] {
+function lf2(
+  x: number,
+  y: number,
+  l: number,
+  deg: number,
+  colour: string,
+  shade: string,
+  k = 0.32,
+): string[] {
   const half = `M0 0C${l * 0.3} ${-l * k} ${l * 0.75} ${-l * k} ${l} 0Z`;
   return [lf(x, y, l, deg, colour, k), place(half, shade, x, y, deg)];
 }
@@ -89,7 +107,11 @@ function along(pts: [number, number][], t: number): [number, number, number] {
       const f = Math.min(1, target / seg[i]!);
       const [ax, ay] = pts[i]!;
       const [bx, by] = pts[i + 1]!;
-      return [ax + (bx - ax) * f, ay + (by - ay) * f, (Math.atan2(by - ay, bx - ax) * 180) / Math.PI];
+      return [
+        ax + (bx - ax) * f,
+        ay + (by - ay) * f,
+        (Math.atan2(by - ay, bx - ax) * 180) / Math.PI,
+      ];
     }
     target -= seg[i]!;
   }
@@ -102,7 +124,18 @@ function along(pts: [number, number][], t: number): [number, number, number] {
  */
 function sprig(
   pts: [number, number][],
-  o: { n: number; len: number; angle?: number; k?: number; leafC: string; stemC?: string; w?: number; shade?: string; tip?: boolean; pairs?: boolean },
+  o: {
+    n: number;
+    len: number;
+    angle?: number;
+    k?: number;
+    leafC: string;
+    stemC?: string;
+    w?: number;
+    shade?: string;
+    tip?: boolean;
+    pairs?: boolean;
+  },
 ): string[] {
   const out = [stem(smoothOpen(pts), o.stemC ?? o.leafC, o.w ?? 4)];
   const angle = o.angle ?? 45;
@@ -129,7 +162,9 @@ function sprig(
  */
 function monstera(L: number, W: number, colour: string, vein: string, slits = 5): string[] {
   const w = (t: number): number =>
-    W * Math.pow(Math.sin(Math.PI * (0.1 + 0.9 * Math.min(1, Math.max(0, t)))), 0.6) * (1 - 0.2 * t);
+    W *
+    Math.pow(Math.sin(Math.PI * (0.1 + 0.9 * Math.min(1, Math.max(0, t)))), 0.6) *
+    (1 - 0.2 * t);
   const g = 0.024;
   const m: number[] = [];
   const o: number[] = [];
@@ -201,7 +236,15 @@ function group(parts: string[], x: number, y: number, deg = 0, s = 1): string {
 }
 
 /** Dots on a circle. */
-function dotRing(cx: number, cy: number, r: number, n: number, size: number, colour: string, offset = 0): string[] {
+function dotRing(
+  cx: number,
+  cy: number,
+  r: number,
+  n: number,
+  size: number,
+  colour: string,
+  offset = 0,
+): string[] {
   const out: string[] = [];
   for (let i = 0; i < n; i++) {
     const a = offset + (i / n) * Math.PI * 2;
@@ -222,7 +265,14 @@ function seeds(cx: number, cy: number, R: number, n: number, colour: string): st
 }
 
 /** A hibiscus head centred on 0 0 (local coords). */
-function hibiscus(r: number, a: string, b: string, core: string, pollen: string, deg = 0): string[] {
+function hibiscus(
+  r: number,
+  a: string,
+  b: string,
+  core: string,
+  pollen: string,
+  deg = 0,
+): string[] {
   return [
     ...ring(0, 0, 5, rounded(r, 0.68), a, deg),
     ...ring(0, 0, 5, rounded(r * 0.62, 0.48), b, deg),
@@ -241,7 +291,10 @@ function blossom(r: number, a = C.blossom, b = C.blossomDark, deg = 0): string[]
     const ang = ((deg + 36 + i * 72 - 90) * Math.PI) / 180;
     const x = Math.cos(ang) * r * 0.5;
     const y = Math.sin(ang) * r * 0.5;
-    out.push(stem(`M0 0L${r1(x)} ${r1(y)}`, C.bordeaux, Math.max(1.5, r * 0.04)), fill(circle(r1(x), r1(y), r * 0.06), C.bordeaux));
+    out.push(
+      stem(`M0 0L${r1(x)} ${r1(y)}`, C.bordeaux, Math.max(1.5, r * 0.04)),
+      fill(circle(r1(x), r1(y), r * 0.06), C.bordeaux),
+    );
   }
   return out;
 }
@@ -254,7 +307,11 @@ const floret = (r: number, a: string, centre: string, deg = 0): string[] => [
 
 /** A frangipani head centred on 0 0: five twisted petals. */
 function frangipani(r: number, a: string, centre: string, deg = 0): string[] {
-  return [...ring(0, 0, 5, obovate(r, 0.62), a, deg), ...ring(0, 0, 5, obovate(r * 0.45, 0.5), centre, deg), fill(circle(0, 0, r * 0.1), centre)];
+  return [
+    ...ring(0, 0, 5, obovate(r, 0.62), a, deg),
+    ...ring(0, 0, 5, obovate(r * 0.45, 0.5), centre, deg),
+    fill(circle(0, 0, r * 0.1), centre),
+  ];
 }
 
 /** A ribbon bow centred on (x, y). */
@@ -412,8 +469,18 @@ export const FLEURS: Drawing[] = [
       stem('M150 400Q146 300 150 170', P.leaf, 7),
       place('M0 0C40 -40 50 -150 30 -230C10 -150 -10 -60 0 0Z', P.leaf, 148, 400, -12),
       place('M0 0C-40 -40 -60 -130 -40 -200C-20 -130 0 -60 0 0Z', P.leafDark, 150, 400, 8),
-      place('M-62 0C-74 -60 -60 -110 -44 -128L-20 -96L0 -136L20 -96L44 -128C60 -110 74 -60 62 0C40 26 -40 26 -62 0Z', P.coral, 150, 176),
-      place('M-24 10C-40 -40 -24 -100 0 -136C24 -100 40 -40 24 10C10 18 -10 18 -24 10Z', '#d94a40', 150, 176),
+      place(
+        'M-62 0C-74 -60 -60 -110 -44 -128L-20 -96L0 -136L20 -96L44 -128C60 -110 74 -60 62 0C40 26 -40 26 -62 0Z',
+        P.coral,
+        150,
+        176,
+      ),
+      place(
+        'M-24 10C-40 -40 -24 -100 0 -136C24 -100 40 -40 24 10C10 18 -10 18 -24 10Z',
+        '#d94a40',
+        150,
+        176,
+      ),
     ],
   },
   {
@@ -421,14 +488,22 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 400 400',
     kw: ['lys', 'fleur', 'rose', 'élégant'],
     parts: () => {
-      const out = [...ring(200, 200, 6, pointed(180, 0.3), C.rose, 0), ...ring(200, 200, 6, pointed(130, 0.07), C.roseDark, 0)];
+      const out = [
+        ...ring(200, 200, 6, pointed(180, 0.3), C.rose, 0),
+        ...ring(200, 200, 6, pointed(130, 0.07), C.roseDark, 0),
+      ];
       for (let i = 0; i < 6; i++) {
         const a = ((i * 60 - 90) * Math.PI) / 180;
-        out.push(...dotRing(200 + Math.cos(a) * 60, 200 + Math.sin(a) * 60, 10, 3, 3, C.bordeaux, a));
+        out.push(
+          ...dotRing(200 + Math.cos(a) * 60, 200 + Math.sin(a) * 60, 10, 3, 3, C.bordeaux, a),
+        );
         const b = a + Math.PI / 6;
         const x = 200 + Math.cos(b) * 80;
         const y = 200 + Math.sin(b) * 80;
-        out.push(stem(`M200 200L${r1(x)} ${r1(y)}`, P.leafLight, 3), place('M-4 -8C4 -10 10 -2 4 8C-4 10 -10 2 -4 -8Z', C.brown, x, y, (b * 180) / Math.PI));
+        out.push(
+          stem(`M200 200L${r1(x)} ${r1(y)}`, P.leafLight, 3),
+          place('M-4 -8C4 -10 10 -2 4 8C-4 10 -10 2 -4 -8Z', C.brown, x, y, (b * 180) / Math.PI),
+        );
       }
       out.push(fill(circle(200, 200, 14), P.leafLight));
       return out;
@@ -454,12 +529,22 @@ export const FLEURS: Drawing[] = [
     kw: ['myosotis', 'fleur', 'bleu', 'petites fleurs', 'grappe'],
     parts: () => {
       const spots: [number, number, number, number][] = [
-        [180, 80, 34, 0], [120, 120, 30, 20], [240, 118, 32, 40], [170, 160, 30, 10],
-        [90, 190, 26, 30], [262, 196, 28, 5], [200, 226, 26, 25], [140, 246, 22, 15],
+        [180, 80, 34, 0],
+        [120, 120, 30, 20],
+        [240, 118, 32, 40],
+        [170, 160, 30, 10],
+        [90, 190, 26, 30],
+        [262, 196, 28, 5],
+        [200, 226, 26, 25],
+        [140, 246, 22, 15],
       ];
-      const out = [stem('M180 370Q176 300 170 170M176 300Q130 260 92 196M178 290Q230 250 262 200', C.stem, 5)];
+      const out = [
+        stem('M180 370Q176 300 170 170M176 300Q130 260 92 196M178 290Q230 250 262 200', C.stem, 5),
+      ];
       out.push(lf(176, 320, 70, 210, P.leaf, 0.3), lf(178, 335, 64, -30, P.leafLight, 0.3));
-      spots.forEach(([x, y, r, d], i) => out.push(group(floret(r, i % 3 === 0 ? C.blueLight : C.blue, C.yellow, d), x, y)));
+      spots.forEach(([x, y, r, d], i) =>
+        out.push(group(floret(r, i % 3 === 0 ? C.blueLight : C.blue, C.yellow, d), x, y)),
+      );
       return out;
     },
   },
@@ -468,16 +553,48 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 360 440',
     kw: ['bouquet', 'fleurs', 'cadeau', 'anniversaire', 'mariage'],
     parts: () => [
-      stem('M180 420L130 150M180 420L180 120M180 420L236 150M180 420L90 220M180 420L274 230', C.stem, 5),
+      stem(
+        'M180 420L130 150M180 420L180 120M180 420L236 150M180 420L90 220M180 420L274 230',
+        C.stem,
+        5,
+      ),
       lf(150, 300, 90, 200, P.leaf, 0.3),
       lf(206, 300, 90, -20, P.leafDark, 0.3),
       lf(160, 220, 80, 230, P.leafLight, 0.3),
       lf(200, 220, 80, -50, P.leaf, 0.3),
-      group([...ring(0, 0, 8, pointed(56, 0.36), P.mustard), fill(circle(0, 0, 14), C.brown)], 90, 210),
-      group([...ring(0, 0, 6, rounded(60, 0.7), C.rose), fill(circle(0, 0, 14), C.bordeaux)], 274, 220),
-      group([...ring(0, 0, 7, pointed(70, 0.4), P.teal), ...ring(0, 0, 7, pointed(46, 0.3), P.tealDark, 25), fill(circle(0, 0, 14), P.plum)], 130, 140),
-      group([...ring(0, 0, 6, pointed(74, 0.34), P.coral), fill(circle(0, 0, 16), '#3b1d2a')], 236, 140),
-      group([...ring(0, 0, 7, rounded(64, 0.7), C.blossom), ...ring(0, 0, 6, rounded(40, 0.65), C.blossomDark, 20), fill(circle(0, 0, 10), C.yellow)], 180, 92),
+      group(
+        [...ring(0, 0, 8, pointed(56, 0.36), P.mustard), fill(circle(0, 0, 14), C.brown)],
+        90,
+        210,
+      ),
+      group(
+        [...ring(0, 0, 6, rounded(60, 0.7), C.rose), fill(circle(0, 0, 14), C.bordeaux)],
+        274,
+        220,
+      ),
+      group(
+        [
+          ...ring(0, 0, 7, pointed(70, 0.4), P.teal),
+          ...ring(0, 0, 7, pointed(46, 0.3), P.tealDark, 25),
+          fill(circle(0, 0, 14), P.plum),
+        ],
+        130,
+        140,
+      ),
+      group(
+        [...ring(0, 0, 6, pointed(74, 0.34), P.coral), fill(circle(0, 0, 16), '#3b1d2a')],
+        236,
+        140,
+      ),
+      group(
+        [
+          ...ring(0, 0, 7, rounded(64, 0.7), C.blossom),
+          ...ring(0, 0, 6, rounded(40, 0.65), C.blossomDark, 20),
+          fill(circle(0, 0, 10), C.yellow),
+        ],
+        180,
+        92,
+      ),
       ...bow(180, 330, 0.9, P.terracotta, P.clay),
     ],
   },
@@ -493,13 +610,39 @@ export const FLEURS: Drawing[] = [
         const x = 210 + Math.cos(a) * R;
         const y = 210 + Math.sin(a) * R;
         const tangent = (a * 180) / Math.PI + 90;
-        out.push(lf(x, y, 46, tangent + (i % 2 ? 35 : -35), i % 3 === 0 ? P.sage : i % 3 === 1 ? P.leaf : P.leafLight, 0.34));
+        out.push(
+          lf(
+            x,
+            y,
+            46,
+            tangent + (i % 2 ? 35 : -35),
+            i % 3 === 0 ? P.sage : i % 3 === 1 ? P.leaf : P.leafLight,
+            0.34,
+          ),
+        );
       }
-      out.unshift(`<circle cx="210" cy="210" r="${R}" fill="none" stroke="${P.leafDark}" stroke-width="4"/>`);
+      out.unshift(
+        `<circle cx="210" cy="210" r="${R}" fill="none" stroke="${P.leafDark}" stroke-width="4"/>`,
+      );
       for (const a of [-2.2, -0.9, 0.4, 1.6, 2.6]) {
-        out.push(group([...ring(0, 0, 6, rounded(30, 0.7), a > 0 ? C.rose : P.coral), fill(circle(0, 0, 8), C.yellow)], 210 + Math.cos(a) * R, 210 + Math.sin(a) * R));
+        out.push(
+          group(
+            [
+              ...ring(0, 0, 6, rounded(30, 0.7), a > 0 ? C.rose : P.coral),
+              fill(circle(0, 0, 8), C.yellow),
+            ],
+            210 + Math.cos(a) * R,
+            210 + Math.sin(a) * R,
+          ),
+        );
       }
-      for (const a of [-1.5, -0.2, 1.0, 2.1, 3.1]) out.push(fill(circle(r1(210 + Math.cos(a) * (R + 22)), r1(210 + Math.sin(a) * (R + 22)), 8), P.red));
+      for (const a of [-1.5, -0.2, 1.0, 2.1, 3.1])
+        out.push(
+          fill(
+            circle(r1(210 + Math.cos(a) * (R + 22)), r1(210 + Math.sin(a) * (R + 22)), 8),
+            P.red,
+          ),
+        );
       return out;
     },
   },
@@ -508,12 +651,36 @@ export const FLEURS: Drawing[] = [
     viewBox: '-20 -20 420 420',
     kw: ['coin', 'angle', 'cadre', 'photo', 'fleurs', 'feuillage'],
     parts: () => [
-      ...sprig([[60, 60], [160, 50], [260, 64], [370, 50]], { n: 8, len: 46, leafC: P.sage, stemC: P.sage, angle: 50 }),
-      ...sprig([[60, 60], [50, 160], [64, 260], [50, 370]], { n: 8, len: 46, leafC: P.leaf, stemC: P.leaf, angle: 50 }),
+      ...sprig(
+        [
+          [60, 60],
+          [160, 50],
+          [260, 64],
+          [370, 50],
+        ],
+        { n: 8, len: 46, leafC: P.sage, stemC: P.sage, angle: 50 },
+      ),
+      ...sprig(
+        [
+          [60, 60],
+          [50, 160],
+          [64, 260],
+          [50, 370],
+        ],
+        { n: 8, len: 46, leafC: P.leaf, stemC: P.leaf, angle: 50 },
+      ),
       ...dotRing(130, 120, 0, 1, 9, P.red),
       fill(circle(210, 100, 8), P.red),
       fill(circle(100, 210, 8), P.red),
-      group([...ring(0, 0, 7, pointed(72, 0.4), P.coral), ...ring(0, 0, 7, pointed(46, 0.2), P.coralLight), fill(circle(0, 0, 16), '#3b1d2a')], 70, 70),
+      group(
+        [
+          ...ring(0, 0, 7, pointed(72, 0.4), P.coral),
+          ...ring(0, 0, 7, pointed(46, 0.2), P.coralLight),
+          fill(circle(0, 0, 16), '#3b1d2a'),
+        ],
+        70,
+        70,
+      ),
       group(floret(26, C.rose, C.yellow, 10), 150, 70),
       group(floret(24, C.rose, C.yellow, 30), 70, 150),
     ],
@@ -524,7 +691,16 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 260 420',
     kw: ['brin', 'coeur', 'amour', 'tige', 'fleur'],
     parts: () => [
-      stem(smoothOpen([[130, 410], [128, 300], [134, 180], [130, 70]]), P.sage, 4),
+      stem(
+        smoothOpen([
+          [130, 410],
+          [128, 300],
+          [134, 180],
+          [130, 70],
+        ]),
+        P.sage,
+        4,
+      ),
       stem('M130 300Q90 260 70 200M132 250Q176 210 196 150M131 180Q100 140 92 100', P.sage, 3.4),
       fill(heart(130, 62, 20), P.red),
       fill(heart(70, 192, 17), P.red),
@@ -539,8 +715,21 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 300 420',
     kw: ['brin', 'coeur', 'amour', 'rose', 'saint-valentin'],
     parts: () => [
-      stem(smoothOpen([[150, 410], [146, 280], [156, 150], [150, 50]]), C.stem, 4),
-      stem('M148 300Q100 270 70 220M150 240Q200 210 230 160M154 170Q120 140 104 96M152 120Q180 100 196 70', C.stem, 3.4),
+      stem(
+        smoothOpen([
+          [150, 410],
+          [146, 280],
+          [156, 150],
+          [150, 50],
+        ]),
+        C.stem,
+        4,
+      ),
+      stem(
+        'M148 300Q100 270 70 220M150 240Q200 210 230 160M154 170Q120 140 104 96M152 120Q180 100 196 70',
+        C.stem,
+        3.4,
+      ),
       lf(148, 330, 50, -150, P.sage),
       lf(150, 350, 46, -30, P.sage),
       lf(150, 260, 40, -20, P.sage),
@@ -556,13 +745,30 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 220 420',
     kw: ['brin', 'feuille', 'branche', 'vert'],
     parts: () => {
-      const out: string[] = [stem(smoothOpen([[110, 410], [106, 300], [114, 190], [108, 40]]), P.sage, 4)];
+      const out: string[] = [
+        stem(
+          smoothOpen([
+            [110, 410],
+            [106, 300],
+            [114, 190],
+            [108, 40],
+          ]),
+          P.sage,
+          4,
+        ),
+      ];
       const ys = [360, 310, 262, 214, 168, 124, 84];
       ys.forEach((y, i) => {
-        out.push(`<ellipse cx="${i % 2 ? 150 : 70}" cy="${y}" rx="${30 - i * 2}" ry="${18 - i}" transform="rotate(${i % 2 ? -30 : 30} ${i % 2 ? 150 : 70} ${y})" fill="${P.sage}"/>`);
+        out.push(
+          `<ellipse cx="${i % 2 ? 150 : 70}" cy="${y}" rx="${30 - i * 2}" ry="${18 - i}" transform="rotate(${i % 2 ? -30 : 30} ${i % 2 ? 150 : 70} ${y})" fill="${P.sage}"/>`,
+        );
         out.push(stem(`M110 ${y + 14}L${i % 2 ? 130 : 90} ${y + 4}`, P.sage, 3));
       });
-      out.push(fill(circle(108, 36, 12), P.red), fill(circle(160, 236, 7), P.red), fill(circle(60, 150, 7), P.red));
+      out.push(
+        fill(circle(108, 36, 12), P.red),
+        fill(circle(160, 236, 7), P.red),
+        fill(circle(60, 150, 7), P.red),
+      );
       return out;
     },
   },
@@ -571,14 +777,21 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 260 440',
     kw: ['eucalyptus', 'brin', 'feuille', 'vert', 'mariage'],
     parts: () => {
-      const pts: [number, number][] = [[130, 430], [120, 320], [138, 200], [126, 40]];
+      const pts: [number, number][] = [
+        [130, 430],
+        [120, 320],
+        [138, 200],
+        [126, 40],
+      ];
       const out = [stem(smoothOpen(pts), C.stem, 4)];
       for (let i = 0; i < 9; i++) {
         const t = 0.1 + i * 0.1;
         const [x, y] = along(pts, t);
         const r = 34 - i * 2.4;
         const s = i % 2 ? 1 : -1;
-        out.push(`<ellipse cx="${r1(x + s * r * 0.8)}" cy="${r1(y)}" rx="${r1(r)}" ry="${r1(r * 0.85)}" fill="${i % 3 === 0 ? '#93b5a6' : P.sage}"/>`);
+        out.push(
+          `<ellipse cx="${r1(x + s * r * 0.8)}" cy="${r1(y)}" rx="${r1(r)}" ry="${r1(r * 0.85)}" fill="${i % 3 === 0 ? '#93b5a6' : P.sage}"/>`,
+        );
       }
       out.push(`<ellipse cx="126" cy="40" rx="14" ry="12" fill="${P.sage}"/>`);
       return out;
@@ -589,7 +802,24 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 470 300',
     kw: ['olivier', 'olive', 'branche', 'méditerranée', 'grèce', 'provence'],
     parts: () => [
-      ...sprig([[20, 240], [140, 200], [270, 170], [400, 90]], { n: 12, len: 80, k: 0.16, angle: 40, leafC: C.olive, stemC: C.bark, w: 5, shade: C.oliveDark }),
+      ...sprig(
+        [
+          [20, 240],
+          [140, 200],
+          [270, 170],
+          [400, 90],
+        ],
+        {
+          n: 12,
+          len: 80,
+          k: 0.16,
+          angle: 40,
+          leafC: C.olive,
+          stemC: C.bark,
+          w: 5,
+          shade: C.oliveDark,
+        },
+      ),
       `<ellipse cx="150" cy="232" rx="13" ry="18" transform="rotate(-20 150 232)" fill="${C.oliveFruit}"/>`,
       `<ellipse cx="174" cy="236" rx="12" ry="17" transform="rotate(10 174 236)" fill="${C.oliveDark}"/>`,
       `<ellipse cx="300" cy="196" rx="12" ry="17" transform="rotate(-10 300 196)" fill="${C.oliveFruit}"/>`,
@@ -602,15 +832,24 @@ export const FLEURS: Drawing[] = [
     kw: ['lavande', 'provence', 'violet', 'fleur', 'été'],
     parts: () => {
       const out: string[] = [];
-      const stems: [number, number, number][] = [[150, 60, 0], [100, 100, -12], [200, 96, 12]];
-      for (const [tx, ty] of stems) out.push(stem(`M150 430Q${(tx + 150) / 2} 300 ${tx} ${ty}`, C.stem, 4));
+      const stems: [number, number, number][] = [
+        [150, 60, 0],
+        [100, 100, -12],
+        [200, 96, 12],
+      ];
+      for (const [tx, ty] of stems)
+        out.push(stem(`M150 430Q${(tx + 150) / 2} 300 ${tx} ${ty}`, C.stem, 4));
       for (const [tx, ty, d] of stems) {
         for (let i = 0; i < 7; i++) {
           const y = ty + i * 22;
           const x = tx + (d / 12) * i * 3;
           const w = 9 + i * 0.6;
-          out.push(`<ellipse cx="${r1(x - w * 0.7)}" cy="${r1(y)}" rx="${r1(w)}" ry="${r1(w * 0.6)}" transform="rotate(-30 ${r1(x - w * 0.7)} ${r1(y)})" fill="${i % 2 ? C.lavender : C.lavenderDark}"/>`);
-          out.push(`<ellipse cx="${r1(x + w * 0.7)}" cy="${r1(y + 6)}" rx="${r1(w)}" ry="${r1(w * 0.6)}" transform="rotate(30 ${r1(x + w * 0.7)} ${r1(y + 6)})" fill="${i % 2 ? C.lavenderDark : C.lavender}"/>`);
+          out.push(
+            `<ellipse cx="${r1(x - w * 0.7)}" cy="${r1(y)}" rx="${r1(w)}" ry="${r1(w * 0.6)}" transform="rotate(-30 ${r1(x - w * 0.7)} ${r1(y)})" fill="${i % 2 ? C.lavender : C.lavenderDark}"/>`,
+          );
+          out.push(
+            `<ellipse cx="${r1(x + w * 0.7)}" cy="${r1(y + 6)}" rx="${r1(w)}" ry="${r1(w * 0.6)}" transform="rotate(30 ${r1(x + w * 0.7)} ${r1(y + 6)})" fill="${i % 2 ? C.lavenderDark : C.lavender}"/>`,
+          );
         }
       }
       out.push(lf(150, 380, 70, 220, P.sage, 0.14), lf(150, 390, 70, -40, P.sage, 0.14));
@@ -623,13 +862,21 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 300 440',
     kw: ['fougère', 'feuille', 'forêt', 'vert', 'nature'],
     parts: () => {
-      const pts: [number, number][] = [[160, 430], [150, 320], [140, 200], [150, 40]];
+      const pts: [number, number][] = [
+        [160, 430],
+        [150, 320],
+        [140, 200],
+        [150, 40],
+      ];
       const out = [stem(smoothOpen(pts), P.leafDark, 4)];
       for (let i = 0; i < 16; i++) {
         const t = 0.06 + i * 0.058;
         const [x, y, dir] = along(pts, t);
         const l = 100 * (1 - t * 0.85);
-        out.push(lf(x, y, l, dir - 70, i % 2 ? P.leaf : P.leafLight, 0.2), lf(x, y, l, dir + 70, i % 2 ? P.leafLight : P.leaf, 0.2));
+        out.push(
+          lf(x, y, l, dir - 70, i % 2 ? P.leaf : P.leafLight, 0.2),
+          lf(x, y, l, dir + 70, i % 2 ? P.leafLight : P.leaf, 0.2),
+        );
       }
       return out;
     },
@@ -640,14 +887,41 @@ export const FLEURS: Drawing[] = [
     kw: ['baies', 'brin', 'rouge', 'hiver', 'houx', 'noël'],
     parts: () => {
       const out = [
-        ...sprig([[160, 410], [150, 300], [166, 180], [156, 70]], { n: 6, len: 70, leafC: P.leaf, stemC: C.bark, w: 4, shade: P.leafDark, tip: false }),
+        ...sprig(
+          [
+            [160, 410],
+            [150, 300],
+            [166, 180],
+            [156, 70],
+          ],
+          { n: 6, len: 70, leafC: P.leaf, stemC: C.bark, w: 4, shade: P.leafDark, tip: false },
+        ),
       ];
-      const clusters: [number, number][] = [[156, 60], [96, 170], [226, 210], [110, 290]];
+      const clusters: [number, number][] = [
+        [156, 60],
+        [96, 170],
+        [226, 210],
+        [110, 290],
+      ];
       for (const [x, y] of clusters) {
-        out.push(stem(`M${x} ${y + 20}L${x - 14} ${y}M${x} ${y + 20}L${x + 14} ${y + 2}M${x} ${y + 20}L${x} ${y - 6}`, C.bark, 2.5));
-        out.push(fill(circle(x - 14, y, 11), P.red), fill(circle(x + 14, y + 2, 10), '#c23b2e'), fill(circle(x, y - 8, 12), P.red));
+        out.push(
+          stem(
+            `M${x} ${y + 20}L${x - 14} ${y}M${x} ${y + 20}L${x + 14} ${y + 2}M${x} ${y + 20}L${x} ${y - 6}`,
+            C.bark,
+            2.5,
+          ),
+        );
+        out.push(
+          fill(circle(x - 14, y, 11), P.red),
+          fill(circle(x + 14, y + 2, 10), '#c23b2e'),
+          fill(circle(x, y - 8, 12), P.red),
+        );
       }
-      out.splice(1, 0, stem('M152 250Q120 220 100 180M160 220Q200 220 226 220M154 320Q130 310 112 296', C.bark, 3));
+      out.splice(
+        1,
+        0,
+        stem('M152 250Q120 220 100 180M160 220Q200 220 226 220M154 320Q130 310 112 296', C.bark, 3),
+      );
       return out;
     },
   },
@@ -656,9 +930,33 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 360 420',
     kw: ['feuillage', 'brin', 'feuille', 'vert', 'composition'],
     parts: () => [
-      ...sprig([[180, 410], [150, 300], [100, 180], [70, 60]], { n: 7, len: 56, leafC: P.sage, k: 0.3 }),
-      ...sprig([[180, 410], [200, 290], [250, 170], [300, 70]], { n: 9, len: 46, leafC: P.leaf, k: 0.18, angle: 35 }),
-      ...sprig([[180, 410], [182, 300], [176, 180], [184, 40]], { n: 6, len: 62, leafC: P.leafLight, shade: P.leaf, k: 0.34, pairs: true }),
+      ...sprig(
+        [
+          [180, 410],
+          [150, 300],
+          [100, 180],
+          [70, 60],
+        ],
+        { n: 7, len: 56, leafC: P.sage, k: 0.3 },
+      ),
+      ...sprig(
+        [
+          [180, 410],
+          [200, 290],
+          [250, 170],
+          [300, 70],
+        ],
+        { n: 9, len: 46, leafC: P.leaf, k: 0.18, angle: 35 },
+      ),
+      ...sprig(
+        [
+          [180, 410],
+          [182, 300],
+          [176, 180],
+          [184, 40],
+        ],
+        { n: 6, len: 62, leafC: P.leafLight, shade: P.leaf, k: 0.34, pairs: true },
+      ),
       fill(circle(70, 60, 9), P.terracotta),
       fill(circle(300, 70, 9), P.terracotta),
     ],
@@ -690,7 +988,11 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 440 320',
     kw: ['cerisier', 'sakura', 'japon', 'printemps', 'fleur', 'branche'],
     parts: () => [
-      stem('M20 280Q140 230 230 180Q320 130 420 120M230 180Q250 110 300 60M140 228Q150 170 120 120', C.bark, 8),
+      stem(
+        'M20 280Q140 230 230 180Q320 130 420 120M230 180Q250 110 300 60M140 228Q150 170 120 120',
+        C.bark,
+        8,
+      ),
       group(blossom(46), 300, 60, 10),
       group(blossom(40), 120, 116, 30),
       group(blossom(44), 380, 124, 0),
@@ -707,12 +1009,32 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 0 320 420',
     kw: ['gypsophile', 'brin', 'fleurs', 'mariage', 'délicat'],
     parts: () => {
-      const out = [stem('M160 410L160 260M160 260L100 150M160 260L220 140M160 300L80 230M160 300L250 240M100 150L70 90M100 150L130 80M220 140L190 70M220 140L262 90', C.stem, 3)];
-      const ends: [number, number][] = [[70, 90], [130, 80], [190, 70], [262, 90], [80, 230], [250, 240], [100, 150], [220, 140]];
+      const out = [
+        stem(
+          'M160 410L160 260M160 260L100 150M160 260L220 140M160 300L80 230M160 300L250 240M100 150L70 90M100 150L130 80M220 140L190 70M220 140L262 90',
+          C.stem,
+          3,
+        ),
+      ];
+      const ends: [number, number][] = [
+        [70, 90],
+        [130, 80],
+        [190, 70],
+        [262, 90],
+        [80, 230],
+        [250, 240],
+        [100, 150],
+        [220, 140],
+      ];
       for (const [x, y] of ends) {
         for (let i = 0; i < 6; i++) {
           const a = i * 1.05;
-          out.push(fill(circle(r1(x + Math.cos(a) * 14), r1(y + Math.sin(a) * 12), 7), i % 2 ? C.blossom : C.cream));
+          out.push(
+            fill(
+              circle(r1(x + Math.cos(a) * 14), r1(y + Math.sin(a) * 12), 7),
+              i % 2 ? C.blossom : C.cream,
+            ),
+          );
         }
         out.push(fill(circle(x, y, 6), C.blossomDark));
       }
@@ -727,7 +1049,21 @@ export const FLEURS: Drawing[] = [
     parts: () => [
       group(monstera(240, 110, P.leaf, P.leafDark), 190, 330, -58),
       group(monstera(220, 100, P.leafLight, P.leaf), 270, 330, 55),
-      group(frond([[0, 0], [0, -120], [10, -220]], P.leafDark, 70, 12), 230, 360, -5),
+      group(
+        frond(
+          [
+            [0, 0],
+            [0, -120],
+            [10, -220],
+          ],
+          P.leafDark,
+          70,
+          12,
+        ),
+        230,
+        360,
+        -5,
+      ),
       group(hibiscus(120, P.pink, '#d94a63', '#b8324d', '#f6d46b', 10), 230, 220),
     ],
   },
@@ -752,20 +1088,67 @@ export const FLEURS: Drawing[] = [
     viewBox: '0 -30 440 470',
     kw: ['palmier', 'plage', 'île', 'tropical', 'cocotier', 'vacances'],
     parts: () => {
-      const trunk: [number, number][] = [[150, 430], [170, 330], [200, 230], [230, 140]];
+      const trunk: [number, number][] = [
+        [150, 430],
+        [170, 330],
+        [200, 230],
+        [230, 140],
+      ];
       const out: string[] = [];
       for (let i = 0; i < 9; i++) {
         const [x, y, dir] = along(trunk, i / 9);
         const w = 26 - i * 1.4;
-        out.push(place(`M${-w} 0L${w} 0L${w * 0.86} -34L${-w * 0.86} -30Z`, i % 2 ? C.bark : '#93714f', x, y, dir + 90));
+        out.push(
+          place(
+            `M${-w} 0L${w} 0L${w * 0.86} -34L${-w * 0.86} -30Z`,
+            i % 2 ? C.bark : '#93714f',
+            x,
+            y,
+            dir + 90,
+          ),
+        );
       }
       const top: [number, number] = [230, 140];
       const fr: [number, number][][] = [
-        [[0, 0], [-80, -40], [-170, 0]], [[0, 0], [-60, -80], [-120, -100]], [[0, 0], [20, -90], [60, -130]],
-        [[0, 0], [90, -60], [160, -40]], [[0, 0], [100, -10], [170, 50]], [[0, 0], [-90, 10], [-150, 80]],
+        [
+          [0, 0],
+          [-80, -40],
+          [-170, 0],
+        ],
+        [
+          [0, 0],
+          [-60, -80],
+          [-120, -100],
+        ],
+        [
+          [0, 0],
+          [20, -90],
+          [60, -130],
+        ],
+        [
+          [0, 0],
+          [90, -60],
+          [160, -40],
+        ],
+        [
+          [0, 0],
+          [100, -10],
+          [170, 50],
+        ],
+        [
+          [0, 0],
+          [-90, 10],
+          [-150, 80],
+        ],
       ];
-      fr.forEach((pts, i) => out.push(group(frond(pts, i % 2 ? P.leaf : P.leafDark, 50, 11), top[0], top[1])));
-      out.push(fill(circle(220, 156, 14), C.brown), fill(circle(244, 160, 13), '#5a3322'), fill(circle(232, 176, 12), C.brown));
+      fr.forEach((pts, i) =>
+        out.push(group(frond(pts, i % 2 ? P.leaf : P.leafDark, 50, 11), top[0], top[1])),
+      );
+      out.push(
+        fill(circle(220, 156, 14), C.brown),
+        fill(circle(244, 160, 13), '#5a3322'),
+        fill(circle(232, 176, 12), C.brown),
+      );
       return out;
     },
   },
@@ -779,7 +1162,23 @@ export const FLEURS: Drawing[] = [
     id: 'tropique-palme',
     viewBox: '0 0 450 300',
     kw: ['palme', 'feuille', 'palmier', 'tropical'],
-    parts: () => [group(frond([[0, 0], [130, -80], [280, -110], [380, -60]], P.leaf, 110, 18), 20, 270)],
+    parts: () => [
+      group(
+        frond(
+          [
+            [0, 0],
+            [130, -80],
+            [280, -110],
+            [380, -60],
+          ],
+          P.leaf,
+          110,
+          18,
+        ),
+        20,
+        270,
+      ),
+    ],
   },
   {
     id: 'tropique-oiseau-de-paradis',
@@ -804,8 +1203,18 @@ export const FLEURS: Drawing[] = [
     kw: ['ananas', 'fruit', 'tropical', 'été', 'exotique'],
     parts: () => {
       const out: string[] = [];
-      const crown: [number, number, number][] = [[-50, 130, 0.14], [-25, 160, 0.13], [0, 180, 0.13], [25, 160, 0.13], [50, 130, 0.14], [-70, 100, 0.16], [70, 100, 0.16]];
-      crown.forEach(([deg, l, k], i) => out.push(place(pointed(l, k), i % 2 ? P.leaf : P.leafDark, 160, 200, deg)));
+      const crown: [number, number, number][] = [
+        [-50, 130, 0.14],
+        [-25, 160, 0.13],
+        [0, 180, 0.13],
+        [25, 160, 0.13],
+        [50, 130, 0.14],
+        [-70, 100, 0.16],
+        [70, 100, 0.16],
+      ];
+      crown.forEach(([deg, l, k], i) =>
+        out.push(place(pointed(l, k), i % 2 ? P.leaf : P.leafDark, 160, 200, deg)),
+      );
       out.push(`<ellipse cx="160" cy="306" rx="96" ry="122" fill="${C.yellow}"/>`);
       for (let row = 0; row < 8; row++) {
         for (let col = -4; col <= 4; col++) {
@@ -840,7 +1249,21 @@ export const FLEURS: Drawing[] = [
     parts: () => [
       group(monstera(250, 112, P.leafDark, P.leaf), 170, 380, -50),
       group(banana(260, 64, P.leaf, P.leafLight, P.leafDark), 360, 390, 48),
-      group(frond([[0, 0], [10, -150], [-20, -260]], P.leafLight, 70, 13), 270, 400, -12),
+      group(
+        frond(
+          [
+            [0, 0],
+            [10, -150],
+            [-20, -260],
+          ],
+          P.leafLight,
+          70,
+          13,
+        ),
+        270,
+        400,
+        -12,
+      ),
       group(hibiscus(90, P.pink, '#d94a63', '#b8324d', '#f6d46b', 0), 200, 250),
       group(hibiscus(70, P.coral, '#d9533f', '#9c2f22', C.yellow, 30), 330, 280),
       group(frangipani(60, C.cream, C.yellow, 12), 280, 190),

@@ -114,7 +114,13 @@ export async function readLocalSet(id: string, dir = STICKERS_SRC_DIR): Promise<
     const object = name.slice(prefix.length + 1).replace(/-/g, ' ');
     const kw = new Set([...(meta.keywords?.[name] ?? []), ...label.toLowerCase().split(/[\s/,]+/)]);
     kw.delete('');
-    docs.push({ id: name, name, category: label, kw: [...kw].join(' '), title: `${label} · ${object}` });
+    docs.push({
+      id: name,
+      name,
+      category: label,
+      kw: [...kw].join(' '),
+      title: `${label} · ${object}`,
+    });
   }
   return { id, name: meta.name, order: meta.order, picks: meta.picks ?? [], pack, docs };
 }

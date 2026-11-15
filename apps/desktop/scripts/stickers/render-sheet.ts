@@ -43,18 +43,31 @@ export async function renderSheet(set: string, outDir: string, filter = ''): Pro
     const svg = await readFile(join(dir, `${id}.svg`), 'utf8');
     const x = 20 + (i % COLS) * CELL_W;
     const y = 20 + Math.floor(i / COLS) * CELL_H;
-    labels.push(`<rect x="${x}" y="${y + BIG + 6}" width="${SMALL + 20}" height="${SMALL + 10}" fill="#9fc9c4"/>`);
-    labels.push(`<text x="${x}" y="${y + CELL_H - 12}" font-family="sans-serif" font-size="13" fill="#333">${escape(id)}</text>`);
+    labels.push(
+      `<rect x="${x}" y="${y + BIG + 6}" width="${SMALL + 20}" height="${SMALL + 10}" fill="#9fc9c4"/>`,
+    );
+    labels.push(
+      `<text x="${x}" y="${y + CELL_H - 12}" font-family="sans-serif" font-size="13" fill="#333">${escape(id)}</text>`,
+    );
     const big = await fit(svg, BIG);
-    composites.push({ input: big.input, left: x + Math.round((BIG - big.w) / 2), top: y + Math.round((BIG - big.h) / 2) });
+    composites.push({
+      input: big.input,
+      left: x + Math.round((BIG - big.w) / 2),
+      top: y + Math.round((BIG - big.h) / 2),
+    });
     const small = await fit(svg, SMALL);
     composites.push({ input: small.input, left: x + 10, top: y + BIG + 11 });
   }
   const base = sharp({ create: { width, height, channels: 4, background: '#ffffff' } });
-  const bg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${labels.join('')}</svg>`);
+  const bg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${labels.join('')}</svg>`,
+  );
   await mkdir(outDir, { recursive: true });
   const file = join(outDir, `${set}${filter ? `-${filter}` : ''}.png`);
-  await base.composite([{ input: bg, left: 0, top: 0 }, ...composites]).png().toFile(file);
+  await base
+    .composite([{ input: bg, left: 0, top: 0 }, ...composites])
+    .png()
+    .toFile(file);
   return file;
 }
 

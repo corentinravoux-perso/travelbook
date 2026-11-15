@@ -63,17 +63,24 @@ export const fill = (d: string, colour: string, extra = ''): string =>
  * The croquis outline: the shape filled (white by default), a bold rough line on it, and a second
  * thin sketchy line slightly off, as when a doodle is drawn over twice.
  */
-export function ink(d: string, opts: { w?: number; fill?: string; sketch?: boolean } = {}): string[] {
+export function ink(
+  d: string,
+  opts: { w?: number; fill?: string; sketch?: boolean } = {},
+): string[] {
   const w = opts.w ?? 9;
   const out: string[] = [];
   if (opts.fill !== 'none') out.push(fill(d, opts.fill ?? PAPER));
   out.push(...stroke(d, w, { roughness: 0.7, bowing: 0.6 }));
-  if (opts.sketch !== false) out.push(...stroke(d, Math.max(2, w * 0.3), { roughness: 1.6, bowing: 1.4 }));
+  if (opts.sketch !== false)
+    out.push(...stroke(d, Math.max(2, w * 0.3), { roughness: 1.6, bowing: 1.4 }));
   return out;
 }
 
 /** Rough parallel hatching inside a closed shape (the croquis shadow). */
-export function hatch(d: string, opts: { gap?: number; angle?: number; w?: number } = {}): string[] {
+export function hatch(
+  d: string,
+  opts: { gap?: number; angle?: number; w?: number } = {},
+): string[] {
   return roughPaths(
     gen.path(d, {
       seed: nextSeed(),
@@ -132,7 +139,14 @@ export function rng(seed: number): () => number {
 }
 
 /** An organic blob (the bohème colour patch): a jittered ellipse, smoothed. */
-export function blob(cx: number, cy: number, rx: number, ry: number, seed: number, wobble = 0.16): string {
+export function blob(
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  seed: number,
+  wobble = 0.16,
+): string {
   const r = rng(seed);
   const n = 9;
   const pts: [number, number][] = [];
@@ -164,12 +178,21 @@ export function heart(x: number, y: number, s: number): string {
 }
 
 /** A star with `n` points. */
-export function star(x: number, y: number, r: number, n = 5, inner = 0.45, rot = -Math.PI / 2): string {
+export function star(
+  x: number,
+  y: number,
+  r: number,
+  n = 5,
+  inner = 0.45,
+  rot = -Math.PI / 2,
+): string {
   const pts: string[] = [];
   for (let i = 0; i < n * 2; i++) {
     const rr = i % 2 === 0 ? r : r * inner;
     const a = rot + (i * Math.PI) / n;
-    pts.push(`${Math.round((x + Math.cos(a) * rr) * 10) / 10} ${Math.round((y + Math.sin(a) * rr) * 10) / 10}`);
+    pts.push(
+      `${Math.round((x + Math.cos(a) * rr) * 10) / 10} ${Math.round((y + Math.sin(a) * rr) * 10) / 10}`,
+    );
   }
   return `M${pts.join('L')}Z`;
 }

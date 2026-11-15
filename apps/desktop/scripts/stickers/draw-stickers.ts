@@ -8,6 +8,7 @@
  */
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { format, resolveConfig } from 'prettier';
 import { type Drawing, render } from './draw/core.ts';
 import * as boheme from './draw/boheme.ts';
 import * as croquis from './draw/croquis.ts';
@@ -21,7 +22,10 @@ export interface DrawnSet {
 
 export const DRAWN_SETS: DrawnSet[] = [croquis, boheme, deco];
 
-export async function drawSet({ SET, DRAWINGS }: DrawnSet, root = STICKERS_SRC_DIR): Promise<number> {
+export async function drawSet(
+  { SET, DRAWINGS }: DrawnSet,
+  root = STICKERS_SRC_DIR,
+): Promise<number> {
   const dir = join(root, SET.id);
   await mkdir(dir, { recursive: true });
   const ids = new Set<string>();
@@ -40,8 +44,17 @@ export async function drawSet({ SET, DRAWINGS }: DrawnSet, root = STICKERS_SRC_D
     if (name.endsWith('.svg') && !ids.has(name.slice(0, -4))) await rm(join(dir, name));
   }
   const meta = { name: SET.name, order: SET.order, categories: SET.categories, keywords };
-  await writeFile(join(dir, 'meta.json'), `${JSON.stringify(meta, null, 1)}\n`);
+  await writeJson(join(dir, 'meta.json'), meta);
   return ids.size;
+}
+
+/** Write a JSON file as the repository's Prettier check wants it. */
+async function writeJson(file: string, value: unknown): Promise<void> {
+  const options = (await resolveConfig(file)) ?? {};
+  await writeFile(
+    file,
+    await format(JSON.stringify(value, null, 2), { ...options, parser: 'json' }),
+  );
 }
 
 const LICENCES_FILE = join(STICKERS_SRC_DIR, '../LICENCES.json');
@@ -52,7 +65,9 @@ const LICENCES_FILE = join(STICKERS_SRC_DIR, '../LICENCES.json');
  */
 export async function recordLicences(): Promise<number> {
   const files: string[] = [];
-  for (const set of (await readdir(STICKERS_SRC_DIR, { withFileTypes: true })).filter((e) => e.isDirectory())) {
+  for (const set of (await readdir(STICKERS_SRC_DIR, { withFileTypes: true })).filter((e) =>
+    e.isDirectory(),
+  )) {
     for (const name of (await readdir(join(STICKERS_SRC_DIR, set.name))).sort()) {
       files.push(`stickers-src/${set.name}/${name}`);
     }
@@ -68,7 +83,7 @@ export async function recordLicences(): Promise<number> {
     licence: 'MIT',
     url: 'https://github.com/corentinravoux/travelbook',
   });
-  await writeFile(LICENCES_FILE, `${JSON.stringify(doc, null, 2)}\n`);
+  await writeJson(LICENCES_FILE, doc);
   return files.length;
 }
 
