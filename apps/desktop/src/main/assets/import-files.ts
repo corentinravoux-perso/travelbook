@@ -1,10 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { constants } from 'node:fs';
-import { copyFile, mkdir, rename, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { basename, extname, join } from 'node:path';
 import sharp from 'sharp';
 import type { AssetRef } from '@travelbook/core';
 import type { ImportedAssetKind } from '../../shared/api';
+import { sanitizeSvg } from '../library/stickers/sanitizeSvg';
 import { describeError, ID_LENGTH, sha256File } from '../photos/import';
 
 const RASTER_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
@@ -24,7 +26,7 @@ const CHECK_EDGE = 64;
 /**
  * Check an image and measure it. Raster images must be whole (decoding them to a small size reads
  * the entire file, which rejects a truncated one) and give their size after EXIF orientation.
- * An SVG must parse but has no pixel size, and is not sanitised here (Task 6.2).
+ * An SVG must parse but has no pixel size; `importAssetFiles` sanitises it before it gets here.
  */
 export async function inspectImage(
   input: string | Buffer,
@@ -93,6 +95,25 @@ export async function importAssetFiles(
   /** Files this call put in `assets/`. */
   const created: string[] = [];
 
+  /** Sanitised copies of SVG files, in a scratch folder removed when the call ends. */
+  let scratch: string | undefined;
+
+  /**
+   * The file whose bytes are stored. An SVG is sanitised first, whatever its origin (spec: every
+   * SVG is sanitised before it is stored): when that changes it, a clean copy in a scratch folder
+   * is stored instead, and a file that is not an acceptable SVG is refused.
+   */
+  async function storableSource(path: string, ext: string): Promise<string> {
+    if (ext !== '.svg') return path;
+    const original = await readFile(path);
+    const clean = Buffer.from(sanitizeSvg(original.toString('utf8')), 'utf8');
+    if (clean.equals(original)) return path;
+    scratch ??= await mkdtemp(join(tmpdir(), 'tb-svg-'));
+    const file = join(scratch, `${assets.size}-${created.length}.svg`);
+    await writeFile(file, clean);
+    return file;
+  }
+
   async function importOne(path: string): Promise<void> {
     const info = await stat(path);
     if (!info.isFile()) throw new Error('Not a regular file');
@@ -100,9 +121,10 @@ export async function importAssetFiles(
     if (!extensions.has(ext)) {
       throw new Error(`Unsupported file type for a ${kind}: ${ext || 'no extension'}`);
     }
-    const pixel = kind === 'font' ? undefined : await inspectImage(path, ext);
+    const source = await storableSource(path, ext);
+    const pixel = kind === 'font' ? undefined : await inspectImage(source, ext);
 
-    const sha256 = await sha256File(path);
+    const sha256 = await sha256File(source);
     const hash16 = sha256.slice(0, ID_LENGTH);
     const id = `${kind}-${hash16}`;
     if (assets.has(id)) return;
@@ -110,7 +132,7 @@ export async function importAssetFiles(
     const stored = join(dir, file);
     if (!(await exists(stored))) {
       await mkdir(join(dir, 'assets'), { recursive: true });
-      await copyFileVerified(path, stored, sha256);
+      await copyFileVerified(source, stored, sha256);
       created.push(stored);
     }
     assets.set(id, {
@@ -134,6 +156,8 @@ export async function importAssetFiles(
   } catch (error) {
     await Promise.all(created.map((file) => rm(file, { force: true }).catch(() => undefined)));
     throw error;
+  } finally {
+    if (scratch !== undefined) await rm(scratch, { recursive: true, force: true });
   }
   return [...assets.values()];
 }

@@ -5,6 +5,7 @@ export { TextView, textBoxStyle } from './elements/TextView';
 export { photoShadowIsCast, textShadowIsNative } from './shadows';
 export { patternTileMm } from './patternTile';
 export { fontFaceCss, whenFontsReady, type FontFile } from './fonts';
+export { projectFontFiles, useProjectFonts } from './projectFonts';
 export { textHtml } from './textHtml';
 export { MASK_PRESETS, maskCss } from './masks';
 export { adjustFilter, imagePlacement, vignetteGradient } from './elements/photoStyle';

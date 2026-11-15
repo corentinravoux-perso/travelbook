@@ -1,0 +1,198 @@
+{
+  "id": "bitter",
+  "family": "Bitter",
+  "subsets": ["cyrillic", "cyrillic-ext", "latin", "latin-ext", "vietnamese"],
+  "weights": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+  "styles": ["italic", "normal"],
+  "defSubset": "latin",
+  "variable": true,
+  "lastModified": "2026-06-30",
+  "category": "serif",
+  "license": "OFL-1.1",
+  "type": "google",
+  "version": "v42",
+  "source": "https://github.com/google/fonts",
+  "npmVersion": "5.3.0",
+  "variants": {
+    "100": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-100-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-100-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-100-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-100-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-100-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-100-normal.ttf"
+          }
+        }
+      }
+    },
+    "200": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-200-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-200-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-200-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-200-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-200-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-200-normal.ttf"
+          }
+        }
+      }
+    },
+    "300": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-300-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-300-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-300-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-300-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-300-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-300-normal.ttf"
+          }
+        }
+      }
+    },
+    "400": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-400-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-400-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-400-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-400-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-400-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-400-normal.ttf"
+          }
+        }
+      }
+    },
+    "500": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-500-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-500-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-500-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-500-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-500-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-500-normal.ttf"
+          }
+        }
+      }
+    },
+    "600": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-600-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-600-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-600-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-600-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-600-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-600-normal.ttf"
+          }
+        }
+      }
+    },
+    "700": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-700-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-700-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-700-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-700-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-700-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-700-normal.ttf"
+          }
+        }
+      }
+    },
+    "800": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-800-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-800-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-800-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-800-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-800-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-800-normal.ttf"
+          }
+        }
+      }
+    },
+    "900": {
+      "italic": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-900-italic.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-900-italic.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-900-italic.ttf"
+          }
+        }
+      },
+      "normal": {
+        "latin": {
+          "url": {
+            "woff2": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-900-normal.woff2",
+            "woff": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-900-normal.woff",
+            "ttf": "https://cdn.jsdelivr.net/fontsource/fonts/bitter@5.3.0/latin-900-normal.ttf"
+          }
+        }
+      }
+    }
+  }
+}

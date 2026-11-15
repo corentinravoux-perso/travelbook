@@ -1,10 +1,13 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { PANELS, useEditor, editorStore, type PanelId } from '../store/editor';
 import { installBookFonts } from '../fonts/bookFonts';
+import { fontListStore } from '../fonts/fontList';
+import { startFontSync } from './fontSync';
 import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
 import { BackgroundsPanel } from '../panels/BackgroundsPanel';
+import { StickersPanel } from '../panels/StickersPanel';
 import { TemplatesPanel } from '../panels/TemplatesPanel';
 import { ShapesPanel } from '../panels/ShapesPanel';
 import { TextPanel } from '../panels/TextPanel';
@@ -14,6 +17,7 @@ import type { IconName } from '../theme/icons';
 import { readWidths, writeWidths, type PanelSide, type PanelWidths } from './layout';
 import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
+import { CreditsDialog, CreditsEntry } from './CreditsDialog';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
 import { ExportDialog } from '../export/ExportDialog';
@@ -43,6 +47,11 @@ const PANEL_ICONS: Record<PanelId, IconName> = {
 export function Shell() {
   // The book's fonts are declared as soon as an album is open: text is drawn with them.
   useEffect(() => installBookFonts(), []);
+  // The list of fonts, and the album carrying the user fonts its text uses.
+  useEffect(() => {
+    void fontListStore.getState().load();
+    return startFontSync();
+  }, []);
   const [widths, setWidths] = useState<PanelWidths>(() => readWidths(localStorage));
   useEffect(() => writeWidths(localStorage, widths), [widths]);
   const resize = (side: PanelSide) => (width: number) =>
@@ -76,6 +85,7 @@ export function Shell() {
         <SpreadStrip />
         <CoverStage />
       </div>
+      <CreditsDialog />
       {overview && <Overview />}
       {preview && <Preview />}
     </>
@@ -168,6 +178,7 @@ function TopBar() {
       {title !== undefined && (
         <>
           <ViewMenu />
+          <CreditsEntry />
           <ZoomControls />
           <span className="shell-sep" />
           <button
@@ -240,6 +251,8 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
         <ShapesPanel />
       ) : panel === 'backgrounds' ? (
         <BackgroundsPanel />
+      ) : panel === 'stickers' ? (
+        <StickersPanel />
       ) : (
         <p className="shell-empty">{fr.shell.panelEmpty}</p>
       )}

@@ -6,3 +6,5 @@ test-results/
 playwright-report/
 *.log
 .superpowers/
+# Built by `npm run stickers` (Task 6.1); fr-keywords.json next to it is committed.
+apps/desktop/resources/stickers/packs/

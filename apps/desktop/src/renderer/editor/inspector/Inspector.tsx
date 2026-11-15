@@ -7,6 +7,7 @@ import { CommonSection } from './CommonSection';
 import { PageInspector } from './PageInspector';
 import { PhotoInspector } from './PhotoInspector';
 import { ShapeInspector } from './ShapeInspector';
+import { StickerInspector } from './StickerInspector';
 import { TextInspector } from './TextInspector';
 import './Inspector.css';
 
@@ -47,6 +48,9 @@ function Properties() {
       )}
       {only?.type === 'text' && (
         <TextInspector key={`type:${key}`} spreadId={spread.id} element={only} />
+      )}
+      {only?.type === 'sticker' && (
+        <StickerInspector key={`type:${key}`} book={book} spreadId={spread.id} element={only} />
       )}
       {only?.type === 'shape' && (
         <ShapeInspector key={`type:${key}`} spreadId={spread.id} element={only} />

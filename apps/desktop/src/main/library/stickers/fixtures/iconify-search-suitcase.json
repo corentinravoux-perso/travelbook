@@ -1,0 +1,82 @@
+{
+  "icons": [
+    "iconoir:suitcase",
+    "mingcute:suitcase-fill",
+    "solar:suitcase-bold",
+    "pixelarticons:suitcase",
+    "uil:suitcase"
+  ],
+  "total": 5,
+  "limit": 5,
+  "start": 0,
+  "collections": {
+    "solar": {
+      "name": "Solar",
+      "author": {
+        "name": "480 Design",
+        "url": "https://www.figma.com/community/file/1166831539721848736"
+      },
+      "license": {
+        "title": "CC BY 4.0",
+        "spdx": "CC-BY-4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "palette": false
+    },
+    "mingcute": {
+      "name": "MingCute Icon",
+      "author": {
+        "name": "MingCute Design",
+        "url": "https://github.com/Richard9394/MingCute"
+      },
+      "license": {
+        "title": "Apache 2.0",
+        "spdx": "Apache-2.0",
+        "url": "https://github.com/Richard9394/MingCute/blob/main/LICENSE"
+      },
+      "palette": false
+    },
+    "iconoir": {
+      "name": "Iconoir",
+      "author": {
+        "name": "Luca Burgio",
+        "url": "https://github.com/iconoir-icons/iconoir"
+      },
+      "license": {
+        "title": "MIT",
+        "spdx": "MIT",
+        "url": "https://github.com/iconoir-icons/iconoir/blob/main/LICENSE"
+      },
+      "palette": false
+    },
+    "uil": {
+      "name": "Unicons",
+      "author": {
+        "name": "Iconscout",
+        "url": "https://github.com/Iconscout/unicons"
+      },
+      "license": {
+        "title": "Apache 2.0",
+        "spdx": "Apache-2.0",
+        "url": "https://github.com/Iconscout/unicons/blob/master/LICENSE"
+      },
+      "palette": false
+    },
+    "pixelarticons": {
+      "name": "Pixelarticons",
+      "author": {
+        "name": "Gerrit Halfmann",
+        "url": "https://github.com/halfmage/pixelarticons"
+      },
+      "license": {
+        "title": "MIT",
+        "spdx": "MIT",
+        "url": "https://github.com/halfmage/pixelarticons/blob/master/LICENSE"
+      },
+      "palette": false
+    }
+  },
+  "request": {
+    "query": "suitcase"
+  }
+}
