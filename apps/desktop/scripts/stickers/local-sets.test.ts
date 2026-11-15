@@ -53,7 +53,7 @@ describe('readLocalSet', () => {
       },
     );
     const set = await readLocalSet('croquis', dir);
-    expect(set).toMatchObject({ id: 'croquis', name: 'Croquis', order: 2, picks: [] });
+    expect(set).toMatchObject({ id: 'croquis', name: 'Croquis', order: 2 });
     expect(set.pack.views).toEqual({ 'meteo-eclair': '0 0 30 40', 'objet-tasse': '0 0 40 30' });
     expect(set.pack.icons['objet-tasse']).toBe('<path d="M0 0h1"/>');
     const tasse = set.docs.find((d) => d.id === 'objet-tasse')!;

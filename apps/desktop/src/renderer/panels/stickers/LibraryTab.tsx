@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { StickerSetInfo } from '../../../shared/api';
+import type { StickerGroup, StickerSetInfo } from '../../../shared/api';
 import { fr } from '../../strings/fr';
 import { FilterBar } from './FilterBar';
 import { StickerResults } from './StickerResults';
@@ -11,11 +11,20 @@ const t = fr.stickers;
 /** Debounce of the offline search box: the packs answer locally, so a short wait is enough. */
 const OFFLINE_DEBOUNCE_MS = 200;
 
-/** "Bibliothèque": the sticker sets that ship with the app, by collection and category, offline. */
-export function LibraryTab() {
-  const [sets, setSets] = useState<StickerSetInfo[] | null>(null);
+/** The "Collection" value that lists the library's recommended stickers. */
+export const RECOMMENDED = '__recommended';
+
+/**
+ * The sticker sets that ship with the app, offline, by collection and category. Two tabs use it:
+ * "travelbook" (our own drawings: Croquis, Bohème, Déco, Affiches) and "Bibliothèque" (the open
+ * packs), which opens on its recommended stickers.
+ */
+export function LibraryTab({ group }: { group: StickerGroup }) {
+  const [allSets, setSets] = useState<StickerSetInfo[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [set, setSet] = useState('');
+  const [set, setSet] = useState(group === 'library' ? RECOMMENDED : '');
+  const sets = allSets?.filter((s) => s.group === group) ?? null;
+  const recommended = set === RECOMMENDED;
   const [loaded, setLoaded] = useState<{
     set: string;
     list: { name: string; count: number }[];
@@ -40,7 +49,7 @@ export function LibraryTab() {
   }, []);
 
   useEffect(() => {
-    if (set === '') return;
+    if (set === '' || recommended) return;
     let live = true;
     window.tb.library.stickers.categories(set).then(
       (list) => {
@@ -51,11 +60,11 @@ export function LibraryTab() {
     return () => {
       live = false;
     };
-  }, [set]);
-  const categories = set !== '' && loaded?.set === set ? loaded.list : [];
+  }, [set, recommended]);
+  const categories = set !== '' && !recommended && loaded?.set === set ? loaded.list : [];
 
   // The colour filter and "sans attribution" are the packs' own: the pages stay full.
-  const key = `offline|${set}|${category}|${filters.mono}|${filters.noAttribution}`;
+  const key = `offline|${group}|${set}|${category}|${filters.mono}|${filters.noAttribution}`;
   const search = useOnlineSearch(
     failed ? undefined : key,
     (q, page) =>
@@ -63,7 +72,8 @@ export function LibraryTab() {
         source: 'offline',
         q,
         page,
-        ...(set !== '' ? { set } : {}),
+        group,
+        ...(recommended ? { recommended: true } : set !== '' ? { set } : {}),
         ...(category !== '' ? { category } : {}),
         ...(filters.mono !== 'all' ? { mono: filters.mono === 'mono' } : {}),
         ...(filters.noAttribution ? { noAttribution: true } : {}),
@@ -100,6 +110,7 @@ export function LibraryTab() {
               setCategory('');
             }}
           >
+            {group === 'library' && <option value={RECOMMENDED}>{t.recommended}</option>}
             <option value="">{t.allSets}</option>
             {(sets ?? []).map((s) => (
               <option key={s.id} value={s.id}>
@@ -108,7 +119,7 @@ export function LibraryTab() {
             ))}
           </select>
         </label>
-        {set !== '' && categories.length > 0 && (
+        {categories.length > 0 && (
           <label className="stk-select">
             <span className="stk-select__label">{t.category}</span>
             <select

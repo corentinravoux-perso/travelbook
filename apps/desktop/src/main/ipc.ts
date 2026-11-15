@@ -153,6 +153,8 @@ const stickerSearch = z.strictObject({
   category: z.string().max(200).optional(),
   mono: z.boolean().optional(),
   noAttribution: z.boolean().optional(),
+  group: z.enum(['travelbook', 'library']).optional(),
+  recommended: z.boolean().optional(),
 });
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 /** Longest SVG text `assets:fromSvg` accepts (a poster illustration is a few kB). */

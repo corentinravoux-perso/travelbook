@@ -138,11 +138,13 @@ describe('licence rule of the build', () => {
   });
 });
 
-describe('the drawn sets', () => {
-  it('come first: Recommandés, then Croquis, Bohème and Déco, our own work under MIT', () => {
-    const ids = listOfflineSets().map((s) => s.id);
-    expect(ids.slice(0, 4)).toEqual(['recommandes', 'croquis', 'boheme', 'deco']);
-    for (const set of listOfflineSets().slice(0, 4)) {
+describe('the travelbook and library tabs', () => {
+  it('put our own drawn sets (Croquis, Bohème, Déco, Affiches) first, in the travelbook tab, under MIT', () => {
+    const sets = listOfflineSets();
+    const own = sets.filter((s) => s.group === 'travelbook');
+    expect(own.map((s) => s.id)).toEqual(['croquis', 'boheme', 'deco', 'affiches']);
+    expect(sets.slice(0, own.length)).toEqual(own);
+    for (const set of own) {
       expect(set.licence).toMatchObject({
         source: 'travelbook',
         licence: 'MIT',
@@ -151,17 +153,43 @@ describe('the drawn sets', () => {
     }
   });
 
-  it('open an empty search with the picks of Recommandés, in their order', () => {
-    const first = searchOffline('', { ...ALL, set: 'recommandes' }).items.slice(0, 3);
-    expect(first.map((i) => i.id)).toEqual([
-      '001-croquis-objet-tasse-coeur',
-      '002-boheme-fleur-turquoise-prune',
-      '003-deco-washi-rayures-corail',
+  it('keep the affiches set and its drawing ids, which the poster presets load by URL', () => {
+    expect(searchOffline('torii', { ...ALL, set: 'affiches' }).items.map((i) => i.id)).toContain(
+      'japon-torii',
+    );
+  });
+
+  it('search one tab only', () => {
+    const own = searchOffline('avion', { ...ALL, group: 'travelbook' }).items;
+    const library = searchOffline('avion', { ...ALL, group: 'library' }).items;
+    expect(own.length).toBeGreaterThan(0);
+    expect(library.length).toBeGreaterThan(0);
+    expect(own.every((i) => ['croquis', 'boheme', 'deco', 'affiches'].includes(i.source))).toBe(
+      true,
+    );
+    expect(library.some((i) => ['croquis', 'boheme', 'deco', 'affiches'].includes(i.source))).toBe(
+      false,
+    );
+  });
+
+  it('list the recommended library stickers in their order, each with its own set licence', () => {
+    const all = searchOffline('', { ...ALL, group: 'library', recommended: true });
+    expect(all.total).toBeGreaterThan(80);
+    expect(all.items.slice(0, 2).map((i) => `${i.source}/${i.id}`)).toEqual([
+      'fluent-emoji-flat/airplane',
+      'fluent-emoji-flat/airplane-departure',
     ]);
+    expect(all.items.some((i) => i.source === 'circle-flags')).toBe(true);
+    for (const item of all.items) expect(item.licence.licence).not.toBe('');
+  });
+
+  it('search inside the recommended stickers only', () => {
+    const hits = searchOffline('glace', { ...ALL, group: 'library', recommended: true });
+    expect(hits.total).toBeGreaterThan(0);
+    expect(hits.total).toBeLessThan(10);
   });
 
   it('find a drawn sticker by a French word', () => {
-    const hits = searchOffline('tampon', { ...ALL, set: 'deco' });
-    expect(hits.total).toBeGreaterThan(5);
+    expect(searchOffline('tampon', { ...ALL, set: 'deco' }).total).toBeGreaterThan(5);
   });
 });
