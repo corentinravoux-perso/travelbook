@@ -70,6 +70,8 @@ export interface EditorState {
   guides: Guides;
   /** True while the full-screen overview of the spreads is open. */
   overview: boolean;
+  /** True while the full-window preview of the album (spec §8) is open. */
+  preview: boolean;
   /** A short message to show over the canvas (a paste that failed, say); `null` for none. */
   notice: string | null;
   /** The photo frame being cropped (pan and zoom of its image), or `null`. Always in the current spread. */
@@ -120,6 +122,8 @@ export interface EditorState {
   goToSpread(id: string): void;
   /** Open or close the overview of the spreads. */
   setOverview(open: boolean): void;
+  /** Open or close the full-window preview of the album. */
+  setPreview(open: boolean): void;
   /** Replace the selection (ids of the current spread). */
   select(ids: string[]): void;
   /** Zoom to `zoom` (clamped) and stop fitting. */
@@ -269,6 +273,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
         tool: 'select',
         fit: true,
         overview: false,
+        preview: false,
         saveStatus: 'saved',
       });
     };
@@ -286,6 +291,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       activePage: 'left',
       guides: { bleed: true, trim: true, safe: true, gutter: true },
       overview: false,
+      preview: false,
       notice: null,
       cropId: null,
       pickerId: null,
@@ -356,6 +362,9 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       },
       setOverview(open) {
         if (get().overview !== open) set({ overview: open });
+      },
+      setPreview(open) {
+        if (get().preview !== open) set({ preview: open });
       },
       select(ids) {
         const current = get().selection;

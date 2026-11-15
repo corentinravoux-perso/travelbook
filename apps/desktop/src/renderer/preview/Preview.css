@@ -1,0 +1,53 @@
+/* Full-window preview: the page on the neutral ground, a slim bar below. No frame, no guide. */
+.preview {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  outline: none;
+}
+.preview__stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  cursor: pointer;
+}
+.preview__spread {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+}
+.preview__paper {
+  position: absolute;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+.preview__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  height: var(--top-h);
+  padding: 0 var(--s4) 0 var(--s5);
+  border-top: 1px solid var(--line);
+  background: var(--chrome);
+}
+.preview__position {
+  min-width: 18ch;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.preview__hint {
+  min-width: 0;
+  margin-left: var(--s5);
+  overflow: hidden;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

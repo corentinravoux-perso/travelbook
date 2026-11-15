@@ -155,7 +155,8 @@ export function useShortcuts(): void {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing || isTypingTarget(e.target)) return;
-      if (editorStore.getState().book === null || editorStore.getState().overview) return;
+      const state = editorStore.getState();
+      if (state.book === null || state.overview || state.preview) return;
       // A dialog is modal: its keys are its own (Delete must not reach the canvas behind it).
       if (e.target instanceof Element && e.target.closest('dialog')) return;
       const command = commandFor(e);

@@ -548,6 +548,18 @@ export const fr = {
     undoRestore: (when: string) => `Restaurer la version du ${when}`,
     readOnly: 'Aperçu en lecture seule',
   },
+  // Full-window preview of the album.
+  preview: {
+    title: 'Aperçu de l’album',
+    close: 'Fermer l’aperçu',
+    previous: 'Page précédente',
+    next: 'Page suivante',
+    hint: 'Flèches ou clic pour tourner les pages. Échap pour revenir.',
+    stage: 'Double page en cours',
+    page: (n: number) => `Page ${n}`,
+    pages: (a: number, b: number) => `Pages ${a}–${b}`,
+    position: (label: string, n: number, total: number) => `${label}, ${n} sur ${total}`,
+  },
   // Backgrounds panel (Fonds).
   backgrounds: {
     tabs: 'Types de fonds',
