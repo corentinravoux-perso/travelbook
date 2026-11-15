@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 30 800 950" data-tb-style="pixory">
+  <!-- String -->
+  <path fill="#2b2723" d="M40 60C220 120 560 120 760 40l2 8C560 132 220 132 38 68z"/>
+  <!-- Small lantern -->
+  <path fill="#2b2723" d="M557 80h6v72h-6z"/>
+  <path fill="#e2ad3b" d="M509 150h101v27h-101z"/>
+  <path fill="#b5832a" d="M509 166h101v11h-101z"/>
+  <ellipse fill="#9b2219" cx="560" cy="315" rx="115" ry="150"/>
+  <ellipse fill="#d2362b" cx="560" cy="315" rx="106" ry="150"/>
+  <ellipse fill="#9b2219" cx="560" cy="315" rx="76" ry="150"/>
+  <ellipse fill="#d2362b" cx="560" cy="315" rx="69" ry="150"/>
+  <ellipse fill="#9b2219" cx="560" cy="315" rx="39" ry="150"/>
+  <ellipse fill="#d2362b" cx="560" cy="315" rx="32" ry="150"/>
+  <ellipse fill="#9b2219" cx="560" cy="315" rx="7" ry="150"/>
+  <path fill="#ec6a4f" d="M477 255c-14 36 -14 84 0 120c-5 -42 -5 -81 0 -120z"/>
+  <path fill="#e2ad3b" d="M514 450h92v27h-92z"/>
+  <path fill="#b5832a" d="M514 466h92v11h-92z"/>
+  <circle fill="#e2ad3b" cx="560" cy="491" r="14"/>
+  <path fill="#d2362b" d="M552 503.0h16l14 108h-44z"/>
+  <path fill="#9b2219" d="M548 517h4v102h-4z"/>
+  <path fill="#9b2219" d="M553 517h4v102h-4z"/>
+  <path fill="#9b2219" d="M558 517h4v102h-4z"/>
+  <path fill="#9b2219" d="M563 517h4v102h-4z"/>
+  <path fill="#9b2219" d="M568 517h4v102h-4z"/>
+  <!-- Large lantern -->
+  <path fill="#2b2723" d="M287 130h6v72h-6z"/>
+  <path fill="#e2ad3b" d="M202 200h176v47h-176z"/>
+  <path fill="#b5832a" d="M202 228h176v19h-176z"/>
+  <ellipse fill="#9b2219" cx="290" cy="486" rx="200" ry="260"/>
+  <ellipse fill="#d2362b" cx="290" cy="486" rx="184" ry="260"/>
+  <ellipse fill="#9b2219" cx="290" cy="486" rx="132" ry="260"/>
+  <ellipse fill="#d2362b" cx="290" cy="486" rx="120" ry="260"/>
+  <ellipse fill="#9b2219" cx="290" cy="486" rx="68" ry="260"/>
+  <ellipse fill="#d2362b" cx="290" cy="486" rx="56" ry="260"/>
+  <ellipse fill="#9b2219" cx="290" cy="486" rx="12" ry="260"/>
+  <path fill="#ec6a4f" d="M146 382c-24 62 -24 146 0 208c-8 -73 -8 -140 0 -208z"/>
+  <path fill="#e2ad3b" d="M210 720h160v47h-160z"/>
+  <path fill="#b5832a" d="M210 748h160v19h-160z"/>
+  <circle fill="#e2ad3b" cx="290" cy="781" r="14"/>
+  <path fill="#d2362b" d="M282 792.8h16l24 187h-64z"/>
+  <path fill="#9b2219" d="M270 807h4v177h-4z"/>
+  <path fill="#9b2219" d="M279 807h4v177h-4z"/>
+  <path fill="#9b2219" d="M288 807h4v177h-4z"/>
+  <path fill="#9b2219" d="M297 807h4v177h-4z"/>
+  <path fill="#9b2219" d="M306 807h4v177h-4z"/>
+</svg>
+

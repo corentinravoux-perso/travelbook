@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="70 140 1030 614" data-tb-style="pixory">
+  <!-- Shadow -->
+  <ellipse fill="#13707b" cx="560" cy="742" rx="470" ry="12"/>
+  <!-- Rear wheel behind, roof posts -->
+  <path fill="#2b2723" d="M330 210h12v300h-12z"/>
+  <path fill="#2b2723" d="M600 210h12v300h-12z"/>
+  <path fill="#2b2723" d="M930 210h12v300h-12z"/>
+  <!-- Roof canopy with a scalloped fringe -->
+  <path fill="#f2c230" d="M250 200C250 170 270 156 300 156H960C990 156 1004 172 1004 200V232H250z"/>
+  <path fill="#c99a18" d="M250 222H1004V240H250z"/>
+  <path fill="#d94a3c" d="M250 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M300 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M351 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M401 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M451 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M501 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M552 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M602 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M652 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M702 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M753 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M803 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M853 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#f6e3b4" d="M903 240h50v14a25 25 0 0 1 -50 0z"/>
+  <path fill="#d94a3c" d="M954 240h50v14a25 25 0 0 1 -50 0z"/>
+  <!-- Body: cab at the front, passenger tub at the back -->
+  <path fill="#1f9aa8" d="M120 600V500C120 452 148 420 196 410L300 392 352 300H400V600z"/>
+  <path fill="#1f9aa8" d="M400 420H1040C1060 420 1072 436 1072 456V600H400z"/>
+  <path fill="#13707b" d="M120 560H1072V600H120z"/>
+  <path fill="#d94a3c" d="M430 470H1040V488H430z"/>
+  <!-- Windscreen and seats -->
+  <path fill="#f6e3b4" d="M304 300H398V392H272z"/>
+  <path fill="#d94a3c" d="M620 330C620 316 630 306 644 306H760C774 306 784 316 784 330V420H620z"/>
+  <path fill="#d94a3c" d="M640 330h124v80H640z"/>
+  <path fill="#d94a3c" d="M820 330C820 316 830 306 844 306H990C1004 306 1014 316 1014 330V420H820z"/>
+  <path fill="#2b2723" d="M600 400H1030V424H600z"/>
+  <!-- Handlebar, headlight, bumper, step -->
+  <path fill="#2b2723" d="M330 360h70v12h-70z"/>
+  <circle fill="#f6e3b4" cx="132" cy="470" r="22"/>
+  <circle fill="#f2c230" cx="132" cy="470" r="12"/>
+  <path fill="#b7b2a9" d="M100 560h70v30h-70z"/>
+  <path fill="#b7b2a9" d="M420 600h180v14H420z"/>
+  <path fill="#b7b2a9" d="M200 420h80v10h-80zM200 440h80v10h-80z"/>
+  <!-- Wheels -->
+  <path fill="#13707b" d="M150 600a100 100 0 0 1 200 0z"/>
+  <circle fill="#2b2723" cx="250" cy="640" r="78"/>
+  <circle fill="#b7b2a9" cx="250" cy="640" r="39"/>
+  <circle fill="#2b2723" cx="250" cy="640" r="12"/>
+  <path fill="#13707b" d="M746 600a114 114 0 0 1 228 0z"/>
+  <circle fill="#2b2723" cx="860" cy="640" r="92"/>
+  <circle fill="#b7b2a9" cx="860" cy="640" r="46"/>
+  <circle fill="#2b2723" cx="860" cy="640" r="15"/>
+</svg>
+
