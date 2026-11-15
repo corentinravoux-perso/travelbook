@@ -17,6 +17,7 @@ import type { IconName } from '../theme/icons';
 import { readWidths, writeWidths, type PanelSide, type PanelWidths } from './layout';
 import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
+import { PosterDialog } from '../posters/PosterDialog';
 import { CreditsDialog, CreditsEntry } from './CreditsDialog';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
@@ -86,6 +87,7 @@ export function Shell() {
         <CoverStage />
       </div>
       <CreditsDialog />
+      <PosterDialog />
       {overview && <Overview />}
       {preview && <Preview />}
     </>
