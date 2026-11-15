@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PDFDocument, cmyk, type PDFPage } from 'pdf-lib';
-import sharp from 'sharp';
+import sharp from '../imaging';
 import type { Book, Mm, Rect } from '@travelbook/core';
 import type { ExportOptions } from '../../shared/api';
 import { slugify } from '../project/store';

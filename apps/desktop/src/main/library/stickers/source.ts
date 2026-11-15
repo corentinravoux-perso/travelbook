@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from '../../imaging';
 import type { z } from 'zod';
 import type { SourceErrorKind, StickerHit } from '../../../shared/api';
 import { DiskCache } from './cache';
