@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron';
 import type { TbApi } from '../shared/api';
 import {
   CHANNEL,
@@ -48,6 +48,8 @@ const tb: TbApi = {
         ipcRenderer.removeListener(PROGRESS_CHANNEL, listener);
       };
     },
+    // A path is all that leaves the preload; the `File` stays on this side of the bridge.
+    pathForFile: (file) => webUtils.getPathForFile(file),
   },
   assets: {
     importFiles: (kind, paths) => ipcRenderer.invoke(CHANNEL.assetsImportFiles, kind, paths),

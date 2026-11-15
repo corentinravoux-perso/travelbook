@@ -389,4 +389,51 @@ describe('editor store', () => {
       expect(store.getState().overview).toBe(false);
     });
   });
+
+  describe('crop mode and the photo picker', () => {
+    it('starts with neither open', async () => {
+      const { store } = await setup();
+      expect(store.getState()).toMatchObject({ cropId: null, pickerId: null });
+    });
+
+    it('enterCrop selects the frame alone and closes the picker; exitCrop leaves', async () => {
+      const { store } = await setup();
+      store.getState().openPicker('slot');
+      store.getState().select(['x', 'y']);
+      store.getState().enterCrop('photo');
+      expect(store.getState()).toMatchObject({
+        cropId: 'photo',
+        pickerId: null,
+        selection: ['photo'],
+      });
+      store.getState().exitCrop();
+      expect(store.getState().cropId).toBeNull();
+      expect(store.getState().selection).toEqual(['photo']);
+    });
+
+    it('openPicker shows the photos panel and ends a crop; closePicker closes', async () => {
+      const { store } = await setup();
+      store.getState().setPanel('shapes');
+      store.getState().enterCrop('photo');
+      store.getState().openPicker('slot');
+      expect(store.getState()).toMatchObject({ pickerId: 'slot', cropId: null, panel: 'photos' });
+      store.getState().closePicker();
+      expect(store.getState().pickerId).toBeNull();
+    });
+
+    it('both end when another spread is shown, and when an album is opened', async () => {
+      const { store } = await setup();
+      const [first, second] = store.getState().book!.spreads;
+      store.getState().goToSpread(first!.id);
+      store.getState().enterCrop('photo');
+      store.getState().goToSpread(second!.id);
+      expect(store.getState().cropId).toBeNull();
+      store.getState().openPicker('slot');
+      store.getState().goToSpread(first!.id);
+      expect(store.getState().pickerId).toBeNull();
+      store.getState().enterCrop('photo');
+      await store.getState().openWith(opened(newBook({ title: 'Autre' })));
+      expect(store.getState().cropId).toBeNull();
+    });
+  });
 });

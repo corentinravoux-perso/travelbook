@@ -55,6 +55,10 @@ export interface EditorState {
   overview: boolean;
   /** A short message to show over the canvas (a paste that failed, say); `null` for none. */
   notice: string | null;
+  /** The photo frame being cropped (pan and zoom of its image), or `null`. Always in the current spread. */
+  cropId: string | null;
+  /** The photo frame whose photo the picker is choosing, or `null`. Always in the current spread. */
+  pickerId: string | null;
   saveStatus: SaveStatus;
   /** True while `openWith` saves the old book and switches albums; changes are refused. */
   opening: boolean;
@@ -98,6 +102,12 @@ export interface EditorState {
   fitSpread(): void;
   /** Show `message` over the canvas until `notify(null)`. */
   notify(message: string | null): void;
+  /** Crop the photo frame `id`: it alone is selected, and the picker closes. */
+  enterCrop(id: string): void;
+  exitCrop(): void;
+  /** Open the picker over the photo tray to fill or replace the photo of frame `id`. */
+  openPicker(id: string): void;
+  closePicker(): void;
   /** Show or hide one overlay of the canvas. */
   setGuide(guide: keyof Guides, on: boolean): void;
 }
@@ -202,7 +212,9 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       set({
         book: next,
         history: snapshot(),
-        ...(currentSpreadId !== get().currentSpreadId ? { currentSpreadId, selection: [] } : {}),
+        ...(currentSpreadId !== get().currentSpreadId
+          ? { currentSpreadId, selection: [], cropId: null, pickerId: null }
+          : {}),
       });
       scheduleSave();
     };
@@ -223,6 +235,8 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
         history: snapshot(),
         currentSpreadId: book.spreads[0]?.id ?? null,
         selection: [],
+        cropId: null,
+        pickerId: null,
         fit: true,
         overview: false,
         saveStatus: 'saved',
@@ -241,6 +255,8 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       guides: { bleed: true, trim: true, safe: true, gutter: true },
       overview: false,
       notice: null,
+      cropId: null,
+      pickerId: null,
       saveStatus: 'saved',
       opening: false,
 
@@ -277,7 +293,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       goToSpread(id) {
         const { book, currentSpreadId } = get();
         if (!findSpread(book, id) || id === currentSpreadId) return;
-        set({ currentSpreadId: id, selection: [] });
+        set({ currentSpreadId: id, selection: [], cropId: null, pickerId: null });
       },
       setOverview(open) {
         if (get().overview !== open) set({ overview: open });
@@ -298,6 +314,18 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       },
       notify(message) {
         set({ notice: message });
+      },
+      enterCrop(id) {
+        set({ cropId: id, pickerId: null, selection: [id] });
+      },
+      exitCrop() {
+        if (get().cropId !== null) set({ cropId: null });
+      },
+      openPicker(id) {
+        set({ pickerId: id, cropId: null, panel: 'photos' });
+      },
+      closePicker() {
+        if (get().pickerId !== null) set({ pickerId: null });
       },
       setGuide(guide, on) {
         set({ guides: { ...get().guides, [guide]: on } });
