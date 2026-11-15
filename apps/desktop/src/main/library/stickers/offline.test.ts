@@ -143,7 +143,11 @@ describe('the drawn sets', () => {
     const ids = listOfflineSets().map((s) => s.id);
     expect(ids.slice(0, 4)).toEqual(['recommandes', 'croquis', 'boheme', 'deco']);
     for (const set of listOfflineSets().slice(0, 4)) {
-      expect(set.licence).toMatchObject({ source: 'travelbook', licence: 'MIT', requiresAttribution: false });
+      expect(set.licence).toMatchObject({
+        source: 'travelbook',
+        licence: 'MIT',
+        requiresAttribution: false,
+      });
     }
   });
 

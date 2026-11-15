@@ -15,7 +15,9 @@ export function font(family: string, weight = 400): fontkit.Font {
   const key = `${family}-${weight}`;
   let f = cache.get(key);
   if (f === undefined) {
-    f = fontkit.create(readFileSync(join(FONTS_DIR, family, `${family}-latin-${weight}-normal.woff2`))) as fontkit.Font;
+    f = fontkit.create(
+      readFileSync(join(FONTS_DIR, family, `${family}-latin-${weight}-normal.woff2`)),
+    ) as fontkit.Font;
     cache.set(key, f);
   }
   return f;
@@ -33,7 +35,13 @@ function pathOf(commands: { command: string; args: number[] }[], map: Pt): strin
       const [x, y] = map(args[i]!, args[i + 1]!);
       pts.push(`${r1(x)} ${r1(y)}`);
     }
-    const letter = { moveTo: 'M', lineTo: 'L', quadraticCurveTo: 'Q', bezierCurveTo: 'C', closePath: 'Z' }[command];
+    const letter = {
+      moveTo: 'M',
+      lineTo: 'L',
+      quadraticCurveTo: 'Q',
+      bezierCurveTo: 'C',
+      closePath: 'Z',
+    }[command];
     d += letter + pts.join(' ');
   }
   return d;

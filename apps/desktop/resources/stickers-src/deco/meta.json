@@ -1,1508 +1,753 @@
 {
- "name": "Déco",
- "order": 4,
- "categories": {
-  "washi": "Washi tape",
-  "etiquette": "Étiquettes",
-  "tampon": "Tampons",
-  "fleche": "Flèches",
-  "bulle": "Bulles",
-  "cadre": "Cadres et coins",
-  "confettis": "Confettis",
-  "lettrage": "Lettrages"
- },
- "keywords": {
-  "washi-rayures-rose": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "rayures",
-   "rayé",
-   "rose"
-  ],
-  "washi-rayures-moutarde": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "rayures",
-   "rayé",
-   "moutarde",
-   "jaune"
-  ],
-  "washi-rayures-corail": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "rayures",
-   "rayé",
-   "corail",
-   "orange"
-  ],
-  "washi-rayures-lavande": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "rayures",
-   "rayé",
-   "lavande",
-   "violet"
-  ],
-  "washi-pois-bleu": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "pois",
-   "points",
-   "bleu"
-  ],
-  "washi-pois-kraft": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "pois",
-   "points",
-   "kraft",
-   "marron"
-  ],
-  "washi-pois-sauge": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "pois",
-   "points",
-   "sauge",
-   "vert"
-  ],
-  "washi-pois-menthe": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "pois",
-   "points",
-   "menthe",
-   "vert"
-  ],
-  "washi-vichy-lavande": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "vichy",
-   "carreaux",
-   "lavande",
-   "violet"
-  ],
-  "washi-vichy-rose": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "vichy",
-   "carreaux",
-   "rose"
-  ],
-  "washi-vichy-moutarde": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "vichy",
-   "carreaux",
-   "moutarde",
-   "jaune"
-  ],
-  "washi-vichy-corail": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "vichy",
-   "carreaux",
-   "corail",
-   "orange"
-  ],
-  "washi-coeurs-menthe": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "coeurs",
-   "amour",
-   "menthe",
-   "vert"
-  ],
-  "washi-coeurs-bleu": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "coeurs",
-   "amour",
-   "bleu"
-  ],
-  "washi-coeurs-kraft": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "coeurs",
-   "amour",
-   "kraft",
-   "marron"
-  ],
-  "washi-coeurs-sauge": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "coeurs",
-   "amour",
-   "sauge",
-   "vert"
-  ],
-  "washi-etoiles-corail": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "étoiles",
-   "corail",
-   "orange"
-  ],
-  "washi-etoiles-lavande": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "étoiles",
-   "lavande",
-   "violet"
-  ],
-  "washi-etoiles-rose": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "étoiles",
-   "rose"
-  ],
-  "washi-etoiles-moutarde": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "étoiles",
-   "moutarde",
-   "jaune"
-  ],
-  "washi-chevrons-sauge": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "chevrons",
-   "zigzag",
-   "sauge",
-   "vert"
-  ],
-  "washi-chevrons-menthe": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "chevrons",
-   "zigzag",
-   "menthe",
-   "vert"
-  ],
-  "washi-chevrons-bleu": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "chevrons",
-   "zigzag",
-   "bleu"
-  ],
-  "washi-chevrons-kraft": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "chevrons",
-   "zigzag",
-   "kraft",
-   "marron"
-  ],
-  "washi-fleurettes-moutarde": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "fleurs",
-   "fleurettes",
-   "liberty",
-   "moutarde",
-   "jaune"
-  ],
-  "washi-fleurettes-corail": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "fleurs",
-   "fleurettes",
-   "liberty",
-   "corail",
-   "orange"
-  ],
-  "washi-fleurettes-lavande": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "fleurs",
-   "fleurettes",
-   "liberty",
-   "lavande",
-   "violet"
-  ],
-  "washi-fleurettes-rose": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "fleurs",
-   "fleurettes",
-   "liberty",
-   "rose"
-  ],
-  "washi-grille-kraft": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "grille",
-   "quadrillage",
-   "kraft",
-   "marron"
-  ],
-  "washi-grille-sauge": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "grille",
-   "quadrillage",
-   "sauge",
-   "vert"
-  ],
-  "washi-grille-menthe": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "grille",
-   "quadrillage",
-   "menthe",
-   "vert"
-  ],
-  "washi-grille-bleu": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "grille",
-   "quadrillage",
-   "bleu"
-  ],
-  "washi-uni-rose": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "uni",
-   "simple",
-   "rose"
-  ],
-  "washi-uni-moutarde": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "uni",
-   "simple",
-   "moutarde",
-   "jaune"
-  ],
-  "washi-uni-corail": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "uni",
-   "simple",
-   "corail",
-   "orange"
-  ],
-  "washi-uni-lavande": [
-   "washi",
-   "ruban",
-   "adhésif",
-   "scotch",
-   "masking tape",
-   "uni",
-   "simple",
-   "lavande",
-   "violet"
-  ],
-  "etiquette-bagage-kraft": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "bagage",
-   "valise",
-   "tag",
-   "kraft"
-  ],
-  "etiquette-bagage-creme": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "bagage",
-   "valise",
-   "tag",
-   "crème",
-   "blanc"
-  ],
-  "etiquette-bagage-rose": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "bagage",
-   "valise",
-   "tag",
-   "rose"
-  ],
-  "etiquette-bagage-menthe": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "bagage",
-   "valise",
-   "tag",
-   "menthe",
-   "vert"
-  ],
-  "etiquette-bagage-moutarde": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "bagage",
-   "valise",
-   "tag",
-   "moutarde",
-   "jaune"
-  ],
-  "etiquette-bagage-bleu": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "bagage",
-   "valise",
-   "tag",
-   "bleu"
-  ],
-  "etiquette-banderole-kraft": [
-   "étiquette",
-   "label",
-   "banderole",
-   "ruban",
-   "bannière",
-   "kraft"
-  ],
-  "etiquette-banderole-creme": [
-   "étiquette",
-   "label",
-   "banderole",
-   "ruban",
-   "bannière",
-   "crème",
-   "blanc"
-  ],
-  "etiquette-banderole-rose": [
-   "étiquette",
-   "label",
-   "banderole",
-   "ruban",
-   "bannière",
-   "rose"
-  ],
-  "etiquette-banderole-menthe": [
-   "étiquette",
-   "label",
-   "banderole",
-   "ruban",
-   "bannière",
-   "menthe",
-   "vert"
-  ],
-  "etiquette-banderole-moutarde": [
-   "étiquette",
-   "label",
-   "banderole",
-   "ruban",
-   "bannière",
-   "moutarde",
-   "jaune"
-  ],
-  "etiquette-banderole-bleu": [
-   "étiquette",
-   "label",
-   "banderole",
-   "ruban",
-   "bannière",
-   "bleu"
-  ],
-  "etiquette-festonnee-kraft": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "festonnée",
-   "ronde",
-   "badge",
-   "kraft"
-  ],
-  "etiquette-festonnee-creme": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "festonnée",
-   "ronde",
-   "badge",
-   "crème",
-   "blanc"
-  ],
-  "etiquette-festonnee-rose": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "festonnée",
-   "ronde",
-   "badge",
-   "rose"
-  ],
-  "etiquette-festonnee-menthe": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "festonnée",
-   "ronde",
-   "badge",
-   "menthe",
-   "vert"
-  ],
-  "etiquette-festonnee-moutarde": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "festonnée",
-   "ronde",
-   "badge",
-   "moutarde",
-   "jaune"
-  ],
-  "etiquette-festonnee-bleu": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "festonnée",
-   "ronde",
-   "badge",
-   "bleu"
-  ],
-  "etiquette-ticket-kraft": [
-   "étiquette",
-   "label",
-   "ticket",
-   "billet",
-   "entrée",
-   "kraft"
-  ],
-  "etiquette-ticket-creme": [
-   "étiquette",
-   "label",
-   "ticket",
-   "billet",
-   "entrée",
-   "crème",
-   "blanc"
-  ],
-  "etiquette-ticket-rose": [
-   "étiquette",
-   "label",
-   "ticket",
-   "billet",
-   "entrée",
-   "rose"
-  ],
-  "etiquette-ticket-menthe": [
-   "étiquette",
-   "label",
-   "ticket",
-   "billet",
-   "entrée",
-   "menthe",
-   "vert"
-  ],
-  "etiquette-ticket-moutarde": [
-   "étiquette",
-   "label",
-   "ticket",
-   "billet",
-   "entrée",
-   "moutarde",
-   "jaune"
-  ],
-  "etiquette-ticket-bleu": [
-   "étiquette",
-   "label",
-   "ticket",
-   "billet",
-   "entrée",
-   "bleu"
-  ],
-  "etiquette-note-creme": [
-   "étiquette",
-   "label",
-   "note",
-   "post-it",
-   "papier",
-   "mémo",
-   "crème",
-   "blanc"
-  ],
-  "etiquette-note-rose": [
-   "étiquette",
-   "label",
-   "note",
-   "post-it",
-   "papier",
-   "mémo",
-   "rose"
-  ],
-  "etiquette-note-menthe": [
-   "étiquette",
-   "label",
-   "note",
-   "post-it",
-   "papier",
-   "mémo",
-   "menthe",
-   "vert"
-  ],
-  "etiquette-note-moutarde": [
-   "étiquette",
-   "label",
-   "note",
-   "post-it",
-   "papier",
-   "mémo",
-   "moutarde",
-   "jaune"
-  ],
-  "etiquette-note-bleu": [
-   "étiquette",
-   "label",
-   "note",
-   "post-it",
-   "papier",
-   "mémo",
-   "bleu"
-  ],
-  "etiquette-rectangle-kraft": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "rectangle",
-   "cadre",
-   "kraft"
-  ],
-  "etiquette-rectangle-creme": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "rectangle",
-   "cadre",
-   "crème",
-   "blanc"
-  ],
-  "etiquette-rectangle-rose": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "rectangle",
-   "cadre",
-   "rose"
-  ],
-  "etiquette-rectangle-menthe": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "rectangle",
-   "cadre",
-   "menthe",
-   "vert"
-  ],
-  "etiquette-rectangle-moutarde": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "rectangle",
-   "cadre",
-   "moutarde",
-   "jaune"
-  ],
-  "etiquette-rectangle-bleu": [
-   "étiquette",
-   "label",
-   "étiquette",
-   "rectangle",
-   "cadre",
-   "bleu"
-  ],
-  "tampon-bon-voyage": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "rouge",
-   "bon",
-   "voyage",
-   "par",
-   "avion"
-  ],
-  "tampon-vacances": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "violet",
-   "vacances",
-   "au",
-   "soleil"
-  ],
-  "tampon-souvenir": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "vert",
-   "souvenir",
-   "de",
-   "voyage"
-  ],
-  "tampon-road-trip": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "bleu",
-   "road",
-   "trip",
-   "en",
-   "route"
-  ],
-  "tampon-tour-du-monde": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "rouge",
-   "tour",
-   "du",
-   "monde",
-   "évasion"
-  ],
-  "tampon-bord-de-mer": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "violet",
-   "bord",
-   "de",
-   "mer",
-   "été"
-  ],
-  "tampon-aventure": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "vert",
-   "aventure",
-   "exploration"
-  ],
-  "tampon-passeport": [
-   "tampon",
-   "cachet",
-   "voyage",
-   "bleu",
-   "passeport",
-   "visa"
-  ],
-  "tampon-par-avion": [
-   "tampon",
-   "cachet",
-   "rouge",
-   "par",
-   "avion"
-  ],
-  "tampon-depart": [
-   "tampon",
-   "cachet",
-   "bleu",
-   "départ"
-  ],
-  "tampon-arrivee": [
-   "tampon",
-   "cachet",
-   "vert",
-   "arrivée"
-  ],
-  "tampon-fragile": [
-   "tampon",
-   "cachet",
-   "violet",
-   "fragile"
-  ],
-  "tampon-timbre-mer": [
-   "timbre",
-   "poste",
-   "lettre",
-   "mer",
-   "plage",
-   "soleil"
-  ],
-  "tampon-timbre-montagne": [
-   "timbre",
-   "poste",
-   "lettre",
-   "montagne",
-   "neige"
-  ],
-  "tampon-timbre-palmier": [
-   "timbre",
-   "poste",
-   "lettre",
-   "palmier",
-   "île",
-   "tropical"
-  ],
-  "tampon-timbre-montgolfiere": [
-   "timbre",
-   "poste",
-   "lettre",
-   "montgolfière",
-   "ciel"
-  ],
-  "fleche-courbe-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "courbe",
-   "noir"
-  ],
-  "fleche-courbe-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "courbe",
-   "corail",
-   "orange"
-  ],
-  "fleche-courbe-bleu": [
-   "flèche",
-   "dessinée",
-   "main",
-   "courbe",
-   "bleu"
-  ],
-  "fleche-boucle-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "boucle",
-   "noir"
-  ],
-  "fleche-boucle-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "boucle",
-   "corail",
-   "orange"
-  ],
-  "fleche-boucle-bleu": [
-   "flèche",
-   "dessinée",
-   "main",
-   "boucle",
-   "bleu"
-  ],
-  "fleche-vague-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "vague",
-   "ondulée",
-   "noir"
-  ],
-  "fleche-vague-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "vague",
-   "ondulée",
-   "corail",
-   "orange"
-  ],
-  "fleche-vague-bleu": [
-   "flèche",
-   "dessinée",
-   "main",
-   "vague",
-   "ondulée",
-   "bleu"
-  ],
-  "fleche-spirale-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "spirale",
-   "noir"
-  ],
-  "fleche-spirale-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "spirale",
-   "corail",
-   "orange"
-  ],
-  "fleche-spirale-bleu": [
-   "flèche",
-   "dessinée",
-   "main",
-   "spirale",
-   "bleu"
-  ],
-  "fleche-coudee-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "coudée",
-   "angle",
-   "noir"
-  ],
-  "fleche-coudee-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "coudée",
-   "angle",
-   "corail",
-   "orange"
-  ],
-  "fleche-pointillee-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "pointillés",
-   "chemin",
-   "noir"
-  ],
-  "fleche-pointillee-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "pointillés",
-   "chemin",
-   "corail",
-   "orange"
-  ],
-  "fleche-zigzag-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "zigzag",
-   "noir"
-  ],
-  "fleche-zigzag-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "zigzag",
-   "corail",
-   "orange"
-  ],
-  "fleche-double-courbe-noir": [
-   "flèche",
-   "dessinée",
-   "main",
-   "double",
-   "noir"
-  ],
-  "fleche-double-courbe-corail": [
-   "flèche",
-   "dessinée",
-   "main",
-   "double",
-   "corail",
-   "orange"
-  ],
-  "fleche-avion-noir": [
-   "avion",
-   "trajet",
-   "vol",
-   "voyage",
-   "pointillés",
-   "chemin",
-   "noir"
-  ],
-  "fleche-avion-corail": [
-   "avion",
-   "trajet",
-   "vol",
-   "voyage",
-   "pointillés",
-   "chemin",
-   "corail",
-   "orange"
-  ],
-  "fleche-avion-bleu": [
-   "avion",
-   "trajet",
-   "vol",
-   "voyage",
-   "pointillés",
-   "chemin",
-   "bleu"
-  ],
-  "bulle-ronde-blanc": [
-   "bulle",
-   "bd",
-   "ronde",
-   "parole",
-   "blanc"
-  ],
-  "bulle-ronde-jaune": [
-   "bulle",
-   "bd",
-   "ronde",
-   "parole",
-   "jaune"
-  ],
-  "bulle-ronde-rose": [
-   "bulle",
-   "bd",
-   "ronde",
-   "parole",
-   "rose"
-  ],
-  "bulle-rectangle-blanc": [
-   "bulle",
-   "bd",
-   "rectangle",
-   "dialogue",
-   "blanc"
-  ],
-  "bulle-rectangle-jaune": [
-   "bulle",
-   "bd",
-   "rectangle",
-   "dialogue",
-   "jaune"
-  ],
-  "bulle-rectangle-rose": [
-   "bulle",
-   "bd",
-   "rectangle",
-   "dialogue",
-   "rose"
-  ],
-  "bulle-nuage-blanc": [
-   "bulle",
-   "bd",
-   "nuage",
-   "pensée",
-   "blanc"
-  ],
-  "bulle-nuage-jaune": [
-   "bulle",
-   "bd",
-   "nuage",
-   "pensée",
-   "jaune"
-  ],
-  "bulle-nuage-rose": [
-   "bulle",
-   "bd",
-   "nuage",
-   "pensée",
-   "rose"
-  ],
-  "bulle-cri-blanc": [
-   "bulle",
-   "bd",
-   "cri",
-   "explosion",
-   "boum",
-   "blanc"
-  ],
-  "bulle-cri-jaune": [
-   "bulle",
-   "bd",
-   "cri",
-   "explosion",
-   "boum",
-   "jaune"
-  ],
-  "bulle-cri-rose": [
-   "bulle",
-   "bd",
-   "cri",
-   "explosion",
-   "boum",
-   "rose"
-  ],
-  "cadre-coin-photo-noir": [
-   "coin",
-   "photo",
-   "angle",
-   "album",
-   "noir"
-  ],
-  "cadre-coin-photo-kraft": [
-   "coin",
-   "photo",
-   "angle",
-   "album",
-   "kraft"
-  ],
-  "cadre-coin-photo-blanc": [
-   "coin",
-   "photo",
-   "angle",
-   "album",
-   "blanc"
-  ],
-  "cadre-coin-photo-or": [
-   "coin",
-   "photo",
-   "angle",
-   "album",
-   "doré",
-   "or"
-  ],
-  "cadre-cercle-gribouille": [
-   "dessin",
-   "main",
-   "cercle",
-   "entourer",
-   "gribouillis"
-  ],
-  "cadre-souligne-vague": [
-   "dessin",
-   "main",
-   "souligné",
-   "vague",
-   "trait"
-  ],
-  "cadre-souligne-double": [
-   "dessin",
-   "main",
-   "souligné",
-   "double",
-   "trait"
-  ],
-  "cadre-crochets": [
-   "dessin",
-   "main",
-   "crochets",
-   "accolades",
-   "encadrer"
-  ],
-  "cadre-rectangle": [
-   "dessin",
-   "main",
-   "cadre",
-   "rectangle",
-   "encadré"
-  ],
-  "cadre-rond": [
-   "dessin",
-   "main",
-   "cadre",
-   "rond",
-   "cercle"
-  ],
-  "cadre-couronne-laurier": [
-   "dessin",
-   "main",
-   "couronne",
-   "laurier",
-   "lauriers"
-  ],
-  "cadre-separateur-points": [
-   "dessin",
-   "main",
-   "séparateur",
-   "ligne",
-   "points"
-  ],
-  "confettis-etincelles-noires": [
-   "confettis",
-   "décoration",
-   "étincelles",
-   "noir"
-  ],
-  "confettis-etincelles-dorees": [
-   "confettis",
-   "décoration",
-   "étincelles",
-   "doré",
-   "or"
-  ],
-  "confettis-etoiles-pastel": [
-   "confettis",
-   "décoration",
-   "étoiles",
-   "pastel"
-  ],
-  "confettis-coeurs-rouges": [
-   "confettis",
-   "décoration",
-   "coeurs",
-   "rouge",
-   "amour"
-  ],
-  "confettis-points-couleurs": [
-   "confettis",
-   "décoration",
-   "points",
-   "ronds",
-   "couleurs"
-  ],
-  "confettis-fete": [
-   "confettis",
-   "décoration",
-   "fête",
-   "confettis",
-   "serpentins"
-  ],
-  "lettrage-bon-voyage": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "bon",
-   "voyage"
-  ],
-  "lettrage-vacances": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "vacances"
-  ],
-  "lettrage-souvenirs": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "souvenirs"
-  ],
-  "lettrage-ete": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "été"
-  ],
-  "lettrage-hello": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "hello"
-  ],
-  "lettrage-bonjour": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "bonjour"
-  ],
-  "lettrage-en-route": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "en",
-   "route",
-   ""
-  ],
-  "lettrage-road-trip": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "road",
-   "trip"
-  ],
-  "lettrage-aventure": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "aventure"
-  ],
-  "lettrage-carnet-de-voyage": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "carnet",
-   "de",
-   "voyage"
-  ],
-  "lettrage-la-mer": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "la",
-   "mer"
-  ],
-  "lettrage-au-soleil": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "au",
-   "soleil"
-  ],
-  "lettrage-liberte": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "liberté"
-  ],
-  "lettrage-dolce-vita": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "dolce",
-   "vita"
-  ],
-  "lettrage-wanderlust": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "wanderlust"
-  ],
-  "lettrage-summer": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "summer"
-  ],
-  "lettrage-holidays": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "holidays"
-  ],
-  "lettrage-love": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "love"
-  ],
-  "lettrage-bisous": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "bisous"
-  ],
-  "lettrage-merci": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "merci"
-  ],
-  "lettrage-bonheur": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "bonheur"
-  ],
-  "lettrage-famille": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "famille"
-  ],
-  "lettrage-entre-amis": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "entre",
-   "amis"
-  ],
-  "lettrage-joyeux-anniversaire": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "joyeux",
-   "anniversaire"
-  ],
-  "lettrage-best-day-ever": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "best",
-   "day",
-   "ever"
-  ],
-  "lettrage-so-good": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "trop",
-   "bien",
-   ""
-  ],
-  "lettrage-wow": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "wow"
-  ],
-  "lettrage-miam": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "miam",
-   ""
-  ],
-  "lettrage-top": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "top"
-  ],
-  "lettrage-coucou": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "coucou"
-  ],
-  "lettrage-la-belle-vie": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "la",
-   "belle",
-   "vie"
-  ],
-  "lettrage-jour-1": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "jour",
-   "1"
-  ],
-  "lettrage-jour-2": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "jour",
-   "2"
-  ],
-  "lettrage-jour-3": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "jour",
-   "3"
-  ],
-  "lettrage-the-end": [
-   "lettrage",
-   "texte",
-   "mot",
-   "titre",
-   "fin"
-  ]
- }
+  "name": "Déco",
+  "order": 4,
+  "categories": {
+    "washi": "Washi tape",
+    "etiquette": "Étiquettes",
+    "tampon": "Tampons",
+    "fleche": "Flèches",
+    "bulle": "Bulles",
+    "cadre": "Cadres et coins",
+    "confettis": "Confettis",
+    "lettrage": "Lettrages"
+  },
+  "keywords": {
+    "washi-rayures-rose": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "rayures",
+      "rayé",
+      "rose"
+    ],
+    "washi-rayures-moutarde": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "rayures",
+      "rayé",
+      "moutarde",
+      "jaune"
+    ],
+    "washi-rayures-corail": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "rayures",
+      "rayé",
+      "corail",
+      "orange"
+    ],
+    "washi-rayures-lavande": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "rayures",
+      "rayé",
+      "lavande",
+      "violet"
+    ],
+    "washi-pois-bleu": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "pois",
+      "points",
+      "bleu"
+    ],
+    "washi-pois-kraft": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "pois",
+      "points",
+      "kraft",
+      "marron"
+    ],
+    "washi-pois-sauge": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "pois",
+      "points",
+      "sauge",
+      "vert"
+    ],
+    "washi-pois-menthe": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "pois",
+      "points",
+      "menthe",
+      "vert"
+    ],
+    "washi-vichy-lavande": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "vichy",
+      "carreaux",
+      "lavande",
+      "violet"
+    ],
+    "washi-vichy-rose": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "vichy",
+      "carreaux",
+      "rose"
+    ],
+    "washi-vichy-moutarde": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "vichy",
+      "carreaux",
+      "moutarde",
+      "jaune"
+    ],
+    "washi-vichy-corail": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "vichy",
+      "carreaux",
+      "corail",
+      "orange"
+    ],
+    "washi-coeurs-menthe": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "coeurs",
+      "amour",
+      "menthe",
+      "vert"
+    ],
+    "washi-coeurs-bleu": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "coeurs",
+      "amour",
+      "bleu"
+    ],
+    "washi-coeurs-kraft": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "coeurs",
+      "amour",
+      "kraft",
+      "marron"
+    ],
+    "washi-coeurs-sauge": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "coeurs",
+      "amour",
+      "sauge",
+      "vert"
+    ],
+    "washi-etoiles-corail": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "étoiles",
+      "corail",
+      "orange"
+    ],
+    "washi-etoiles-lavande": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "étoiles",
+      "lavande",
+      "violet"
+    ],
+    "washi-etoiles-rose": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "étoiles",
+      "rose"
+    ],
+    "washi-etoiles-moutarde": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "étoiles",
+      "moutarde",
+      "jaune"
+    ],
+    "washi-chevrons-sauge": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "chevrons",
+      "zigzag",
+      "sauge",
+      "vert"
+    ],
+    "washi-chevrons-menthe": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "chevrons",
+      "zigzag",
+      "menthe",
+      "vert"
+    ],
+    "washi-chevrons-bleu": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "chevrons",
+      "zigzag",
+      "bleu"
+    ],
+    "washi-chevrons-kraft": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "chevrons",
+      "zigzag",
+      "kraft",
+      "marron"
+    ],
+    "washi-fleurettes-moutarde": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "fleurs",
+      "fleurettes",
+      "liberty",
+      "moutarde",
+      "jaune"
+    ],
+    "washi-fleurettes-corail": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "fleurs",
+      "fleurettes",
+      "liberty",
+      "corail",
+      "orange"
+    ],
+    "washi-fleurettes-lavande": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "fleurs",
+      "fleurettes",
+      "liberty",
+      "lavande",
+      "violet"
+    ],
+    "washi-fleurettes-rose": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "fleurs",
+      "fleurettes",
+      "liberty",
+      "rose"
+    ],
+    "washi-grille-kraft": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "grille",
+      "quadrillage",
+      "kraft",
+      "marron"
+    ],
+    "washi-grille-sauge": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "grille",
+      "quadrillage",
+      "sauge",
+      "vert"
+    ],
+    "washi-grille-menthe": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "grille",
+      "quadrillage",
+      "menthe",
+      "vert"
+    ],
+    "washi-grille-bleu": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "grille",
+      "quadrillage",
+      "bleu"
+    ],
+    "washi-uni-rose": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "uni",
+      "simple",
+      "rose"
+    ],
+    "washi-uni-moutarde": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "uni",
+      "simple",
+      "moutarde",
+      "jaune"
+    ],
+    "washi-uni-corail": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "uni",
+      "simple",
+      "corail",
+      "orange"
+    ],
+    "washi-uni-lavande": [
+      "washi",
+      "ruban",
+      "adhésif",
+      "scotch",
+      "masking tape",
+      "uni",
+      "simple",
+      "lavande",
+      "violet"
+    ],
+    "etiquette-bagage-kraft": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "bagage",
+      "valise",
+      "tag",
+      "kraft"
+    ],
+    "etiquette-bagage-creme": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "bagage",
+      "valise",
+      "tag",
+      "crème",
+      "blanc"
+    ],
+    "etiquette-bagage-rose": ["étiquette", "label", "étiquette", "bagage", "valise", "tag", "rose"],
+    "etiquette-bagage-menthe": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "bagage",
+      "valise",
+      "tag",
+      "menthe",
+      "vert"
+    ],
+    "etiquette-bagage-moutarde": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "bagage",
+      "valise",
+      "tag",
+      "moutarde",
+      "jaune"
+    ],
+    "etiquette-bagage-bleu": ["étiquette", "label", "étiquette", "bagage", "valise", "tag", "bleu"],
+    "etiquette-banderole-kraft": ["étiquette", "label", "banderole", "ruban", "bannière", "kraft"],
+    "etiquette-banderole-creme": [
+      "étiquette",
+      "label",
+      "banderole",
+      "ruban",
+      "bannière",
+      "crème",
+      "blanc"
+    ],
+    "etiquette-banderole-rose": ["étiquette", "label", "banderole", "ruban", "bannière", "rose"],
+    "etiquette-banderole-menthe": [
+      "étiquette",
+      "label",
+      "banderole",
+      "ruban",
+      "bannière",
+      "menthe",
+      "vert"
+    ],
+    "etiquette-banderole-moutarde": [
+      "étiquette",
+      "label",
+      "banderole",
+      "ruban",
+      "bannière",
+      "moutarde",
+      "jaune"
+    ],
+    "etiquette-banderole-bleu": ["étiquette", "label", "banderole", "ruban", "bannière", "bleu"],
+    "etiquette-festonnee-kraft": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "festonnée",
+      "ronde",
+      "badge",
+      "kraft"
+    ],
+    "etiquette-festonnee-creme": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "festonnée",
+      "ronde",
+      "badge",
+      "crème",
+      "blanc"
+    ],
+    "etiquette-festonnee-rose": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "festonnée",
+      "ronde",
+      "badge",
+      "rose"
+    ],
+    "etiquette-festonnee-menthe": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "festonnée",
+      "ronde",
+      "badge",
+      "menthe",
+      "vert"
+    ],
+    "etiquette-festonnee-moutarde": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "festonnée",
+      "ronde",
+      "badge",
+      "moutarde",
+      "jaune"
+    ],
+    "etiquette-festonnee-bleu": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "festonnée",
+      "ronde",
+      "badge",
+      "bleu"
+    ],
+    "etiquette-ticket-kraft": ["étiquette", "label", "ticket", "billet", "entrée", "kraft"],
+    "etiquette-ticket-creme": [
+      "étiquette",
+      "label",
+      "ticket",
+      "billet",
+      "entrée",
+      "crème",
+      "blanc"
+    ],
+    "etiquette-ticket-rose": ["étiquette", "label", "ticket", "billet", "entrée", "rose"],
+    "etiquette-ticket-menthe": [
+      "étiquette",
+      "label",
+      "ticket",
+      "billet",
+      "entrée",
+      "menthe",
+      "vert"
+    ],
+    "etiquette-ticket-moutarde": [
+      "étiquette",
+      "label",
+      "ticket",
+      "billet",
+      "entrée",
+      "moutarde",
+      "jaune"
+    ],
+    "etiquette-ticket-bleu": ["étiquette", "label", "ticket", "billet", "entrée", "bleu"],
+    "etiquette-note-creme": [
+      "étiquette",
+      "label",
+      "note",
+      "post-it",
+      "papier",
+      "mémo",
+      "crème",
+      "blanc"
+    ],
+    "etiquette-note-rose": ["étiquette", "label", "note", "post-it", "papier", "mémo", "rose"],
+    "etiquette-note-menthe": [
+      "étiquette",
+      "label",
+      "note",
+      "post-it",
+      "papier",
+      "mémo",
+      "menthe",
+      "vert"
+    ],
+    "etiquette-note-moutarde": [
+      "étiquette",
+      "label",
+      "note",
+      "post-it",
+      "papier",
+      "mémo",
+      "moutarde",
+      "jaune"
+    ],
+    "etiquette-note-bleu": ["étiquette", "label", "note", "post-it", "papier", "mémo", "bleu"],
+    "etiquette-rectangle-kraft": ["étiquette", "label", "étiquette", "rectangle", "cadre", "kraft"],
+    "etiquette-rectangle-creme": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "rectangle",
+      "cadre",
+      "crème",
+      "blanc"
+    ],
+    "etiquette-rectangle-rose": ["étiquette", "label", "étiquette", "rectangle", "cadre", "rose"],
+    "etiquette-rectangle-menthe": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "rectangle",
+      "cadre",
+      "menthe",
+      "vert"
+    ],
+    "etiquette-rectangle-moutarde": [
+      "étiquette",
+      "label",
+      "étiquette",
+      "rectangle",
+      "cadre",
+      "moutarde",
+      "jaune"
+    ],
+    "etiquette-rectangle-bleu": ["étiquette", "label", "étiquette", "rectangle", "cadre", "bleu"],
+    "tampon-bon-voyage": ["tampon", "cachet", "voyage", "rouge", "bon", "voyage", "par", "avion"],
+    "tampon-vacances": ["tampon", "cachet", "voyage", "violet", "vacances", "au", "soleil"],
+    "tampon-souvenir": ["tampon", "cachet", "voyage", "vert", "souvenir", "de", "voyage"],
+    "tampon-road-trip": ["tampon", "cachet", "voyage", "bleu", "road", "trip", "en", "route"],
+    "tampon-tour-du-monde": [
+      "tampon",
+      "cachet",
+      "voyage",
+      "rouge",
+      "tour",
+      "du",
+      "monde",
+      "évasion"
+    ],
+    "tampon-bord-de-mer": ["tampon", "cachet", "voyage", "violet", "bord", "de", "mer", "été"],
+    "tampon-aventure": ["tampon", "cachet", "voyage", "vert", "aventure", "exploration"],
+    "tampon-passeport": ["tampon", "cachet", "voyage", "bleu", "passeport", "visa"],
+    "tampon-par-avion": ["tampon", "cachet", "rouge", "par", "avion"],
+    "tampon-depart": ["tampon", "cachet", "bleu", "départ"],
+    "tampon-arrivee": ["tampon", "cachet", "vert", "arrivée"],
+    "tampon-fragile": ["tampon", "cachet", "violet", "fragile"],
+    "tampon-timbre-mer": ["timbre", "poste", "lettre", "mer", "plage", "soleil"],
+    "tampon-timbre-montagne": ["timbre", "poste", "lettre", "montagne", "neige"],
+    "tampon-timbre-palmier": ["timbre", "poste", "lettre", "palmier", "île", "tropical"],
+    "tampon-timbre-montgolfiere": ["timbre", "poste", "lettre", "montgolfière", "ciel"],
+    "fleche-courbe-noir": ["flèche", "dessinée", "main", "courbe", "noir"],
+    "fleche-courbe-corail": ["flèche", "dessinée", "main", "courbe", "corail", "orange"],
+    "fleche-courbe-bleu": ["flèche", "dessinée", "main", "courbe", "bleu"],
+    "fleche-boucle-noir": ["flèche", "dessinée", "main", "boucle", "noir"],
+    "fleche-boucle-corail": ["flèche", "dessinée", "main", "boucle", "corail", "orange"],
+    "fleche-boucle-bleu": ["flèche", "dessinée", "main", "boucle", "bleu"],
+    "fleche-vague-noir": ["flèche", "dessinée", "main", "vague", "ondulée", "noir"],
+    "fleche-vague-corail": ["flèche", "dessinée", "main", "vague", "ondulée", "corail", "orange"],
+    "fleche-vague-bleu": ["flèche", "dessinée", "main", "vague", "ondulée", "bleu"],
+    "fleche-spirale-noir": ["flèche", "dessinée", "main", "spirale", "noir"],
+    "fleche-spirale-corail": ["flèche", "dessinée", "main", "spirale", "corail", "orange"],
+    "fleche-spirale-bleu": ["flèche", "dessinée", "main", "spirale", "bleu"],
+    "fleche-coudee-noir": ["flèche", "dessinée", "main", "coudée", "angle", "noir"],
+    "fleche-coudee-corail": ["flèche", "dessinée", "main", "coudée", "angle", "corail", "orange"],
+    "fleche-pointillee-noir": ["flèche", "dessinée", "main", "pointillés", "chemin", "noir"],
+    "fleche-pointillee-corail": [
+      "flèche",
+      "dessinée",
+      "main",
+      "pointillés",
+      "chemin",
+      "corail",
+      "orange"
+    ],
+    "fleche-zigzag-noir": ["flèche", "dessinée", "main", "zigzag", "noir"],
+    "fleche-zigzag-corail": ["flèche", "dessinée", "main", "zigzag", "corail", "orange"],
+    "fleche-double-courbe-noir": ["flèche", "dessinée", "main", "double", "noir"],
+    "fleche-double-courbe-corail": ["flèche", "dessinée", "main", "double", "corail", "orange"],
+    "fleche-avion-noir": ["avion", "trajet", "vol", "voyage", "pointillés", "chemin", "noir"],
+    "fleche-avion-corail": [
+      "avion",
+      "trajet",
+      "vol",
+      "voyage",
+      "pointillés",
+      "chemin",
+      "corail",
+      "orange"
+    ],
+    "fleche-avion-bleu": ["avion", "trajet", "vol", "voyage", "pointillés", "chemin", "bleu"],
+    "bulle-ronde-blanc": ["bulle", "bd", "ronde", "parole", "blanc"],
+    "bulle-ronde-jaune": ["bulle", "bd", "ronde", "parole", "jaune"],
+    "bulle-ronde-rose": ["bulle", "bd", "ronde", "parole", "rose"],
+    "bulle-rectangle-blanc": ["bulle", "bd", "rectangle", "dialogue", "blanc"],
+    "bulle-rectangle-jaune": ["bulle", "bd", "rectangle", "dialogue", "jaune"],
+    "bulle-rectangle-rose": ["bulle", "bd", "rectangle", "dialogue", "rose"],
+    "bulle-nuage-blanc": ["bulle", "bd", "nuage", "pensée", "blanc"],
+    "bulle-nuage-jaune": ["bulle", "bd", "nuage", "pensée", "jaune"],
+    "bulle-nuage-rose": ["bulle", "bd", "nuage", "pensée", "rose"],
+    "bulle-cri-blanc": ["bulle", "bd", "cri", "explosion", "boum", "blanc"],
+    "bulle-cri-jaune": ["bulle", "bd", "cri", "explosion", "boum", "jaune"],
+    "bulle-cri-rose": ["bulle", "bd", "cri", "explosion", "boum", "rose"],
+    "cadre-coin-photo-noir": ["coin", "photo", "angle", "album", "noir"],
+    "cadre-coin-photo-kraft": ["coin", "photo", "angle", "album", "kraft"],
+    "cadre-coin-photo-blanc": ["coin", "photo", "angle", "album", "blanc"],
+    "cadre-coin-photo-or": ["coin", "photo", "angle", "album", "doré", "or"],
+    "cadre-cercle-gribouille": ["dessin", "main", "cercle", "entourer", "gribouillis"],
+    "cadre-souligne-vague": ["dessin", "main", "souligné", "vague", "trait"],
+    "cadre-souligne-double": ["dessin", "main", "souligné", "double", "trait"],
+    "cadre-crochets": ["dessin", "main", "crochets", "accolades", "encadrer"],
+    "cadre-rectangle": ["dessin", "main", "cadre", "rectangle", "encadré"],
+    "cadre-rond": ["dessin", "main", "cadre", "rond", "cercle"],
+    "cadre-couronne-laurier": ["dessin", "main", "couronne", "laurier", "lauriers"],
+    "cadre-separateur-points": ["dessin", "main", "séparateur", "ligne", "points"],
+    "confettis-etincelles-noires": ["confettis", "décoration", "étincelles", "noir"],
+    "confettis-etincelles-dorees": ["confettis", "décoration", "étincelles", "doré", "or"],
+    "confettis-etoiles-pastel": ["confettis", "décoration", "étoiles", "pastel"],
+    "confettis-coeurs-rouges": ["confettis", "décoration", "coeurs", "rouge", "amour"],
+    "confettis-points-couleurs": ["confettis", "décoration", "points", "ronds", "couleurs"],
+    "confettis-fete": ["confettis", "décoration", "fête", "confettis", "serpentins"],
+    "lettrage-bon-voyage": ["lettrage", "texte", "mot", "titre", "bon", "voyage"],
+    "lettrage-vacances": ["lettrage", "texte", "mot", "titre", "vacances"],
+    "lettrage-souvenirs": ["lettrage", "texte", "mot", "titre", "souvenirs"],
+    "lettrage-ete": ["lettrage", "texte", "mot", "titre", "été"],
+    "lettrage-hello": ["lettrage", "texte", "mot", "titre", "hello"],
+    "lettrage-bonjour": ["lettrage", "texte", "mot", "titre", "bonjour"],
+    "lettrage-en-route": ["lettrage", "texte", "mot", "titre", "en", "route", ""],
+    "lettrage-road-trip": ["lettrage", "texte", "mot", "titre", "road", "trip"],
+    "lettrage-aventure": ["lettrage", "texte", "mot", "titre", "aventure"],
+    "lettrage-carnet-de-voyage": ["lettrage", "texte", "mot", "titre", "carnet", "de", "voyage"],
+    "lettrage-la-mer": ["lettrage", "texte", "mot", "titre", "la", "mer"],
+    "lettrage-au-soleil": ["lettrage", "texte", "mot", "titre", "au", "soleil"],
+    "lettrage-liberte": ["lettrage", "texte", "mot", "titre", "liberté"],
+    "lettrage-dolce-vita": ["lettrage", "texte", "mot", "titre", "dolce", "vita"],
+    "lettrage-wanderlust": ["lettrage", "texte", "mot", "titre", "wanderlust"],
+    "lettrage-summer": ["lettrage", "texte", "mot", "titre", "summer"],
+    "lettrage-holidays": ["lettrage", "texte", "mot", "titre", "holidays"],
+    "lettrage-love": ["lettrage", "texte", "mot", "titre", "love"],
+    "lettrage-bisous": ["lettrage", "texte", "mot", "titre", "bisous"],
+    "lettrage-merci": ["lettrage", "texte", "mot", "titre", "merci"],
+    "lettrage-bonheur": ["lettrage", "texte", "mot", "titre", "bonheur"],
+    "lettrage-famille": ["lettrage", "texte", "mot", "titre", "famille"],
+    "lettrage-entre-amis": ["lettrage", "texte", "mot", "titre", "entre", "amis"],
+    "lettrage-joyeux-anniversaire": ["lettrage", "texte", "mot", "titre", "joyeux", "anniversaire"],
+    "lettrage-best-day-ever": ["lettrage", "texte", "mot", "titre", "best", "day", "ever"],
+    "lettrage-so-good": ["lettrage", "texte", "mot", "titre", "trop", "bien", ""],
+    "lettrage-wow": ["lettrage", "texte", "mot", "titre", "wow"],
+    "lettrage-miam": ["lettrage", "texte", "mot", "titre", "miam", ""],
+    "lettrage-top": ["lettrage", "texte", "mot", "titre", "top"],
+    "lettrage-coucou": ["lettrage", "texte", "mot", "titre", "coucou"],
+    "lettrage-la-belle-vie": ["lettrage", "texte", "mot", "titre", "la", "belle", "vie"],
+    "lettrage-jour-1": ["lettrage", "texte", "mot", "titre", "jour", "1"],
+    "lettrage-jour-2": ["lettrage", "texte", "mot", "titre", "jour", "2"],
+    "lettrage-jour-3": ["lettrage", "texte", "mot", "titre", "jour", "3"],
+    "lettrage-the-end": ["lettrage", "texte", "mot", "titre", "fin"]
+  }
 }

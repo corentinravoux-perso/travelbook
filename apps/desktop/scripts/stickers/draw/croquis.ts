@@ -2,7 +2,14 @@
  * The "Croquis" set: bold black hand-drawn ink, white fill, a second sketchy line, hatching for
  * the shadow side and a few accent strokes. See `docs/design/stickers-style.md`.
  */
-import { type Drawing, INK, PAPER, circle, fill, hatch, heart, ink, stroke } from './core.ts';
+import { type Drawing, INK, PAPER, fill, hatch, heart, ink, stroke } from './core.ts';
+import { accents, cpts, inkArrow } from './croquis-kit.ts';
+import { FLECHES } from './croquis-fleches.ts';
+import { GOURMAND } from './croquis-gourmand.ts';
+import { METEO } from './croquis-meteo.ts';
+import { OBJETS } from './croquis-objets.ts';
+import { SIGNES } from './croquis-signes.ts';
+import { VOYAGE } from './croquis-voyage.ts';
 
 export const SET = {
   id: 'croquis',
@@ -17,20 +24,6 @@ export const SET = {
     gourmand: 'Gourmandises',
   },
 };
-
-/** Short accent strokes (motion marks) fanned around a point. */
-function accents(x: number, y: number, n: number, len: number, from: number, to: number): string[] {
-  const out: string[] = [];
-  for (let i = 0; i < n; i++) {
-    const a = ((from + ((to - from) * i) / Math.max(1, n - 1)) * Math.PI) / 180;
-    const x1 = x + Math.cos(a) * len;
-    const y1 = y + Math.sin(a) * len;
-    const x2 = x + Math.cos(a) * len * 1.45;
-    const y2 = y + Math.sin(a) * len * 1.45;
-    out.push(...stroke(`M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`, 6));
-  }
-  return out;
-}
 
 export const DRAWINGS: Drawing[] = [
   {
@@ -70,7 +63,8 @@ export const DRAWINGS: Drawing[] = [
     viewBox: '0 0 440 230',
     kw: ['lunettes', 'soleil', 'été', 'plage', 'vacances', 'cool'],
     parts: () => {
-      const frame = 'M22 44L418 44L414 76L400 80Q392 170 330 176L266 176Q228 170 222 96L218 96Q212 170 174 176L110 176Q48 170 40 80L26 76Z';
+      const frame =
+        'M22 44L418 44L414 76L400 80Q392 170 330 176L266 176Q228 170 222 96L218 96Q212 170 174 176L110 176Q48 170 40 80L26 76Z';
       const lensL = 'M60 82L200 82Q198 150 166 156L112 156Q64 152 60 82Z';
       const lensR = 'M240 82L380 82Q376 152 328 156L274 156Q242 150 240 82Z';
       return [
@@ -93,21 +87,16 @@ export const DRAWINGS: Drawing[] = [
     id: 'fleche-courbe-haut',
     viewBox: '0 0 300 420',
     kw: ['flèche', 'courbe', 'haut', 'direction'],
-    parts: () => {
-      const arrow = 'M58 26L178 112L134 126Q186 236 246 384L178 398Q126 250 92 142L40 160Z';
-      return [
-        fill(arrow, INK),
-        ...stroke(arrow, 9, { roughness: 0.8 }),
-        ...stroke('M118 150Q160 256 206 370', 4, { stroke: PAPER, roughness: 1.2 }),
-        ...stroke('M30 40Q20 110 26 176', 4, { roughness: 1.6 }),
-        ...stroke('M262 300Q280 340 274 392', 4, { roughness: 1.6 }),
-      ];
-    },
+    parts: () => [
+      ...inkArrow(cpts([232, 398], [222, 250], [186, 150], [100, 104]), 48, 60, 78),
+      ...stroke('M262 300Q282 344 270 398', 4, { roughness: 1.6 }),
+      ...stroke('M40 170Q34 210 44 240', 4, { roughness: 1.6 }),
+    ],
   },
-  {
-    id: 'signe-cible',
-    viewBox: '0 0 300 300',
-    kw: ['cible', 'rond'],
-    parts: () => [...ink(circle(150, 150, 120), { w: 10 }), ...ink(circle(150, 150, 70), { w: 8 }), fill(circle(150, 150, 26), INK)],
-  },
+  ...OBJETS,
+  ...GOURMAND,
+  ...METEO,
+  ...SIGNES,
+  ...FLECHES,
+  ...VOYAGE,
 ];
