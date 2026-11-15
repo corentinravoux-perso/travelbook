@@ -1,4 +1,5 @@
 import type { AssetRef, Book } from '@travelbook/core';
+import { coverDirOf } from './project/cover-thumb';
 import type { TbRoots } from './protocol';
 
 /**
@@ -84,5 +85,6 @@ export function tbRoots(
         : { file: asset.file, proxies: asset.kind === 'photo' };
     },
     libraryFile: (id) => libraryFileLookup(id),
+    coverDir: (id) => coverDirOf(id),
   };
 }

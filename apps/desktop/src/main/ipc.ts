@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { BookSchema, TemplateSchema } from '@travelbook/core';
 import { z } from 'zod';
-import type { LibraryItem } from '../shared/api';
+import type { CaptureRect, LibraryItem } from '../shared/api';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
 import { clipboardPayload, readElements, writeElements, type ClipboardHost } from './clipboard';
 import { importAssetFiles } from './assets/import-files';
@@ -21,6 +21,7 @@ import { projectFilePath } from './protocol';
 import { serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
 import { ensureProxies } from './photos/proxies';
+import { COVER_THUMB_EDGE, coverThumbUrl, writeCoverThumb } from './project/cover-thumb';
 import { recentProjects } from './project/recent';
 import {
   SNAPSHOT_ID_PATTERN,
@@ -50,6 +51,11 @@ export interface Host {
   version(): string;
   /** The system clipboard. */
   clipboard: ClipboardHost;
+  /**
+   * A JPEG of what the window shows in `rect` (CSS px), scaled down so that its long edge is
+   * `longEdge` px at most.
+   */
+  captureJpeg(rect: CaptureRect, longEdge: number): Promise<Uint8Array>;
 }
 
 export interface HandlerContext {
@@ -73,6 +79,14 @@ const pathList = z.array(absolutePath).max(MAX_PATHS);
 
 /** Same alphabet as asset ids and library item ids (see `protocol.ts`). */
 const identifier = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/, 'must be a plain identifier');
+
+/** A region of the window: whole px, inside any real screen, at least a few px wide. */
+const captureRect = z.strictObject({
+  x: z.number().int().min(0).max(20_000),
+  y: z.number().int().min(0).max(20_000),
+  width: z.number().int().min(8).max(4000),
+  height: z.number().int().min(8).max(4000),
+});
 
 const pageSize = z.number().finite().positive().max(5000);
 
@@ -103,6 +117,7 @@ const schemas = {
   ]),
   open: z.tuple([absolutePath.optional()]),
   save: z.tuple([BookSchema]),
+  captureRect: z.tuple([captureRect]),
   snapshotLabel: z.tuple([z.enum(['auto', 'manual'])]),
   snapshotId: z.tuple([z.string().regex(SNAPSHOT_ID_PATTERN, 'not a snapshot id')]),
   paths: z.tuple([pathList]),
@@ -187,6 +202,17 @@ export function createHandlers(host: Host): IpcHandlers {
       const session = requireSession();
       await saveBook(session.dir, book);
       recordBook(session, book);
+    },
+
+    [CHANNEL.projectCaptureCover]: async (_ctx, ...args) => {
+      const [rect] = parseArgs(CHANNEL.projectCaptureCover, schemas.captureRect, args);
+      const session = requireSession();
+      await writeCoverThumb(session.dir, await host.captureJpeg(rect, COVER_THUMB_EDGE));
+    },
+
+    [CHANNEL.projectHasCoverThumb]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.projectHasCoverThumb, schemas.none, args);
+      return (await coverThumbUrl(requireSession().dir)) !== undefined;
     },
 
     [CHANNEL.projectRecent]: async (_ctx, ...args) => {

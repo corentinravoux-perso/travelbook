@@ -40,6 +40,23 @@ export function createElectronHost(window: () => BrowserWindow | null): Host {
     openExternal: (url) => shell.openExternal(url),
     showInFolder: (path) => shell.showItemInFolder(path),
     version: () => app.getVersion(),
+    captureJpeg: async (rect, longEdge) => {
+      const win = window();
+      if (!win) throw new Error('No window to capture');
+      const image = await win.webContents.capturePage(rect);
+      const { width, height } = image.getSize();
+      if (width === 0 || height === 0) throw new Error('The captured region is empty');
+      const ratio = Math.min(1, longEdge / Math.max(width, height));
+      const scaled =
+        ratio < 1
+          ? image.resize({
+              width: Math.max(1, Math.round(width * ratio)),
+              height: Math.max(1, Math.round(height * ratio)),
+              quality: 'best',
+            })
+          : image;
+      return scaled.toJPEG(88);
+    },
     clipboard: {
       write: (type, data) =>
         clipboard.write([new ClipboardItem({ [type]: new Blob([data], { type }) })]),

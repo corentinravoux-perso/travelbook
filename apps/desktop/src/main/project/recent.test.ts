@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setUserDataDir } from '../user-data';
+import { coverDirOf, writeCoverThumb } from './cover-thumb';
 import { addRecentProject, recentProjects } from './recent';
 
 let userData: string;
@@ -61,6 +62,16 @@ describe('recentProjects', () => {
     expect((await recentProjects())[0]?.coverThumb).toBe('tb://thumb/a');
     await addRecentProject({ dir: '/p/a.travelbook', title: 'A', coverThumb: 'tb://thumb/new' });
     expect((await recentProjects())[0]?.coverThumb).toBe('tb://thumb/new');
+  });
+
+  it('adds the cover thumbnail of a project that has one, as a tb://cover URL', async () => {
+    const dir = join(userData, 'a.travelbook');
+    await addRecentProject({ dir, title: 'A' });
+    expect((await recentProjects())[0]?.coverThumb).toBeUndefined();
+    await writeCoverThumb(dir, new Uint8Array([0xff, 0xd8, 0xff]));
+    const [entry] = await recentProjects();
+    expect(entry?.coverThumb).toMatch(/^tb:\/\/cover\/[0-9a-f]{16}\?v=\d+$/);
+    expect(coverDirOf(entry!.coverThumb!.split('/')[3]!.split('?')[0]!)).toBe(dir);
   });
 
   it('stores the list as JSON in the injected directory', async () => {

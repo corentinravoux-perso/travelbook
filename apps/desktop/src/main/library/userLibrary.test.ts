@@ -715,6 +715,7 @@ describe('the tb://library lookup', () => {
     resourcesDir: join(work, 'resources'),
     asset: () => undefined,
     libraryFile,
+    coverDir: () => undefined,
   });
 
   it('answers with the file of every listed or added item, in the shape tb://library needs', async () => {

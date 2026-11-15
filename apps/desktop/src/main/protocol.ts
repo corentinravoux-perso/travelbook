@@ -6,6 +6,7 @@ import type { Protocol } from 'electron';
  * The `tb:` URL scheme the renderer loads project files through:
  *
  *   tb://asset/<assetId>?v=thumb|preview|original   a file of the open project
+ *   tb://cover/<coverId>                            the cover thumbnail of a listed project
  *   tb://library/<itemId>                           a file of the user library
  *   tb://resource/<path>                            a bundled resource
  *
@@ -42,6 +43,9 @@ export interface TbAssetEntry {
   proxies: boolean;
 }
 
+/** Where a project keeps the thumbnail `tb://cover/<id>` serves (see `project/cover-thumb.ts`). */
+const COVER_THUMB = ['cache', 'cover-thumb.jpg'] as const;
+
 export interface TbRoots {
   /** Absolute folder of the open project, or `null` when none is open. */
   projectDir: string | null;
@@ -53,6 +57,8 @@ export interface TbRoots {
   asset(id: string): TbAssetEntry | undefined;
   /** The file of this library item, relative to `libraryDir`. */
   libraryFile(id: string): string | undefined;
+  /** The absolute folder of a project whose cover id main handed out. */
+  coverDir(id: string): string | undefined;
 }
 
 export type TbResolution =
@@ -200,6 +206,18 @@ function resolveLibrary(segments: string[], roots: TbRoots, flavour: PathFlavour
   return { ok: true, path, root: roots.libraryDir };
 }
 
+function resolveCover(segments: string[], roots: TbRoots, flavour: PathFlavour): TbResolution {
+  const id = segments[0];
+  if (segments.length !== 1 || id === undefined || !ID_PATTERN.test(id)) {
+    return bad('A cover URL names exactly one valid id');
+  }
+  const dir = roots.coverDir(id);
+  if (dir === undefined) return notFound(`Unknown cover: ${id}`);
+  const path = containedPath(flavour, dir, COVER_THUMB.join('/'));
+  if (path === null) return notFound(`Cover ${id} has no usable folder`);
+  return { ok: true, path, root: dir };
+}
+
 function resolveResource(segments: string[], roots: TbRoots, flavour: PathFlavour): TbResolution {
   const path = containedPath(flavour, roots.resourcesDir, segments.join('/'));
   if (path === null) return bad('The resource path leaves the bundled resources');
@@ -219,13 +237,14 @@ export function resolveTbUrl(
   if (match === null) return bad('Not a tb:// URL');
   const [, host = '', rawPath = '', query = ''] = match;
   const kind = host.toLowerCase();
-  if (kind !== 'asset' && kind !== 'library' && kind !== 'resource') {
+  if (kind !== 'asset' && kind !== 'library' && kind !== 'resource' && kind !== 'cover') {
     return notFound(`Unknown tb:// host: ${host}`);
   }
   const segments = pathSegments(rawPath);
   if (segments === null) return bad('The URL path is not made of plain names');
   if (kind === 'asset') return resolveAsset(segments, query, roots, flavour);
   if (kind === 'library') return resolveLibrary(segments, roots, flavour);
+  if (kind === 'cover') return resolveCover(segments, roots, flavour);
   return resolveResource(segments, roots, flavour);
 }
 

@@ -33,6 +33,8 @@ const tb: TbApi = {
     readSnapshot: (id) => ipcRenderer.invoke(CHANNEL.projectReadSnapshot, id),
     reveal: () => ipcRenderer.invoke(CHANNEL.projectReveal),
     pickFolder: () => ipcRenderer.invoke(CHANNEL.projectPickFolder),
+    captureCover: (rect) => ipcRenderer.invoke(CHANNEL.projectCaptureCover, rect),
+    hasCoverThumb: () => ipcRenderer.invoke(CHANNEL.projectHasCoverThumb),
   },
   photos: {
     pick: () => ipcRenderer.invoke(CHANNEL.photosPick),
