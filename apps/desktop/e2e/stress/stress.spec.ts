@@ -1,6 +1,6 @@
 /**
  * Measurements on a 100-page book of 400 photos of 24 megapixels (see `make-stress-book.ts`), on
- * the packaged app: what `docs/acceptance.md` quotes. Slow (about an hour, most of it exporting)
+ * the packaged app: what `docs/acceptance.md` quotes. Slow (about 12 minutes, most of it exporting)
  * and heavy (a few GB of disk and several GB of memory): never part of `npm run e2e`.
  *
  *   npm run dist:linux && npm run e2e:stress
