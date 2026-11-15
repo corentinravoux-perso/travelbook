@@ -31,16 +31,12 @@ export interface LocalSetMeta {
   order: number;
   categories: Record<string, string>;
   keywords?: Record<string, string[]>;
-  /** Ids from any set, in the form `<set>/<id>`; used by the `recommandes` set only. */
-  picks?: string[];
 }
 
 export interface LocalSet {
   id: string;
   name: string;
   order: number;
-  /** `<set>/<id>` picks copied into this set by the pack builder (the "Recommandés" set). */
-  picks: string[];
   pack: {
     width: number;
     height: number;
@@ -122,7 +118,7 @@ export async function readLocalSet(id: string, dir = STICKERS_SRC_DIR): Promise<
       title: `${label} · ${object}`,
     });
   }
-  return { id, name: meta.name, order: meta.order, picks: meta.picks ?? [], pack, docs };
+  return { id, name: meta.name, order: meta.order, pack, docs };
 }
 
 /** Every drawn set, by `order`. */

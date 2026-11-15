@@ -877,6 +877,7 @@ export const fr = {
   stickers: {
     tabs: 'Origine des stickers',
     tab: {
+      travelbook: 'travelbook',
       library: 'Bibliothèque',
       online: 'En ligne',
       mine: 'Mes stickers',
@@ -887,6 +888,7 @@ export const fr = {
     searchPlaceholder: 'avion, valise, drapeau…',
     set: 'Collection',
     allSets: 'Toutes les collections',
+    recommended: 'Recommandés',
     category: 'Catégorie',
     allCategories: 'Toutes les catégories',
     colourFilter: 'Couleur',

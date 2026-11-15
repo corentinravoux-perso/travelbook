@@ -15,8 +15,7 @@
  * icon whose name contains `suitcase` gets `valise`.
  *
  * The drawn sets of `resources/stickers-src/` come first (our own drawings, MIT, see
- * `scripts/stickers/local-sets.ts`); a `recommandes` set copies the picks its `meta.json` lists
- * from them. Then comes `affiches`, the poster illustrations of `resources/posters/` (our own
+ * `scripts/stickers/local-sets.ts`). Then comes `affiches`, the poster illustrations of `resources/posters/` (our own
  * drawings, see `scripts/posters/affiches-set.ts`). It is skipped while that folder is empty.
  */
 import { createHash } from 'node:crypto';
@@ -44,6 +43,8 @@ const require = createRequire(import.meta.url);
 export const STICKERS_DIR = join(import.meta.dirname, '../resources/stickers');
 export const PACKS_DIR = join(STICKERS_DIR, 'packs');
 export const KEYWORDS_FILE = join(STICKERS_DIR, 'fr-keywords.json');
+/** The library's recommended stickers: `["<set>/<id>", …]`, from the open packs, in order. */
+export const RECOMMENDED_FILE = join(STICKERS_DIR, 'recommended.json');
 const MANIFEST_VERSION = 1;
 
 /** The coloured sets: emoji (matched to CLDR) first, then flags, weather and pictogram packs. */
@@ -128,12 +129,16 @@ export interface ManifestSet {
   mono: boolean;
   pack: string;
   index: string;
+  /** The Stickers panel tab: our own drawings ("travelbook") or the open packs ("library"). */
+  group: 'travelbook' | 'library';
 }
 export interface Manifest {
   version: number;
   inputs: string;
   total: number;
   sets: ManifestSet[];
+  /** `<set>/<id>` of the library's recommended stickers, in display order. */
+  recommended: string[];
   dropped: { id: string; licence: string }[];
 }
 
@@ -398,6 +403,7 @@ async function buildSet(
       mono,
       pack: `${id}.pack.json`,
       index: `${id}.index.json`,
+      group: 'library',
     },
   };
 }
@@ -419,30 +425,13 @@ async function buildAffiches(): Promise<ManifestSet | null> {
     mono: false,
     pack: `${id}.pack.json`,
     index: `${id}.index.json`,
+    group: 'travelbook',
   };
 }
 
-/** The drawn sets of `resources/stickers-src/`, then the "Recommandés" set made of their picks. */
+/** The drawn sets of `resources/stickers-src/`. */
 async function buildLocalSets(): Promise<ManifestSet[]> {
   const sets = await readLocalSets();
-  const byId = new Map(sets.map((s) => [s.id, s]));
-  for (const set of sets) {
-    if (set.docs.length > 0 || set.picks.length === 0) continue;
-    // The key starts with the pick's rank: an empty search lists a set by id, so the picks keep
-    // the order of meta.json (croquis, bohème and déco interleaved).
-    for (const [rank, pick] of set.picks.entries()) {
-      const [from, id] = pick.split('/') as [string, string];
-      const source = byId.get(from);
-      const doc = source?.docs.find((d) => d.id === id);
-      if (source === undefined || doc === undefined) {
-        throw new Error(`stickers: ${set.id}: unknown pick ${pick}`);
-      }
-      const key = `${String(rank + 1).padStart(3, '0')}-${from}-${id}`;
-      set.pack.icons[key] = source.pack.icons[id]!;
-      set.pack.views[key] = source.pack.views[id]!;
-      set.docs.push({ ...doc, id: key, name: key, category: source.name });
-    }
-  }
   const out: ManifestSet[] = [];
   for (const set of sets) {
     if (set.docs.length === 0) continue;
@@ -458,9 +447,35 @@ async function buildLocalSets(): Promise<ManifestSet[]> {
       mono: false,
       pack: `${set.id}.pack.json`,
       index: `${set.id}.index.json`,
+      group: 'travelbook',
     });
   }
   return out;
+}
+
+/**
+ * The recommended stickers, checked: each one must be in a built "library" set (our own drawings
+ * have their own tab), and none twice.
+ */
+async function readRecommended(sets: ManifestSet[]): Promise<string[]> {
+  const list = await readJson<string[]>(RECOMMENDED_FILE).catch(() => [] as string[]);
+  const icons = new Map<string, Set<string>>();
+  const seen = new Set<string>();
+  for (const key of list) {
+    const [setId, id] = key.split('/') as [string, string | undefined];
+    const set = sets.find((s) => s.id === setId);
+    if (set === undefined || set.group !== 'library' || id === undefined) {
+      throw new Error(`stickers: recommended.json: ${key} is not in a library set`);
+    }
+    if (!icons.has(setId)) {
+      const pack = await readJson<Pack>(join(PACKS_DIR, set.pack));
+      icons.set(setId, new Set(Object.keys(pack.icons)));
+    }
+    if (!icons.get(setId)!.has(id)) throw new Error(`stickers: recommended.json: no ${key}`);
+    if (seen.has(key)) throw new Error(`stickers: recommended.json: ${key} twice`);
+    seen.add(key);
+  }
+  return list;
 }
 
 /** Hash of everything the packs are made from; a matching manifest means nothing to rebuild. */
@@ -470,6 +485,7 @@ async function inputsHash(): Promise<string> {
     import.meta.filename,
     join(import.meta.dirname, '../src/main/library/stickers/indexConfig.ts'),
     KEYWORDS_FILE,
+    RECOMMENDED_FILE,
     join(import.meta.dirname, 'posters/affiches-set.ts'),
     join(import.meta.dirname, 'stickers/local-sets.ts'),
     ...(await localSetFiles()),
@@ -555,6 +571,7 @@ export async function buildStickerPacks(
     inputs,
     total: sets.reduce((sum, s) => sum + s.count, 0),
     sets,
+    recommended: await readRecommended(sets),
     dropped,
   };
   await writeFile(join(PACKS_DIR, 'manifest.json'), JSON.stringify(manifest, null, 1));

@@ -22,8 +22,12 @@ const ManifestSchema = z.object({
       mono: z.boolean(),
       pack: z.string().regex(/^[a-z0-9-]+\.pack\.json$/),
       index: z.string().regex(/^[a-z0-9-]+\.index\.json$/),
+      /** The panel tab: our own drawings ("travelbook") or the open packs ("library"). */
+      group: z.enum(['travelbook', 'library']).default('library'),
     }),
   ),
+  /** `<set>/<id>` of the library's recommended stickers, in display order. */
+  recommended: z.array(z.string()).default([]),
 });
 type SetEntry = z.infer<typeof ManifestSchema>['sets'][number];
 
@@ -36,6 +40,8 @@ interface Pack {
 
 let resourcesDir: string | null = null;
 let manifest: SetEntry[] | null = null;
+/** Rank of each recommended sticker, by `<set>/<id>`. */
+let recommendedRank: Map<string, number> | null = null;
 const indexes = new Map<string, MiniSearch<StickerDoc>>();
 /** Packs are big (up to a few MB each): only the last few used stay in memory. */
 const packs = new Map<string, Pack>();
@@ -45,6 +51,7 @@ const MAX_PACKS = 4;
 export function setStickersResourcesDir(dir: string | null): void {
   resourcesDir = dir;
   manifest = null;
+  recommendedRank = null;
   indexes.clear();
   packs.clear();
   categoryCache.clear();
@@ -58,9 +65,11 @@ function packsDir(): string {
 function sets(): SetEntry[] {
   if (manifest !== null) return manifest;
   try {
-    manifest = ManifestSchema.parse(
+    const parsed = ManifestSchema.parse(
       JSON.parse(readFileSync(join(packsDir(), 'manifest.json'), 'utf8')),
-    ).sets;
+    );
+    manifest = parsed.sets;
+    recommendedRank = new Map(parsed.recommended.map((key, rank) => [key, rank]));
   } catch (error) {
     throw new Error('The offline sticker packs are missing: run `npm run stickers`', {
       cause: error,
@@ -76,8 +85,21 @@ export function listOfflineSets(): {
   count: number;
   licence: Licence;
   mono: boolean;
+  group: 'travelbook' | 'library';
 }[] {
-  return sets().map(({ id, name, count, licence, mono }) => ({ id, name, count, licence, mono }));
+  return sets().map(({ id, name, count, licence, mono, group }) => ({
+    id,
+    name,
+    count,
+    licence,
+    mono,
+    group,
+  }));
+}
+
+function ranks(): Map<string, number> {
+  sets();
+  return recommendedRank ?? new Map();
 }
 
 /** The index of a set, read the first time it is needed. */
@@ -112,6 +134,10 @@ export interface OfflineQuery {
   mono?: boolean;
   /** Only MIT, Apache-2.0 and CC0 sets. */
   noAttribution?: boolean;
+  /** Only the sets of one panel tab. */
+  group?: 'travelbook' | 'library';
+  /** Only the recommended stickers; an empty query lists them in their recommended order. */
+  recommended?: boolean;
   offset: number;
   limit: number;
 }
@@ -141,22 +167,33 @@ export function searchOffline(
   const chosen = sets().filter(
     (set) =>
       (opts.set === undefined || set.id === opts.set) &&
+      (opts.group === undefined || set.group === opts.group) &&
       (opts.mono === undefined || set.mono === opts.mono) &&
       (opts.noAttribution !== true || NO_ATTRIBUTION.has(set.licence.licence)),
   );
   const category = opts.category === undefined ? undefined : fold(opts.category);
-  const query = q.trim() === '' ? MiniSearch.wildcard : q;
+  const empty = q.trim() === '';
+  const query = empty ? MiniSearch.wildcard : q;
+  const rank = opts.recommended === true ? ranks() : null;
   const found: Found[] = [];
   chosen.forEach((set, order) => {
+    if (rank !== null && ![...rank.keys()].some((key) => key.startsWith(`${set.id}/`))) return;
     const results = indexOf(set).search(query, {
-      filter: category === undefined ? undefined : (r) => fold(String(r.category)) === category,
+      filter: (r) =>
+        (category === undefined || fold(String(r.category)) === category) &&
+        (rank === null || rank.has(`${set.id}/${String(r.id)}`)),
     });
     for (const r of results) {
       found.push({ score: r.score, order, set, id: String(r.id), title: String(r.title) });
     }
   });
+  const byRank = (f: Found): number => rank?.get(`${f.set.id}/${f.id}`) ?? 0;
   found.sort(
-    (a, b) => b.score - a.score || a.order - b.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+    (a, b) =>
+      (rank !== null && empty ? byRank(a) - byRank(b) : 0) ||
+      b.score - a.score ||
+      a.order - b.order ||
+      (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
   );
   const offset = Math.max(0, Math.floor(opts.offset));
   const limit = Math.max(0, Math.floor(opts.limit));

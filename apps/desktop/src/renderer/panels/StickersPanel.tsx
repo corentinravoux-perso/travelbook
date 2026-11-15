@@ -8,9 +8,10 @@ import './stickers/Stickers.css';
 
 const t = fr.stickers;
 
-type TabKey = 'library' | 'online' | 'mine' | 'favourites' | 'recent';
+type TabKey = 'travelbook' | 'library' | 'online' | 'mine' | 'favourites' | 'recent';
 
 const TABS: [TabKey, string][] = [
+  ['travelbook', t.tab.travelbook],
   ['library', t.tab.library],
   ['online', t.tab.online],
   ['mine', t.tab.mine],
@@ -19,12 +20,13 @@ const TABS: [TabKey, string][] = [
 ];
 
 /**
- * The "Stickers" panel (spec §9.2): the offline library, online sources, the user's own
+ * The "Stickers" panel (spec §9.2): our own drawn sets ("travelbook", first), the offline
+ * library of open packs, online sources, the user's own
  * stickers, favourites and recents. Placing one (a click, or a drag onto the page) goes through
  * `placeSticker`, which copies it into the album and adds the element in one undo step.
  */
 export function StickersPanel() {
-  const [tab, setTab] = useState<TabKey>('library');
+  const [tab, setTab] = useState<TabKey>('travelbook');
   return (
     <div className="stk-panel">
       <div
@@ -59,7 +61,8 @@ export function StickersPanel() {
         ))}
       </div>
       <div className="stk-body" role="tabpanel" aria-label={TABS.find(([k]) => k === tab)?.[1]}>
-        {tab === 'library' && <LibraryTab />}
+        {tab === 'travelbook' && <LibraryTab key="travelbook" group="travelbook" />}
+        {tab === 'library' && <LibraryTab key="library" group="library" />}
         {tab === 'online' && <OnlineTab />}
         {tab === 'mine' && <MineTab view="mine" />}
         {tab === 'favourites' && <MineTab view="favourites" />}
