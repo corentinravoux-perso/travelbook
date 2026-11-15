@@ -19,6 +19,11 @@ import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import MiniSearch from 'minisearch';
+import {
+  ALLOWED_LICENCE,
+  isAllowedLicence,
+  requiresAttribution,
+} from '../src/main/library/stickers/licences.ts';
 import { INDEX_OPTIONS, fold, type StickerDoc } from '../src/main/library/stickers/indexConfig.ts';
 
 const require = createRequire(import.meta.url);
@@ -66,10 +71,7 @@ const MONO_SETS = [
   'fa6-solid',
 ];
 
-/** The licences we accept (SPDX ids): MIT, Apache-2.0, CC0, CC-BY and CC-BY-SA, never -NC or -ND. */
-export const ALLOWED_LICENCE = /^(MIT|Apache-2\.0|CC0-1\.0|CC-BY-\d\.\d|CC-BY-SA-\d\.\d)$/;
-export const isAllowedLicence = (spdx: string | undefined): boolean =>
-  spdx !== undefined && ALLOWED_LICENCE.test(spdx);
+export { ALLOWED_LICENCE, isAllowedLicence };
 
 interface IconifyInfo {
   name: string;
@@ -375,7 +377,7 @@ async function buildSet(
         author: info.author.name,
         licence: spdx,
         url: info.author.url ?? info.license.url ?? '',
-        requiresAttribution: spdx.startsWith('CC-BY'),
+        requiresAttribution: requiresAttribution(spdx),
       },
       mono,
       pack: `${id}.pack.json`,
