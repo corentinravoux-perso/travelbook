@@ -8,21 +8,21 @@
 .stk-tabs {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
   margin: 0 var(--s5);
-  border: 1px solid var(--line);
+  padding: 2px;
   border-radius: var(--r1);
-  overflow: hidden;
+  background: var(--sunken);
 }
 .stk-tab-button {
-  height: 26px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  height: 24px;
+  border-radius: 3px;
   font-size: var(--t-xs);
   color: var(--ink-2);
   white-space: nowrap;
   transition:
-    background var(--fast),
-    color var(--fast);
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease);
 }
 /* Five tabs: three on the first row, two wider ones under them. */
 .stk-tab-button:nth-child(-n + 3) {
@@ -30,20 +30,16 @@
 }
 .stk-tab-button:nth-child(n + 4) {
   grid-column: span 3;
-  border-bottom: 0;
-}
-.stk-tab-button:nth-child(3),
-.stk-tab-button:nth-child(5) {
-  border-right: 0;
 }
 .stk-tab-button:hover {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
   color: var(--ink);
 }
 .stk-tab-button[aria-selected='true'] {
   background: var(--invert-bg);
   color: var(--invert-fg);
   font-weight: var(--w-medium);
+  box-shadow: var(--shadow-1);
 }
 .stk-tab-button:focus-visible {
   outline-offset: -2px;

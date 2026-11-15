@@ -17,8 +17,10 @@
   font-weight: var(--w-semibold);
 }
 .insp-title {
-  font-size: var(--t-lg);
+  font-family: var(--f-display);
+  font-size: var(--t-panel);
   font-weight: var(--w-semibold);
+  letter-spacing: -0.01em;
 }
 .insp-file {
   margin-top: calc(-1 * var(--s2));
@@ -308,7 +310,9 @@
   border-bottom: 2px solid transparent;
   font-size: var(--t-sm);
   color: var(--ink-2);
-  transition: color var(--fast);
+  transition:
+    color var(--fast) var(--ease),
+    border-color var(--swap) var(--ease);
 }
 .insp-tab:hover {
   color: var(--ink);

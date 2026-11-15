@@ -1,4 +1,8 @@
-/* Shared controls: buttons, text fields. Direction A: hairline fields, contrast inverts when primary. */
+/*
+ * Shared controls: buttons, text fields, segmented controls. Direction A: no hue, contrast
+ * inverts when primary or pressed. Every control answers the pointer: a step on hover, a press
+ * on click.
+ */
 .button {
   display: inline-flex;
   align-items: center;
@@ -6,22 +10,35 @@
   gap: var(--s3);
   height: var(--control-h);
   padding: 0 var(--s5);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--r1);
   background: var(--surface);
+  box-shadow: var(--shadow-1);
   font-size: var(--t-sm);
   font-weight: var(--w-medium);
   white-space: nowrap;
   transition:
-    background var(--fast),
-    border-color var(--fast);
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease),
+    transform var(--fast) var(--ease),
+    opacity var(--fast) var(--ease);
 }
 .button:hover:not(:disabled) {
-  border-color: var(--ink-2);
+  border-color: var(--ink-3);
+  background: var(--paper);
+}
+:root[data-theme='dark'] .button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface) 80%, var(--ink));
+}
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 .button:disabled {
   opacity: 0.45;
   cursor: default;
+  box-shadow: none;
 }
 .button--primary {
   border-color: var(--invert-bg);
@@ -30,7 +47,10 @@
 }
 .button--primary:hover:not(:disabled) {
   border-color: var(--invert-bg);
-  opacity: 0.88;
+  background: color-mix(in srgb, var(--invert-bg) 86%, var(--invert-fg));
+}
+:root[data-theme='dark'] .button--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--invert-bg) 88%, var(--invert-fg));
 }
 .button--small {
   height: 22px;
@@ -42,16 +62,26 @@
   width: 100%;
   height: var(--control-h);
   padding: 0 var(--s4);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--r1);
   background: var(--surface);
   font-size: var(--t-sm);
+  transition:
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease);
 }
 .input::placeholder {
   color: var(--ink-3);
 }
 .input:hover {
-  border-color: var(--ink-2);
+  border-color: var(--ink-3);
+}
+/* A focused field keeps the ink ring of every control, and gains a soft halo. */
+.input:focus-visible {
+  border-color: var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--halo);
 }
 .input[aria-invalid='true'] {
   border-color: var(--low);
@@ -79,40 +109,58 @@
   color: var(--low);
 }
 
-/* A segmented control: one pressed entry, the only inverted fill of its group. */
+/*
+ * A segmented control: a sunken track holding the entries; the pressed one is the only
+ * inverted fill of its group, a chip inside the track.
+ */
 .seg {
   display: flex;
   flex: 1;
+  gap: 2px;
   min-width: 0;
-  border: 1px solid var(--line);
+  padding: 2px;
   border-radius: var(--r1);
-  overflow: hidden;
+  background: var(--sunken);
 }
 .seg button {
   flex: 1;
   min-width: 0;
-  height: 24px;
+  height: 22px;
   padding: 0 var(--s2);
-  border-right: 1px solid var(--line);
+  border-radius: 3px;
   font-size: var(--t-xs);
   color: var(--ink-2);
   white-space: nowrap;
   transition:
-    background var(--fast),
-    color var(--fast);
-}
-.seg button:last-child {
-  border-right: 0;
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease);
 }
 .seg button:hover {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
   color: var(--ink);
 }
 .seg button[aria-pressed='true'] {
   background: var(--invert-bg);
   color: var(--invert-fg);
+  box-shadow: var(--shadow-1);
 }
 /* Inside a segmented control the focus ring must not be clipped by its rounded border. */
 .seg button:focus-visible {
   outline-offset: -2px;
+}
+
+/* Drop-down fields: a drawn chevron in the ink, in place of the platform arrow. */
+select.input {
+  appearance: none;
+  padding-right: 26px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-2) 50%),
+    linear-gradient(135deg, var(--ink-2) 50%, transparent 50%);
+  background-position:
+    right 13px center,
+    right 9px center;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  cursor: pointer;
 }

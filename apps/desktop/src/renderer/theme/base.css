@@ -19,6 +19,21 @@ body {
   background: var(--chrome);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Native checkboxes, radios and sliders take the ink, never the system blue. */
+:root {
+  accent-color: var(--ink);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+/* Thin neutral scrollbars, in both themes. */
+* {
+  scrollbar-color: color-mix(in srgb, var(--ink) 26%, transparent) transparent;
 }
 
 button,
@@ -45,7 +60,7 @@ p {
 
 :focus-visible {
   outline: 2px solid var(--ink);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 /* Tabler draws at stroke 2; CSS outranks the attribute, so every icon gets the token's stroke. */

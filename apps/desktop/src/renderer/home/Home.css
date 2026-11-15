@@ -1,9 +1,10 @@
-/* Home: the same chrome and hairlines as the editor; covers sit on the workspace grey. */
+/* Home: the same chrome and hairlines as the editor; the albums stand as books on a shelf. */
 .home {
   display: grid;
   grid-template-rows: var(--top-h) minmax(0, 1fr);
   height: 100%;
   min-width: 960px;
+  background: var(--chrome);
 }
 .home__bar {
   display: flex;
@@ -14,22 +15,27 @@
 }
 .home__main {
   overflow-y: auto;
-  padding: var(--s8) var(--s8) var(--s8);
+  padding: 56px var(--s8) var(--s8);
 }
 .home__main > * {
-  max-width: 960px;
+  max-width: 1040px;
   margin-inline: auto;
 }
 .home__head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--s6);
-  margin-bottom: var(--s7);
+  margin-bottom: var(--s8);
+  padding-bottom: var(--s6);
+  border-bottom: 1px solid var(--line);
 }
 .home__heading {
-  font-size: var(--t-xl);
+  font-family: var(--f-display);
+  font-size: var(--t-display);
   font-weight: var(--w-semibold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 .home__actions {
   display: flex;
@@ -43,25 +49,42 @@
   font-size: var(--t-sm);
   color: var(--low);
 }
+/* No album yet: an open blank book drawn in CSS, then the two lines of text under it. */
 .home__empty {
-  padding: var(--s7) 0;
-  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 72px 0 var(--s8);
   font-size: var(--t-sm);
   color: var(--ink-2);
+  text-align: center;
+}
+.home__empty::before {
+  content: '';
+  width: 220px;
+  height: 148px;
+  margin-bottom: var(--s8);
+  background:
+    /* Paper is white in both themes, so the fold is drawn in black, never in the ink. */
+    linear-gradient(90deg, transparent 49.4%, rgba(0, 0, 0, 0.16) 50%, transparent 50.6%),
+    linear-gradient(90deg, var(--paper) 0 40%, rgba(0, 0, 0, 0.07) 50%, var(--paper) 60% 100%);
+  box-shadow: var(--shadow-paper);
 }
 .home__empty p {
   max-width: 44ch;
 }
 .home__empty-title {
-  margin-bottom: var(--s2);
-  font-size: var(--t-md);
-  font-weight: var(--w-medium);
+  margin-bottom: var(--s3);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
+  font-weight: var(--w-semibold);
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 .home__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-  gap: var(--s7) var(--s6);
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: var(--s8) var(--s7);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -79,42 +102,78 @@
   opacity: 0.6;
   cursor: default;
 }
+/*
+ * A cover as a bound book: square on the fore-edge, the hinge shaded on the left, a soft
+ * shadow under it. It lifts 2 px when pointed at.
+ */
 .cover {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 5;
-  margin-bottom: var(--s3);
+  margin-bottom: var(--s4);
   overflow: hidden;
-  border-radius: var(--r2);
-  background: var(--ground);
-  outline: 1px solid transparent;
-  outline-offset: 2px;
-  transition: outline-color var(--fast);
+  border-radius: 1px 3px 3px 1px;
+  background: var(--paper);
+  box-shadow: var(--shadow-paper);
+  transition:
+    transform var(--swap) var(--ease),
+    box-shadow var(--swap) var(--ease);
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.16) 0,
+    rgba(255, 255, 255, 0.18) 2.5%,
+    rgba(0, 0, 0, 0.1) 4.5%,
+    transparent 9%
+  );
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 .album:hover:not(:disabled) .cover {
-  outline-color: var(--ink);
+  transform: translateY(-2px);
+  box-shadow:
+    var(--shadow-paper),
+    0 18px 36px -12px rgba(0, 0, 0, 0.28);
+}
+.album:active:not(:disabled) .cover {
+  transform: translateY(0);
 }
 .album:focus-visible {
   outline: none;
 }
 .album:focus-visible .cover {
   outline: 2px solid var(--ink);
+  outline-offset: 4px;
 }
 .cover__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--swap) var(--ease);
 }
-/* No thumbnail yet: a blank sheet on the grey, as the page is in the editor. */
+.album:hover:not(:disabled) .cover__image {
+  transform: scale(1.02);
+}
+/* No thumbnail yet: the blank cover itself, with a faint title block as a placeholder. */
 .cover__blank {
-  width: 56%;
-  aspect-ratio: 3 / 4;
-  background: var(--paper);
-  box-shadow: 0 0 0 1px var(--sel-outer);
+  display: block;
+  width: 52%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 -10px 0 0 rgba(0, 0, 0, 0.08),
+    0 10px 0 0 rgba(0, 0, 0, 0.08);
 }
 .album__title {
-  font-size: var(--t-md);
-  font-weight: var(--w-medium);
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: var(--w-semibold);
+  letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -129,22 +188,39 @@
   width: min(560px, calc(100vw - 2 * var(--s7)));
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: var(--r2);
-  background: var(--chrome);
+  border-radius: var(--r3);
+  background: var(--surface);
   color: var(--ink);
+  box-shadow: var(--shadow-3);
+}
+.dialog[open] {
+  animation: dialog-in var(--swap) var(--ease);
 }
 .dialog::backdrop {
-  background: color-mix(in srgb, var(--ink) 45%, transparent);
+  background: rgba(0, 0, 0, 0.38);
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open] {
+    animation: none;
+  }
 }
 .dialog__form {
   display: flex;
   flex-direction: column;
   gap: var(--s6);
-  padding: var(--s7);
+  padding: var(--s7) 28px;
 }
 .dialog__title {
-  font-size: var(--t-xl);
+  font-family: var(--f-display);
+  font-size: var(--t-title);
   font-weight: var(--w-semibold);
+  letter-spacing: -0.01em;
 }
 .dialog__error {
   font-size: var(--t-sm);
@@ -166,7 +242,8 @@
   flex: 1;
   min-width: 0;
   padding: 0 var(--s4);
-  border-bottom: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--sunken);
   font-size: var(--t-sm);
   line-height: var(--control-h);
   overflow: hidden;
@@ -192,14 +269,22 @@
   grid-template-rows: auto auto;
   column-gap: var(--s4);
   align-items: center;
-  padding: var(--s3) var(--s4);
-  border: 1px solid var(--line);
-  border-radius: var(--r1);
+  padding: var(--s4) var(--s4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r2);
   background: var(--surface);
   cursor: pointer;
+  transition:
+    border-color var(--fast) var(--ease),
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
 }
 .format-option:hover {
-  border-color: var(--ink-2);
+  border-color: var(--ink-3);
+}
+.format-option:active {
+  transform: translateY(1px);
 }
 .format-option input {
   position: absolute;
@@ -227,6 +312,7 @@
 .format-glyph__page {
   display: block;
   border: 1.5px solid currentColor;
+  border-radius: 1px;
 }
 .format-option__name {
   font-size: var(--t-sm);

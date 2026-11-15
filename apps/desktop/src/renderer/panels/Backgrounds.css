@@ -22,35 +22,35 @@
 .bg-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px; /* the hairlines show through the gaps, whatever the number of tabs */
+  gap: 2px; /* a sunken track, as the segmented controls, whatever the number of tabs */
   margin: 0 var(--s5);
-  border: 1px solid var(--line);
+  padding: 2px;
   border-radius: var(--r1);
-  background: var(--line);
-  overflow: hidden;
+  background: var(--sunken);
 }
 .bg-tab-button {
-  height: 26px;
-  background: var(--chrome);
+  height: 24px;
+  border-radius: 3px;
   font-size: var(--t-xs);
   color: var(--ink-2);
   white-space: nowrap;
   transition:
-    background var(--fast),
-    color var(--fast);
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease);
 }
 /* A last tab alone on its row takes the whole row. */
 .bg-tab-button:last-child:nth-child(3n + 1) {
   grid-column: 1 / -1;
 }
 .bg-tab-button:hover {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
   color: var(--ink);
 }
 .bg-tab-button[aria-selected='true'] {
   background: var(--invert-bg);
   color: var(--invert-fg);
   font-weight: var(--w-medium);
+  box-shadow: var(--shadow-1);
 }
 .bg-tab-button:focus-visible {
   outline-offset: -2px;

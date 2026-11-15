@@ -21,7 +21,9 @@
   font-size: var(--t-sm);
   color: var(--ink-2);
   white-space: nowrap;
-  transition: color var(--fast);
+  transition:
+    color var(--fast) var(--ease),
+    border-color var(--swap) var(--ease);
 }
 .tpl-tab:hover {
   color: var(--ink);
@@ -115,13 +117,19 @@
   width: 100%;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: var(--r1);
+  border-radius: 2px;
   background: var(--paper);
   overflow: hidden;
-  transition: border-color var(--fast);
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
 }
 .tpl-tile:hover {
-  border-color: var(--ink-2);
+  border-color: var(--ink-3);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
 }
 .tpl-tile[aria-pressed='true'] {
   outline: 2px solid var(--ink);
