@@ -104,6 +104,10 @@ export const fr = {
     insert: 'Insérer une double page ici',
   },
   // Cover editing: the spine zone.
+  poster: {
+    undoApply: 'Appliquer une affiche',
+    applyFailed: "L'affiche n'a pas pu être appliquée.",
+  },
   cover: {
     tools: 'Outils de la couverture',
     spineZone: 'Dos du livre',
