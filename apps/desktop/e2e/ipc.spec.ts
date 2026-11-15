@@ -53,6 +53,7 @@ test('the renderer is isolated and gets only the typed API', async () => {
   expect(await page.evaluate(() => Object.keys((window as unknown as Win).tb).sort())).toEqual([
     'app',
     'assets',
+    'clipboard',
     'exporter',
     'library',
     'photos',

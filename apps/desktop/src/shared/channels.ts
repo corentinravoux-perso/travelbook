@@ -24,6 +24,8 @@ export const CHANNEL = {
   libraryTemplateSave: 'library:saveTemplate',
   libraryTemplateList: 'library:listTemplates',
   libraryTemplateDelete: 'library:deleteTemplate',
+  clipboardWrite: 'clipboard:write',
+  clipboardRead: 'clipboard:read',
   appVersion: 'app:version',
   appOpenExternal: 'app:openExternal',
 } as const;

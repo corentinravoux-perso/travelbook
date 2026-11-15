@@ -32,7 +32,7 @@ import { AUTO_SNAPSHOTS_KEPT } from './project/snapshots';
 
 let root: string;
 let albums: string;
-let host: { [K in keyof Host]: Mock<Host[K]> };
+let host: { [K in Exclude<keyof Host, 'clipboard'>]: Mock<Host[K]> } & Pick<Host, 'clipboard'>;
 let progress: [number, number][];
 let ctx: HandlerContext;
 let h: IpcHandlers;
@@ -61,6 +61,7 @@ beforeEach(async () => {
     openExternal: vi.fn<Host['openExternal']>(async () => undefined),
     showInFolder: vi.fn<Host['showInFolder']>(),
     version: vi.fn<Host['version']>(() => '1.2.3'),
+    clipboard: { write: async () => undefined, read: async () => null },
   };
   progress = [];
   ctx = { progress: (done, total) => progress.push([done, total]) };

@@ -9,6 +9,8 @@ import { Canvas } from './Canvas';
 import { ResizeHandle } from './ResizeHandle';
 import { SaveIndicator } from './SaveIndicator';
 import { ThemeToggle } from './ThemeToggle';
+import { ViewMenu } from './ViewMenu';
+import { ZoomControls } from './ZoomControls';
 import './Shell.css';
 
 const PANEL_ICONS: Record<PanelId, IconName> = {
@@ -115,6 +117,13 @@ function TopBar() {
         <Icon name="arrow-forward-up" />
       </button>
       <span className="shell-sep" />
+      {title !== undefined && (
+        <>
+          <ViewMenu />
+          <ZoomControls />
+          <span className="shell-sep" />
+        </>
+      )}
       <ThemeToggle />
     </header>
   );

@@ -1,6 +1,6 @@
 import { newBook, type Book } from '@travelbook/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createEditorStore, SAVE_DELAY_MS } from './editor';
+import { createEditorStore, MAX_ZOOM, MIN_ZOOM, SAVE_DELAY_MS } from './editor';
 
 const retitle =
   (title: string) =>
@@ -330,5 +330,28 @@ describe('editor store', () => {
   it('apply without an open book is a programming error', () => {
     const store = createEditorStore({ save: () => Promise.resolve() });
     expect(() => store.getState().apply(retitle('A'), 'Un')).toThrow(/no book/i);
+  });
+
+  it('zooms within bounds, and fits again on request', async () => {
+    const { store } = await setup();
+    expect(store.getState().fit).toBe(true);
+    store.getState().setZoom(2);
+    expect(store.getState()).toMatchObject({ zoom: 2, fit: false });
+    store.getState().zoomBy(100);
+    expect(store.getState().zoom).toBe(MAX_ZOOM);
+    store.getState().zoomBy(1e-6);
+    expect(store.getState().zoom).toBe(MIN_ZOOM);
+    store.getState().fitSpread();
+    expect(store.getState().fit).toBe(true);
+  });
+
+  it('keeps the selection reference when it does not change, and shows one overlay at a time', async () => {
+    const { store } = await setup();
+    store.getState().select(['a', 'b']);
+    const before = store.getState().selection;
+    store.getState().select(['a', 'b']);
+    expect(store.getState().selection).toBe(before);
+    store.getState().setGuide('bleed', false);
+    expect(store.getState().guides).toEqual({ bleed: false, trim: true, safe: true, gutter: true });
   });
 });

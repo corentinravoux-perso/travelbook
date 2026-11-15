@@ -68,6 +68,61 @@
   cursor: default;
 }
 
+/* ---------- zoom controls and View menu ---------- */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+}
+.zoom-controls__value {
+  min-width: 4ch;
+  text-align: center;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.zoom-controls__fit {
+  font-size: var(--t-xs);
+}
+.zoom-controls__fit[aria-pressed='true'] {
+  color: var(--ink);
+}
+.view-menu {
+  position: relative;
+}
+.view-menu__button {
+  font-size: var(--t-xs);
+}
+.view-menu__list {
+  position: absolute;
+  top: calc(100% + var(--s2));
+  right: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--chrome);
+}
+.view-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  height: var(--control-h);
+  padding: 0 var(--s4) 0 var(--s2);
+  border-radius: var(--r1);
+  font-size: var(--t-sm);
+  text-align: left;
+}
+.view-menu__item:hover {
+  background: var(--surface);
+}
+.view-menu__check {
+  width: 14px;
+  text-align: center;
+}
+
 /* ---------- rail: the active panel inverts contrast, no accent hue ---------- */
 .shell-rail {
   grid-area: rail;
@@ -136,6 +191,189 @@
   font-size: var(--t-sm);
   color: var(--ink);
   opacity: 0.75;
+}
+
+/* The workspace scrolls; the page sits in the middle of it and keeps a margin when it is larger. */
+.canvas-scroller {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow: auto;
+  scrollbar-width: thin;
+  user-select: none;
+  touch-action: none;
+}
+.canvas-scroller[data-panning] {
+  cursor: grab;
+}
+.canvas-scroller[data-panning]:active {
+  cursor: grabbing;
+}
+.canvas-scroller[data-over-selection] {
+  cursor: move;
+}
+.canvas-stage {
+  margin: auto;
+  padding: 32px;
+}
+
+/* ---------- the current spread ---------- */
+.canvas-page {
+  position: relative;
+}
+.canvas-paper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Print guides: white, difference-blended, 1 px (visual-direction.md). */
+.guides {
+  overflow: visible;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  mix-blend-mode: difference;
+}
+.guide {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1;
+}
+.guide--bleed {
+  stroke-dasharray: 5 3;
+  opacity: 0.7;
+}
+.guide--trim {
+  opacity: 0.45;
+}
+.guide--safe {
+  stroke-dasharray: 1 3;
+  opacity: 0.8;
+}
+.guide--gutter {
+  opacity: 0.8;
+}
+.guide--snap {
+  opacity: 1;
+}
+
+/* Selection: a white 1 px outline inside a black 2 px one, so it reads on any photo. */
+.sel-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.sel-outline,
+.sel-hover,
+.sel-box {
+  position: absolute;
+  box-sizing: border-box;
+}
+.sel-outline {
+  outline: 1px solid var(--sel-inner);
+  box-shadow: 0 0 0 2px var(--sel-outer);
+}
+.sel-hover {
+  outline: 1px solid var(--sel-inner);
+  box-shadow: 0 0 0 1px var(--sel-outer);
+  opacity: 0.8;
+}
+.sel-handle {
+  position: absolute;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--sel-outer);
+  background: var(--sel-inner);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  touch-action: none;
+}
+.sel-handle--nw {
+  left: 0;
+  top: 0;
+}
+.sel-handle--n {
+  left: 50%;
+  top: 0;
+}
+.sel-handle--ne {
+  left: 100%;
+  top: 0;
+}
+.sel-handle--e {
+  left: 100%;
+  top: 50%;
+}
+.sel-handle--se {
+  left: 100%;
+  top: 100%;
+}
+.sel-handle--s {
+  left: 50%;
+  top: 100%;
+}
+.sel-handle--sw {
+  left: 0;
+  top: 100%;
+}
+.sel-handle--w {
+  left: 0;
+  top: 50%;
+}
+.sel-rotate {
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--sel-outer);
+  border-radius: 50%;
+  background: var(--sel-inner);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+.sel-rotate::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1px;
+  height: 17px;
+  background: var(--sel-outer);
+  transform: translateX(-50%);
+}
+.canvas-marquee {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--sel-inner);
+  outline: 1px solid var(--sel-outer);
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+.canvas-notice {
+  position: absolute;
+  bottom: var(--s5);
+  left: 50%;
+  z-index: 2;
+  max-width: calc(100% - 2 * var(--s5));
+  margin: 0;
+  padding: var(--s3) var(--s5);
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--chrome);
+  font-size: var(--t-sm);
 }
 
 /* ---------- spreads strip ---------- */
@@ -211,14 +449,6 @@
 }
 .save-state__note {
   color: var(--ink);
-}
-
-/* ---------- the current spread, fitted to the workspace ---------- */
-.canvas-page {
-  position: relative;
-  overflow: hidden;
-  background: var(--paper);
-  box-shadow: 0 0 0 1px var(--sel-outer);
 }
 
 /* ---------- missing originals: a notice over the canvas, never a modal ---------- */
