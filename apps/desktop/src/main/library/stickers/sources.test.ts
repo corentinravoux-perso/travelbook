@@ -175,6 +175,27 @@ describe('adapters map a recorded answer', () => {
     );
   });
 
+  it('openverse photos: a hit with no filetype, as every Flickr photograph is, takes its format from its address', async () => {
+    const answer = JSON.parse(await recorded('openverse-search-suitcase.json')) as {
+      results: { filetype: string | null; url: string }[];
+    };
+    // Nothing in the third address says what the file is: it is not a picture the app can place.
+    const addresses = [
+      'https://live.staticflickr.com/7578/15724464767_5ca7aa3327_b.jpg',
+      'https://example.org/Sea.WEBP?size=large',
+      'https://example.org/photo.php?id=3',
+    ];
+    answer.results.forEach((r, i) => {
+      r.filetype = null;
+      r.url = addresses[i] as string;
+    });
+    const { fetchImpl } = fakeFetch(() => json(JSON.stringify(answer)));
+    const { items } = await createOpenversePhotosSource(
+      httpFor('openverse-photos', fetchImpl),
+    ).search('sea', 1);
+    expect(items.map((i) => i.format)).toEqual(['jpg', 'webp']);
+  });
+
   it('commons: drawings with the licence of their file page', async () => {
     const { fetchImpl, calls } = fakeFetch(async () =>
       json(await recorded('commons-search-suitcase.json')),
