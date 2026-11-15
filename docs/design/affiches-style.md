@@ -15,7 +15,9 @@ the rest is judged on the contact sheet (`render-sheet.ts`).
   more detail, a darker tone per colour allowed; no colour role required (not recoloured).
   Maneki-neko, ramen, safari 4×4. Inspired by the level of craft and the palettes of the
   Pixory covers, never by their drawings.
-- Each destination gets several drawings, one or two of them in the pixory family.
+- Each destination gets several drawings, one or two of them in the pixory family, and the
+  set as a whole includes animals.
+- Presets show every drawing in its own colours; recolouring is left to the user.
 
 ## File
 

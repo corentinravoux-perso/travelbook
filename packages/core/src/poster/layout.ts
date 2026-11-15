@@ -43,7 +43,9 @@ const TITLE_HEIGHT_CAP = 0.3;
 const GLYPH_EM = 0.8;
 const TITLE_LINE_HEIGHT = 1.05;
 const SMALL_LINE_HEIGHT = 1.3;
-const YEAR_PT = 14;
+/** The year's size, in pt per mm of the front page's shorter side (22 pt on A4). */
+const YEAR_PT_PER_MM = 0.105;
+const YEAR_LINE_HEIGHT = 1.1;
 const SUBTITLE_PT = 9;
 /** Texts are fitted to this share of their box, so a browser's rounding never wraps them. */
 const FIT_SLACK = 0.98;
@@ -182,40 +184,42 @@ function fitRatio(box: Rect, ratio: number, base: 'bottom' | 'middle'): Rect {
   return { x, y, w, h };
 }
 
-/** The line under the title: the subtitle on the left, the year on the right. */
+/** The line under the title: the subtitle on the left, the year on the right in the title face. */
 function smallLines(
   input: PosterInput,
   box: { x: Mm; y: Mm; w: Mm },
   gap: Mm,
+  yearMaxPt: number,
 ): { elements: TextElement[]; h: Mm } {
   const { spec, measure } = input;
   const subtitle = spec.subtitle.trim();
   const year = spec.year.trim();
   if (subtitle === '' && year === '') return { elements: [], h: 0 };
-  const opts = (name: string, align: TextElement['align']) => ({
+  const opts = (name: string, align: TextElement['align'], font: string, lineHeight: number) => ({
     name,
-    font: POSTER_SMALL_FONT,
+    font,
     color: spec.colors.accent,
-    lineHeight: SMALL_LINE_HEIGHT,
+    lineHeight,
     align,
     vAlign: 'bottom' as const,
     role: 'caption' as const,
   });
   const lineH = (pt: number) => pt * PT_MM * SMALL_LINE_HEIGHT;
-  const yearPt = year === '' ? 0 : fitPt(measure, year, POSTER_SMALL_FONT, box.w / 3, YEAR_PT);
+  const yearPt = year === '' ? 0 : fitPt(measure, year, spec.font, box.w / 3, yearMaxPt);
+  const yearH = yearPt * PT_MM * YEAR_LINE_HEIGHT;
   const yearW =
-    year === '' ? 0 : Math.min(measure(year, POSTER_SMALL_FONT, yearPt) / FIT_SLACK + 1, box.w / 3);
+    year === '' ? 0 : Math.min(measure(year, spec.font, yearPt) / FIT_SLACK + 1, box.w / 3);
   const subW = box.w - (year === '' ? 0 : yearW + gap);
   const subPt =
     subtitle === '' ? 0 : fitPt(measure, subtitle, POSTER_SMALL_FONT, subW, SUBTITLE_PT);
-  const h = Math.max(year === '' ? 0 : lineH(yearPt), subtitle === '' ? 0 : lineH(subPt));
+  const h = Math.max(year === '' ? 0 : yearH, subtitle === '' ? 0 : lineH(subPt));
   const out: TextElement[] = [];
   if (year !== '') {
     out.push(
       textElement(
         { x: box.x + box.w - yearW, y: box.y, w: yearW, h },
         [{ text: year, pt: yearPt }],
-        opts(POSTER_NAMES.year, 'right'),
+        opts(POSTER_NAMES.year, 'right', spec.font, YEAR_LINE_HEIGHT),
       ),
     );
   }
@@ -224,7 +228,7 @@ function smallLines(
       textElement(
         { x: box.x, y: box.y, w: subW, h },
         [{ text: subtitle, pt: subPt }],
-        opts(POSTER_NAMES.subtitle, 'left'),
+        opts(POSTER_NAMES.subtitle, 'left', POSTER_SMALL_FONT, SMALL_LINE_HEIGHT),
       ),
     );
   }
@@ -296,7 +300,12 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
     align: 'left',
     role: 'title',
   });
-  const small = smallLines(input, { x: fx + inset, y: inset + titleH + gap, w: innerW }, m / 2);
+  const small = smallLines(
+    input,
+    { x: fx + inset, y: inset + titleH + gap, w: innerW },
+    m / 2,
+    YEAR_PT_PER_MM * Math.min(fw, fh),
+  );
   const headerBottom = inset + titleH + (small.h > 0 ? gap + small.h : 0);
 
   // Composition.
@@ -307,12 +316,14 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
   let base: 'bottom' | 'middle' = 'bottom';
   switch (layout) {
     case 'arche': {
-      // The arch is sized from the drawing: it spans 90 % of the arch's width, with head room
-      // under the vault; the arch top comes down for a wide drawing, never above the header.
+      // The arch is sized from the drawing: it spans 90 % of the arch's width, centred between
+      // the vault and the bottom margin; the arch top comes down for a wide drawing, never above
+      // the header. The arch itself runs to the foot.
       const ratio = input.illustration.ratio;
       const minTop = headerBottom + m;
+      const bottom = fh - m;
       let aw = 0.76 * fw;
-      let top = Math.max(minTop, foot - (0.9 * aw) / ratio - 0.6 * aw);
+      let top = Math.max(minTop, bottom - (0.9 * aw) / ratio - 0.6 * aw);
       if (foot - top < aw) aw = foot - top; // a low arch keeps its vault round
       top = Math.max(minTop, Math.min(top, foot - aw));
       decor.push(
@@ -326,7 +337,8 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
         ),
       );
       const illTop = top + 0.16 * aw;
-      box = { x: cx - 0.45 * aw, y: illTop, w: 0.9 * aw, h: foot - illTop };
+      box = { x: cx - 0.45 * aw, y: illTop, w: 0.9 * aw, h: bottom - illTop };
+      base = 'middle';
       break;
     }
     case 'soleil': {
