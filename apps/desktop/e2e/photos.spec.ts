@@ -554,3 +554,73 @@ test('the tray mounts only the thumbnails in view', async () => {
     await app.close().catch(() => {});
   }
 });
+
+test('a drop on the page shows its progress and its failed files whichever panel is open', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await openAlbum(page, 'Elsewhere');
+    await page.getByRole('button', { name: 'Texte', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Panneau Texte' })).toBeVisible();
+
+    // Remember whether the progress bar was ever on screen: an import is too quick to catch it.
+    await page.evaluate(() => {
+      const seen = window as unknown as { sawProgress: boolean };
+      seen.sawProgress = false;
+      new MutationObserver(() => {
+        if (document.querySelector('[role="progressbar"]')) seen.sawProgress = true;
+      }).observe(document.body, { subtree: true, childList: true });
+    });
+
+    const box = (await page.locator('.canvas-paper').boundingBox())!;
+    const at = await pagePx(page, 60, 60);
+    await dropFiles(page, ['pano.jpg', 'script.svg', 'truncated.jpg'], box.x + at.x, box.y + at.y);
+
+    const alert = page.getByRole('alert').filter({ hasText: "n'ont pas pu être importés" });
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText('script.svg : format non pris en charge');
+    await expect(alert).toContainText('truncated.jpg : fichier illisible ou abîmé');
+    expect(
+      await page.evaluate(() => (window as unknown as { sawProgress: boolean }).sawProgress),
+    ).toBe(true);
+    // The user stayed where they were, and the good file was imported and placed.
+    await expect(page.getByRole('region', { name: 'Panneau Texte' })).toBeVisible();
+    await expect.poll(async () => frames(await savedBook(page, 'elsewhere')).length).toBe(1);
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+
+    await alert.getByRole('button', { name: 'Fermer ce message' }).click();
+    await expect(alert).toHaveCount(0);
+  } finally {
+    await app.close().catch(() => {});
+  }
+});
+
+test('text typed in a photo field is not committed to the next photo selected', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await openAlbum(page, 'Draft', [slot('a', 20, 20, 80, 60), slot('b', 120, 20, 80, 60)]);
+    await importPhotos(app, page, ['day1.jpg', 'day2.jpg']);
+    await dropOnPage(page, 'day1.jpg', 60, 50);
+    await dropOnPage(page, 'day2.jpg', 160, 50);
+
+    // Select the first photo, type a border width and leave the field by pressing the second photo.
+    const paper = page.locator('.canvas-paper');
+    await paper.click({ position: await pagePx(page, 60, 50) });
+    const width = page.getByTestId('photo-inspector').getByLabel('Épaisseur');
+    await width.fill('6');
+    await paper.click({ position: await pagePx(page, 160, 50) });
+    await expect(page.getByTestId('photo-inspector')).toContainText('day2.jpg');
+    await expect(page.getByTestId('photo-inspector').getByLabel('Épaisseur')).toHaveValue('0');
+
+    const book = await savedBook(page, 'draft');
+    const [first, second] = frames(book);
+    expect(second!.border).toBeNull();
+    // The text belonged to the first photo: it is either applied there or dropped, never moved.
+    expect([null, 6]).toContain(first!.border?.width ?? null);
+  } finally {
+    await app.close().catch(() => {});
+  }
+});

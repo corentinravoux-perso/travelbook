@@ -94,69 +94,6 @@ function DayHeader({ group, selected }: { group: PhotoGroup; selected: ReadonlyS
   );
 }
 
-function ImportProgress() {
-  const progress = useTray((s) => s.progress);
-  if (!progress) return null;
-  const { done, total } = progress;
-  return (
-    <div className="photos__progress">
-      <div className="photos__progress-text">
-        <span>{fr.photos.importing}</span>
-        <span>{fr.photos.importProgress(done, total)}</span>
-      </div>
-      <div
-        className="progress"
-        role="progressbar"
-        aria-label={fr.photos.importing}
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={done}
-        data-indeterminate={total === 0 || undefined}
-      >
-        <div
-          className="progress__bar"
-          style={{ width: total === 0 ? '30%' : `${(done / total) * 100}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/** What the last import could not take, file by file; not modal, and dismissible. */
-function ImportFailures() {
-  const failures = useTray((s) => s.failures);
-  if (failures.length === 0) return null;
-  const whole = failures.length === 1 && failures[0]?.name === null;
-  return (
-    <aside className="photos__notice" role="alert">
-      <div className="photos__notice-body">
-        <p className="photos__notice-title">
-          {whole ? fr.photos.importFailed : fr.photos.failedTitle(failures.length)}
-        </p>
-        {!whole && (
-          <>
-            <ul className="photos__notice-list">
-              {failures.map((f, i) => (
-                <li key={i}>{fr.photos.failedLine(f.name ?? '', f.reason)}</li>
-              ))}
-            </ul>
-            <p className="photos__notice-hint">{fr.photos.failedRest}</p>
-          </>
-        )}
-      </div>
-      <button
-        type="button"
-        className="icon-button"
-        aria-label={fr.photos.dismiss}
-        title={fr.photos.dismiss}
-        onClick={() => trayStore.getState().setFailures([])}
-      >
-        <Icon name="x" />
-      </button>
-    </aside>
-  );
-}
-
 const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
 
 /**
@@ -248,8 +185,6 @@ function Tray({ book }: { book: Book }) {
           {fr.photos.count(shown)}
         </p>
       </div>
-      <ImportProgress />
-      <ImportFailures />
 
       {shown > 0 ? (
         <PhotoGrid
