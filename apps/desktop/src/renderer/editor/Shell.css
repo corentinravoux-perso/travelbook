@@ -819,3 +819,24 @@ button.page-bar__label:hover,
 .missing-notice__hint {
   color: var(--ink-2);
 }
+
+/* ---------- credits dialog ---------- */
+.credits-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  margin: 0;
+  padding: 0 0 0 var(--s6);
+  font-size: var(--t-sm);
+  line-height: var(--lh);
+}
+.credits-empty {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.credits-entry {
+  width: auto;
+  padding: 0 var(--s4);
+  font-size: var(--t-sm);
+}

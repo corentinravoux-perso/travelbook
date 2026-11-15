@@ -26,6 +26,7 @@ const AnswerSchema = z.object({
       license_version: z.string().nullish(),
       foreign_landing_url: z.string().nullish(),
       provider: z.string().nullish(),
+      filetype: z.string().nullish(),
     }),
   ),
 });
@@ -48,26 +49,44 @@ function licenceId(license: string, version: string | null | undefined): string 
  * asked for: they carry the transparency a sticker needs.
  */
 export function createOpenverseSource(http: SourceHttp): StickerSource {
+  return createOpenverse(http, 'stickers');
+}
+
+/**
+ * The same Openverse as a source of background images, without the PNG filter: photographs
+ * (JPEG, PNG, WebP) are what a page background usually is. Its id is `openverse-photos`.
+ */
+export function createOpenversePhotosSource(http: SourceHttp): StickerSource {
+  return createOpenverse(http, 'backgrounds');
+}
+
+const PHOTO_TYPES = new Set(['jpg', 'jpeg', 'png', 'webp']);
+
+function createOpenverse(http: SourceHttp, mode: 'stickers' | 'backgrounds'): StickerSource {
+  const stickers = mode === 'stickers';
   return {
-    id: 'openverse',
+    id: stickers ? 'openverse' : 'openverse-photos',
     label: 'Openverse',
     needsKey: false,
+    ...(stickers ? {} : { scope: 'backgrounds' as const }),
     async search(q, page) {
       const url =
-        `${API}?q=${encodeURIComponent(q)}&extension=png&license=cc0,pdm,by,by-sa` +
+        `${API}?q=${encodeURIComponent(q)}${stickers ? '&extension=png' : ''}&license=cc0,pdm,by,by-sa` +
         `&page=${Math.max(1, page)}&page_size=${OPENVERSE_PAGE_SIZE}`;
       const answer = await http.json(url, AnswerSchema);
       const items: StickerHit[] = [];
       for (const r of answer.results) {
         const spdx = licenceId(r.license, r.license_version);
         if (spdx === undefined || !/^https:\/\//.test(r.url)) continue;
+        const type = (r.filetype ?? '').toLowerCase();
+        if (!stickers && !PHOTO_TYPES.has(type)) continue;
         items.push({
-          source: 'openverse',
+          source: stickers ? 'openverse' : 'openverse-photos',
           id: r.id,
           title: r.title?.trim() || 'Sans titre',
           thumbUrl: r.thumbnail ?? r.url,
           fileUrl: r.url,
-          format: 'png',
+          format: stickers ? 'png' : type === 'png' ? 'png' : type === 'webp' ? 'webp' : 'jpg',
           licence: {
             source: r.provider ? `Openverse (${r.provider})` : 'Openverse',
             author: r.creator?.trim() || 'Unknown',
@@ -81,9 +100,11 @@ export function createOpenverseSource(http: SourceHttp): StickerSource {
       return { items, hasMore: page < answer.page_count };
     },
     async fetch(hit) {
-      if (hit.format !== 'png') throw new SourceError('badAnswer', 'Not an Openverse image');
+      if (stickers ? hit.format !== 'png' : hit.format === 'svg') {
+        throw new SourceError('badAnswer', 'Not an Openverse image');
+      }
       const bytes = await http.bytes(assertPublicHttps(hit.fileUrl).href);
-      return checkDownload(bytes, 'png');
+      return checkDownload(bytes, hit.format);
     },
   };
 }

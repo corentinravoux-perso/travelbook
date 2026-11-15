@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { z } from 'zod';
 import { LicenceSchema, type AssetRef, type Book, type Licence } from '@travelbook/core';
@@ -227,6 +226,40 @@ export async function addToLibrary(
   });
 }
 
+/** The most files a dropped folder may give. */
+export const MAX_FOLDER_FILES = 2000;
+
+/**
+ * The files to add to the library for the paths the user dropped: a file is kept as it is (a
+ * wrong one is reported when it is added), a folder gives the files of the kind in it and in its
+ * sub-folders, in name order. Hidden entries and `.travelbook` albums are skipped.
+ */
+export async function expandLibraryPaths(
+  kind: Exclude<LibraryItemKind, 'template'>,
+  paths: readonly string[],
+): Promise<string[]> {
+  const allowed = ASSET_EXTENSIONS[kind];
+  const out: string[] = [];
+  const walk = async (folder: string): Promise<void> => {
+    const entries = await readdir(folder, { withFileTypes: true });
+    entries.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || entry.name.endsWith('.travelbook')) continue;
+      const path = join(folder, entry.name);
+      if (entry.isDirectory()) await walk(path);
+      else if (entry.isFile() && allowed.has(extname(entry.name).toLowerCase())) out.push(path);
+      if (out.length > MAX_FOLDER_FILES) throw new Error('Too many files in the folder');
+    }
+  };
+  for (const path of paths) {
+    // A path that cannot be read stays in the list: adding it names the file in the error.
+    const info = await stat(path).catch(() => undefined);
+    if (info?.isDirectory()) await walk(path);
+    else out.push(path);
+  }
+  return out;
+}
+
 /** ISO 8601 timestamps in the same zone sort as text; no locale involved. */
 const compare = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -315,36 +348,6 @@ const exists = (path: string): Promise<boolean> =>
   );
 
 /**
- * Import a library file into a project. An SVG is sanitised on the way (a file added before
- * sanitising existed may still carry a script): when sanitising changes it, the clean copy is
- * what is imported.
- */
-async function importLibraryFile(
-  dir: string,
-  kind: Exclude<LibraryItemKind, 'template'>,
-  source: string,
-  title: string,
-): ReturnType<typeof importAssetFiles> {
-  if (extname(source).toLowerCase() !== '.svg') return importAssetFiles(dir, kind, [source]);
-  const original = await readFile(source);
-  let clean: string;
-  try {
-    clean = sanitizeSvg(original.toString('utf8'));
-  } catch (error) {
-    throw new Error(`${title}: ${describeError(error)}`, { cause: error });
-  }
-  if (Buffer.from(clean, 'utf8').equals(original)) return importAssetFiles(dir, kind, [source]);
-  const scratch = await mkdtemp(join(tmpdir(), 'tb-svg-'));
-  try {
-    const file = join(scratch, `${createHash('sha256').update(clean).digest('hex')}.svg`);
-    await writeFile(file, clean);
-    return await importAssetFiles(dir, kind, [file]);
-  } finally {
-    await rm(scratch, { recursive: true, force: true });
-  }
-}
-
-/**
  * Copy a library item into a project's `assets/` and describe it as `importFiles` would: id
  * `<kind>-<sha16>`, file `assets/<sha16>.<ext>`, pixel size for an image. The asset also carries
  * the item's licence, and the item's title (with the extension) as its original name.
@@ -384,7 +387,7 @@ export async function copyIntoProject(dir: string, book: Book, itemId: string): 
     throw new Error(`The library file of ${item.title} changed since it was added`);
   }
 
-  const [asset] = await importLibraryFile(dir, item.kind, source, item.title);
+  const [asset] = await importAssetFiles(dir, item.kind, [source]);
   if (asset === undefined) throw new Error(`${item.title}: nothing was copied`);
   return {
     ...asset,

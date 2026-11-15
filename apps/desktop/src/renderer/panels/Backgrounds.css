@@ -193,3 +193,26 @@
   align-items: center;
   gap: var(--s5);
 }
+
+/* An online result: the thumbnail with its licence mark in a corner. */
+.bg-online-item {
+  position: relative;
+}
+.bg-online-item .bg-swatch {
+  width: 100%;
+}
+.bg-online-item__licence {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: var(--r1);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: var(--t-xxs);
+  line-height: 1;
+  pointer-events: none;
+}

@@ -8,7 +8,7 @@ import { CACHE_TTL_MS, DiskCache } from './cache';
 import { createCommonsSource } from './commons';
 import { createIconifySource } from './iconify';
 import { createOnlineSources } from './online';
-import { createOpenverseSource } from './openverse';
+import { createOpenversePhotosSource, createOpenverseSource } from './openverse';
 import {
   MAX_DOWNLOAD_BYTES,
   SourceError,
@@ -156,6 +156,25 @@ describe('adapters map a recorded answer', () => {
     );
   });
 
+  it('openverse photos: no PNG filter, JPEG kept, scoped to backgrounds', async () => {
+    const answer = JSON.parse(await recorded('openverse-search-suitcase.json')) as {
+      results: { filetype: string }[];
+    };
+    answer.results[0]!.filetype = 'jpg';
+    answer.results[1]!.filetype = 'gif';
+    const { fetchImpl, calls } = fakeFetch(() => json(JSON.stringify(answer)));
+    const source = createOpenversePhotosSource(httpFor('openverse-photos', fetchImpl));
+    const { items } = await source.search('suitcase', 2);
+    expect(source.scope).toBe('backgrounds');
+    expect(items.map((i) => [i.source, i.format])).toEqual([
+      ['openverse-photos', 'jpg'],
+      ['openverse-photos', 'png'],
+    ]);
+    expect(calls[0]?.url).toBe(
+      'https://api.openverse.org/v1/images/?q=suitcase&license=cc0,pdm,by,by-sa&page=2&page_size=20',
+    );
+  });
+
   it('commons: drawings with the licence of their file page', async () => {
     const { fetchImpl, calls } = fakeFetch(async () =>
       json(await recorded('commons-search-suitcase.json')),
@@ -209,6 +228,7 @@ describe('adapters map a recorded answer', () => {
       ['iconify', false],
       ['openverse', false],
       ['commons', false],
+      ['openverse-photos', false],
     ]);
   });
 });
@@ -427,6 +447,15 @@ describe('fetch of a hit', () => {
     await expect(
       createIconifySource(httpFor('iconify', fetchImpl)).fetch(hit({ id: 'iconoir:suitcase' })),
     ).rejects.toMatchObject({ kind: 'badAnswer' });
+  });
+
+  it('openverse photos: a JPEG that decodes is stored as .jpg', async () => {
+    const jpg = await readFile(fixturePath('small.jpg'));
+    const { fetchImpl } = fakeFetch(() => new Response(jpg));
+    const out = await createOpenversePhotosSource(httpFor('openverse-photos', fetchImpl)).fetch(
+      hit({ format: 'jpg' }),
+    );
+    expect(out.ext).toBe('jpg');
   });
 
   it('openverse: a PNG that decodes is returned as it is', async () => {

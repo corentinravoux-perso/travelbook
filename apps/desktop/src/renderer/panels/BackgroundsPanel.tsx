@@ -7,6 +7,7 @@ import type { BundledBackground } from '../../shared/api';
 import { ColourTab } from './backgrounds/ColourTab';
 import { GradientTab } from './backgrounds/GradientTab';
 import { MineTab, PhotoTab, TextureTab } from './backgrounds/ImageTabs';
+import { OnlineBackgroundsTab } from './backgrounds/OnlineTab';
 import { PatternTab } from './backgrounds/PatternTab';
 import { availableTargets, resolveTarget, targetLabel, type Target } from './backgrounds/model';
 import type { ApplyOptions, TabProps } from './backgrounds/types';
@@ -14,7 +15,7 @@ import './Backgrounds.css';
 
 const t = fr.backgrounds;
 
-type TabKey = 'color' | 'gradient' | 'pattern' | 'texture' | 'photo' | 'mine';
+type TabKey = 'color' | 'gradient' | 'pattern' | 'texture' | 'photo' | 'mine' | 'online';
 
 const TABS: [TabKey, string, (p: TabProps) => React.ReactElement][] = [
   ['color', t.tab.color, ColourTab],
@@ -23,6 +24,7 @@ const TABS: [TabKey, string, (p: TabProps) => React.ReactElement][] = [
   ['texture', t.tab.texture, TextureTab],
   ['photo', t.tab.photo, PhotoTab],
   ['mine', t.tab.mine, MineTab],
+  ['online', t.tab.online, OnlineBackgroundsTab],
 ];
 
 /**

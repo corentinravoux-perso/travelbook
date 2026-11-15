@@ -1,0 +1,215 @@
+/* "Stickers" panel: five tabs, a control strip, then a windowed grid of square tiles. */
+.stk-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.stk-tabs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  margin: 0 var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  overflow: hidden;
+}
+.stk-tab-button {
+  height: 26px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    background var(--fast),
+    color var(--fast);
+}
+/* Five tabs: three on the first row, two wider ones under them. */
+.stk-tab-button:nth-child(-n + 3) {
+  grid-column: span 2;
+}
+.stk-tab-button:nth-child(n + 4) {
+  grid-column: span 3;
+  border-bottom: 0;
+}
+.stk-tab-button:nth-child(3),
+.stk-tab-button:nth-child(5) {
+  border-right: 0;
+}
+.stk-tab-button:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.stk-tab-button[aria-selected='true'] {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+  font-weight: var(--w-medium);
+}
+.stk-tab-button:focus-visible {
+  outline-offset: -2px;
+}
+
+.stk-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: var(--s5);
+}
+.stk-tab {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.stk-tab--over {
+  outline: 1px dashed var(--ink-2);
+  outline-offset: -4px;
+}
+.stk-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: 0 var(--s5) var(--s4);
+}
+.stk-select {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.stk-select__label {
+  flex: none;
+  width: 70px;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.stk-select .input {
+  min-width: 0;
+  flex: 1;
+}
+.stk-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.stk-hint {
+  margin: 0;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+/* States under the grid: loading, empty, failure with its retry. */
+.stk-grid__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4) var(--s5) var(--s5);
+}
+.stk-state {
+  margin: 0;
+  padding: 0 var(--s5);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.stk-grid__footer .stk-state {
+  padding: 0;
+}
+.stk-state--error {
+  color: var(--low);
+}
+.stk-state--error p {
+  margin: 0 0 var(--s3);
+}
+.stk-more {
+  align-self: center;
+}
+
+/* A tile: the picture on paper, a hairline frame; marks sit in the corners over it. */
+.stk-tile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.stk-tile__button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--paper);
+  cursor: grab;
+  transition: border-color var(--fast);
+}
+.stk-tile__button:hover {
+  border-color: var(--ink-2);
+}
+.stk-tile__button img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.stk-tile__licence,
+.stk-tile__opaque {
+  position: absolute;
+  bottom: 2px;
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: var(--r1);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: var(--t-xxs);
+  line-height: 1;
+  pointer-events: none;
+}
+.stk-tile__licence {
+  left: 2px;
+}
+.stk-tile__opaque {
+  top: 2px;
+  bottom: auto;
+  left: 2px;
+}
+.stk-tile__opaque .icon {
+  width: 10px;
+  height: 10px;
+}
+.stk-tile__star,
+.stk-tile__remove {
+  position: absolute;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r1);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  opacity: 0;
+  transition: opacity var(--fast);
+}
+.stk-tile__star {
+  right: 2px;
+}
+.stk-tile__remove {
+  right: 24px;
+}
+.stk-tile__star .icon,
+.stk-tile__remove .icon {
+  width: 13px;
+  height: 13px;
+}
+.stk-tile:hover .stk-tile__star,
+.stk-tile:hover .stk-tile__remove,
+.stk-tile__star:focus-visible,
+.stk-tile__remove:focus-visible,
+.stk-tile__star[aria-pressed='true'] {
+  opacity: 1;
+}
+.stk-tile__star[aria-pressed='true'] .icon {
+  fill: currentColor;
+}

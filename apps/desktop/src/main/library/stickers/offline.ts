@@ -47,6 +47,7 @@ export function setStickersResourcesDir(dir: string | null): void {
   manifest = null;
   indexes.clear();
   packs.clear();
+  categoryCache.clear();
 }
 
 function packsDir(): string {
@@ -183,4 +184,24 @@ export function stickerSvg(setId: string, id: string): string | undefined {
   if (body === undefined) return undefined;
   const view = pack.views?.[id] ?? `0 0 ${pack.width} ${pack.height}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${view}">${body}</svg>`;
+}
+
+const categoryCache = new Map<string, { name: string; count: number }[]>();
+
+/** The categories of an offline set (as written in the index) with their sticker counts, largest first. */
+export function offlineCategories(setId: string): { name: string; count: number }[] {
+  const cached = categoryCache.get(setId);
+  if (cached !== undefined) return cached;
+  const set = sets().find((candidate) => candidate.id === setId);
+  if (set === undefined) return [];
+  const counts = new Map<string, number>();
+  for (const r of indexOf(set).search(MiniSearch.wildcard)) {
+    const name = String(r.category);
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  const list = [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'fr'));
+  categoryCache.set(setId, list);
+  return list;
 }

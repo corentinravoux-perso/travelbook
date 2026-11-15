@@ -1,25 +1,10 @@
-import type { Licence } from '@travelbook/core';
 import sharp from 'sharp';
 import type { z } from 'zod';
+import type { SourceErrorKind, StickerHit } from '../../../shared/api';
 import { DiskCache } from './cache';
 import { sanitizeSvg } from './sanitizeSvg';
 
-/** One sticker found by a search, offline or online. */
-export interface StickerHit {
-  /** Where it comes from: an offline set id (`noto`) or an online source id (`openverse`). */
-  source: string;
-  /** Unique inside `source`. */
-  id: string;
-  title: string;
-  /** URL the renderer can show in an `<img>` (`tb://sticker/...` offline, a cached copy online). */
-  thumbUrl: string;
-  /** URL of the full file. */
-  fileUrl: string;
-  format: 'svg' | 'png' | 'webp';
-  licence: Licence;
-  /** A monochrome pictogram that draws in `currentColor` and can be recoloured. */
-  mono: boolean;
-}
+export type { StickerHit };
 
 export interface StickerSource {
   id: 'iconify' | 'openverse' | 'commons' | string;
@@ -27,9 +12,11 @@ export interface StickerSource {
   label: string;
   /** Whether the source needs an account or key. None of ours does. */
   needsKey: boolean;
+  /** `backgrounds`: offered by the backgrounds panel, with kept files stored as backgrounds; absent: stickers. */
+  scope?: 'backgrounds';
   search(q: string, page: number): Promise<{ items: StickerHit[]; hasMore: boolean }>;
   /** The file of a hit: an SVG already sanitised, or a raster already checked. */
-  fetch(hit: StickerHit): Promise<{ bytes: Buffer; ext: 'svg' | 'png' | 'webp' }>;
+  fetch(hit: StickerHit): Promise<{ bytes: Buffer; ext: 'svg' | 'png' | 'webp' | 'jpg' }>;
 }
 
 /**
@@ -39,7 +26,7 @@ export interface StickerSource {
  * HTTP error); `tooLarge`: a download over the 20 MB cap; `notFound`: HTTP 404 on a download.
  * The renderer maps the code to a French message.
  */
-export type SourceErrorKind = 'offline' | 'rateLimited' | 'badAnswer' | 'tooLarge' | 'notFound';
+export type { SourceErrorKind };
 
 export class SourceError extends Error {
   constructor(
@@ -248,7 +235,7 @@ export async function hasTransparency(bytes: Buffer): Promise<boolean> {
 export async function checkDownload(
   bytes: Buffer,
   format: StickerHit['format'],
-): Promise<{ bytes: Buffer; ext: 'svg' | 'png' | 'webp' }> {
+): Promise<{ bytes: Buffer; ext: 'svg' | 'png' | 'webp' | 'jpg' }> {
   if (format === 'svg') {
     try {
       return { bytes: Buffer.from(sanitizeSvg(bytes.toString('utf8')), 'utf8'), ext: 'svg' };
@@ -258,11 +245,12 @@ export async function checkDownload(
   }
   try {
     const meta = await sharp(bytes).metadata();
-    if (meta.format !== 'png' && meta.format !== 'webp') {
+    const jpeg = format === 'jpg' && meta.format === 'jpeg';
+    if (meta.format !== 'png' && meta.format !== 'webp' && !jpeg) {
       throw new Error(`Unexpected image format: ${meta.format ?? 'unknown'}`);
     }
     await sharp(bytes).resize({ width: 64, height: 64, fit: 'inside' }).toBuffer();
-    return { bytes, ext: meta.format };
+    return { bytes, ext: jpeg ? 'jpg' : (meta.format as 'png' | 'webp') };
   } catch (error) {
     throw new SourceError('badAnswer', 'The file is not a usable image', { cause: error });
   }

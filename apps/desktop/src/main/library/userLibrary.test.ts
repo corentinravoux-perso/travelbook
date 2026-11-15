@@ -12,6 +12,7 @@ import { setUserDataDir } from '../user-data';
 import {
   addToLibrary,
   copyIntoProject,
+  expandLibraryPaths,
   libraryFile,
   listLibrary,
   primeLibraryLookup,
@@ -833,6 +834,43 @@ describe('SVG files are sanitised (Task 6.2)', () => {
     // The library file itself is untouched, and no scratch file is left in assets/.
     expect(await readFile(join(library, 'files', `${id}.svg`))).toEqual(raw);
     expect(await readdir(join(project, 'assets'))).toEqual([asset.file.replace('assets/', '')]);
+  });
+});
+
+describe('expandLibraryPaths', () => {
+  it('gives the files of the kind in a dropped folder and its sub-folders, in name order', async () => {
+    const drop = join(work, 'drop');
+    await mkdir(join(drop, 'sub'), { recursive: true });
+    await mkdir(join(drop, '.hidden'), { recursive: true });
+    await mkdir(join(drop, 'mon.travelbook'), { recursive: true });
+    for (const name of [
+      'b10.png',
+      'b2.png',
+      'notes.txt',
+      'sub/logo.svg',
+      '.hidden/x.png',
+      'mon.travelbook/y.png',
+      '.dot.png',
+    ]) {
+      await writeFile(join(drop, name), 'x');
+    }
+    const single = join(work, 'single.png');
+    await writeFile(single, 'x');
+    expect(await expandLibraryPaths('sticker', [drop, single])).toEqual([
+      join(drop, 'b2.png'),
+      join(drop, 'b10.png'),
+      join(drop, 'sub', 'logo.svg'),
+      single,
+    ]);
+    // A font folder keeps fonts only.
+    expect(await expandLibraryPaths('font', [drop])).toEqual([]);
+  });
+
+  it('leaves a file it cannot judge, or cannot find, to the add that follows', async () => {
+    const odd = join(work, 'odd.txt');
+    await writeFile(odd, 'x');
+    const missing = join(work, 'missing.png');
+    expect(await expandLibraryPaths('sticker', [odd, missing])).toEqual([odd, missing]);
   });
 });
 
