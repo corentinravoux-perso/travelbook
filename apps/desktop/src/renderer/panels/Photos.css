@@ -30,14 +30,14 @@
   color: var(--ink-3);
 }
 
-/* ---------- import progress and failures ---------- */
-.photos__progress {
+/* ---------- import progress and failures (above the panel, whichever one is open) ---------- */
+.import-progress {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
   padding: 0 var(--s5) var(--s4);
 }
-.photos__progress-text {
+.import-progress-text {
   display: flex;
   justify-content: space-between;
   font-size: var(--t-xs);
@@ -53,7 +53,7 @@
   height: 100%;
   background: var(--ink);
 }
-.photos__notice {
+.import-notice {
   display: flex;
   align-items: flex-start;
   gap: var(--s3);
@@ -65,14 +65,14 @@
   background: var(--surface);
   font-size: var(--t-sm);
 }
-.photos__notice-body {
+.import-notice-body {
   flex: 1;
   min-width: 0;
 }
-.photos__notice-title {
+.import-notice-title {
   font-weight: var(--w-medium);
 }
-.photos__notice-list {
+.import-notice-list {
   max-height: 96px;
   margin: var(--s2) 0;
   padding-left: var(--s6);
@@ -80,7 +80,7 @@
   overflow-wrap: anywhere;
   font-size: var(--t-xs);
 }
-.photos__notice-hint {
+.import-notice-hint {
   font-size: var(--t-xs);
   color: var(--ink-2);
 }
