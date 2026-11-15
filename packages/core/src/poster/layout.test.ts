@@ -269,6 +269,22 @@ describe('posterLayout details', () => {
     expect(sticker.x + sticker.w).toBeLessThanOrEqual(rect.x + rect.w + EPS);
   });
 
+  it.each([0.6, 1.6, 2.4])('fills the arch with an illustration of ratio %s', (ratio) => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'arche', year: '2026' }), ratio));
+    const rect = named(elements, 'Affiche · décor').find(
+      (d) => d.type === 'shape' && d.shape === 'rect',
+    )!;
+    const sticker = stickerOf(elements);
+    const year = named(elements, 'Affiche · année')[0]!;
+    const arch = named(elements, 'Affiche · décor').find(
+      (d) => d.type === 'shape' && d.shape === 'ellipse',
+    )!;
+    expect(arch.y).toBeGreaterThanOrEqual(year.y + year.h - EPS);
+    // A wide drawing spans most of the arch; a tall one is limited by the height.
+    if (ratio > 1) expect(sticker.w).toBeGreaterThanOrEqual(0.85 * rect.w);
+    expect(sticker.y).toBeGreaterThanOrEqual(arch.y + 0.1 * arch.h - EPS);
+  });
+
   it('stands a horizon illustration on a band across the front foot', () => {
     const { elements } = posterLayout(b, input(spec({ layout: 'horizon' })));
     const [band] = named(elements, 'Affiche · décor');
