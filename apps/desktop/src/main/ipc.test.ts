@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { newBook, type AssetRef, type Book, type Template } from '@travelbook/core';
+import { newBook, newElement, type AssetRef, type Book, type Template } from '@travelbook/core';
 import { fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
 import type {
@@ -25,6 +25,7 @@ import {
 } from './ipc';
 import { setBundledResourcesDir, type BundledTemplates } from './library/templates';
 import { addToLibrary, listLibrary } from './library/userLibrary';
+import { setFontCatalogue, setFontsResourcesDir } from './library/fonts';
 import { setStickerService, type StickerService } from './library/stickers/service';
 import { SourceError } from './library/stickers/source';
 import { recentProjects } from './project/recent';
@@ -61,6 +62,7 @@ beforeEach(async () => {
   host = {
     pickFolder: vi.fn<Host['pickFolder']>(async () => null),
     pickPhotos: vi.fn<Host['pickPhotos']>(async () => []),
+    pickFont: vi.fn<Host['pickFont']>(async () => null),
     openExternal: vi.fn<Host['openExternal']>(async () => undefined),
     showInFolder: vi.fn<Host['showInFolder']>(),
     version: vi.fn<Host['version']>(() => '1.2.3'),
@@ -982,6 +984,101 @@ describe('library', () => {
     it('fails when the resources are not set', async () => {
       await expect(call(CHANNEL.libraryBundledTemplates)).rejects.toThrow(/not set/);
     });
+  });
+});
+
+describe('fonts', () => {
+  const RESOURCES = join(import.meta.dirname, '../../resources');
+  const FIXTURE = join(import.meta.dirname, 'library/fixtures/fixture-sans-regular.ttf');
+  let family: { family: string; faces: { itemId?: string }[] };
+
+  beforeEach(async () => {
+    setFontsResourcesDir(RESOURCES);
+    family = await call(CHANNEL.fontsImport, FIXTURE);
+  });
+  afterEach(() => {
+    setFontsResourcesDir(null);
+    setFontCatalogue(null);
+  });
+
+  it('lists the bundled families, then the user ones', async () => {
+    const fonts = await call<{ family: string; origin: string }[]>(CHANNEL.fontsList);
+    expect(fonts.filter((f) => f.origin === 'bundled').length).toBeGreaterThanOrEqual(40);
+    expect(fonts.at(-1)).toMatchObject({ family: 'Fixture Sans', origin: 'library' });
+  });
+
+  it('checks what it is given: a relative path, a bad id, a long query, a family list that is not a list', async () => {
+    await expect(call(CHANNEL.fontsImport, 'relative.ttf')).rejects.toThrow(/fonts:import/);
+    await expect(call(CHANNEL.fontsAdd, '../etc')).rejects.toThrow(/fonts:add/);
+    await expect(call(CHANNEL.fontsSearch, 'x'.repeat(101))).rejects.toThrow(/fonts:search/);
+    await expect(call(CHANNEL.fontsAssetsFor, 'Lora')).rejects.toThrow(/fonts:assetsFor/);
+  });
+
+  it('names the file when an import fails', async () => {
+    const bad = join(root, 'bad.ttf');
+    await writeFile(bad, 'nope');
+    await expect(call(CHANNEL.fontsImport, bad)).rejects.toThrow(/bad\.ttf/);
+  });
+
+  it('the dialog answers with the host: a file, or null', async () => {
+    host.pickFont.mockResolvedValueOnce(FIXTURE);
+    expect(await call(CHANNEL.fontsPick)).toBe(FIXTURE);
+    expect(await call(CHANNEL.fontsPick)).toBeNull();
+  });
+
+  it('assetsFor copies the faces into the open album and tb://asset serves them', async () => {
+    const created = await create();
+    const refs = await call<AssetRef[]>(CHANNEL.fontsAssetsFor, ['Fixture Sans', 'Lora']);
+    expect(refs).toHaveLength(1);
+    expect(await exists(join(created.dir, refs[0]!.file))).toBe(true);
+    const roots = tbRoots(currentSession(), { libraryDir: '/lib', resourcesDir: '/res' });
+    expect(resolveTbUrl(`tb://asset/${refs[0]!.id}?v=original`, roots)).toMatchObject({ ok: true });
+  });
+
+  it('save puts the faces a text uses in assets/, and the album then renders on a fresh user-data directory', async () => {
+    const created = await create();
+    const book = structuredClone(created.book);
+    const text = newElement('text', { x: 0, y: 0, w: 50, h: 10 });
+    text.style.fontFamily = "'Fixture Sans', sans-serif";
+    book.spreads[1]!.elements = [text];
+    await call(CHANNEL.projectSave, book);
+    const saved = await readdir(join(created.dir, 'assets'));
+    expect(saved).toHaveLength(1);
+
+    // The font asset record travels with the album (the renderer adds it through store.apply).
+    const [ref] = await call<AssetRef[]>(CHANNEL.fontsAssetsFor, ['Fixture Sans']);
+    book.assets = { [ref!.id]: ref! };
+    await call(CHANNEL.projectSave, book);
+
+    // Another machine: an empty user-data folder, no library, same album.
+    closeSession();
+    setUserDataDir(join(root, 'fresh user data'));
+    const reopened = await call<OpenedProject>(CHANNEL.projectOpen, created.dir);
+    expect(reopened.missing).toEqual([]);
+    expect(Object.values(reopened.book.assets).map((a) => a.originalName)).toEqual([
+      'Fixture Sans|400|normal.ttf',
+    ]);
+    const roots = tbRoots(currentSession(), { libraryDir: '/lib', resourcesDir: '/res' });
+    const url = resolveTbUrl(`tb://asset/${ref!.id}?v=original`, roots);
+    expect(url).toMatchObject({ ok: true });
+    expect(await exists((url as { path: string }).path)).toBe(true);
+    expect(family.faces).toHaveLength(1);
+  });
+
+  it('a font that cannot be copied does not stop the save', async () => {
+    const created = await create();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    setFontsResourcesDir(null);
+    const book = structuredClone(created.book);
+    const text = newElement('text', { x: 0, y: 0, w: 50, h: 10 });
+    text.style.fontFamily = "'Fixture Sans', sans-serif";
+    book.spreads[1]!.elements = [text];
+    await call(CHANNEL.projectSave, book);
+    expect(warn).toHaveBeenCalled();
+    expect(
+      JSON.parse(await readFile(join(created.dir, 'book.json'), 'utf8')).spreads[1].elements,
+    ).toHaveLength(1);
+    warn.mockRestore();
   });
 });
 

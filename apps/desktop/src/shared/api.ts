@@ -188,8 +188,54 @@ export interface StickersApi {
   setKey(sourceId: string, key: string): Promise<void>;
 }
 
+/** The five groups of the font list. */
+export type FontCategory = 'manuscrite' | 'serif' | 'sans' | 'titre' | 'machine';
+
+/** A family of fonts the editor can offer. */
+export interface FontFamily {
+  family: string;
+  category: FontCategory;
+  /** `bundled`: ships with the app; `library`: the user's own; `project`: only the album has it. */
+  origin: 'bundled' | 'library' | 'project';
+  faces: {
+    weight: number;
+    style: 'normal' | 'italic';
+    /** A `tb://` address the page declares the face with. */
+    url: string;
+    /** For a `library` face: the library item, which `assets.fromLibrary` copies into an album. */
+    itemId?: string;
+  }[];
+  licence: Licence;
+}
+
+/** A family found in the Fontsource catalogue. */
+export interface CatalogueEntry {
+  id: string;
+  family: string;
+  category: FontCategory;
+}
+
+export interface FontsApi {
+  /** Bundled families first, then the user's own. */
+  list(): Promise<FontFamily[]>;
+  /** Search the Fontsource catalogue (OFL and Apache fonts); rejects with a `SourceError` kind. */
+  searchCatalogue(q: string): Promise<CatalogueEntry[]>;
+  /** Download a family into the user library; rejects with a `SourceError` kind. */
+  addFromCatalogue(id: string): Promise<FontFamily>;
+  /** A font file dialog (TTF, OTF, WOFF2); `null` when the user cancels. */
+  pickFile(): Promise<string | null>;
+  /** Keep a TTF, OTF or WOFF2 file in the user library. */
+  importFile(path: string): Promise<FontFamily>;
+  /**
+   * Copy the faces of these user-library families into the open album's `assets/` and give the
+   * asset records, for the caller to add to its book (`store.apply`). Other families are skipped.
+   */
+  assetsFor(families: string[]): Promise<AssetRef[]>;
+}
+
 export interface LibraryApi {
   stickers: StickersApi;
+  fonts: FontsApi;
   /** Newest first, or most recently used first with `query.recent`. */
   list(kind: LibraryItemKind, query?: LibraryQuery): Promise<LibraryItem[]>;
   /**

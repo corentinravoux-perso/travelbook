@@ -1,7 +1,7 @@
 import type { Editor } from '@tiptap/core';
 import { boundingBox, type TextElement } from '@travelbook/core';
 import { useEffect, useReducer, type ReactNode } from 'react';
-import { BOOK_FONTS, bookFontOf } from '../fonts/bookFonts';
+import { FontSelect } from './FontSelect';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
@@ -77,7 +77,6 @@ export function TextToolbar({
     color?: string | null;
   };
   const family = marks.fontFamily ?? element.style.fontFamily;
-  const font = bookFontOf(family);
   const sizePt = marks.fontSize ? parseFloat(marks.fontSize) : element.style.fontSizePt;
   const color = marks.color ?? element.style.color;
   const paragraph = editor.getAttributes('paragraph') as { textAlign?: Align | null };
@@ -98,24 +97,12 @@ export function TextToolbar({
       onPointerDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      <select
+      <FontSelect
         className="input text-toolbar__font"
-        aria-label={t.font}
-        value={font?.css ?? ''}
-        style={{ fontFamily: font?.css }}
-        onChange={(e) => run().setFontFamily(e.target.value).run()}
-      >
-        {font === undefined && (
-          <option value="" disabled>
-            {t.fontOther}
-          </option>
-        )}
-        {BOOK_FONTS.map((f) => (
-          <option key={f.family} value={f.css} style={{ fontFamily: f.css }}>
-            {f.family}
-          </option>
-        ))}
-      </select>
+        label={t.font}
+        value={family}
+        onChange={(css) => run().setFontFamily(css).run()}
+      />
       <span
         className="text-toolbar__size"
         // Enter ends the entry, committed or not: the caret goes back to the text.

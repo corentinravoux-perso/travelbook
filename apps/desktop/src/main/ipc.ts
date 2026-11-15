@@ -24,6 +24,14 @@ import {
   setFavourite,
   touchUsed,
 } from './library/userLibrary';
+import {
+  addFromCatalogue,
+  ensureFontsInProject,
+  fontAssetsFor,
+  importFontFile,
+  listFonts,
+  searchCatalogue,
+} from './library/fonts';
 import { getStickerService } from './library/stickers/service';
 import { SourceError } from './library/stickers/source';
 import { projectFilePath } from './protocol';
@@ -55,6 +63,8 @@ export interface Host {
   pickFolder(purpose: 'create' | 'open'): Promise<string | null>;
   /** An image file picker (several files); empty when the user cancels. */
   pickPhotos(): Promise<string[]>;
+  /** A font file picker (TTF, OTF, WOFF2); `null` when the user cancels. */
+  pickFont(): Promise<string | null>;
   openExternal(url: string): Promise<void>;
   showInFolder(path: string): void;
   version(): string;
@@ -107,6 +117,7 @@ const libraryQuery = z.strictObject({
   recent: z.number().int().min(0).max(1000).optional(),
 });
 
+const fontFamilies = z.tuple([z.array(z.string().min(1).max(200)).max(200)]);
 const stickerRef = z.strictObject({
   source: z.string().min(1).max(64),
   id: z.string().min(1).max(256),
@@ -164,6 +175,10 @@ const schemas = {
   libraryList: z.tuple([libraryKind, libraryQuery.optional()]),
   libraryAdd: z.tuple([libraryFileKind, pathList]),
   libraryFavourite: z.tuple([identifier, z.boolean()]),
+  fontPath: z.tuple([absolutePath]),
+  fontQuery: z.tuple([z.string().max(100)]),
+  fontId: z.tuple([z.string().regex(/^[a-z0-9-]{1,80}$/, 'must be a font id')]),
+  fontFamilies,
   setId: z.tuple([z.string().regex(/^[a-z0-9-]{1,64}$/)]),
   stickerSearch: z.tuple([stickerSearch]),
   stickerRef: z.tuple([stickerRef]),
@@ -251,6 +266,11 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.projectSave]: async (_ctx, ...args) => {
       const [book] = parseArgs(CHANNEL.projectSave, schemas.save, args);
       const session = requireSession();
+      // The album carries the fonts its text uses: copied before the book that names them is
+      // written. A font that cannot be copied must not stop the save.
+      await serialize(importQueue(session), () => ensureFontsInProject(session.dir, book)).catch(
+        (error: unknown) => console.warn('Could not copy the fonts into the album:', error),
+      );
       await saveBook(session.dir, book);
       recordBook(session, book);
     },
@@ -411,6 +431,46 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.libraryTemplateDelete]: async (_ctx, ...args) => {
       const [templateId] = parseArgs(CHANNEL.libraryTemplateDelete, schemas.templateId, args);
       await deleteUserTemplate(templateId);
+    },
+
+    [CHANNEL.fontsList]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.fontsList, schemas.none, args);
+      return listFonts();
+    },
+
+    [CHANNEL.fontsSearch]: async (_ctx, ...args) => {
+      const [q] = parseArgs(CHANNEL.fontsSearch, schemas.fontQuery, args);
+      return viaSource(() => searchCatalogue(q, () => host.version()));
+    },
+
+    [CHANNEL.fontsAdd]: async (_ctx, ...args) => {
+      const [id] = parseArgs(CHANNEL.fontsAdd, schemas.fontId, args);
+      return viaSource(() => addFromCatalogue(id, () => host.version()));
+    },
+
+    [CHANNEL.fontsPick]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.fontsPick, schemas.none, args);
+      return host.pickFont();
+    },
+
+    [CHANNEL.fontsImport]: async (_ctx, ...args) => {
+      const [path] = parseArgs(CHANNEL.fontsImport, schemas.fontPath, args);
+      try {
+        return await importFontFile(path);
+      } catch (error) {
+        throw new Error(`${basename(path)}: ${describeError(error)}`, { cause: error });
+      }
+    },
+
+    [CHANNEL.fontsAssetsFor]: async (_ctx, ...args) => {
+      const [families] = parseArgs(CHANNEL.fontsAssetsFor, schemas.fontFamilies, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        const book = { ...session.book, assets: knownAssets(session) };
+        const refs = await fontAssetsFor(session.dir, book, families);
+        recordAssets(session, refs);
+        return refs;
+      });
     },
 
     [CHANNEL.stickersSets]: async (_ctx, ...args) => {

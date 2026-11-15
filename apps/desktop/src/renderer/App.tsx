@@ -8,13 +8,18 @@ import { useEffect } from 'react';
 import { Shell } from './editor/Shell';
 import { Home } from './home/Home';
 import { answerCloseRequest } from './store/closeRequest';
+import { fontListStore } from './fonts/fontList';
 import { editorStore } from './store/editor';
 import { coverThumbs, projectStore, useProject } from './store/project';
 
 export { initTheme } from './theme/theme';
 
 // Test-only handle for the e2e specs, which have no editing UI to drive yet (never in a release).
-if (__E2E__) (window as unknown as { __tbEditor: typeof editorStore }).__tbEditor = editorStore;
+if (__E2E__) {
+  const w = window as unknown as Record<string, unknown>;
+  w['__tbEditor'] = editorStore;
+  w['__tbFonts'] = { refresh: () => fontListStore.getState().refresh() };
+}
 
 export function App() {
   const view = useProject((s) => s.view);
