@@ -11,3 +11,4 @@ export * from './typography';
 export * from './snap';
 export * from './preflight';
 export * from './history';
+export * from './poster';

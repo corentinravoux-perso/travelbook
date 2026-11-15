@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="90 74 1000 640" data-tb-style="pixory">
+  <!-- Shadow -->
+  <ellipse fill="#2f8587" cx="560" cy="700" rx="470" ry="12"/>
+  <!-- Surfboards on the roof rack -->
+  <path fill="#f08a3c" d="M180 150C240 120 760 120 900 150C760 176 240 176 180 150z"/>
+  <path fill="#f2c230" d="M300 112C360 84 840 84 960 112C840 138 360 138 300 112z"/>
+  <path fill="#f6ecd3" d="M180 150C240 120 760 120 900 150C760 146 240 146 180 150z"/>
+  <path fill="#2b2723" d="M300 168h14v30h-14z"/>
+  <path fill="#2b2723" d="M820 168h14v30h-14z"/>
+  <path fill="#2b2723" d="M260 190h640v12h-640z"/>
+  <!-- Body: cream top, teal bottom, rounded nose -->
+  <path fill="#f6ecd3" d="M130 420C130 290 170 210 260 206H940C990 206 1010 230 1010 280V420z"/>
+  <path fill="#4fb3b5" d="M130 420H1010V600C1010 620 996 630 976 630H170C146 630 130 616 130 596z"/>
+  <path fill="#4fb3b5" d="M130 420C140 400 170 390 210 392L520 420H130z"/>
+  <path fill="#2f8587" d="M130 560H1010V600C1010 620 996 630 976 630H170C146 630 130 616 130 596z"/>
+  <!-- Windows -->
+  <path fill="#a9d0d6" d="M170 300C180 256 210 236 260 236H380V340H164z"/>
+  <path fill="#a9d0d6" d="M410 236h126v104H410z"/>
+  <path fill="#a9d0d6" d="M560 236h126v104H560z"/>
+  <path fill="#a9d0d6" d="M710 236h126v104H710z"/>
+  <path fill="#a9d0d6" d="M860 236h126v104H860z"/>
+  <path fill="#f6ecd3" d="M430 236h18l-34 104h-18z"/>
+  <path fill="#f6ecd3" d="M580 236h18l-34 104h-18z"/>
+  <path fill="#f6ecd3" d="M730 236h18l-34 104h-18z"/>
+  <path fill="#f6ecd3" d="M880 236h18l-34 104h-18z"/>
+  <!-- Door, handle, bumper, lights, mirror -->
+  <path fill="#2f8587" d="M392 350h6v260h-6z"/>
+  <path fill="#2f8587" d="M540 350h6v260h-6z"/>
+  <path fill="#2b2723" d="M560 450h40v10h-40z"/>
+  <path fill="#b7b2a9" d="M110 590h120v34H110z"/>
+  <circle fill="#f6ecd3" cx="150" cy="470" r="24"/>
+  <circle fill="#f2c230" cx="150" cy="470" r="14"/>
+  <path fill="#b7b2a9" d="M124 520h50v14h-50z"/>
+  <path fill="#2b2723" d="M150 260h22v40h-22z"/>
+  <!-- Wheels -->
+  <path fill="#2f8587" d="M188 600a112 112 0 0 1 224 0z"/>
+  <circle fill="#2b2723" cx="300" cy="620" r="86"/>
+  <circle fill="#f6ecd3" cx="300" cy="620" r="50"/>
+  <circle fill="#b7b2a9" cx="300" cy="620" r="18"/>
+  <path fill="#2f8587" d="M728 600a112 112 0 0 1 224 0z"/>
+  <circle fill="#2b2723" cx="840" cy="620" r="86"/>
+  <circle fill="#f6ecd3" cx="840" cy="620" r="50"/>
+  <circle fill="#b7b2a9" cx="840" cy="620" r="18"/>
+</svg>
+

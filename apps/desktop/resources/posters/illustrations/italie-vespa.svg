@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="130 40 830 734" data-tb-style="pixory">
+  <!-- Shadow -->
+  <ellipse fill="#5aa894" cx="520" cy="762" rx="420" ry="12"/>
+  <!-- Wheels, partly under the bodywork -->
+  <circle fill="#2b2723" cx="270" cy="690" r="70"/>
+  <circle fill="#c2bdb4" cx="270" cy="690" r="40"/>
+  <circle fill="#2b2723" cx="270" cy="690" r="14"/>
+  <circle fill="#2b2723" cx="770" cy="690" r="70"/>
+  <circle fill="#c2bdb4" cx="770" cy="690" r="40"/>
+  <circle fill="#2b2723" cx="770" cy="690" r="14"/>
+  <!-- Rear cowl over the engine, its right side in shadow -->
+  <path fill="#8fd1c0" d="M500 660C500 530 600 450 730 450C840 450 910 520 920 610L924 660z"/>
+  <path fill="#5aa894" d="M820 466C880 496 912 550 920 610L924 660H870C866 580 850 510 820 466z"/>
+  <path fill="#c2bdb4" d="M560 610C620 580 720 570 820 578l2 12C720 584 624 594 568 620z"/>
+  <path fill="#d9412f" d="M924 600h22v28h-22z"/>
+  <!-- Seat and rear rack -->
+  <path fill="#8a5a32" d="M590 446C630 414 780 412 850 432C862 442 858 460 842 462H604C588 462 580 456 590 446z"/>
+  <path fill="#c2bdb4" d="M850 440h86v10h-86zM926 440h10v40h-10z"/>
+  <!-- Floorboard -->
+  <path fill="#5aa894" d="M300 640H560V676H300z"/>
+  <path fill="#c2bdb4" d="M310 646H550V654H310zM310 662H550V670H310z"/>
+  <!-- Front fender -->
+  <path fill="#8fd1c0" d="M176 640C176 560 220 520 274 520C330 520 370 556 372 620L376 650H344C340 590 316 560 274 560C236 560 210 590 208 650H176z"/>
+  <path fill="#5aa894" d="M274 520C330 520 370 556 372 620L376 650H350C348 584 320 540 274 520z"/>
+  <!-- Leg shield, one curved piece -->
+  <path fill="#8fd1c0" d="M250 160C230 280 222 440 226 600L232 650H330C320 480 318 320 330 168z"/>
+  <path fill="#5aa894" d="M300 166L330 168C318 320 320 480 330 650H304C296 480 294 320 300 166z"/>
+  <path fill="#c2bdb4" d="M240 180h86v12h-86z"/>
+  <!-- Headset with the headlight, handlebar, mirror -->
+  <path fill="#8fd1c0" d="M196 118H372C392 118 396 150 376 154H196C176 150 176 118 196 118z"/>
+  <circle fill="#c2bdb4" cx="198" cy="136" r="30"/>
+  <circle fill="#f6ecd3" cx="198" cy="136" r="22"/>
+  <circle fill="#f2c230" cx="198" cy="136" r="10"/>
+  <path fill="#2b2723" d="M150 126h48v12h-48zM372 126h50v12h-50z"/>
+  <path fill="#c2bdb4" d="M340 118l20-52h10l-16 54z"/>
+  <circle fill="#c2bdb4" cx="370" cy="60" r="14"/>
+  <!-- Badge on the shield -->
+  <path fill="#c2bdb4" d="M256 220h46v10h-46z"/>
+</svg>
+

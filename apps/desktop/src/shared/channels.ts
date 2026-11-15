@@ -19,6 +19,7 @@ export const CHANNEL = {
   assetsImportFiles: 'assets:importFiles',
   assetsFromLibrary: 'assets:fromLibrary',
   assetsFromBundled: 'assets:fromBundled',
+  assetsFromSvg: 'assets:fromSvg',
   assetsPalette: 'assets:palette',
   libraryList: 'library:list',
   libraryAdd: 'library:add',

@@ -1,0 +1,83 @@
+[
+  {
+    "id": "sicile-citrons",
+    "destination": "sicile",
+    "name": "Sicile, branche de citrons",
+    "spec": {
+      "layout": "classique",
+      "title": "SICILE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#d8ecf7",
+        "title": "#d9a91e",
+        "accent": "#2b6636",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#d9a91e",
+          "shade": "#d9a91e"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "sicile-citrons"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "sicile-etna",
+    "destination": "sicile",
+    "name": "Sicile, Etna",
+    "spec": {
+      "layout": "soleil",
+      "title": "SICILE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fde3cf",
+        "title": "#3a3842",
+        "accent": "#e8693a",
+        "decor": "#f7c3a0",
+        "illustration": {
+          "main": "#5c5a66",
+          "shade": "#3a3842"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "sicile-etna"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "sicile-charrette",
+    "destination": "sicile",
+    "name": "Sicile, charrette peinte",
+    "spec": {
+      "layout": "horizon",
+      "title": "SICILE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fff3c4",
+        "title": "#d9412f",
+        "accent": "#2f6fb0",
+        "decor": "#e9c47a",
+        "illustration": {
+          "main": "#d9412f",
+          "shade": "#d9412f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "sicile-charrette"
+      },
+      "spine": true
+    }
+  }
+]

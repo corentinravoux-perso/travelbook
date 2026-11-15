@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 130 940 770" data-tb-style="pixory">
+  <!-- Snowy ground and shadow -->
+  <path fill="#f3ece0" d="M120 900C300 860 820 860 1000 900z"/>
+  <!-- Far legs -->
+  <path fill="#4a3020" d="M430 600h40l-6 280h-30z"/>
+  <path fill="#4a3020" d="M740 600h40l-6 280h-30z"/>
+  <!-- Body: hump at the shoulders, sloping back -->
+  <path fill="#6e4a32" d="M360 600C340 480 400 380 520 370C600 364 640 380 700 400C800 430 860 480 860 560C860 630 820 660 760 660H440C390 660 366 640 360 600z"/>
+  <path fill="#4a3020" d="M780 430C840 470 862 520 860 570C858 630 820 660 760 660H720C800 620 820 520 780 430z"/>
+  <path fill="#8e6a4c" d="M440 650C520 668 680 668 760 654L756 640C680 652 520 652 444 636z"/>
+  <!-- Near legs with pale stockings -->
+  <path fill="#6e4a32" d="M380 600h48l-6 280h-36z"/>
+  <path fill="#e6d5b4" d="M386 760h36l-4 120h-28z"/>
+  <path fill="#2b2723" d="M388 872h30v14h-30z"/>
+  <path fill="#6e4a32" d="M690 600h48l-6 280h-36z"/>
+  <path fill="#e6d5b4" d="M696 760h36l-4 120h-28z"/>
+  <path fill="#2b2723" d="M698 872h30v14h-30z"/>
+  <!-- Neck and long head with the bell under the chin -->
+  <path fill="#6e4a32" d="M380 520C350 470 340 420 330 380L440 360C460 400 470 440 470 480z"/>
+  <path fill="#6e4a32" d="M330 380C300 340 250 330 200 340L150 380C120 404 126 446 160 452L230 456C280 458 320 440 340 420z"/>
+  <path fill="#4a3020" d="M150 380C120 404 126 446 160 452L190 454C170 440 168 410 180 390z"/>
+  <path fill="#4a3020" d="M300 440C310 480 300 530 280 560C260 540 260 490 270 450z"/>
+  <circle fill="#2b2723" cx="270" cy="372" r="9"/>
+  <ellipse fill="#2b2723" cx="170" cy="420" rx="8" ry="6"/>
+  <path fill="#6e4a32" d="M330 350l40-40 12 12-40 34z"/>
+  <!-- Palmate antlers, rising from the skull -->
+  <path fill="#e6d5b4" d="M314 344L276 337L238 331L208 354L212 321L178 355L186 312L155 338L166 296L142 307L152 271L162 246L194 245L250 274L293 307L322 328z"/>
+  <path fill="#e6d5b4" d="M320 324L341 288L362 250L349 211L382 228L359 179L401 204L386 161L425 189L423 159L457 183L479 203L468 237L417 285L366 317L332 340z"/>
+  <path fill="#e6d5b4" d="M306 320h26v24h-26z"/>
+</svg>
+

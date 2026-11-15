@@ -1,0 +1,83 @@
+[
+  {
+    "id": "crete-amphore",
+    "destination": "crete",
+    "name": "Crète, amphore au poulpe",
+    "spec": {
+      "layout": "arche",
+      "title": "CRÈTE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#cfe6f2",
+        "title": "#3b2a22",
+        "accent": "#3b2a22",
+        "decor": "#f4fafc",
+        "illustration": {
+          "main": "#3b2a22",
+          "shade": "#3b2a22"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "crete-amphore"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "crete-olivier",
+    "destination": "crete",
+    "name": "Crète, olivier",
+    "spec": {
+      "layout": "soleil",
+      "title": "CRÈTE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6efd8",
+        "title": "#55703f",
+        "accent": "#57493c",
+        "decor": "#f2d79a",
+        "illustration": {
+          "main": "#7f9a5a",
+          "shade": "#55703f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "crete-olivier"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "crete-caique",
+    "destination": "crete",
+    "name": "Crète, caïque",
+    "spec": {
+      "layout": "horizon",
+      "title": "CRÈTE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fbe9de",
+        "title": "#2f78b8",
+        "accent": "#1f528a",
+        "decor": "#a9d8e6",
+        "illustration": {
+          "main": "#2f78b8",
+          "shade": "#2f78b8"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "crete-caique"
+      },
+      "spine": true
+    }
+  }
+]

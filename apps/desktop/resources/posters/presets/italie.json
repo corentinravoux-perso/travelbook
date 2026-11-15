@@ -1,0 +1,83 @@
+[
+  {
+    "id": "italie-vespa",
+    "destination": "italie",
+    "name": "Italie, scooter",
+    "spec": {
+      "layout": "classique",
+      "title": "ITALIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fbd3c8",
+        "title": "#d9412f",
+        "accent": "#5aa894",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#d9412f",
+          "shade": "#d9412f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "italie-vespa"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "italie-moka",
+    "destination": "italie",
+    "name": "Italie, cafetière moka",
+    "spec": {
+      "layout": "arche",
+      "title": "ITALIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f9e6b8",
+        "title": "#6b3b2c",
+        "accent": "#6b3b2c",
+        "decor": "#fff7e2",
+        "illustration": {
+          "main": "#6b3b2c",
+          "shade": "#6b3b2c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "italie-moka"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "italie-colisee",
+    "destination": "italie",
+    "name": "Italie, Colisée",
+    "spec": {
+      "layout": "soleil",
+      "title": "ITALIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6e2cc",
+        "title": "#9c6d3a",
+        "accent": "#2b2723",
+        "decor": "#f2b886",
+        "illustration": {
+          "main": "#d9a66b",
+          "shade": "#9c6d3a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "italie-colisee"
+      },
+      "spine": true
+    }
+  }
+]

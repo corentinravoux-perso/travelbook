@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="180 280 640 720">
+  <!-- Platform and steps -->
+  <path fill="#e8dcc4" d="M200 930h600v70h-600z"/>
+  <path fill="#e8dcc4" d="M240 892h520v40h-520z"/>
+  <path class="tb-shade" fill="#83241f" d="M680 892h80v40h-80z"/>
+  <path fill="#2b2723" d="M440 930h120v5h-120z"/>
+  <path fill="#2b2723" d="M446 947h108v5h-108z"/>
+  <path fill="#2b2723" d="M452 964h96v5h-96z"/>
+  <path fill="#2b2723" d="M458 981h84v5h-84z"/>
+  <!-- Shrubs -->
+  <circle fill="#6f7f3e" cx="250" cy="910" r="34"/>
+  <circle fill="#6f7f3e" cx="290" cy="914" r="26"/>
+  <circle fill="#6f7f3e" cx="730" cy="908" r="36"/>
+  <circle fill="#6f7f3e" cx="770" cy="916" r="24"/>
+  <!-- Tiers, from the ground up -->
+  <path class="tb-main" fill="#c8423b" d="M350 772h300v120h-300z"/>
+  <path class="tb-shade" fill="#83241f" d="M584 772h66v120h-66z"/>
+  <path fill="#e8dcc4" d="M392 870v-36a24 24 0 0 1 48 0v36z"/>
+  <path fill="#2b2723" d="M476 870v-36a24 24 0 0 1 48 0v36z"/>
+  <path fill="#e8dcc4" d="M560 870v-36a24 24 0 0 1 48 0v36z"/>
+  <path fill="#e8dcc4" d="M342 878h316v14h-316z"/>
+  <path fill="#2b2723" d="M240 738Q323 779 344 775H656Q677 779 760 738L635 738H365z"/>
+  <path class="tb-shade" fill="#83241f" d="M344 775H656l-16 12H360z"/>
+  <path class="tb-main" fill="#c8423b" d="M375 642h250v96h-250z"/>
+  <path class="tb-shade" fill="#83241f" d="M570 642h55v96h-55z"/>
+  <path fill="#e8dcc4" d="M410 721v-29a20 20 0 0 1 40 0v29z"/>
+  <path fill="#e8dcc4" d="M480 721v-29a20 20 0 0 1 40 0v29z"/>
+  <path fill="#e8dcc4" d="M550 721v-29a20 20 0 0 1 40 0v29z"/>
+  <path fill="#e8dcc4" d="M367 726h266v12h-266z"/>
+  <path fill="#2b2723" d="M280 611Q350 648 368 645H632Q650 648 720 611L614 611H386z"/>
+  <path class="tb-shade" fill="#83241f" d="M368 645H632l-13 11H381z"/>
+  <path class="tb-main" fill="#c8423b" d="M395 527h210v84h-210z"/>
+  <path class="tb-shade" fill="#83241f" d="M559 527h46v84h-46z"/>
+  <path fill="#e8dcc4" d="M475 596v-25a25 25 0 0 1 50 0v25z"/>
+  <path fill="#e8dcc4" d="M387 601h226v10h-226z"/>
+  <path fill="#2b2723" d="M315 499Q374 533 389 530H611Q626 533 685 499L596 499H404z"/>
+  <path class="tb-shade" fill="#83241f" d="M389 530H611l-11 10H400z"/>
+  <path class="tb-main" fill="#c8423b" d="M414 425h172v74h-172z"/>
+  <path class="tb-shade" fill="#83241f" d="M548 425h38v74h-38z"/>
+  <path fill="#e8dcc4" d="M479 486v-22a21 21 0 0 1 41 0v22z"/>
+  <path fill="#e8dcc4" d="M406 490h188v9h-188z"/>
+  <path fill="#2b2723" d="M345 400Q395 430 407 428H593Q605 430 655 400L581 400H419z"/>
+  <path class="tb-shade" fill="#83241f" d="M407 428H593l-9 9H416z"/>
+  <path class="tb-main" fill="#c8423b" d="M431 334h138v66h-138z"/>
+  <path class="tb-shade" fill="#83241f" d="M539 334h30v66h-30z"/>
+  <path fill="#e8dcc4" d="M483 388v-20a17 17 0 0 1 33 0v20z"/>
+  <path fill="#e8dcc4" d="M423 392h154v8h-154z"/>
+  <path fill="#2b2723" d="M372 312Q413 338 423 336H577Q587 338 628 312L567 312H433z"/>
+  <path class="tb-shade" fill="#83241f" d="M423 336H577l-8 8H431z"/>
+  <!-- Finial -->
+  <path fill="#2b2723" d="M494 202h12v110h-12z"/>
+  <path fill="#2b2723" d="M484 292h32v6h-32z"/>
+  <path fill="#2b2723" d="M485 278h30v6h-30z"/>
+  <path fill="#2b2723" d="M486 264h28v6h-28z"/>
+  <path fill="#2b2723" d="M487 250h26v6h-26z"/>
+  <path fill="#2b2723" d="M488 236h24v6h-24z"/>
+  <path fill="#2b2723" d="M489 222h22v6h-22z"/>
+  <circle fill="#2b2723" cx="500" cy="192" r="14"/>
+</svg>
+

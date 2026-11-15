@@ -1,0 +1,179 @@
+/* "Créer une affiche". Chrome from the tokens only, without hue; the posters carry their own colours. */
+.dialog.dialog--poster {
+  /* Two classes: the base `.dialog` (560 px) is loaded after this file. */
+  width: min(1080px, calc(100vw - 2 * var(--s7)));
+  max-height: calc(100vh - 2 * var(--s7));
+  overflow: auto;
+}
+.poster-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  padding: var(--s7);
+}
+.poster-dialog__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+.poster-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.poster-chip {
+  height: var(--control-h);
+  padding: 0 var(--s5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-h);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease);
+}
+.poster-chip:hover {
+  background: var(--chrome);
+  color: var(--ink);
+}
+.poster-chip[aria-pressed='true'] {
+  border-color: var(--invert-bg);
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+.poster-gallery {
+  display: flex;
+  gap: var(--s5);
+  margin: 0;
+  padding: var(--s2) var(--s1) var(--s4);
+  overflow-x: auto;
+  list-style: none;
+}
+.poster-tile {
+  display: block;
+  min-width: 96px;
+  min-height: 132px;
+  padding: 0;
+  border-radius: var(--r1);
+  background: var(--sunken);
+  box-shadow: var(--shadow-1);
+  outline-offset: 2px;
+  transition: box-shadow var(--fast) var(--ease);
+}
+.poster-tile:hover {
+  box-shadow: var(--shadow-2);
+}
+.poster-tile[aria-pressed='true'] {
+  outline: 2px solid var(--ink);
+}
+.poster-preview {
+  position: relative;
+  display: block;
+  flex: none;
+  overflow: hidden;
+}
+.poster-preview__paper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+.poster-preview__spine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-right: 1px solid var(--halo);
+  pointer-events: none;
+}
+.poster-dialog__body {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(300px, 1fr);
+  gap: var(--s7);
+  align-items: start;
+}
+.poster-dialog__preview {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: var(--s6);
+  border-radius: var(--r2);
+  background: var(--ground);
+}
+.poster-dialog__preview .poster-preview {
+  box-shadow: var(--shadow-paper);
+}
+.poster-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+.poster-dialog__row {
+  display: flex;
+  gap: var(--s4);
+}
+.poster-dialog__row > .field:first-child {
+  flex: 1;
+}
+.poster-dialog__year {
+  width: 88px;
+}
+.poster-colors {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.poster-colors > legend {
+  margin-bottom: var(--s3);
+}
+.poster-colors > .check {
+  grid-column: 1 / -1;
+}
+.poster-drawings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  margin: var(--s3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.poster-drawing {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--surface);
+}
+.poster-drawing:hover {
+  border-color: var(--line-strong);
+}
+.poster-drawing[aria-pressed='true'] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.poster-drawing img {
+  max-width: 100%;
+  max-height: 100%;
+}
+.poster-dialog__other {
+  align-self: flex-start;
+  margin-top: var(--s3);
+}
+.poster-dialog__ask {
+  align-items: center;
+}
+.poster-dialog__ask > p {
+  flex: 1;
+  font-size: var(--t-md);
+}
+@media (max-width: 760px) {
+  .poster-dialog__body {
+    grid-template-columns: 1fr;
+  }
+}

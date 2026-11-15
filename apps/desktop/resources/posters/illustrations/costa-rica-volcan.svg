@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 120 1120 700">
+  <!-- Smoke plume -->
+  <circle fill="#e8dcc4" cx="600" cy="250" r="40"/>
+  <circle fill="#e8dcc4" cx="640" cy="220" r="54"/>
+  <circle fill="#e8dcc4" cx="700" cy="196" r="60"/>
+  <circle fill="#e8dcc4" cx="770" cy="186" r="52"/>
+  <circle fill="#e8dcc4" cx="830" cy="196" r="40"/>
+  <circle fill="#e8dcc4" cx="660" cy="270" r="36"/>
+  <!-- Volcano, its right flank in shadow -->
+  <path class="tb-main" fill="#6b7078" d="M120 800C300 660 460 440 560 300H640C740 440 900 660 1080 800z"/>
+  <path class="tb-shade" fill="#454a52" d="M610 300H640C740 440 900 660 1080 800H800C740 600 660 420 610 300z"/>
+  <path class="tb-shade" fill="#454a52" d="M560 300C580 316 620 316 640 300l-6 22C614 334 586 334 566 322z"/>
+  <!-- Gullies -->
+  <path class="tb-shade" fill="#454a52" d="M590 330L520 560l-10 0z"/>
+  <path class="tb-shade" fill="#454a52" d="M606 336L600 600l-10 0z"/>
+  <path class="tb-shade" fill="#454a52" d="M622 334L700 580l-10 0z"/>
+  <!-- Rainforest: rounded canopies and palms -->
+  <circle fill="#6f7f3e" cx="82" cy="770" r="47"/>
+  <circle fill="#6f7f3e" cx="129" cy="770" r="49"/>
+  <circle fill="#6f7f3e" cx="156" cy="759" r="49"/>
+  <circle fill="#6f7f3e" cx="208" cy="776" r="36"/>
+  <circle fill="#6f7f3e" cx="248" cy="750" r="43"/>
+  <circle fill="#6f7f3e" cx="291" cy="741" r="37"/>
+  <circle fill="#6f7f3e" cx="328" cy="777" r="46"/>
+  <circle fill="#6f7f3e" cx="369" cy="772" r="36"/>
+  <circle fill="#6f7f3e" cx="418" cy="745" r="34"/>
+  <circle fill="#6f7f3e" cx="464" cy="748" r="37"/>
+  <circle fill="#6f7f3e" cx="508" cy="775" r="39"/>
+  <circle fill="#6f7f3e" cx="549" cy="762" r="45"/>
+  <circle fill="#6f7f3e" cx="579" cy="778" r="45"/>
+  <circle fill="#6f7f3e" cx="633" cy="776" r="39"/>
+  <circle fill="#6f7f3e" cx="666" cy="747" r="36"/>
+  <circle fill="#6f7f3e" cx="703" cy="752" r="44"/>
+  <circle fill="#6f7f3e" cx="744" cy="767" r="39"/>
+  <circle fill="#6f7f3e" cx="791" cy="773" r="42"/>
+  <circle fill="#6f7f3e" cx="833" cy="759" r="45"/>
+  <circle fill="#6f7f3e" cx="871" cy="779" r="34"/>
+  <circle fill="#6f7f3e" cx="924" cy="774" r="34"/>
+  <circle fill="#6f7f3e" cx="967" cy="755" r="43"/>
+  <circle fill="#6f7f3e" cx="996" cy="742" r="37"/>
+  <circle fill="#6f7f3e" cx="1053" cy="748" r="46"/>
+  <circle fill="#6f7f3e" cx="1095" cy="778" r="40"/>
+  <circle fill="#6f7f3e" cx="1128" cy="761" r="46"/>
+  <path fill="#6f7f3e" d="M60 780h1080v40h-1080z"/>
+  <path fill="#2b2723" d="M193 820C196 664.0 208 599.0 222 560l10 3C216 612.0 209 690.0 209 820z"/>
+  <path fill="#2b2723" d="M226 560Q185 522 132 548Q177 543 226 560z"/>
+  <path fill="#2b2723" d="M226 560Q208 500 163 492Q190 513 226 560z"/>
+  <path fill="#2b2723" d="M226 560Q243 518 226 508Q221 518 226 560z"/>
+  <path fill="#2b2723" d="M226 560Q271 520 289 492Q253 507 226 560z"/>
+  <path fill="#2b2723" d="M226 560Q279 554 320 548Q271 533 226 560z"/>
+  <path fill="#2b2723" d="M226 560Q256 584 297 608Q263 563 226 560z"/>
+  <path fill="#2b2723" d="M226 560Q184 552 155 608Q192 573 226 560z"/>
+  <path fill="#2b2723" d="M973 820C976 682.0 972 624.5 958 590l10 3C964 636.0 989 705.0 989 820z"/>
+  <path fill="#2b2723" d="M954 590Q913 552 860 578Q905 573 954 590z"/>
+  <path fill="#2b2723" d="M954 590Q936 530 891 522Q918 543 954 590z"/>
+  <path fill="#2b2723" d="M954 590Q971 548 954 538Q949 548 954 590z"/>
+  <path fill="#2b2723" d="M954 590Q999 550 1017 522Q981 537 954 590z"/>
+  <path fill="#2b2723" d="M954 590Q1007 584 1048 578Q999 563 954 590z"/>
+  <path fill="#2b2723" d="M954 590Q984 614 1025 638Q991 593 954 590z"/>
+  <path fill="#2b2723" d="M954 590Q912 582 883 638Q920 603 954 590z"/>
+</svg>
+

@@ -3,6 +3,19 @@
 All notable changes to travelbook. Versions follow [Semantic Versioning](https://semver.org/);
 the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Affiches: "Créer une affiche…" (cover tools and the Modèles panel) composes a poster cover,
+  front and spine: the place in large letters at the top, the year under it, and a drawing
+  centred below, in five layouts (Classique, Empilé, Arche, Soleil, Horizon), with a live
+  preview, applied in one undoable step as ordinary elements.
+- 43 original flat drawings for 13 destinations, with one preset each; they are also the
+  sticker set "Affiches", usable on any page. Recolourable drawings follow the title colour on
+  request.
+- Lilita One, the posters' title face, among the bundled fonts (42 families).
+
 ## [0.1.0] - 2026-11-15
 
 First release. Every package of the repository (`travelbook`, `@travelbook/core`,

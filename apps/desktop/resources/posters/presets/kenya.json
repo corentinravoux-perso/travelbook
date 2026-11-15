@@ -1,0 +1,83 @@
+[
+  {
+    "id": "kenya-safari",
+    "destination": "kenya",
+    "name": "Kenya, 4×4 de safari",
+    "spec": {
+      "layout": "horizon",
+      "title": "KENYA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fbe7c6",
+        "title": "#c0661f",
+        "accent": "#2b2723",
+        "decor": "#e8c48a",
+        "illustration": {
+          "main": "#c0661f",
+          "shade": "#c0661f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "kenya-safari"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "kenya-zebre",
+    "destination": "kenya",
+    "name": "Kenya, zèbre",
+    "spec": {
+      "layout": "classique",
+      "title": "KENYA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6c9a0",
+        "title": "#ffffff",
+        "accent": "#2b2723",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#ffffff",
+          "shade": "#ffffff"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "kenya-zebre"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "kenya-lion",
+    "destination": "kenya",
+    "name": "Kenya, lion",
+    "spec": {
+      "layout": "soleil",
+      "title": "KENYA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fdecc8",
+        "title": "#c4652a",
+        "accent": "#8a3f17",
+        "decor": "#f6cf8e",
+        "illustration": {
+          "main": "#c4652a",
+          "shade": "#8a3f17"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "kenya-lion"
+      },
+      "spine": true
+    }
+  }
+]

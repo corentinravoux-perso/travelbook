@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="180 250 840 750">
+  <!-- Dry-stone terrace -->
+  <path fill="#e8dcc4" d="M140 900H1060V1000H140z"/>
+  <path fill="#57493c" d="M150 910h66v22h-66zM226 910h66v22h-66zM302 910h66v22h-66zM378 910h66v22h-66zM454 910h66v22h-66zM530 910h66v22h-66zM606 910h66v22h-66zM682 910h66v22h-66zM758 910h66v22h-66zM834 910h66v22h-66zM910 910h66v22h-66zM986 910h66v22h-66zM188 940h66v22h-66zM264 940h66v22h-66zM340 940h66v22h-66zM416 940h66v22h-66zM492 940h66v22h-66zM568 940h66v22h-66zM644 940h66v22h-66zM720 940h66v22h-66zM796 940h66v22h-66zM872 940h66v22h-66zM948 940h66v22h-66zM150 970h66v22h-66zM226 970h66v22h-66zM302 970h66v22h-66zM378 970h66v22h-66zM454 970h66v22h-66zM530 970h66v22h-66zM606 970h66v22h-66zM682 970h66v22h-66zM758 970h66v22h-66zM834 970h66v22h-66zM910 970h66v22h-66zM986 970h66v22h-66z"/>
+  <!-- Gnarled twisted trunk -->
+  <path fill="#7a6a58" d="M520 900C530 840 500 800 470 760C430 700 450 640 500 600C530 576 540 540 520 500L560 496C580 540 572 590 540 620C500 660 500 710 540 750C580 790 600 840 600 900z"/>
+  <path fill="#57493c" d="M560 496C580 540 572 590 540 620C520 640 512 670 520 700C540 660 590 640 600 590C610 550 590 520 580 496z"/>
+  <path fill="#7a6a58" d="M520 600C470 560 420 540 360 540l-4 14C410 558 460 576 506 614z"/>
+  <path fill="#7a6a58" d="M556 610C620 570 680 556 750 560l2 14C690 572 630 588 566 626z"/>
+  <path fill="#7a6a58" d="M530 520C520 460 500 420 470 390l12-8C514 410 536 452 548 514z"/>
+  <path fill="#7a6a58" d="M552 520C580 460 620 420 670 400l6 12C630 432 594 470 568 526z"/>
+  <!-- Silvery canopy of clustered leaves, shade first -->
+  <ellipse class="tb-shade" fill="#55703f" cx="385" cy="566" rx="57" ry="40"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="345" cy="537" rx="61" ry="43"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="373" cy="512" rx="54" ry="38"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="360" cy="536" rx="51" ry="36"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="356" cy="534" rx="61" ry="43"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="362" cy="548" rx="43" ry="30"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="413" cy="535" rx="63" ry="44"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="358" cy="535" rx="50" ry="35"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="352" cy="536" rx="65" ry="45"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="452" cy="422" rx="67" ry="47"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="511" cy="452" rx="57" ry="40"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="435" cy="410" rx="58" ry="41"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="461" cy="418" rx="68" ry="48"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="466" cy="458" rx="51" ry="36"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="528" cy="406" rx="65" ry="46"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="464" cy="384" rx="64" ry="45"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="487" cy="434" rx="67" ry="47"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="482" cy="464" rx="69" ry="48"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="574" cy="408" rx="62" ry="43"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="537" cy="434" rx="60" ry="42"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="608" cy="397" rx="69" ry="48"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="642" cy="395" rx="63" ry="44"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="540" cy="382" rx="55" ry="39"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="564" cy="375" rx="66" ry="47"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="606" cy="405" rx="59" ry="41"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="626" cy="387" rx="66" ry="46"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="597" cy="402" rx="51" ry="36"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="762" cy="500" rx="51" ry="36"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="720" cy="505" rx="64" ry="44"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="768" cy="531" rx="66" ry="46"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="781" cy="529" rx="63" ry="44"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="713" cy="537" rx="48" ry="34"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="748" cy="530" rx="44" ry="31"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="759" cy="499" rx="54" ry="38"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="742" cy="534" rx="48" ry="34"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="733" cy="556" rx="46" ry="32"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="588" cy="505" rx="79" ry="56"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="627" cy="491" rx="67" ry="47"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="559" cy="556" rx="68" ry="48"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="560" cy="494" rx="59" ry="41"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="598" cy="453" rx="79" ry="55"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="529" cy="480" rx="70" ry="49"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="576" cy="480" rx="69" ry="48"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="549" cy="544" rx="53" ry="37"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="526" cy="441" rx="53" ry="37"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="271" cy="442" rx="47" ry="33"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="288" cy="451" rx="39" ry="27"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="347" cy="447" rx="34" ry="24"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="304" cy="458" rx="32" ry="22"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="293" cy="458" rx="47" ry="33"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="296" cy="452" rx="41" ry="29"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="288" cy="473" rx="35" ry="25"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="305" cy="462" rx="38" ry="27"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="293" cy="436" rx="32" ry="23"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="809" cy="414" rx="45" ry="32"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="820" cy="446" rx="40" ry="28"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="858" cy="457" rx="35" ry="24"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="817" cy="437" rx="44" ry="31"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="819" cy="447" rx="38" ry="27"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="802" cy="478" rx="37" ry="26"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="790" cy="446" rx="49" ry="34"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="846" cy="459" rx="41" ry="28"/>
+  <ellipse class="tb-shade" fill="#55703f" cx="815" cy="410" rx="37" ry="26"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="385" cy="550" rx="57" ry="40"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="345" cy="521" rx="61" ry="43"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="373" cy="496" rx="54" ry="38"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="360" cy="520" rx="51" ry="36"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="356" cy="518" rx="61" ry="43"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="362" cy="532" rx="43" ry="30"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="413" cy="519" rx="63" ry="44"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="358" cy="519" rx="50" ry="35"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="352" cy="520" rx="65" ry="45"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="452" cy="406" rx="67" ry="47"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="511" cy="436" rx="57" ry="40"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="435" cy="394" rx="58" ry="41"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="461" cy="402" rx="68" ry="48"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="466" cy="442" rx="51" ry="36"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="528" cy="390" rx="65" ry="46"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="464" cy="368" rx="64" ry="45"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="487" cy="418" rx="67" ry="47"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="482" cy="448" rx="69" ry="48"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="574" cy="392" rx="62" ry="43"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="537" cy="418" rx="60" ry="42"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="608" cy="381" rx="69" ry="48"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="642" cy="379" rx="63" ry="44"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="540" cy="366" rx="55" ry="39"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="564" cy="359" rx="66" ry="47"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="606" cy="389" rx="59" ry="41"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="626" cy="371" rx="66" ry="46"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="597" cy="386" rx="51" ry="36"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="762" cy="484" rx="51" ry="36"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="720" cy="489" rx="64" ry="44"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="768" cy="515" rx="66" ry="46"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="781" cy="513" rx="63" ry="44"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="713" cy="521" rx="48" ry="34"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="748" cy="514" rx="44" ry="31"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="759" cy="483" rx="54" ry="38"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="742" cy="518" rx="48" ry="34"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="733" cy="540" rx="46" ry="32"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="588" cy="489" rx="79" ry="56"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="627" cy="475" rx="67" ry="47"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="559" cy="540" rx="68" ry="48"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="560" cy="478" rx="59" ry="41"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="598" cy="437" rx="79" ry="55"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="529" cy="464" rx="70" ry="49"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="576" cy="464" rx="69" ry="48"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="549" cy="528" rx="53" ry="37"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="526" cy="425" rx="53" ry="37"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="271" cy="426" rx="47" ry="33"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="288" cy="435" rx="39" ry="27"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="347" cy="431" rx="34" ry="24"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="304" cy="442" rx="32" ry="22"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="293" cy="442" rx="47" ry="33"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="296" cy="436" rx="41" ry="29"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="288" cy="457" rx="35" ry="25"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="305" cy="446" rx="38" ry="27"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="293" cy="420" rx="32" ry="23"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="809" cy="398" rx="45" ry="32"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="820" cy="430" rx="40" ry="28"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="858" cy="441" rx="35" ry="24"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="817" cy="421" rx="44" ry="31"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="819" cy="431" rx="38" ry="27"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="802" cy="462" rx="37" ry="26"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="790" cy="430" rx="49" ry="34"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="846" cy="443" rx="41" ry="28"/>
+  <ellipse class="tb-main" fill="#7f9a5a" cx="815" cy="394" rx="37" ry="26"/>
+  <!-- Olive sprigs: little lance leaves on the edges -->
+  <path class="tb-shade" fill="#55703f" d="M492 402Q484 381 460 370Q471 394 492 402zM278 435Q262 419 235 418Q255 436 278 435zM315 494Q305 473 281 463Q293 487 315 494zM669 375Q691 381 715 368Q688 363 669 375zM586 380Q601 396 628 398Q608 380 586 380zM638 463Q659 471 684 461Q658 453 638 463zM451 492Q472 482 483 458Q459 470 451 492zM586 483Q600 500 627 503Q608 484 586 483zM317 425Q333 408 334 382Q316 402 317 425zM783 401Q761 399 740 415Q767 416 783 401zM610 467Q632 468 653 452Q626 451 610 467zM520 503Q514 481 491 466Q500 492 520 503zM664 496Q642 491 619 504Q645 508 664 496zM718 531Q696 537 683 560Q708 551 718 531zM680 388Q694 405 721 408Q702 389 680 388zM397 532Q414 547 441 546Q419 530 397 532zM806 492Q824 506 851 504Q828 489 806 492zM464 409Q467 386 451 364Q450 391 464 409zM277 459Q254 463 239 485Q265 478 277 459zM718 492Q695 489 673 505Q700 507 718 492zM417 391Q395 396 380 419Q406 411 417 391zM546 384Q524 377 500 388Q526 395 546 384zM659 413Q681 410 698 390Q672 395 659 413zM583 485Q596 504 623 509Q606 488 583 485zM808 546Q809 569 829 587Q825 561 808 546zM552 320Q556 298 542 275Q538 302 552 320zM865 462Q860 484 874 506Q878 480 865 462zM680 462Q672 441 648 429Q659 453 680 462zM283 429Q274 408 250 398Q262 421 283 429zM310 417Q330 407 339 381Q316 395 310 417zM547 396Q563 381 566 354Q547 373 547 396zM488 458Q480 479 490 504Q498 479 488 458zM784 432Q764 423 738 432Q764 441 784 432zM497 395Q487 374 462 364Q475 388 497 395zM271 443Q252 430 225 436Q249 448 271 443zM313 425Q334 432 359 421Q333 414 313 425zM412 579Q416 601 437 618Q431 592 412 579zM438 440Q422 455 421 482Q438 462 438 440zM614 332Q618 310 604 287Q601 314 614 332zM325 523Q309 508 282 508Q303 525 325 523z"/>
+  <!-- Olives -->
+  <path fill="#57493c" d="M354 549a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM751 505a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM529 442a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM552 502a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM782 449a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM598 413a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM339 445a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM339 445a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM760 541a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM807 408a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM405 545a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM838 459a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM503 459a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM263 445a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM754 504a8 11 0 1 0 16 0a8 11 0 1 0-16 0zM458 463a8 11 0 1 0 16 0a8 11 0 1 0-16 0z"/>
+</svg>
+

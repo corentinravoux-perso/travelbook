@@ -30,6 +30,8 @@ extraResources:
       - '**/*'
       - '!icons/**'
       - '!stickers/fr-keywords.json'
+      # Poster sources: the illustrations ship in the `affiches` sticker pack, the presets in the renderer bundle.
+      - '!posters/**'
 
 # There is no native module to compile: sharp downloads prebuilt binaries as optional packages.
 npmRebuild: false

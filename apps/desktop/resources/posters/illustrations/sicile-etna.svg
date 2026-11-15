@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 110 1120 690">
+  <!-- Smoke -->
+  <circle fill="#e8dcc4" cx="600" cy="230" r="34"/>
+  <circle fill="#e8dcc4" cx="630" cy="200" r="46"/>
+  <circle fill="#e8dcc4" cx="680" cy="170" r="52"/>
+  <circle fill="#e8dcc4" cx="740" cy="160" r="44"/>
+  <circle fill="#e8dcc4" cx="790" cy="168" r="34"/>
+  <!-- Wide shield volcano, snow on the summit -->
+  <path class="tb-main" fill="#5c5a66" d="M60 760C260 640 430 420 540 290H660C770 420 940 640 1140 760z"/>
+  <path class="tb-shade" fill="#3a3842" d="M620 290H660C770 420 940 640 1140 760H860C780 580 690 420 620 290z"/>
+  <path fill="#e8dcc4" d="M540 290H660C690 330 716 364 740 396l-26-6-20 30-24-36-22 40-24-34-22 30-22-40-26 28-24-30-28 22C484 354 512 322 540 290z"/>
+  <!-- Lava tongues -->
+  <path fill="#e8693a" d="M560 300L520 470 540 466 500 600 530 520 512 524z"/>
+  <path fill="#e8693a" d="M640 300L680 440 664 436 700 560 670 470 686 474z"/>
+  <!-- Orchards and a village at the foot -->
+  <circle fill="#6f7f3e" cx="85" cy="763" r="23"/>
+  <circle fill="#6f7f3e" cx="119" cy="761" r="29"/>
+  <circle fill="#6f7f3e" cx="170" cy="752" r="28"/>
+  <circle fill="#6f7f3e" cx="213" cy="756" r="24"/>
+  <circle fill="#6f7f3e" cx="255" cy="753" r="29"/>
+  <circle fill="#6f7f3e" cx="306" cy="763" r="27"/>
+  <circle fill="#6f7f3e" cx="343" cy="751" r="22"/>
+  <circle fill="#6f7f3e" cx="382" cy="754" r="25"/>
+  <circle fill="#6f7f3e" cx="431" cy="762" r="27"/>
+  <circle fill="#6f7f3e" cx="477" cy="750" r="22"/>
+  <circle fill="#6f7f3e" cx="518" cy="748" r="27"/>
+  <circle fill="#6f7f3e" cx="570" cy="758" r="24"/>
+  <circle fill="#6f7f3e" cx="613" cy="760" r="29"/>
+  <circle fill="#6f7f3e" cx="657" cy="760" r="30"/>
+  <circle fill="#6f7f3e" cx="694" cy="764" r="32"/>
+  <circle fill="#6f7f3e" cx="736" cy="760" r="29"/>
+  <circle fill="#6f7f3e" cx="784" cy="756" r="27"/>
+  <circle fill="#6f7f3e" cx="833" cy="755" r="30"/>
+  <circle fill="#6f7f3e" cx="870" cy="762" r="31"/>
+  <circle fill="#6f7f3e" cx="916" cy="756" r="31"/>
+  <circle fill="#6f7f3e" cx="963" cy="755" r="24"/>
+  <circle fill="#6f7f3e" cx="1002" cy="759" r="24"/>
+  <circle fill="#6f7f3e" cx="1053" cy="751" r="31"/>
+  <circle fill="#6f7f3e" cx="1090" cy="763" r="29"/>
+  <path fill="#6f7f3e" d="M60 760h1080v40h-1080z"/>
+  <path fill="#e8dcc4" d="M380 740h60v50h-60z"/>
+  <path fill="#e8693a" d="M376 740L410 722L444 740z"/>
+  <path class="tb-shade" fill="#3a3842" d="M404 765h12v25h-12z"/>
+  <path fill="#e8dcc4" d="M440 750h40v40h-40z"/>
+  <path fill="#e8693a" d="M436 750L460 732L484 750z"/>
+  <path class="tb-shade" fill="#3a3842" d="M456 770h8v20h-8z"/>
+  <path fill="#e8dcc4" d="M480 734h70v56h-70z"/>
+  <path fill="#e8693a" d="M476 734L515 716L554 734z"/>
+  <path class="tb-shade" fill="#3a3842" d="M508 762h14v28h-14z"/>
+  <path fill="#e8dcc4" d="M560 746h50v44h-50z"/>
+  <path fill="#e8693a" d="M556 746L585 728L614 746z"/>
+  <path class="tb-shade" fill="#3a3842" d="M580 768h10v22h-10z"/>
+  <path fill="#e8dcc4" d="M810 742h60v48h-60z"/>
+  <path fill="#e8693a" d="M806 742L840 724L874 742z"/>
+  <path class="tb-shade" fill="#3a3842" d="M834 766h12v24h-12z"/>
+  <path fill="#e8dcc4" d="M870 750h46v40h-46z"/>
+  <path fill="#e8693a" d="M866 750L893 732L920 750z"/>
+  <path class="tb-shade" fill="#3a3842" d="M888 770h9v20h-9z"/>
+</svg>
+

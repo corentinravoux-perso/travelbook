@@ -56,6 +56,7 @@ const tb: TbApi = {
     importFiles: (kind, paths) => ipcRenderer.invoke(CHANNEL.assetsImportFiles, kind, paths),
     fromLibrary: (itemId) => ipcRenderer.invoke(CHANNEL.assetsFromLibrary, itemId),
     fromBundled: (file) => ipcRenderer.invoke(CHANNEL.assetsFromBundled, file),
+    fromSvg: (svg, meta) => ipcRenderer.invoke(CHANNEL.assetsFromSvg, svg, meta),
     palette: (assetIds) => ipcRenderer.invoke(CHANNEL.assetsPalette, assetIds),
   },
   library: {

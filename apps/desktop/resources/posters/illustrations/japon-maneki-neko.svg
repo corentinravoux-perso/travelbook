@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 80 800 920" data-tb-style="pixory">
+  <!-- Body -->
+  <path fill="#f8f4ec" d="M400 400C566 400 640 540 640 720V944C640 976 612 1000 578 1000H222C188 1000 160 976 160 944V720C160 540 234 400 400 400z"/>
+  <path fill="#ddd3c4" d="M566 440C620 500 640 600 640 720V944C640 976 612 1000 578 1000H548C584 960 594 900 594 806C594 640 586 520 566 440z"/>
+  <path fill="#e07b39" d="M180 640C200 600 250 590 280 616C300 660 290 720 250 740C210 750 182 700 180 640z"/>
+  <!-- Feet -->
+  <ellipse fill="#f8f4ec" cx="300" cy="972" rx="74" ry="30"/>
+  <ellipse fill="#f8f4ec" cx="500" cy="972" rx="74" ry="30"/>
+  <path fill="#ddd3c4" d="M280 958h4v22h-4z"/>
+  <path fill="#ddd3c4" d="M298 958h4v22h-4z"/>
+  <path fill="#ddd3c4" d="M316 958h4v22h-4z"/>
+  <path fill="#ddd3c4" d="M480 958h4v22h-4z"/>
+  <path fill="#ddd3c4" d="M498 958h4v22h-4z"/>
+  <path fill="#ddd3c4" d="M516 958h4v22h-4z"/>
+  <!-- Gold coin held by the right paw -->
+  <ellipse fill="#b5832a" cx="520" cy="790" rx="78" ry="118"/>
+  <ellipse fill="#e2ad3b" cx="520" cy="790" rx="64" ry="104"/>
+  <path fill="#b5832a" d="M478 730h84v7h-84z"/>
+  <path fill="#b5832a" d="M478 770h84v7h-84z"/>
+  <path fill="#b5832a" d="M478 810h84v7h-84z"/>
+  <path fill="#b5832a" d="M478 850h84v7h-84z"/>
+  <ellipse fill="#f8f4ec" cx="520" cy="690" rx="64" ry="46"/>
+  <path fill="#ddd3c4" d="M560 668c14 10 22 26 20 40-12-8-22-10-32-8z"/>
+  <!-- Ears -->
+  <path fill="#f8f4ec" d="M222 248L202 92 336 182z"/>
+  <path fill="#ef9c94" d="M234 222L222 128 306 184z"/>
+  <path fill="#f8f4ec" d="M578 248L598 92 464 182z"/>
+  <path fill="#ef9c94" d="M566 222L578 128 494 184z"/>
+  <path fill="#e07b39" d="M202 92L209 147L249 123z"/>
+  <!-- Head -->
+  <ellipse fill="#f8f4ec" cx="400" cy="330" rx="212" ry="176"/>
+  <path fill="#ddd3c4" d="M520 172C580 200 612 260 612 330S580 460 520 488C566 440 584 390 584 330S566 216 520 172z"/>
+  <path fill="#e07b39" d="M232 250C250 200 300 172 350 166C350 200 330 236 290 254C262 266 244 264 232 250z"/>
+  <path fill="#2b2723" d="M500 176C532 184 556 200 574 222C556 240 520 244 500 226C490 210 492 190 500 176z"/>
+  <!-- Face -->
+  <path fill="#2b2723" d="M300 322q34-34 68 0q-34-16-68 0z"/>
+  <path fill="#2b2723" d="M432 322q34-34 68 0q-34-16-68 0z"/>
+  <ellipse fill="#ef9c94" cx="306" cy="372" rx="26" ry="14"/>
+  <ellipse fill="#ef9c94" cx="494" cy="372" rx="26" ry="14"/>
+  <path fill="#ef9c94" d="M384 350h32l-16 18z"/>
+  <path fill="#2b2723" d="M400 366c0 20-28 26-38 8l6-3c7 11 24 7 26-5zM400 366c0 20 28 26 38 8l-6-3c-7 11-24 7-26-5z"/>
+  <path fill="#2b2723" d="M290 356l-92 -17v6z"/>
+  <path fill="#2b2723" d="M510 356l92 -17v6z"/>
+  <path fill="#2b2723" d="M290 372l-92 -3v6z"/>
+  <path fill="#2b2723" d="M510 372l92 -3v6z"/>
+  <path fill="#2b2723" d="M290 388l-92 11v6z"/>
+  <path fill="#2b2723" d="M510 388l92 11v6z"/>
+  <!-- Collar and bell -->
+  <path fill="#c8382f" d="M214 456C320 506 480 506 586 456L594 494C484 548 316 548 206 494z"/>
+  <circle fill="#b5832a" cx="400" cy="540" r="38"/>
+  <circle fill="#e2ad3b" cx="400" cy="536" r="34"/>
+  <path fill="#b5832a" d="M370 534h60v6h-60z"/>
+  <circle fill="#2b2723" cx="400" cy="552" r="7"/>
+  <!-- Raised paw -->
+  <path fill="#f8f4ec" d="M214 590C178 500 150 400 142 300C138 254 162 222 196 222C232 222 252 254 250 300C248 380 266 470 294 548z"/>
+  <path fill="#ddd3c4" d="M250 300C248 380 266 470 294 548L276 560C246 480 232 390 232 300C232 270 224 248 210 236C236 238 252 266 250 300z"/>
+  <ellipse fill="#ef9c94" cx="196" cy="290" rx="26" ry="22"/>
+  <circle fill="#ef9c94" cx="170" cy="254" r="9"/>
+  <circle fill="#ef9c94" cx="196" cy="244" r="9"/>
+  <circle fill="#ef9c94" cx="222" cy="254" r="9"/>
+</svg>
+
