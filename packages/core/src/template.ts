@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import {
+  BackgroundSchema,
   ElementSchema,
   TextRoleSchema,
+  type Background,
   type Element,
   type Mm,
   type PhotoElement,
@@ -25,17 +27,39 @@ export interface FreeSlot {
   mask?: PhotoElement['mask'];
 }
 
+/** Most photos a template can hold. */
+export const MAX_TEMPLATE_PHOTOS = 16;
+
 export interface Template {
+  /** Bundled templates have ids that start with `b-`, the user's with `user-`. */
   id: string;
   /** French display name. */
   name: string;
   category: 'photos' | 'texte' | 'double' | 'couverture' | 'ouverture';
   scope: 'page' | 'spread';
+  /** Photo slots, 0 to `MAX_TEMPLATE_PHOTOS`. */
   photoCount: number;
   origin: 'bundled' | 'user';
+  /** The `Theme` this template belongs to; templates without one make up the plain "Classique" set. */
+  themeId?: string;
+  /** Set on the target by `applyTemplate`; a template without one leaves the background as it is. */
+  background?: Background;
   grid?: { root: LayoutNode; fullBleed: boolean };
   /** Decorations are in 0..1 units relative to the template box. */
   free?: { slots: FreeSlot[]; decorations: Element[] };
+}
+
+/**
+ * A look that goes together: the templates that name its id (one cover, and pages), their
+ * backgrounds, and the fonts to use with them.
+ */
+export interface Theme {
+  id: string;
+  /** French display name. */
+  name: string;
+  /** Id of the theme's cover template. */
+  coverTemplateId: string;
+  fonts: string[];
 }
 
 export interface SlotRect extends Rect {
@@ -88,8 +112,10 @@ export const TemplateSchema: z.ZodType<Template> = z
     name: z.string().min(1),
     category: z.enum(['photos', 'texte', 'double', 'couverture', 'ouverture']),
     scope: z.enum(['page', 'spread']),
-    photoCount: z.number().int().min(0),
+    photoCount: z.number().int().min(0).max(MAX_TEMPLATE_PHOTOS),
     origin: z.enum(['bundled', 'user']),
+    themeId: z.string().min(1).optional(),
+    background: BackgroundSchema.optional(),
     grid: z.object({ root: LayoutNodeSchema, fullBleed: z.boolean() }).optional(),
     free: z
       .object({ slots: z.array(FreeSlotSchema), decorations: z.array(ElementSchema) })
@@ -98,6 +124,13 @@ export const TemplateSchema: z.ZodType<Template> = z
   .refine((t) => (t.grid === undefined) !== (t.free === undefined), {
     message: 'a template needs exactly one of grid or free',
   });
+
+export const ThemeSchema: z.ZodType<Theme> = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  coverTemplateId: z.string().min(1),
+  fonts: z.array(z.string().min(1)),
+});
 
 function layoutNode(node: LayoutNode, box: Rect, gap: Mm, out: SlotRect[]): void {
   if ('slot' in node) {
