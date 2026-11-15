@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 300 740 700" data-tb-style="pixory">
+  <!-- Stem and leaf -->
+  <path fill="#2f6b34" d="M492 1000C498 900 506 820 520 760l14 4C522 820 514 900 510 1000z"/>
+  <path fill="#2f6b34" d="M520 770C380 760 220 680 160 540C260 520 420 560 520 700C560 600 700 520 860 540C820 680 660 770 520 770z"/>
+  <path fill="#3f8f36" d="M520 770C420 740 280 660 200 560C300 580 430 640 520 740z"/>
+  <path fill="#3f8f36" d="M524 768C540 700 560 640 600 600l-4-4C556 636 534 700 518 766z"/>
+  <!-- Back legs folded -->
+  <path fill="#6cc24a" d="M620 640C700 620 740 660 720 700C700 730 640 730 600 712z"/>
+  <path fill="#6cc24a" d="M380 640C300 620 260 660 280 700C300 730 360 730 400 712z"/>
+  <!-- Body -->
+  <path fill="#6cc24a" d="M500 440C600 440 660 520 650 610C640 690 580 720 500 720S360 690 350 610C340 520 400 440 500 440z"/>
+  <!-- Blue and cream flanks -->
+  <path fill="#3a6fc4" d="M372 560C380 620 410 670 450 690C420 650 404 610 400 560z"/>
+  <path fill="#3a6fc4" d="M628 560C620 620 590 670 550 690C580 650 596 610 600 560z"/>
+  <path fill="#f3eac4" d="M382 600h8v14h-8z"/>
+  <path fill="#f3eac4" d="M392 630h8v14h-8z"/>
+  <path fill="#f3eac4" d="M610 600h8v14h-8z"/>
+  <path fill="#f3eac4" d="M600 630h8v14h-8z"/>
+  <!-- Front legs and orange toes -->
+  <path fill="#6cc24a" d="M392 640C380 700 370 740 360 770l18-6C360 730 380 690 428 640z"/>
+  <path fill="#f39a2a" d="M348 772L331 761l-4 6z"/>
+  <circle fill="#f39a2a" cx="329" cy="763" r="8"/>
+  <path fill="#f39a2a" d="M348 772L316 774l-4 6z"/>
+  <circle fill="#f39a2a" cx="314" cy="776" r="8"/>
+  <path fill="#f39a2a" d="M348 772L316 790l-4 6z"/>
+  <circle fill="#f39a2a" cx="314" cy="792" r="8"/>
+  <path fill="#f39a2a" d="M348 772L331 803l-4 6z"/>
+  <circle fill="#f39a2a" cx="329" cy="805" r="8"/>
+  <path fill="#6cc24a" d="M572 640C600 700 630 740 640 770l18-6C640 730 620 690 608 640z"/>
+  <path fill="#f39a2a" d="M652 772L669 761l4 6z"/>
+  <circle fill="#f39a2a" cx="671" cy="763" r="8"/>
+  <path fill="#f39a2a" d="M652 772L684 774l4 6z"/>
+  <circle fill="#f39a2a" cx="686" cy="776" r="8"/>
+  <path fill="#f39a2a" d="M652 772L684 790l4 6z"/>
+  <circle fill="#f39a2a" cx="686" cy="792" r="8"/>
+  <path fill="#f39a2a" d="M652 772L669 803l4 6z"/>
+  <circle fill="#f39a2a" cx="671" cy="805" r="8"/>
+  <!-- Head and red eyes -->
+  <path fill="#6cc24a" d="M500 360C590 360 640 410 640 470C640 520 590 550 500 550S360 520 360 470C360 410 410 360 500 360z"/>
+  <circle fill="#6cc24a" cx="402" cy="400" r="56"/>
+  <circle fill="#e0362c" cx="402" cy="400" r="44"/>
+  <ellipse fill="#2b2723" cx="402" cy="400" rx="8" ry="30"/>
+  <circle fill="#6cc24a" cx="598" cy="400" r="56"/>
+  <circle fill="#e0362c" cx="598" cy="400" r="44"/>
+  <ellipse fill="#2b2723" cx="598" cy="400" rx="8" ry="30"/>
+  <path fill="#3f8f36" d="M440 500C470 516 530 516 560 500l2 6C530 524 470 524 438 506z"/>
+  <circle fill="#3f8f36" cx="476" cy="456" r="5"/>
+  <circle fill="#3f8f36" cx="524" cy="456" r="5"/>
+</svg>
+

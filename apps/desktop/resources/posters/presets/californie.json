@@ -1,0 +1,83 @@
+[
+  {
+    "id": "californie-van",
+    "destination": "californie",
+    "name": "Californie, van de surf",
+    "spec": {
+      "layout": "classique",
+      "title": "CALIFORNIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#ffd7b5",
+        "title": "#2f8587",
+        "accent": "#2f8587",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#2f8587",
+          "shade": "#2f8587"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "californie-van"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "californie-pont",
+    "destination": "californie",
+    "name": "Californie, pont suspendu",
+    "spec": {
+      "layout": "horizon",
+      "title": "CALIFORNIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#dcebf5",
+        "title": "#c8502f",
+        "accent": "#8a3218",
+        "decor": "#9cc3d9",
+        "illustration": {
+          "main": "#c8502f",
+          "shade": "#8a3218"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "californie-pont"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "californie-palmiers",
+    "destination": "californie",
+    "name": "Californie, palmiers au couchant",
+    "spec": {
+      "layout": "classique",
+      "title": "CALIFORNIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fde7d0",
+        "title": "#b4532a",
+        "accent": "#2b2723",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#f08a4b",
+          "shade": "#b4532a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "californie-palmiers"
+      },
+      "spine": true
+    }
+  }
+]
