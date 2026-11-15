@@ -1,0 +1,497 @@
+[
+  {
+    "id": "b-o-titre",
+    "name": "Titre de chapitre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.4,
+          "w": 0.8,
+          "h": 0.14,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.4,
+          "y": 0.36,
+          "w": 0.2,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-titre-sous-titre",
+    "name": "Chapitre et sous-titre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.38,
+          "w": 0.8,
+          "h": 0.14,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.15,
+          "y": 0.54,
+          "w": 0.7,
+          "h": 0.06,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.4,
+          "y": 0.34,
+          "w": 0.2,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-bas",
+    "name": "Chapitre en bas de page",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.7,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.83,
+          "w": 0.8,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.67,
+          "w": 0.3,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-encadre",
+    "name": "Titre encadré",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.2,
+          "y": 0.43,
+          "w": 0.6,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.12,
+          "y": 0.34,
+          "w": 0.76,
+          "h": 0.3,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-bande",
+    "name": "Titre sur une bande",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.42,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0,
+          "y": 0.36,
+          "w": 1,
+          "h": 0.24,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e6e6e0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-numero",
+    "name": "Chapitre dans un cercle",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.28,
+          "y": 0.4,
+          "w": 0.44,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.2,
+          "y": 0.7,
+          "w": 0.6,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.2,
+          "y": 0.2679,
+          "w": 0.6,
+          "h": 0.4242,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-citation",
+    "name": "Citation",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.16,
+          "y": 0.36,
+          "w": 0.68,
+          "h": 0.2,
+          "rotation": 0,
+          "textRole": "body"
+        },
+        {
+          "kind": "text",
+          "x": 0.16,
+          "y": 0.6,
+          "w": 0.68,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.46,
+          "y": 0.3,
+          "w": 0.08,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-photo-titre",
+    "name": "Photo et titre de chapitre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [6, 1, 1],
+        "children": [
+          { "slot": "photo" },
+          { "slot": "text", "textRole": "title" },
+          { "slot": "text", "textRole": "caption" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-o-photo-pleine",
+    "name": "Grande photo et titre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": -0.015, "y": -0.011, "w": 1.03, "h": 0.68, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.74,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.4,
+          "y": 0.71,
+          "w": 0.2,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-photo-ronde",
+    "name": "Photo ronde et titre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.25,
+          "y": 0.14,
+          "w": 0.5,
+          "h": 0.3535,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.56,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-o-photo-coin",
+    "name": "Photo en coin et titre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.4, "y": 0.06, "w": 0.54, "h": 0.4, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.08,
+          "y": 0.56,
+          "w": 0.84,
+          "h": 0.14,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0.52,
+          "w": 0.3,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-o-deux-photos",
+    "name": "Deux photos et titre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 2,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [4, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-o-trois-photos",
+    "name": "Trois photos et titre",
+    "category": "ouverture",
+    "scope": "page",
+    "photoCount": 3,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [4, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  }
+]

@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
     "test": "vitest run --passWithNoTests",
     "icons": "node scripts/generate-icons.ts",
+    "templates": "node scripts/build-templates.ts && vitest run scripts/build-templates.test.ts",
     "e2e": "electron-vite build --mode e2e && playwright test",
     "dist:linux": "npm run build && electron-builder --linux deb",
     "dist:win": "npm run build && electron-builder --win nsis"
