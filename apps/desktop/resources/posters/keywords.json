@@ -1,4 +1,15 @@
 {
+  "antilles-hamac": ["martinique", "antilles", "palmier", "hamac", "plage"],
+  "antilles-hibiscus": ["guadeloupe", "antilles", "hibiscus", "fleur", "colibri", "oiseau"],
+  "antilles-ti-punch": [
+    "guadeloupe",
+    "antilles",
+    "ti-punch",
+    "rhum",
+    "citron vert",
+    "canne à sucre"
+  ],
+  "antilles-yole": ["martinique", "antilles", "yole", "voile", "bateau", "course"],
   "californie-palmiers": ["californie", "palmier", "coucher de soleil", "plage", "océan"],
   "californie-pont": ["californie", "pont", "san francisco", "baie", "brouillard"],
   "californie-van": ["californie", "van", "surf", "planche", "combi", "road trip"],
@@ -9,6 +20,9 @@
   "costa-rica-rainette": ["costa rica", "grenouille", "rainette", "jungle", "tropique"],
   "costa-rica-toucan": ["costa rica", "toucan", "oiseau", "jungle", "tropique"],
   "costa-rica-volcan": ["costa rica", "volcan", "arenal", "forêt", "jungle"],
+  "crete-amphore": ["crète", "crete", "amphore", "poulpe", "minoen", "antique"],
+  "crete-caique": ["crète", "crete", "caïque", "bateau", "pêche", "port"],
+  "crete-olivier": ["crète", "crete", "olivier", "olive", "arbre"],
   "ecosse-chardon": ["ecosse", "écosse", "chardon", "fleur", "emblème"],
   "ecosse-chateau": [
     "ecosse",
@@ -34,6 +48,9 @@
   "perou-chullo": ["pérou", "perou", "chullo", "bonnet", "laine", "andes"],
   "perou-lama": ["pérou", "perou", "lama", "alpaga", "andes"],
   "perou-vinicunca": ["pérou", "perou", "vinicunca", "montagne", "arc-en-ciel", "andes"],
+  "sicile-charrette": ["sicile", "charrette", "carretto", "folklore", "peinture"],
+  "sicile-citrons": ["sicile", "citron", "agrume", "branche", "fleur"],
+  "sicile-etna": ["sicile", "etna", "volcan", "lave"],
   "suede-dala": ["suède", "suede", "cheval", "dalécarlie", "dala", "bois"],
   "suede-elan": ["suède", "suede", "élan", "elan", "forêt", "neige"],
   "suede-maison": ["suède", "suede", "maison", "rouge", "campagne", "chalet"],

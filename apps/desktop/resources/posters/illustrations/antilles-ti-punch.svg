@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 90 700 830" data-tb-style="pixory">
+  <!-- Sugar cane stalks behind -->
+  <path fill="#c9a066" d="M288 900L250 260h20L312 900z"/>
+  <path fill="#4f8a2a" d="M280 809h28v6h-28zM275 717h28v6h-28zM269 626h28v6h-28zM263 534h28v6h-28zM257 443h28v6h-28zM252 351h28v6h-28z"/>
+  <path fill="#4f8a2a" d="M260 260Q269 185 232 102Q226 193 260 260z"/>
+  <path fill="#7bbf3c" d="M260 260Q197 227 112 234Q190 270 260 260z"/>
+  <path fill="#c9a066" d="M348 900L340 340h20L372 900z"/>
+  <path fill="#4f8a2a" d="M345 820h28v6h-28zM343 740h28v6h-28zM342 660h28v6h-28zM340 580h28v6h-28zM339 500h28v6h-28zM337 420h28v6h-28z"/>
+  <path fill="#4f8a2a" d="M350 340Q395 280 405 190Q354 265 350 340z"/>
+  <path fill="#7bbf3c" d="M350 340Q312 280 235 244Q284 313 350 340z"/>
+  <path fill="#c9a066" d="M768 900L800 300h20L792 900z"/>
+  <path fill="#4f8a2a" d="M770 814h28v6h-28zM775 729h28v6h-28zM779 643h28v6h-28zM783 557h28v6h-28zM787 471h28v6h-28zM792 386h28v6h-28z"/>
+  <path fill="#4f8a2a" d="M810 300Q883 283 949 220Q861 245 810 300z"/>
+  <path fill="#7bbf3c" d="M810 300Q820 230 784 152Q777 237 810 300z"/>
+  <!-- Glass -->
+  <path fill="#d9eef0" d="M400 500H660L640 900H420z"/>
+  <path fill="#a9d3d8" d="M600 500H660L640 900H584z"/>
+  <!-- Rum and ice -->
+  <path fill="#e3a04a" d="M412 640H648L640 900H420z"/>
+  <path fill="#f6fbfb" d="M450 620l40-6 10 40-40 6z"/>
+  <path fill="#f6fbfb" d="M520 650l40-6 10 40-40 6z"/>
+  <path fill="#f6fbfb" d="M580 610l40-6 10 40-40 6z"/>
+  <path fill="#f6fbfb" d="M480 700l40-6 10 40-40 6z"/>
+  <!-- Lime slice on the rim, and a wedge in the glass -->
+  <circle fill="#4f8a2a" cx="660" cy="500" r="64"/>
+  <circle fill="#7bbf3c" cx="660" cy="500" r="56"/>
+  <path fill="#d9eef0" d="M660 500L710 500L708 515z"/>
+  <path fill="#d9eef0" d="M660 500L695 535L683 544z"/>
+  <path fill="#d9eef0" d="M660 500L660 550L645 548z"/>
+  <path fill="#d9eef0" d="M660 500L625 535L616 523z"/>
+  <path fill="#d9eef0" d="M660 500L610 500L612 485z"/>
+  <path fill="#d9eef0" d="M660 500L625 465L637 456z"/>
+  <path fill="#d9eef0" d="M660 500L660 450L675 452z"/>
+  <path fill="#d9eef0" d="M660 500L695 465L704 477z"/>
+  <path fill="#a9d3d8" d="M400 500h260v10h-260z"/>
+  <path fill="#7bbf3c" d="M460 760a40 40 0 0 1 80 0z"/>
+  <!-- Stirrer (bois lélé) -->
+  <path fill="#2b2723" d="M560 900L620 380l10 2-56 520z"/>
+  <path fill="#2b2723" d="M624 380l-36 -0l4 4z"/>
+  <path fill="#2b2723" d="M624 380l-25 -25l4 4z"/>
+  <path fill="#2b2723" d="M624 380l0 -36l4 4z"/>
+  <path fill="#2b2723" d="M624 380l25 -25l4 4z"/>
+  <path fill="#2b2723" d="M624 380l36 0l4 4z"/>
+  <!-- Saucer shadow -->
+  <ellipse fill="#a9d3d8" cx="530" cy="906" rx="200" ry="14"/>
+</svg>
+
