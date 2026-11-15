@@ -1,0 +1,110 @@
+[
+  {
+    "id": "chine-lanterne",
+    "destination": "chine",
+    "name": "Chine, lanternes",
+    "spec": {
+      "layout": "classique",
+      "title": "CHINE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fde3c8",
+        "title": "#d2362b",
+        "accent": "#9b2219",
+        "decor": "#fff4e6",
+        "illustration": {
+          "main": "#d2362b",
+          "shade": "#d2362b"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "chine-lanterne"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "chine-panda",
+    "destination": "chine",
+    "name": "Chine, panda",
+    "spec": {
+      "layout": "horizon",
+      "title": "CHINE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#d6ecd2",
+        "title": "#2b2723",
+        "accent": "#4f7a2e",
+        "decor": "#a9cf8f",
+        "illustration": {
+          "main": "#2b2723",
+          "shade": "#2b2723"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "chine-panda"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "chine-pagode",
+    "destination": "chine",
+    "name": "Chine, pagode",
+    "spec": {
+      "layout": "soleil",
+      "title": "CHINE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f9e6b8",
+        "title": "#c8423b",
+        "accent": "#83241f",
+        "decor": "#f4c983",
+        "illustration": {
+          "main": "#c8423b",
+          "shade": "#83241f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "chine-pagode"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "chine-muraille",
+    "destination": "chine",
+    "name": "Chine, Grande Muraille",
+    "spec": {
+      "layout": "classique",
+      "title": "CHINE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#e4eef3",
+        "title": "#8a6a45",
+        "accent": "#6f7f3e",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#c9a77c",
+          "shade": "#8a6a45"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "chine-muraille"
+      },
+      "spine": true
+    }
+  }
+]

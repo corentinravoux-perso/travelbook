@@ -50,9 +50,11 @@
     {
       "files": [
         "posters/destinations.json",
-        "posters/keywords.json",
         "posters/illustrations/.gitkeep",
-        "posters/presets/.gitkeep"
+        "posters/keywords.json",
+        "posters/presets/chine.json",
+        "posters/presets/japon.json",
+        "posters/presets/thailande.json"
       ],
       "source": "travelbook",
       "author": "Corentin Ravoux",
@@ -61,12 +63,20 @@
     },
     {
       "files": [
+        "posters/illustrations/chine-lanterne.svg",
+        "posters/illustrations/chine-muraille.svg",
+        "posters/illustrations/chine-pagode.svg",
+        "posters/illustrations/chine-panda.svg",
         "posters/illustrations/ecosse-chateau.svg",
         "posters/illustrations/japon-fuji.svg",
         "posters/illustrations/japon-maneki-neko.svg",
         "posters/illustrations/japon-ramen.svg",
         "posters/illustrations/japon-torii.svg",
-        "posters/illustrations/kenya-safari.svg"
+        "posters/illustrations/kenya-safari.svg",
+        "posters/illustrations/thailande-bateau.svg",
+        "posters/illustrations/thailande-elephant.svg",
+        "posters/illustrations/thailande-stupa.svg",
+        "posters/illustrations/thailande-tuk-tuk.svg"
       ],
       "source": "travelbook",
       "author": "Corentin Ravoux",

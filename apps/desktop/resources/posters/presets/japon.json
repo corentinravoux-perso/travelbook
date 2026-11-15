@@ -1,0 +1,110 @@
+[
+  {
+    "id": "japon-torii",
+    "destination": "japon",
+    "name": "Japon, torii",
+    "spec": {
+      "layout": "soleil",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6cfdc",
+        "title": "#ffffff",
+        "accent": "#b8352f",
+        "decor": "#fbeaf0",
+        "illustration": {
+          "main": "#c8423b",
+          "shade": "#8f2c27"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-torii"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "japon-fuji",
+    "destination": "japon",
+    "name": "Japon, mont Fuji",
+    "spec": {
+      "layout": "classique",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#d9eaf5",
+        "title": "#3b5a7c",
+        "accent": "#3b5a7c",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#5b7fa6",
+          "shade": "#3b5a7c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-fuji"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "japon-maneki-neko",
+    "destination": "japon",
+    "name": "Japon, maneki-neko",
+    "spec": {
+      "layout": "arche",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fbe39a",
+        "title": "#c8382f",
+        "accent": "#c8382f",
+        "decor": "#fff6d6",
+        "illustration": {
+          "main": "#c8382f",
+          "shade": "#c8382f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-maneki-neko"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "japon-ramen",
+    "destination": "japon",
+    "name": "Japon, bol de ramen",
+    "spec": {
+      "layout": "classique",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#cdebdc",
+        "title": "#c8382f",
+        "accent": "#2b2723",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#c8382f",
+          "shade": "#c8382f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-ramen"
+      },
+      "spine": true
+    }
+  }
+]
