@@ -31,12 +31,21 @@ export const CHANNEL = {
   libraryBundledTemplates: 'library:bundledTemplates',
   clipboardWrite: 'clipboard:write',
   clipboardRead: 'clipboard:read',
+  exportRun: 'export:run',
+  exportCancel: 'export:cancel',
+  exportPreflight: 'export:preflight',
+  exportPresetsList: 'export:presetsList',
+  exportPresetsSave: 'export:presetsSave',
+  exportPresetsDelete: 'export:presetsDelete',
   appVersion: 'app:version',
   appOpenExternal: 'app:openExternal',
 } as const;
 
 /** Sent from main to the renderer that started an import: `(done, total)`. */
 export const PROGRESS_CHANNEL = 'photos:progress';
+
+/** Sent from main to the renderer that started an export: `(page, total, step)`. */
+export const EXPORT_PROGRESS_CHANNEL = 'export:progress';
 
 /** Main asks the window to save before it closes: `(requestId)`. */
 export const CLOSE_REQUEST_CHANNEL = 'app:closeRequest';

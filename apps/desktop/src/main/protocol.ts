@@ -9,6 +9,8 @@ import type { Protocol } from 'electron';
  *   tb://cover/<coverId>                            the cover thumbnail of a listed project
  *   tb://library/<itemId>                           a file of the user library
  *   tb://resource/<path>                            a bundled resource
+ *   tb://export/<token>/<file>                      a derivative of the export running under <token>
+ *   tb://export/<token>/original/<assetId>          an original of that export's album
  *
  * Nothing else reads files for the renderer, so everything here is about refusing paths that
  * leave the three roots. `resolveTbUrl` is pure (no file system, no Electron): it only maps a
@@ -46,6 +48,16 @@ export interface TbAssetEntry {
 /** Where a project keeps the thumbnail `tb://cover/<id>` serves (see `project/cover-thumb.ts`). */
 const COVER_THUMB = ['cache', 'cover-thumb.jpg'] as const;
 
+/** One running export (Task 7.2): the folder of the derivatives of the page being drawn, and the album. */
+export interface TbExportJob {
+  /** Absolute folder of the derivatives; it only ever holds files main wrote. */
+  dir: string;
+  /** Absolute folder of the project the originals live in. */
+  projectDir: string;
+  /** `AssetRef.file` of an asset of the album being exported. */
+  assetFile(id: string): string | undefined;
+}
+
 export interface TbRoots {
   /** Absolute folder of the open project, or `null` when none is open. */
   projectDir: string | null;
@@ -59,6 +71,8 @@ export interface TbRoots {
   libraryFile(id: string): string | undefined;
   /** The absolute folder of a project whose cover id main handed out. */
   coverDir(id: string): string | undefined;
+  /** The export running under this token (an unguessable id main handed to its window only). */
+  exportJob?(token: string): TbExportJob | undefined;
 }
 
 export type TbResolution =
@@ -224,6 +238,28 @@ function resolveResource(segments: string[], roots: TbRoots, flavour: PathFlavou
   return { ok: true, path, root: roots.resourcesDir };
 }
 
+function resolveExport(segments: string[], roots: TbRoots, flavour: PathFlavour): TbResolution {
+  const token = segments[0];
+  if (token === undefined || !ID_PATTERN.test(token)) return bad('An export URL names a token');
+  const job = roots.exportJob?.(token);
+  if (job === undefined) return notFound('No such export is running');
+  if (segments.length === 2) {
+    const path = containedPath(flavour, job.dir, segments[1] as string);
+    if (path === null) return bad('The derivative path leaves the export folder');
+    return { ok: true, path, root: job.dir };
+  }
+  const id = segments[2];
+  if (segments.length !== 3 || segments[1] !== 'original' || id === undefined) {
+    return bad('An export URL is <token>/<file> or <token>/original/<assetId>');
+  }
+  if (!ID_PATTERN.test(id)) return bad('An asset URL names exactly one valid id');
+  const file = job.assetFile(id);
+  if (file === undefined) return notFound(`Unknown asset: ${id}`);
+  const path = projectFilePath(job.projectDir, file, flavour);
+  if (path === null) return notFound(`Asset ${id} has no usable file`);
+  return { ok: true, path, root: job.projectDir };
+}
+
 /**
  * Map a `tb:` URL onto a file of one of the roots. 400 means the URL is malformed or tries to
  * leave the roots; 404 means it is well formed but names nothing the app holds. Never throws.
@@ -237,7 +273,13 @@ export function resolveTbUrl(
   if (match === null) return bad('Not a tb:// URL');
   const [, host = '', rawPath = '', query = ''] = match;
   const kind = host.toLowerCase();
-  if (kind !== 'asset' && kind !== 'library' && kind !== 'resource' && kind !== 'cover') {
+  if (
+    kind !== 'asset' &&
+    kind !== 'library' &&
+    kind !== 'resource' &&
+    kind !== 'cover' &&
+    kind !== 'export'
+  ) {
     return notFound(`Unknown tb:// host: ${host}`);
   }
   const segments = pathSegments(rawPath);
@@ -245,6 +287,7 @@ export function resolveTbUrl(
   if (kind === 'asset') return resolveAsset(segments, query, roots, flavour);
   if (kind === 'library') return resolveLibrary(segments, roots, flavour);
   if (kind === 'cover') return resolveCover(segments, roots, flavour);
+  if (kind === 'export') return resolveExport(segments, roots, flavour);
   return resolveResource(segments, roots, flavour);
 }
 

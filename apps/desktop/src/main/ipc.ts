@@ -3,8 +3,13 @@ import { fileURLToPath } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { BookSchema, TemplateSchema } from '@travelbook/core';
 import { z } from 'zod';
-import type { CaptureRect, LibraryItem } from '../shared/api';
-import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
+import type { CaptureRect, ExportOptions, ExportProgress, LibraryItem } from '../shared/api';
+import {
+  CHANNEL,
+  EXPORT_PROGRESS_CHANNEL,
+  PROGRESS_CHANNEL,
+  type InvokeChannel,
+} from '../shared/channels';
 import { clipboardPayload, readElements, writeElements, type ClipboardHost } from './clipboard';
 import { importAssetFiles } from './assets/import-files';
 import { dominantColours } from './assets/palette';
@@ -23,6 +28,13 @@ import {
   setFavourite,
   touchUsed,
 } from './library/userLibrary';
+import {
+  DEFAULT_JPEG_QUALITY,
+  cancelExport,
+  exportPreflight,
+  runImageExport,
+  type ExportRenderer,
+} from './export/images';
 import { projectFilePath } from './protocol';
 import { serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
@@ -62,11 +74,15 @@ export interface Host {
    * `longEdge` px at most.
    */
   captureJpeg(rect: CaptureRect, longEdge: number): Promise<Uint8Array>;
+  /** A hidden window that draws the pages of an export (see `export/exportWindow.ts`). */
+  openExportRenderer(): Promise<ExportRenderer>;
 }
 
 export interface HandlerContext {
   /** Tell the window that asked how far an import has got. */
   progress(done: number, total: number): void;
+  /** Tell the window that asked how far an export has got. */
+  exportProgress(progress: ExportProgress): void;
 }
 
 export type IpcHandlers = Record<
@@ -95,6 +111,29 @@ const captureRect = z.strictObject({
 });
 
 const pageSize = z.number().finite().positive().max(5000);
+
+const exportOptions = z.strictObject({
+  route: z.enum(['pdf', 'images']),
+  pages: z.union([
+    z.literal('all'),
+    z
+      .strictObject({
+        from: z.number().int().min(1).max(10_000),
+        to: z.number().int().min(1).max(10_000),
+      })
+      .refine((range) => range.from <= range.to, 'from must not exceed to'),
+  ]),
+  includeCover: z.boolean(),
+  dpi: z.number().int().min(72).max(1200),
+  nativeResolution: z.boolean(),
+  bleed: z.boolean(),
+  cropMarks: z.boolean(),
+  imageFormat: z.enum(['jpeg', 'png']),
+  jpegQuality: z.number().int().min(1).max(100).default(DEFAULT_JPEG_QUALITY),
+  perSpread: z.boolean(),
+  coverMode: z.enum(['flat', 'panels']),
+  outDir: absolutePath,
+});
 
 const libraryKind = z.enum(['sticker', 'background', 'font', 'template']);
 const libraryFileKind = z.enum(['sticker', 'background', 'font']);
@@ -132,6 +171,9 @@ const schemas = {
   libraryList: z.tuple([libraryKind, libraryQuery.optional()]),
   libraryAdd: z.tuple([libraryFileKind, pathList]),
   libraryFavourite: z.tuple([identifier, z.boolean()]),
+  exportRun: z.tuple([exportOptions]),
+  exportPresetSave: z.tuple([z.string().trim().min(1).max(200), exportOptions]),
+  exportPresetName: z.tuple([z.string().trim().min(1).max(200)]),
   template: z.tuple([TemplateSchema]),
   templateId: z.tuple([identifier]),
   bundledFile: z.tuple([
@@ -381,6 +423,46 @@ export function createHandlers(host: Host): IpcHandlers {
       return serialize(importQueue(session), () => readElements(host.clipboard, session));
     },
 
+    [CHANNEL.exportRun]: async (ctx, ...args) => {
+      const [options] = parseArgs(CHANNEL.exportRun, schemas.exportRun, args);
+      const session = requireSession();
+      if (options.route === 'pdf') throw new Error('Le PDF d’impression arrive avec la tâche 7.3.');
+      // The album as last saved: the window saves before it asks for an export.
+      const book = session.book;
+      const report = await runImageExport(book, session.dir, options as ExportOptions, {
+        openRenderer: () => host.openExportRenderer(),
+        onProgress: ctx.exportProgress,
+      });
+      return { ...report, warnings: await exportPreflight(session.dir, book) };
+    },
+
+    [CHANNEL.exportCancel]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.exportCancel, schemas.none, args);
+      cancelExport();
+    },
+
+    [CHANNEL.exportPreflight]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.exportPreflight, schemas.none, args);
+      const session = requireSession();
+      return exportPreflight(session.dir, session.book);
+    },
+
+    // Presets are stored by Task 7.4; the interface is here so that the window can be built on it.
+    [CHANNEL.exportPresetsList]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.exportPresetsList, schemas.none, args);
+      return [];
+    },
+
+    [CHANNEL.exportPresetsSave]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.exportPresetsSave, schemas.exportPresetSave, args);
+      throw new Error('Les préréglages d’export arrivent avec la tâche 7.4.');
+    },
+
+    [CHANNEL.exportPresetsDelete]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.exportPresetsDelete, schemas.exportPresetName, args);
+      throw new Error('Les préréglages d’export arrivent avec la tâche 7.4.');
+    },
+
     [CHANNEL.appVersion]: async (_ctx, ...args) => {
       parseArgs(CHANNEL.appVersion, schemas.none, args);
       return host.version();
@@ -437,6 +519,11 @@ export function registerIpc(
         progress: (done, total) => {
           // The window can close in the middle of an import; the import must still finish.
           if (!event.sender.isDestroyed()) event.sender.send(PROGRESS_CHANNEL, done, total);
+        },
+        exportProgress: ({ page, total, step }) => {
+          if (!event.sender.isDestroyed()) {
+            event.sender.send(EXPORT_PROGRESS_CHANNEL, page, total, step);
+          }
         },
       };
       return handlers[channel](ctx, ...args);

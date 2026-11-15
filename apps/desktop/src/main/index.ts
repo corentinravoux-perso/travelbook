@@ -7,6 +7,7 @@ import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { setBundledResourcesDir } from './library/templates';
 import { setBackgroundsResourcesDir } from './library/backgrounds';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
+import { exportJobLookup } from './export/images';
 import { ensureProxies } from './photos/proxies';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
 import { currentSession, setLibraryFileLookup, tbRoots } from './session';
@@ -75,7 +76,8 @@ void app.whenReady().then(async () => {
   });
 
   installTbProtocol(protocol, {
-    roots: () => tbRoots(currentSession(), { libraryDir, resourcesDir }),
+    roots: () =>
+      tbRoots(currentSession(), { libraryDir, resourcesDir, exportJob: exportJobLookup }),
     ensureProxy: async (id) => {
       const session = currentSession();
       const asset = session?.assets.get(id);
@@ -86,7 +88,11 @@ void app.whenReady().then(async () => {
   });
   registerIpc(
     ipcMain,
-    createElectronHost(() => mainWindow),
+    createElectronHost(
+      () => mainWindow,
+      (win) =>
+        devUrl ? win.loadURL(`${devUrl}#export`) : win.loadFile(rendererFile, { hash: 'export' }),
+    ),
     isTrustedSender,
   );
 

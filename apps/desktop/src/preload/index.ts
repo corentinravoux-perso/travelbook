@@ -4,6 +4,7 @@ import {
   CHANNEL,
   CLOSE_REPLY_CHANNEL,
   CLOSE_REQUEST_CHANNEL,
+  EXPORT_PROGRESS_CHANNEL,
   PROGRESS_CHANNEL,
 } from '../shared/channels';
 
@@ -74,7 +75,28 @@ const tb: TbApi = {
     writeElements: (payload) => ipcRenderer.invoke(CHANNEL.clipboardWrite, payload),
     readElements: () => ipcRenderer.invoke(CHANNEL.clipboardRead),
   },
-  exporter: {},
+  exporter: {
+    run: (options) => ipcRenderer.invoke(CHANNEL.exportRun, options),
+    cancel: () => ipcRenderer.invoke(CHANNEL.exportCancel),
+    onProgress: (cb) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        page: number,
+        total: number,
+        step: string,
+      ): void => cb({ page, total, step });
+      ipcRenderer.on(EXPORT_PROGRESS_CHANNEL, listener);
+      return () => {
+        ipcRenderer.removeListener(EXPORT_PROGRESS_CHANNEL, listener);
+      };
+    },
+    preflight: () => ipcRenderer.invoke(CHANNEL.exportPreflight),
+    presets: {
+      list: () => ipcRenderer.invoke(CHANNEL.exportPresetsList),
+      save: (name, options) => ipcRenderer.invoke(CHANNEL.exportPresetsSave, name, options),
+      delete: (name) => ipcRenderer.invoke(CHANNEL.exportPresetsDelete, name),
+    },
+  },
   app: {
     version: () => ipcRenderer.invoke(CHANNEL.appVersion),
     openExternal: (url) => ipcRenderer.invoke(CHANNEL.appOpenExternal, url),
