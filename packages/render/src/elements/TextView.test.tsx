@@ -2,6 +2,7 @@ import type { TextElement } from '@travelbook/core';
 import { newElement } from '@travelbook/core';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { textShadowIsNative } from '../shadows';
 import { TextView } from './TextView';
 
 function textEl(patch: Partial<TextElement> = {}): TextElement {
@@ -70,5 +71,40 @@ describe('TextView', () => {
     expect(box.style.background).toBe('');
     expect(box.style.outline).toBe('');
     expect(box.style.filter).toBe('');
+  });
+
+  describe('shadow in export quality', () => {
+    const shadow = { dx: 1, dy: 2, blur: 3, color: '#444444' };
+
+    it('is a text-shadow, with twice the blur of the drop-shadow, and no filter', () => {
+      const { container } = render(<TextView el={textEl({ shadow })} quality="export" />);
+      const box = container.querySelector('.tb-text') as HTMLElement;
+      expect(box.style.filter).toBe('');
+      expect(box.style.textShadow).toBe('rgb(68, 68, 68) 1mm 2mm 6mm');
+    });
+    it('is a box-shadow when the box has a fill', () => {
+      const el = textEl({ shadow, box: { fill: '#ffeecc', padding: 1 } });
+      const box = render(<TextView el={el} quality="export" />).container.querySelector(
+        '.tb-text',
+      ) as HTMLElement;
+      expect(box.style.boxShadow).toBe('rgb(68, 68, 68) 1mm 2mm 6mm');
+      expect(box.style.textShadow).toBe('');
+      expect(box.style.filter).toBe('');
+    });
+    it('keeps the filter for an outline with no fill (the page is then captured)', () => {
+      const el = textEl({ shadow, outline: { width: 0.5, color: '#000000' } });
+      expect(textShadowIsNative(el)).toBe(false);
+      const box = render(<TextView el={el} quality="export" />).container.querySelector(
+        '.tb-text',
+      ) as HTMLElement;
+      expect(box.style.filter).toContain('drop-shadow');
+    });
+    it('is the filter in the editor', () => {
+      const box = render(
+        <TextView el={textEl({ shadow })} quality="preview" />,
+      ).container.querySelector('.tb-text') as HTMLElement;
+      expect(box.style.filter).toContain('1mm 2mm 3mm');
+      expect(box.style.textShadow).toBe('');
+    });
   });
 });

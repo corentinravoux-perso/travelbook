@@ -121,3 +121,40 @@ Corentin chose the alternative: **vector PDF route with adjustments baked into t
   inside the 0.1 mm tolerance and is absorbed by the 3 mm bleed.
 - Captures need an offscreen window; `printToPDF` needs a plain hidden window (see above).
 - Memory grows with page area; capture one page at a time.
+
+## 7.3 effects (2026-11-15)
+
+Task 7.3 prints each page with `printToPDF` in a plain hidden window (`preferCSSPageSize`, `@page` = export box, one page
+at a time), merges the pages with pdf-lib and sets MediaBox, BleedBox and TrimBox from the millimetres. The effects the
+Phase-5 review listed were tested through the real pipeline (`apps/desktop/e2e/export-pdf.spec.ts`: a 10-page fixture, one
+effect per page, `pdfimages -list`, `pdffonts`, `pdftotext`, `pdftoppm -r 300` against the image route). Photos are 2400 x 1600
+JPEGs; derivatives at 300 dpi. "Before" is the first run with the editor's CSS, "after" the shipped export markup.
+
+| Effect (where)                                                                 | Before: what `printToPDF` did                                                                                                             | Choice                                                                                                                                                                                           | After (evidence)                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `drop-shadow` filter on a photo (`PhotoView`, wraps the frame and its `<img>`) | the whole wrapper rasterised: photo became a 1993 x 1403 Flate RGB image (frame 1772 x 1181 + shadow margin), 1.3 MB, no JPEG passthrough | **baked**: in `export` quality a plain shape in the shadow colour under the photo casts the shadow (`data-role="shadow-cast"`, filter wraps no image)                                            | photo is a 1772 x 1181 `jpeg` passthrough (527 KB); shadow is a separate 1993 x 1403 one-colour image + soft mask (8 KB + 21 KB)                                                                   |
+| `drop-shadow` filter on a text box (`TextView`)                                | text and shadow rasterised: 934 x 265 Flate RGB + soft mask, text no longer vector                                                        | **baked**: `text-shadow` (`box-shadow` when the box has a fill), blur doubled (`drop-shadow` takes a standard deviation, the others a radius)                                                    | glyphs vector (`pdftotext` finds them, font embedded); only a 902 x 191 grey JPEG mask of the blur (2.8 KB)                                                                                        |
+| `mask-image` for a pattern background (`Background`)                           | tiled mask rasterised at 300 dpi: dot edges staircased at 1200 dpi, mean difference to the image route 1.32 %                             | **baked**: main paints the stencil's alpha with the foreground colour into a PNG tile (600 dpi at most, SVG stencils rasterised at that size), the background is then a tiled `background-image` | tile embedded at 472 x 472 px (20 mm at 600 dpi; `pdfimages` does not list images inside a tiling pattern, the test reads `/Width 472` from the file); edges smooth at 1200 dpi, difference 0.41 % |
+| `mask-image` for a sticker tint (`StickerView`)                                | none to fix: the mask is drawn from its own pixels                                                                                        | **vector / native** (nothing baked)                                                                                                                                                              | 400 x 400 image + mask for a 400 x 400 sticker, no larger raster; difference 0.03 %                                                                                                                |
+| `blur()` on a background image (`Background`)                                  | page-sized raster at 300 dpi (2516 x 3579 Flate + mask)                                                                                   | **kept**: a blurred image has no detail to lose, 300 dpi is enough                                                                                                                               | difference 0.25 %; the unblurred background is a JPEG at its own size                                                                                                                              |
+| `mask-image` + `mix-blend-mode: multiply` for a tinted background image        | none to fix                                                                                                                               | **kept** (native pixels)                                                                                                                                                                         | the source JPEG twice (image and mask), difference 0.27 %                                                                                                                                          |
+| CSS `filter` for photo adjustments, vignette, feather                          | (spike) rasterised the photo                                                                                                              | already baked in the derivative by Task 7.1; `SpreadView` draws none at `export` quality                                                                                                         | feathered photo: its 1890 x 1299 derivative (PNG with alpha) and nothing else; plain photo: one `jpeg` of derivative size                                                                          |
+
+Two combinations have no equivalent without a filter, so their page uses the **raster fallback**
+(`export/rasterFallback.ts`): a photo with a shadow _and_ a feathered edge (the shadow follows the soft edge, which a shape
+under the photo does not have), and a text with a shadow _and_ an outline but no fill. Such a page is captured at 600 dpi
+(5102 x 7157 px for 216 x 303 mm), encoded as a q95 4:4:4 JPEG and embedded as one image by pdf-lib, crop marks and boxes
+included; the other pages stay vector. The fixture's page 8 (feathered photo with a shadow) proves it: one `jpeg` of
+5102 x 7157 on the page.
+
+Known approximation: a photo whose file has transparency (PNG or WebP with alpha) shows the shadow shape through its
+transparent parts, where the editor shows only the shadow outside it.
+
+Fidelity: every page of the fixture is within 0.41 % mean absolute difference of the image-route export (`pdftoppm -r 300`
+against the 300 dpi capture; the page 5 of the brief is 0.03 %). Fonts: `pdffonts` lists every font `emb yes`, `sub yes`.
+Page size: Chromium prints 612 x 858.96 pt for a 216 x 303 mm box; the page is drawn at the top left of a page whose MediaBox
+is the exact 612.283 x 858.898 pt, so the missing 0.1 mm is blank, inside the bleed.
+
+Time (Linux, software-composited Electron): 0.33 s per vector page (derivatives, print, merge; text and photo pages),
+13.4 s for a page sent to the raster fallback (two windows opened, a 600 dpi capture, JPEG encode). The 100-page time and peak
+memory of the stress fixture are measured by Task 8.2.

@@ -45,7 +45,7 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
     case 'shape':
       return <ShapeView key={el.id} el={el} />;
     case 'text':
-      return <TextView key={el.id} el={el} />;
+      return <TextView key={el.id} el={el} quality={p.quality} />;
   }
 }
 
@@ -70,6 +70,7 @@ export function SpreadView(p: SpreadViewProps): ReactElement {
         layer="spread"
         background={background.spread}
         box={box}
+        tile={p.patternTile?.('spread')}
         {...common}
       />,
     );
@@ -79,7 +80,14 @@ export function SpreadView(p: SpreadViewProps): ReactElement {
     const box = value ? pageBackgroundBox(book, spread, side, bleed) : null;
     if (value && box)
       backgrounds.push(
-        <Background key={side} layer={side} background={value} box={box} {...common} />,
+        <Background
+          key={side}
+          layer={side}
+          background={value}
+          box={box}
+          tile={p.patternTile?.(side)}
+          {...common}
+        />,
       );
   }
 

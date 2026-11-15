@@ -193,4 +193,34 @@ describe('Background', () => {
       expect(draw({ ...base, tint: '#3366cc' }, [img]).root.style.isolation).toBe('isolate');
     });
   });
+
+  describe('pattern with a baked tile', () => {
+    const pattern: BackgroundValue = {
+      kind: 'pattern',
+      assetId: 'pat',
+      fg: '#3366aa',
+      bg: '#f4ecd8',
+      scale: 1.5,
+    };
+
+    it('tiles the image at the size of the pattern, with no mask', () => {
+      const view = render(
+        <Background
+          background={pattern}
+          layer="left"
+          box={BOX}
+          assets={{}}
+          quality="export"
+          assetUrl={urlOf}
+          tile="tb://export/t/pattern-left.png"
+        />,
+      );
+      const layer = view.container.querySelector<HTMLElement>('[data-role="pattern"]');
+      expect(layer?.style.backgroundImage).toContain('tb://export/t/pattern-left.png');
+      expect(layer?.style.backgroundRepeat).toBe('repeat');
+      expect(layer?.style.backgroundSize).toBe('30mm auto');
+      expect(layer?.style.maskImage ?? '').toBe('');
+      expect((view.container.firstElementChild as HTMLElement).style.backgroundColor).not.toBe('');
+    });
+  });
 });

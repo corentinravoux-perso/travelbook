@@ -1,6 +1,7 @@
 import { type AssetRef, type Background as BackgroundValue, type Rect } from '@travelbook/core';
 import { MM_TO_PX } from '@travelbook/core';
 import type { CSSProperties, ReactElement } from 'react';
+import { patternTileMm } from './patternTile';
 import type { AssetUrl, Quality } from './types';
 import { cssUrl, mm, pct, round } from './units';
 
@@ -13,12 +14,12 @@ export interface BackgroundProps {
   assets: Record<string, AssetRef>;
   quality: Quality;
   assetUrl: AssetUrl;
+  /** The pattern tile painted with the foreground colour, when the caller has made it. */
+  tile?: string;
 }
 
 /** Pixels per inch at which a tiled image or a pattern keeps its natural size. */
 const TILE_DPI = 300;
-/** Width of a pattern tile at scale 1. */
-const PATTERN_TILE_MM = 20;
 
 const FILL: CSSProperties = { position: 'absolute', inset: 0 };
 
@@ -40,11 +41,26 @@ function Pattern({
   bg,
   quality,
   assetUrl,
+  tile,
 }: Omit<BackgroundProps, 'layer' | 'box' | 'background'> & {
   bg: Extract<BackgroundValue, { kind: 'pattern' }>;
 }): ReactElement {
+  const w = patternTileMm(bg);
+  if (tile !== undefined) {
+    return (
+      <div
+        data-role="pattern"
+        style={{
+          ...FILL,
+          backgroundImage: cssUrl(tile),
+          backgroundRepeat: 'repeat',
+          backgroundSize: `${mm(w)} auto`,
+          backgroundPosition: '0 0',
+        }}
+      />
+    );
+  }
   // The tile is a stencil: it is painted with `fg` over the `bg` colour of the root.
-  const w = PATTERN_TILE_MM * bg.scale;
   return (
     <div
       data-role="pattern"
@@ -118,6 +134,7 @@ export function Background({
   assets,
   quality,
   assetUrl,
+  tile,
 }: BackgroundProps): ReactElement {
   const style: CSSProperties = {
     position: 'absolute',
@@ -138,7 +155,7 @@ export function Background({
       break;
     case 'pattern':
       style.backgroundColor = bg.bg;
-      content = <Pattern bg={bg} {...common} />;
+      content = <Pattern bg={bg} tile={tile} {...common} />;
       break;
     case 'image':
       if (bg.opacity !== 1) style.opacity = bg.opacity;

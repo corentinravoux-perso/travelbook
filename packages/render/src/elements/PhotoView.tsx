@@ -4,6 +4,7 @@ import { featherCss, maskCss } from '../masks';
 import type { AssetUrl, Quality } from '../types';
 import { mm, round } from '../units';
 import { elementBoxStyle, flipTransform } from './boxStyle';
+import { photoShadowIsCast } from '../shadows';
 import { adjustFilter, imagePlacement, vignetteGradient } from './photoStyle';
 
 export interface PhotoViewProps {
@@ -142,19 +143,27 @@ export function PhotoView({
   const styled = !empty && quality !== 'export';
   const vignette = styled ? el.adjust.vignette : 0;
   const feather = styled && el.edge ? featherCss(el.mask, el, el.edge.feather) : undefined;
+  // `drop-shadow` follows the clipped shape; its blur is a standard deviation, the half of the
+  // blur radius that box-shadow and text-shadow take.
+  const dropShadow = shadow
+    ? `drop-shadow(${mm(shadow.dx)} ${mm(shadow.dy)} ${mm(shadow.blur / 2)} ${shadow.color})`
+    : undefined;
+  const cast = quality === 'export' && !empty && shadow !== null && photoShadowIsCast(el);
   return (
     <div data-element-id={el.id} data-element-type="photo" style={elementBoxStyle(el)}>
-      <div
-        data-role="shadow"
-        style={{
-          ...FILL,
-          // `drop-shadow` follows the clipped shape; its blur is a standard deviation, the half
-          // of the blur radius that box-shadow and text-shadow take.
-          filter: shadow
-            ? `drop-shadow(${mm(shadow.dx)} ${mm(shadow.dy)} ${mm(shadow.blur / 2)} ${shadow.color})`
-            : undefined,
-        }}
-      >
+      {cast ? (
+        <div data-role="shadow-cast" style={{ ...FILL, filter: dropShadow }}>
+          <div
+            style={{
+              ...FILL,
+              background: shadow.color,
+              borderRadius: mask.borderRadius,
+              clipPath: mask.clipPath,
+            }}
+          />
+        </div>
+      ) : null}
+      <div data-role="shadow" style={{ ...FILL, filter: cast ? undefined : dropShadow }}>
         <div
           data-role="frame"
           style={{

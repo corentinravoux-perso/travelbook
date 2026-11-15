@@ -19,7 +19,9 @@ import {
 import type { ExportOptions, ExportProgress, ExportReport } from '../../shared/api';
 import type { ExportPageJob } from '../../shared/exportPage';
 import { projectFilePath, type TbExportJob } from '../protocol';
+import { patternTileMm } from '@travelbook/render/src/patternTile.ts';
 import { makeDerivative } from './derivatives';
+import { bakePatternTile } from './patternTile';
 
 /** One file of the images route: `name` has no extension. `clip` is in spread coordinates (mm). */
 export interface PageTarget {
@@ -34,6 +36,8 @@ export interface ExportRenderer {
   show(job: ExportPageJob): Promise<void>;
   /** PNG bytes of the page being shown, at `dpi`. */
   capture(target: PageTarget, dpi: number): Promise<Buffer>;
+  /** Draw a page in a window that can print, and return it as a one-page PDF (size: `job.clip`). */
+  print(job: ExportPageJob): Promise<Buffer>;
   close(): void;
 }
 
@@ -239,25 +243,51 @@ export interface ImageExportDeps {
   onProgress(progress: ExportProgress): void;
 }
 
+/** What a route's per-page step is given. */
+export interface PageContext {
+  target: PageTarget;
+  /** The page as `renderer.show` and `renderer.print` take it: the derivatives are ready. */
+  job: ExportPageJob;
+  renderer: ExportRenderer;
+  /** The photos the page draws (the others were left out of `job.spread`). */
+  photos: PhotoElement[];
+  /** How a person reads the page in an error: "page 3". */
+  label: string;
+  progress(step: string): void;
+  /** Files this run has written: removed if the run fails. */
+  written: string[];
+}
+
+export interface PageLoop {
+  /** The pages, in export order. */
+  targets: PageTarget[];
+  /** Draw and keep one page. */
+  page(ctx: PageContext): Promise<void>;
+  /** Paint the stencil of the pattern backgrounds of each page into a tile (the PDF route). */
+  bakePatterns?: boolean;
+  /** Called after the last page, to write what the pages added up to. */
+  finish?(written: string[]): Promise<void>;
+}
+
 /**
- * Export `book` (the project in `projectDir`) as image files in `o.outDir`, one page at a time:
- * build the derivatives of the page, draw it in the hidden window, capture it, encode and write
- * it, delete the derivatives. Sequential on purpose (a 600 dpi capture takes about 2 GB).
+ * The part the routes share, one page at a time: build the derivatives of the page, hand it to the
+ * route, delete the derivatives. Sequential on purpose (a 600 dpi capture takes about 2 GB).
  *
  * Originals are found from `book.assets[...].file` inside `projectDir`. A missing original, a
- * failed capture or a cancel removes every file this run wrote and rejects.
+ * failed page or a cancel removes every file this run wrote and rejects.
  */
-export async function runImageExport(
+export async function runPages(
   book: Book,
   projectDir: string,
   o: ExportOptions,
   deps: ImageExportDeps,
+  loop: PageLoop,
 ): Promise<Omit<ExportReport, 'warnings'>> {
   if (running !== null) throw new Error('Un export est déjà en cours.');
   const started = Date.now();
   const abort = new AbortController();
   running = abort;
-  const targets = renderPageTargets(book, o).filter((t) => t.clip.w > 0 && t.clip.h > 0);
+  const targets = loop.targets.filter((t) => t.clip.w > 0 && t.clip.h > 0);
   const token = randomUUID();
   const written: string[] = [];
   let work: string | null = null;
@@ -273,7 +303,6 @@ export async function runImageExport(
       assetFile: (id) => book.assets[id]?.file,
     });
     renderer = await deps.openRenderer();
-    const extension = o.imageFormat === 'png' ? 'png' : 'jpg';
     const spreads = new Map([book.cover, ...book.spreads].map((s) => [s.id, s]));
     let page = 0;
     for (const target of targets) {
@@ -313,15 +342,68 @@ export async function runImageExport(
           });
         }
       }
-
-      progress('render');
-      await renderer.show({
+      const patternTiles: NonNullable<ExportPageJob['patternTiles']> = {};
+      for (const layer of loop.bakePatterns ? (['spread', 'left', 'right'] as const) : []) {
+        const bg = spread.background[layer];
+        if (bg?.kind !== 'pattern') continue;
+        const asset = book.assets[bg.assetId];
+        const stencil = asset ? projectFilePath(projectDir, asset.file) : null;
+        const name = asset?.originalName ?? bg.assetId;
+        if (!asset || stencil === null || !(await isFile(stencil))) {
+          throw new Error(`Motif introuvable : ${name} (${label}).`);
+        }
+        try {
+          patternTiles[layer] = await bakePatternTile(
+            stencil,
+            bg.fg,
+            patternTileMm(bg),
+            dir,
+            `pattern-${layer}`,
+          );
+        } catch (error) {
+          throw new Error(`Motif illisible : ${name} (${label}) : ${messageOf(error)}`, {
+            cause: error,
+          });
+        }
+      }
+      const job: ExportPageJob = {
         token,
         book: { ...book, spreads: [] },
         spread,
         clip: target.clip,
         derivatives,
-      });
+        patternTiles,
+      };
+      await loop.page({ target, job, renderer, photos, label, progress, written });
+      await rm(dir, { recursive: true, force: true });
+    }
+    await loop.finish?.(written);
+    // A cancel that came in during the last page changes nothing: the export is complete.
+    return { files: written, pages: targets.length, seconds: (Date.now() - started) / 1000 };
+  } catch (error) {
+    await Promise.all(written.map((file) => rm(file, { force: true }).catch(() => undefined)));
+    throw error;
+  } finally {
+    jobs.delete(token);
+    renderer?.close();
+    if (work !== null) await rm(work, { recursive: true, force: true }).catch(() => undefined);
+    running = null;
+  }
+}
+
+/** Export `book` as image files in `o.outDir`: each page is drawn, captured at `o.dpi`, encoded. */
+export function runImageExport(
+  book: Book,
+  projectDir: string,
+  o: ExportOptions,
+  deps: ImageExportDeps,
+): Promise<Omit<ExportReport, 'warnings'>> {
+  const extension = o.imageFormat === 'png' ? 'png' : 'jpg';
+  return runPages(book, projectDir, o, deps, {
+    targets: renderPageTargets(book, o),
+    page: async ({ target, job, renderer, progress, written }) => {
+      progress('render');
+      await renderer.show(job);
       progress('capture');
       const png = await renderer.capture(target, o.dpi);
       progress('write');
@@ -335,19 +417,8 @@ export async function runImageExport(
         throw error;
       }
       written.push(file);
-      await rm(dir, { recursive: true, force: true });
-    }
-    // A cancel that came in during the last page changes nothing: the export is complete.
-    return { files: written, pages: written.length, seconds: (Date.now() - started) / 1000 };
-  } catch (error) {
-    await Promise.all(written.map((file) => rm(file, { force: true }).catch(() => undefined)));
-    throw error;
-  } finally {
-    jobs.delete(token);
-    renderer?.close();
-    if (work !== null) await rm(work, { recursive: true, force: true }).catch(() => undefined);
-    running = null;
-  }
+    },
+  });
 }
 
 const messageOf = (error: unknown): string =>
