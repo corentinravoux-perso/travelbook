@@ -39,7 +39,7 @@ export interface EditorState {
   panel: PanelId;
   guides: Guides;
   saveStatus: SaveStatus;
-  /** True while `openWith` switches albums; changes are refused meanwhile. */
+  /** True while `openWith` saves the old book and switches albums; changes are refused. */
   opening: boolean;
 
   /**
@@ -49,12 +49,14 @@ export interface EditorState {
    * book it returns, with a fresh history. If step 1 fails, it rejects and nothing switches.
    * `open` resolving to `null` (the user cancelled) keeps the current book. While this runs,
    * `apply`, `undo` and `redo` do nothing, so no change of the old book is saved into the new
-   * project. Resolves to what `open` gave.
+   * project. Resolves to what `open` gave. A second call while one runs rejects.
    */
   openWith<T extends { book: Book }>(open: () => Promise<T | null>): Promise<T | null>;
   /**
-   * Save a change still waiting for the debounce now, and wait until every save has reached
-   * main. Rejects if that save fails. Call it before anything that ends the editing session.
+   * Resolve once the book on screen is saved: start a change still waiting for the debounce now,
+   * wait for the saves already running, and save again if the latest save failed. Rejects if a
+   * save it waits for fails and the retry fails too. Call it before anything that ends the
+   * editing session.
    */
   flush(): Promise<void>;
   /**
@@ -86,7 +88,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
   let ticket = 0;
   /**
    * The last save started; the next one waits for it, so writes reach the disk in order. It never
-   * rejects: a failure is reported through `saveStatus` (and to `flush`).
+   * rejects: a failure is reported through `saveStatus`, which `flush` reads to save again.
    */
   let lastSave: Promise<void> = Promise.resolve();
 
@@ -129,12 +131,23 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       }, SAVE_DELAY_MS);
     };
 
+    /**
+     * Loop until the book on screen is on disk: start a waiting save now, wait for the saves
+     * already running, and save again if the latest one failed. A failing save rejects. A change
+     * made meanwhile is caught by the next turn.
+     */
     const flush = async (): Promise<void> => {
-      if (timer !== undefined) {
-        cancelSave();
-        await startSave(ticket);
+      for (;;) {
+        if (timer !== undefined) {
+          cancelSave();
+          await startSave(ticket);
+        } else {
+          await lastSave;
+          if (timer !== undefined) continue;
+          if (get().saveStatus !== 'error') return;
+          await startSave(ticket);
+        }
       }
-      await lastSave;
     };
 
     /** Show `next` if it differs from the current book, and save it. */
@@ -177,9 +190,12 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       opening: false,
 
       async openWith(open) {
-        await flush();
+        if (get().opening) throw new Error('Another album is already opening.');
+        // From here on no change is accepted, so nothing can arm a save of the old book that
+        // would fire after `open` has switched main's project.
         set({ opening: true });
         try {
+          await flush();
           const opened = await open();
           if (opened) load(opened.book);
           return opened;

@@ -208,6 +208,97 @@ describe('editor store', () => {
     expect(store.getState().opening).toBe(false);
   });
 
+  it('a change made while openWith saves the old book is refused, never saved into the new project', async () => {
+    const { store, save } = await setup();
+    const calls: string[] = [];
+    let finish = () => {};
+    save.mockImplementation((book) => {
+      calls.push(`save ${book.title}`);
+      return calls.length === 1
+        ? new Promise<void>((resolve) => (finish = resolve))
+        : Promise.resolve();
+    });
+    store.getState().apply(retitle('A'), 'Un');
+    const switching = store.getState().openWith(() => {
+      calls.push('open');
+      return opened(newBook({ title: 'Autre' }))();
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.getState().opening).toBe(true);
+    store.getState().apply(retitle('B'), 'Deux');
+    expect(store.getState().book?.title).toBe('A');
+    finish();
+    await switching;
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS * 2);
+    expect(calls).toEqual(['save A', 'open']);
+  });
+
+  it('openWith saves again when the debounced save already running fails', async () => {
+    const { store, save } = await setup();
+    const calls: string[] = [];
+    let fail: (error: Error) => void = () => {};
+    save.mockImplementation((book) => {
+      calls.push(`save ${book.title}`);
+      return calls.length === 1
+        ? new Promise<void>((_resolve, reject) => (fail = reject))
+        : Promise.resolve();
+    });
+    store.getState().apply(retitle('A'), 'Un');
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    const switching = store.getState().openWith(() => {
+      calls.push('open');
+      return opened(newBook({ title: 'Autre' }))();
+    });
+    fail(new Error('disk full'));
+    await switching;
+    expect(calls).toEqual(['save A', 'save A', 'open']);
+  });
+
+  it('openWith refuses to switch when the running save fails and so does the retry', async () => {
+    const { store, save } = await setup();
+    let fail: (error: Error) => void = () => {};
+    save.mockImplementationOnce(() => new Promise<void>((_resolve, reject) => (fail = reject)));
+    save.mockRejectedValueOnce(new Error('still full'));
+    store.getState().apply(retitle('A'), 'Un');
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    const open = vi.fn(opened(newBook({ title: 'Autre' })));
+    const switching = store.getState().openWith(open);
+    fail(new Error('disk full'));
+    await expect(switching).rejects.toThrow('still full');
+    expect(open).not.toHaveBeenCalled();
+    expect(store.getState().book?.title).toBe('A');
+    expect(store.getState().opening).toBe(false);
+  });
+
+  it('openWith saves a book whose last save failed, even with no change since', async () => {
+    const { store, save } = await setup();
+    save.mockRejectedValueOnce(new Error('disk full'));
+    store.getState().apply(retitle('A'), 'Un');
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(store.getState().saveStatus).toBe('error');
+    const open = vi.fn(opened(newBook({ title: 'Autre' })));
+    await store.getState().openWith(open);
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(save.mock.calls[1]?.[0].title).toBe('A');
+    expect(save.mock.invocationCallOrder[1]).toBeLessThan(open.mock.invocationCallOrder[0] ?? 0);
+  });
+
+  it('a second openWith while one runs is refused and does not end the first early', async () => {
+    const { store } = await setup();
+    type Opened = { dir: string; book: Book };
+    let answer: (opened: Opened) => void = () => {};
+    const first = store.getState().openWith(() => new Promise<Opened>((r) => (answer = r)));
+    await vi.advanceTimersByTimeAsync(0);
+    const second = vi.fn(opened(newBook({ title: 'Deuxième' })));
+    await expect(store.getState().openWith(second)).rejects.toThrow(/already/i);
+    expect(second).not.toHaveBeenCalled();
+    expect(store.getState().opening).toBe(true);
+    answer({ dir: '/albums/y.travelbook', book: newBook({ title: 'Premier' }) });
+    await first;
+    expect(store.getState().book?.title).toBe('Premier');
+    expect(store.getState().opening).toBe(false);
+  });
+
   it('a failed save is reported, and the next change saves again', async () => {
     const { store, save } = await setup();
     save.mockRejectedValueOnce(new Error('disk full'));
