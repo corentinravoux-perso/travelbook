@@ -101,6 +101,13 @@ describe('placeSticker', () => {
     expect(spreadNow().elements.at(-1)).toMatchObject({ x: 80, y: 90 });
   });
 
+  it('says why when an online source fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    tb.library.stickers.add.mockRejectedValueOnce(new Error('Error: SourceError:offline'));
+    expect(await placeSticker({ kind: 'hit', source: 'openverse', id: 'x' })).toBeUndefined();
+    expect(editorStore.getState().notice).toBe(fr.stickers.error.offline);
+  });
+
   it('tells the user and changes nothing when main fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     tb.assets.fromLibrary.mockRejectedValueOnce(new Error('disk full'));
