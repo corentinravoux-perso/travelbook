@@ -93,9 +93,31 @@ test('search avion, place the first result and tint it; import alpha.png, place 
       expect(second.h).toBeCloseTo(30, 1);
     });
 
+    await test.step('a sticker dragged onto the page lands where it is dropped', async () => {
+      const paper = page.locator('.canvas-paper');
+      const box = (await paper.boundingBox())!;
+      await page
+        .getByRole('button', { name: 'Placer alpha' })
+        .dragTo(paper, { targetPosition: { x: box.width * 0.2, y: box.height * 0.25 } });
+      await expect.poll(async () => (await stickers()).length).toBe(3);
+      const dropped = (await stickers())[2]!;
+      // Centred on the drop point (20 % of the width, 25 % of the height of the spread).
+      const size = await evalEditor(
+        page,
+        (e) => {
+          const b = e.getState().book;
+          return { w: b.format.width * 2, h: b.format.height };
+        },
+        null,
+      );
+      expect(dropped.x + dropped.w / 2).toBeCloseTo(size.w * 0.2, 0);
+      expect(dropped.y + dropped.h / 2).toBeCloseTo(size.h * 0.25, 0);
+    });
+
     await test.step('the credits dialog lists both, and inserts them as text', async () => {
       await page.getByRole('button', { name: 'Crédits des images' }).click();
       const dialog = page.getByRole('dialog', { name: 'Crédits des images' });
+      // The dragged copy is the same asset: still two lines.
       await expect(dialog.getByRole('listitem')).toHaveCount(2);
       await expect(
         dialog.getByRole('listitem').filter({ hasText: 'alpha, fichier personnel' }),
@@ -121,6 +143,7 @@ test('search avion, place the first result and tint it; import alpha.png, place 
       const assets = Object.values(book.assets) as AssetRef[];
       const stickerAssets = assets.filter((a) => a.kind === 'sticker');
       expect(stickerAssets).toHaveLength(2);
+      expect((await stickers()).length).toBe(3);
       expect(stickerAssets.filter((a) => a.licence !== undefined)).toHaveLength(1);
       for (const a of stickerAssets) {
         await access(join(albums, 'stickers.travelbook', a.file));

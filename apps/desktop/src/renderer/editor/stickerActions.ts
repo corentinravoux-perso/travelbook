@@ -9,6 +9,7 @@ import {
   type Spread,
   type StickerElement,
 } from '@travelbook/core';
+import { sourceErrorKind } from '../../shared/api';
 import { STICKER_WIDTH_MM, svgRatio, type StickerRef } from '../panels/stickers/model';
 import { editorStore, findSpread } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -96,7 +97,11 @@ export async function placeSticker(ref: StickerRef, at?: Pt): Promise<string | u
     return el.id;
   } catch (error) {
     console.error('Placing a sticker failed', error);
-    editorStore.getState().notify(fr.stickers.placeFailed);
+    // A failed online source says why (no connection, too many searches...).
+    const kind = sourceErrorKind(error);
+    editorStore
+      .getState()
+      .notify(kind === null ? fr.stickers.placeFailed : fr.stickers.error[kind]);
     return undefined;
   }
 }
