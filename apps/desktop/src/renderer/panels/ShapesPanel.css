@@ -17,7 +17,7 @@
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: var(--s3);
 }
-.shape-tile {
+.shapes-panel__tile {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,22 +25,23 @@
   padding: var(--s5) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--r1);
+  background: var(--surface);
   font-size: var(--t-xs);
   color: var(--ink-2);
   transition:
     background var(--fast),
     color var(--fast);
 }
-.shape-tile:hover {
+.shapes-panel__tile:hover {
   background: var(--surface);
   color: var(--ink);
 }
-.shape-tile[aria-pressed='true'] {
+.shapes-panel__tile[aria-pressed='true'] {
   border-color: var(--invert-bg);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
-.shape-tile .icon {
+.shapes-panel__tile .icon {
   width: 24px;
   height: 24px;
 }

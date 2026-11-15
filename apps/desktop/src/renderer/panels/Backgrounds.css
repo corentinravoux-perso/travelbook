@@ -1,4 +1,4 @@
-/* "Fonds" panel: a target switch, six tabs in a grid, then swatches. Hairlines, inverted press. */
+/* "Fonds" panel: a target switch, the tabs in a grid, then swatches. Hairlines, inverted press. */
 .bg-panel {
   display: flex;
   flex: 1;
@@ -22,15 +22,16 @@
 .bg-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 1px; /* the hairlines show through the gaps, whatever the number of tabs */
   margin: 0 var(--s5);
   border: 1px solid var(--line);
   border-radius: var(--r1);
+  background: var(--line);
   overflow: hidden;
 }
 .bg-tab-button {
   height: 26px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  background: var(--chrome);
   font-size: var(--t-xs);
   color: var(--ink-2);
   white-space: nowrap;
@@ -38,11 +39,9 @@
     background var(--fast),
     color var(--fast);
 }
-.bg-tab-button:nth-child(3n) {
-  border-right: 0;
-}
-.bg-tab-button:nth-child(n + 4) {
-  border-bottom: 0;
+/* A last tab alone on its row takes the whole row. */
+.bg-tab-button:last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
 }
 .bg-tab-button:hover {
   background: var(--surface);

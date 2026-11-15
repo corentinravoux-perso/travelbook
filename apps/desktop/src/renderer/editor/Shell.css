@@ -2,7 +2,7 @@
 .shell {
   display: grid;
   height: 100%;
-  min-width: 960px;
+  min-width: 1040px; /* the top bar needs about this much: see `minWidth` of the window */
   grid-template-columns: var(--rail-w) var(--panel-w) minmax(0, 1fr) var(--inspector-w);
   grid-template-rows: var(--top-h) minmax(0, 1fr) var(--strip-h);
   grid-template-areas:
@@ -28,12 +28,23 @@
   border-bottom: 1px solid var(--line);
   background: var(--chrome);
 }
+/* Nothing in the bar wraps: at the narrowest window only the album title gives way, with an ellipsis. */
+.shell-top {
+  white-space: nowrap;
+}
+.shell-top > * {
+  flex: none;
+}
 .shell-top__mark {
   font-size: var(--t-md);
   font-weight: var(--w-semibold);
   letter-spacing: -0.01em;
 }
 .shell-top__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: var(--w-medium);
 }
 .shell-top__grow {
@@ -757,6 +768,12 @@ button.page-bar__label:hover,
 .shell-top__format {
   font-size: var(--t-xs);
   color: var(--ink-3);
+}
+/* The page format is the first thing to go when the bar runs out of room. */
+@media (max-width: 1100px) {
+  .shell-top__format {
+    display: none;
+  }
 }
 
 /* ---------- autosave state ---------- */

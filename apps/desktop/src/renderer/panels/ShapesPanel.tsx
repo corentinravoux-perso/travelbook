@@ -31,7 +31,7 @@ export function ShapesPanel() {
             <button
               key={k}
               type="button"
-              className="shape-tile"
+              className="shapes-panel__tile"
               data-shape={k}
               aria-pressed={active}
               onClick={() => editorStore.getState().setTool(active ? 'select' : 'shape', k)}

@@ -42,6 +42,9 @@ function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
+    // The editor's top bar needs about 1040 px; narrower, its buttons would be cut off.
+    minWidth: 1040,
+    minHeight: 600,
     title: 'travelbook',
     show: false,
     webPreferences: {
