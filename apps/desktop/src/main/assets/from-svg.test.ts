@@ -50,6 +50,12 @@ describe('assetFromSvg', () => {
     expect(await readFile(join(project, a.file), 'utf8')).not.toContain('script');
   });
 
+  it("keeps a drawing without a licence licence-less (the user's own file)", async () => {
+    const a = await assetFromSvg(project, svg, { name: 'Mon dessin' });
+    expect(a.originalName).toBe('Mon dessin.svg');
+    expect('licence' in a).toBe(false);
+  });
+
   it('refuses what is not an SVG', async () => {
     await expect(assetFromSvg(project, 'hello', { name: 'x', licence })).rejects.toThrow();
   });

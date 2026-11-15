@@ -648,11 +648,15 @@ describe('assets', () => {
       expect(session && knownAssets(session)).toEqual({ [a.id]: a });
     });
 
+    it('accepts a drawing without a licence and stores none', async () => {
+      await create();
+      const a = await call<AssetRef>(CHANNEL.assetsFromSvg, svg, { name: 'Mon dessin' });
+      expect('licence' in a).toBe(false);
+    });
+
     it('refuses a malformed call', async () => {
       await create();
-      await expect(call(CHANNEL.assetsFromSvg, svg, { name: 'x' })).rejects.toThrow(
-        /assets:fromSvg/,
-      );
+      await expect(call(CHANNEL.assetsFromSvg, svg, { licence })).rejects.toThrow(/assets:fromSvg/);
       await expect(call(CHANNEL.assetsFromSvg, 42, { name: 'x', licence })).rejects.toThrow(
         /assets:fromSvg/,
       );

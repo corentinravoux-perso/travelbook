@@ -58,7 +58,18 @@ export async function loadIllustrationSvg(ill: PosterIllustration): Promise<stri
   return text;
 }
 
-const RECOLOURABLE = /\sclass\s*=\s*["'][^"']*\btb-main\b/;
+/** Whether a drawing has colour roles the poster can change. */
+export const RECOLOURABLE = /\sclass\s*=\s*["'][^"']*\btb-main\b/;
+
+/**
+ * Where a poster's drawing comes from, for the credits: a library sticker keeps its own title
+ * and licence (none for the user's own file); the bundled drawings carry the `affiches` licence
+ * and are named after the poster.
+ */
+export interface IllustrationOrigin {
+  name?: string;
+  licence?: Licence;
+}
 
 /**
  * Put a poster on the cover. Loads the illustration, recolours it when it has colour roles,
@@ -68,14 +79,18 @@ const RECOLOURABLE = /\sclass\s*=\s*["'][^"']*\btb-main\b/;
  */
 export async function applyPosterToCover(
   spec: PosterSpec,
-  licence: Licence = AFFICHES_LICENCE,
+  origin: IllustrationOrigin = { licence: AFFICHES_LICENCE },
 ): Promise<boolean> {
   if (editorStore.getState().book === null) return false;
   try {
     const raw = await loadIllustrationSvg(spec.illustration);
     const svg = RECOLOURABLE.test(raw) ? recolorIllustration(raw, spec.colors.illustration) : raw;
-    const name = `Affiche ${spec.title.trim().toLocaleUpperCase('fr') || 'sans titre'}`;
-    const asset = await window.tb.assets.fromSvg(svg, { name, licence });
+    const name =
+      origin.name ?? `Affiche ${spec.title.trim().toLocaleUpperCase('fr') || 'sans titre'}`;
+    const asset = await window.tb.assets.fromSvg(svg, {
+      name,
+      ...(origin.licence ? { licence: origin.licence } : {}),
+    });
     const ratio = svgRatio(svg) ?? 1;
     await whenFontsReady([spec.font, 'Work Sans']).catch(() => undefined);
     const store = editorStore.getState();
