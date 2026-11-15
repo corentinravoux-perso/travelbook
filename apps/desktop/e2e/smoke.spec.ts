@@ -1,8 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { launchApp } from './launch';
 
 test('the app starts and the window title is travelbook', async () => {
-  const app = await launchApp();
+  const userData = await mkdtemp(join(tmpdir(), 'travelbook-e2e-smoke-'));
+  const app = await launchApp(userData);
   try {
     const page = await app.firstWindow();
     await expect(page).toHaveTitle('travelbook');
@@ -19,5 +23,6 @@ test('the app starts and the window title is travelbook', async () => {
     );
   } finally {
     await app.close();
+    await rm(userData, { recursive: true, force: true });
   }
 });

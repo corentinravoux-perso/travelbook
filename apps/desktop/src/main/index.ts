@@ -14,6 +14,7 @@ import { exportJobLookup } from './export/images';
 import { ensureProxies } from './photos/proxies';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
 import { currentSession, setLibraryFileLookup, tbRoots } from './session';
+import { enforceSingleInstance } from './single-instance';
 import { restrictToAppPage } from './window-guard';
 
 // Must run before the app is ready.
@@ -63,7 +64,11 @@ function isTrustedSender(event: Pick<IpcMainInvokeEvent, 'senderFrame' | 'sender
   return frame !== null && frame === event.sender.mainFrame && isTrustedPage(frame.url, appPage);
 }
 
+// One instance per user: two of them would overwrite each other's saves (see `single-instance.ts`).
+const isFirstInstance = enforceSingleInstance(app, () => mainWindow, createWindow);
+
 void app.whenReady().then(async () => {
+  if (!isFirstInstance) return;
   // The folder holding the bundled resources: `resources/` of the sources in dev, and in a
   // packaged app `<resourcesPath>/resources/`, where `extraResources` of electron-builder.yml puts it.
   const resourcesDir = app.isPackaged
