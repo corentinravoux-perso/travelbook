@@ -14,6 +14,7 @@ export const ICON_NAMES = [
   'arrow-back-up',
   'arrow-narrow-right',
   'chevron-down',
+  'chevron-left',
   'chevron-right',
   'circle',
   'eye',

@@ -16,6 +16,7 @@ import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
+import { Preview } from '../preview/Preview';
 import { Inspector } from './inspector/Inspector';
 import { ResizeHandle } from './ResizeHandle';
 import { SaveIndicator } from './SaveIndicator';
@@ -52,10 +53,11 @@ export function Shell() {
   } as CSSProperties;
 
   const overview = useEditor((s) => s.overview);
+  const preview = useEditor((s) => s.preview);
 
   return (
     <>
-      <div className="shell" style={style} inert={overview || undefined}>
+      <div className="shell" style={style} inert={overview || preview || undefined}>
         <TopBar />
         <Rail />
         <Panel width={widths.panel} onResize={resize('panel')} />
@@ -74,6 +76,7 @@ export function Shell() {
         <CoverStage />
       </div>
       {overview && <Overview />}
+      {preview && <Preview />}
     </>
   );
 }
@@ -164,6 +167,16 @@ function TopBar() {
         <>
           <ViewMenu />
           <ZoomControls />
+          <span className="shell-sep" />
+          <button
+            type="button"
+            className="button"
+            disabled={book === null}
+            onClick={() => editorStore.getState().setPreview(true)}
+          >
+            <Icon name="eye" />
+            {fr.shell.preview}
+          </button>
           <span className="shell-sep" />
         </>
       )}
