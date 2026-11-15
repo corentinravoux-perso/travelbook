@@ -1,5 +1,4 @@
-import { randomUUID } from 'node:crypto';
-import { rename, rm, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PDFDocument, cmyk, type PDFPage } from 'pdf-lib';
 import sharp from 'sharp';
@@ -147,17 +146,6 @@ function pageBoxes(
   };
 }
 
-async function writeAtomically(file: string, bytes: Uint8Array): Promise<void> {
-  const partial = `${file}.${randomUUID()}.tmp`;
-  try {
-    await writeFile(partial, bytes);
-    await rename(partial, file);
-  } catch (error) {
-    await rm(partial, { force: true }).catch(() => undefined);
-    throw error;
-  }
-}
-
 export interface PdfExportDeps extends ImageExportDeps {
   /** Pages to send to the raster fallback whatever they hold (tests). */
   forceRaster?: (target: PageTarget) => boolean;
@@ -204,7 +192,7 @@ export function runPdfExport(
         printed.set(target, { pdf: await renderer.print(job), ...boxes });
       }
     },
-    finish: async (written) => {
+    finish: async (outputs, staging) => {
       const inOrder = targets.filter((t) => printed.has(t));
       const groups: [string, PageTarget[]][] = o.perSpread
         ? [[`${slug}-interieur.pdf`, inOrder]]
@@ -218,9 +206,8 @@ export function runPdfExport(
           group.map((t) => printed.get(t) as PdfPageInput),
           o.cropMarks,
         );
-        const file = join(o.outDir, name);
-        await writeAtomically(file, bytes);
-        written.push(file);
+        await writeFile(join(staging, name), bytes);
+        outputs.push(name);
       }
     },
   });

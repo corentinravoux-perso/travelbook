@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PDFDocument, PDFName, PDFRawStream, decodePDFRawStream } from 'pdf-lib';
@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newBook, type Book } from '@travelbook/core';
 import type { ExportOptions } from '../../shared/api';
 import type { ExportRenderer } from './images';
+import { ExportCancelledError, cancelExport } from './images';
 import { RASTER_FALLBACK_DPI, assemblePdf, runPdfExport, type PdfPageInput } from './pdf';
 
 const PT = 72 / 25.4;
@@ -311,5 +312,56 @@ describe('runPdfExport', () => {
       }),
     ).rejects.toThrow(/Impression/);
     expect(await readdir(join(work, 'out'))).toEqual([]);
+  });
+
+  describe('into a folder that holds an earlier export', () => {
+    const earlierPdf = join('out', 'mon-album-interieur.pdf');
+    const earlier = async (): Promise<Buffer> => {
+      await mkdir(join(work, 'out'), { recursive: true });
+      await writeFile(join(work, earlierPdf), 'earlier export');
+      return readFile(join(work, earlierPdf));
+    };
+
+    it('keeps it intact when the new export fails or is cancelled', async () => {
+      const before = await earlier();
+      const failing: ExportRenderer = {
+        ...renderer(),
+        print: async () => {
+          throw new Error('Impression de la page: pas de réponse');
+        },
+      };
+      await expect(
+        runPdfExport(book(), work, options(), {
+          openRenderer: async () => failing,
+          onProgress: () => undefined,
+        }),
+      ).rejects.toThrow(/Impression/);
+      let printed = 0;
+      const cancelling: ExportRenderer = {
+        ...renderer(),
+        print: async (job) => {
+          printed += 1;
+          if (printed === 2) cancelExport();
+          return renderer().print(job);
+        },
+      };
+      await expect(
+        runPdfExport(book(), work, options(), {
+          openRenderer: async () => cancelling,
+          onProgress: () => undefined,
+        }),
+      ).rejects.toBeInstanceOf(ExportCancelledError);
+      expect(await readdir(join(work, 'out'))).toEqual(['mon-album-interieur.pdf']);
+      expect(await readFile(join(work, earlierPdf))).toEqual(before);
+    });
+
+    it('replaces it when the new export completes', async () => {
+      await earlier();
+      const report = await runPdfExport(book(), work, options(), deps());
+      expect(report.files).toEqual([join(work, earlierPdf)]);
+      expect(await readdir(join(work, 'out'))).toEqual(['mon-album-interieur.pdf']);
+      const bytes = new Uint8Array(await readFile(report.files[0]!));
+      expect((await PDFDocument.load(bytes)).getPageCount()).toBe(3);
+    });
   });
 });
