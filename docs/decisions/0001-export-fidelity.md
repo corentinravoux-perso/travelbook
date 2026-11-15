@@ -1,6 +1,6 @@
 # 0001. Export fidelity: vector or raster print PDF
 
-Status: spike result, awaiting the gate (Corentin). Date: 2026-11-14. Task 7.3 implements the route chosen here.
+Status: decided by Corentin on 2026-11-15 — **vector route, with photo adjustments baked into the export derivative** (see "Gate outcome" at the end). Spike date: 2026-11-14. Task 7.3 implements this route.
 
 ## Context
 
@@ -106,3 +106,18 @@ embedded vector text) exports as vector with JPEG passthrough (`var-clip.pdf`: t
 Caveats if chosen: the baked adjustment must match the editor preview (`SpreadView quality="export"` must not apply the CSS
 filter to the same photo), the page-size width must be fixed up with pdf-lib (-0.100 mm), shadows stay 300 dpi masks, and
 this alternative has not been tested with a pdf-lib MediaBox rewrite or a baked derivative of the filtered photo.
+
+## Gate outcome (2026-11-15)
+
+Corentin chose the alternative: **vector PDF route with adjustments baked into the derivative.**
+
+- Task 7.1 applies `adjust` (brightness, contrast, saturation, grayscale, sepia) to the export
+  derivative with sharp. In `export` quality, `SpreadView` then draws the photo with no CSS
+  `filter`, so `printToPDF` keeps it as a JPEG at the derivative's pixel size.
+- The editor keeps the CSS `filter`. Task 7.1 adds a test comparing the sharp result with the
+  CSS-filtered capture of the same photo (mean absolute difference under 2 %).
+- Any other effect found later to rasterise falls back to the raster route for that page only.
+- Page size: Chromium quantises the page to whole points (216 mm → 215.900 mm). This is
+  inside the 0.1 mm tolerance and is absorbed by the 3 mm bleed.
+- Captures need an offscreen window; `printToPDF` needs a plain hidden window (see above).
+- Memory grows with page area; capture one page at a time.
