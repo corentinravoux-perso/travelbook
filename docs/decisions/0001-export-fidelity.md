@@ -168,3 +168,13 @@ marks that never touch printed content. The marks now start `markOffset` from th
 **230 x 317 mm** (it was 228 x 315); BleedBox 216 x 303 at (7, 7), TrimBox 210 x 297 at (10, 10). The cover sheet has its own
 slug, from `coverBleed`. Covered by `pdf.test.ts` (no mark point inside the bleed box) and `export-pdf.spec.ts` (dark mark
 pixel at 5.5 mm, white slug beside it).
+
+## A run is staged, then published (Phase 7 review fix)
+
+**Earlier exports are not touched until a run completes.** A run writes its files into a hidden folder of the output folder,
+`.travelbook-export-<uuid>/` (`export/staging.ts`), and moves them out only after the last page (`publishStaged`: an earlier
+file of the same name is first moved aside inside the staging folder, and if a move fails every earlier file is put back, so
+a PDF open in a viewer cannot leave half old, half new). A cancel or a failure removes only the staging folder: the earlier
+export stays as it was. The staging folders of runs that died (a crash, a kill) are removed at the start of the next run in
+that folder. A file of an earlier export whose name the new run does not produce (page 4 of a 10-page export, re-exported as
+3 pages) is left alone.

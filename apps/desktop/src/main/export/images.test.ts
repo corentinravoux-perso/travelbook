@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -15,6 +15,7 @@ import {
   runImageExport,
   type ExportRenderer,
 } from './images';
+import { STAGING_PREFIX } from './staging';
 
 const OPTIONS: ExportOptions = {
   route: 'images',
@@ -214,5 +215,134 @@ describe('runImageExport', () => {
     ).rejects.toThrow('capture failed');
     expect(await second).toMatch(/déjà en cours/);
     expect(await readdir(out)).toEqual([]);
+  });
+
+  describe('into a folder that holds an earlier export', () => {
+    const deps = (open: () => ExportRenderer = renderer) => ({
+      openRenderer: async () => open(),
+      onProgress: () => undefined,
+    });
+    /** Width in px of each file of `dir`, by name. */
+    const widths = async (dir: string): Promise<Record<string, number | undefined>> =>
+      Object.fromEntries(
+        await Promise.all(
+          (await readdir(dir))
+            .filter((name) => name.endsWith('.jpg'))
+            .map(async (name) => [name, (await sharp(join(dir, name)).metadata()).width] as const),
+        ),
+      );
+    /** The earlier export: three pages at 50 dpi (425 px wide), and a file of the user's. */
+    const earlier = async (out: string): Promise<void> => {
+      await runImageExport(book(), work, options(out), deps());
+      await writeFile(join(out, 'notes.txt'), 'mine');
+    };
+    const EARLIER = { 'page-001.jpg': 425, 'page-002.jpg': 425, 'page-003.jpg': 425 };
+
+    it('keeps it intact when the new export is cancelled', async () => {
+      const out = join(work, 'out');
+      await earlier(out);
+      let shown = 0;
+      const failure = runImageExport(
+        book(),
+        work,
+        options(out, { dpi: 60 }),
+        deps(() =>
+          renderer([], () => {
+            shown += 1;
+            if (shown === 2) cancelExport();
+          }),
+        ),
+      );
+      await expect(failure).rejects.toBeInstanceOf(ExportCancelledError);
+      expect((await readdir(out)).sort()).toEqual(['notes.txt', ...Object.keys(EARLIER)]);
+      expect(await widths(out)).toMatchObject(EARLIER);
+      expect(await readFile(join(out, 'notes.txt'), 'utf8')).toBe('mine');
+    });
+
+    it('keeps it intact when a page of the new export fails', async () => {
+      const out = join(work, 'out');
+      await earlier(out);
+      let shown = 0;
+      const failing: ExportRenderer = {
+        ...renderer(),
+        show: async () => {
+          shown += 1;
+          if (shown === 3) throw new Error('capture failed');
+        },
+      };
+      await expect(
+        runImageExport(
+          book(),
+          work,
+          options(out, { dpi: 60 }),
+          deps(() => failing),
+        ),
+      ).rejects.toThrow('capture failed');
+      expect((await readdir(out)).sort()).toEqual(['notes.txt', ...Object.keys(EARLIER)]);
+      expect(await widths(out)).toMatchObject(EARLIER);
+    });
+
+    it('replaces it, and nothing else, when the new export completes', async () => {
+      const out = join(work, 'out');
+      await earlier(out);
+      const report = await runImageExport(book(), work, options(out, { dpi: 60 }), deps());
+      expect(report.files).toEqual(
+        ['page-001.jpg', 'page-002.jpg', 'page-003.jpg'].map((f) => join(out, f)),
+      );
+      expect((await readdir(out)).sort()).toEqual(['notes.txt', ...Object.keys(EARLIER)]);
+      // 60 dpi: 510 px wide.
+      expect(await widths(out)).toMatchObject({
+        'page-001.jpg': 510,
+        'page-002.jpg': 510,
+        'page-003.jpg': 510,
+      });
+    });
+
+    it('writes the new pages out of the way until the export is complete', async () => {
+      const out = join(work, 'out');
+      await earlier(out);
+      let shown = 0;
+      let during: {
+        names: string[];
+        widths: Record<string, number | undefined>;
+        staged: string[];
+      } = {
+        names: [],
+        widths: {},
+        staged: [],
+      };
+      const watching: ExportRenderer = {
+        ...renderer(),
+        show: async () => {
+          shown += 1;
+          if (shown !== 3) return;
+          // Pages 1 and 2 of the new export are done, page 3 is being drawn.
+          const names = await readdir(out);
+          const staging = names.find((n) => n.startsWith(STAGING_PREFIX)) as string;
+          during = {
+            names: names.filter((n) => n !== staging).sort(),
+            widths: await widths(out),
+            staged: (await readdir(join(out, staging))).sort(),
+          };
+        },
+      };
+      await runImageExport(
+        book(),
+        work,
+        options(out, { dpi: 60 }),
+        deps(() => watching),
+      );
+      expect(during.names).toEqual(['notes.txt', ...Object.keys(EARLIER)]);
+      expect(during.widths).toMatchObject(EARLIER);
+      expect(during.staged).toEqual(['page-001.jpg', 'page-002.jpg']);
+    });
+
+    it('removes the staging folders a crashed run left in the folder', async () => {
+      const out = join(work, 'out');
+      await mkdir(join(out, `${STAGING_PREFIX}crashed`), { recursive: true });
+      await writeFile(join(out, `${STAGING_PREFIX}crashed`, 'page-001.jpg'), 'half');
+      await runImageExport(book(), work, options(out), deps());
+      expect(await readdir(out)).toEqual(['page-001.jpg', 'page-002.jpg', 'page-003.jpg']);
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, mkdtemp, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -22,6 +22,7 @@ import { projectFilePath, type TbExportJob } from '../protocol';
 import { patternTileMm } from '@travelbook/render/src/patternTile.ts';
 import { makeDerivative } from './derivatives';
 import { bakePatternTile } from './patternTile';
+import { createStaging, publishStaged } from './staging';
 
 /** One file of the images route: `name` has no extension. `clip` is in spread coordinates (mm). */
 export interface PageTarget {
@@ -254,8 +255,13 @@ export interface PageContext {
   /** How a person reads the page in an error: "page 3". */
   label: string;
   progress(step: string): void;
-  /** Files this run has written: removed if the run fails. */
-  written: string[];
+  /**
+   * The folder this run writes to, hidden inside `outDir`. Nothing in it reaches `outDir` unless
+   * the run completes and the file is named in `outputs`; it is removed at the end whatever happens.
+   */
+  staging: string;
+  /** Names of the files of `staging` that are the result of the run. */
+  outputs: string[];
 }
 
 export interface PageLoop {
@@ -265,16 +271,22 @@ export interface PageLoop {
   page(ctx: PageContext): Promise<void>;
   /** Paint the stencil of the pattern backgrounds of each page into a tile (the PDF route). */
   bakePatterns?: boolean;
-  /** Called after the last page, to write what the pages added up to. */
-  finish?(written: string[]): Promise<void>;
+  /**
+   * Called after the last page, to write what the pages added up to: files into `staging`, their
+   * names into `outputs`.
+   */
+  finish?(outputs: string[], staging: string): Promise<void>;
 }
 
 /**
  * The part the routes share, one page at a time: build the derivatives of the page, hand it to the
  * route, delete the derivatives. Sequential on purpose (a 600 dpi capture takes about 2 GB).
  *
- * Originals are found from `book.assets[...].file` inside `projectDir`. A missing original, a
- * failed page or a cancel removes every file this run wrote and rejects.
+ * Originals are found from `book.assets[...].file` inside `projectDir`. The files are written to a
+ * hidden staging folder inside `o.outDir` and moved into it only when every page is done, replacing
+ * the files of an earlier export of the same names at that point and not before. A missing
+ * original, a failed page or a cancel removes the staging folder and rejects: whatever `o.outDir`
+ * held, an earlier export included, is as it was.
  */
 export async function runPages(
   book: Book,
@@ -289,12 +301,13 @@ export async function runPages(
   running = abort;
   const targets = loop.targets.filter((t) => t.clip.w > 0 && t.clip.h > 0);
   const token = randomUUID();
-  const written: string[] = [];
+  const outputs: string[] = [];
+  let staging: string | null = null;
   let work: string | null = null;
   let renderer: ExportRenderer | null = null;
   try {
     if (targets.length === 0) throw new Error('Aucune page à exporter.');
-    await mkdir(o.outDir, { recursive: true });
+    staging = await createStaging(o.outDir);
     work = await mkdtemp(join(tmpdir(), 'travelbook-export-'));
     const dir = join(work, 'derivatives');
     jobs.set(token, {
@@ -374,19 +387,21 @@ export async function runPages(
         derivatives,
         patternTiles,
       };
-      await loop.page({ target, job, renderer, photos, label, progress, written });
+      await loop.page({ target, job, renderer, photos, label, progress, staging, outputs });
       await rm(dir, { recursive: true, force: true });
     }
-    await loop.finish?.(written);
+    await loop.finish?.(outputs, staging);
     // A cancel that came in during the last page changes nothing: the export is complete.
-    return { files: written, pages: targets.length, seconds: (Date.now() - started) / 1000 };
-  } catch (error) {
-    await Promise.all(written.map((file) => rm(file, { force: true }).catch(() => undefined)));
-    throw error;
+    const files = await publishStaged(staging, o.outDir, outputs);
+    return { files, pages: targets.length, seconds: (Date.now() - started) / 1000 };
   } finally {
     jobs.delete(token);
     renderer?.close();
-    if (work !== null) await rm(work, { recursive: true, force: true }).catch(() => undefined);
+    await Promise.all(
+      [staging, work].map((dir) =>
+        dir === null ? undefined : rm(dir, { recursive: true, force: true }).catch(() => undefined),
+      ),
+    );
     running = null;
   }
 }
@@ -401,22 +416,15 @@ export function runImageExport(
   const extension = o.imageFormat === 'png' ? 'png' : 'jpg';
   return runPages(book, projectDir, o, deps, {
     targets: renderPageTargets(book, o),
-    page: async ({ target, job, renderer, progress, written }) => {
+    page: async ({ target, job, renderer, progress, staging, outputs }) => {
       progress('render');
       await renderer.show(job);
       progress('capture');
       const png = await renderer.capture(target, o.dpi);
       progress('write');
-      const file = join(o.outDir, `${target.name}.${extension}`);
-      const partial = `${file}.${randomUUID()}.tmp`;
-      try {
-        await writeFile(partial, await encode(png, pixelSize(target.clip, o.dpi), o));
-        await rename(partial, file);
-      } catch (error) {
-        await rm(partial, { force: true }).catch(() => undefined);
-        throw error;
-      }
-      written.push(file);
+      const name = `${target.name}.${extension}`;
+      await writeFile(join(staging, name), await encode(png, pixelSize(target.clip, o.dpi), o));
+      outputs.push(name);
     },
   });
 }
