@@ -24,6 +24,8 @@ export const FIXTURE_NAMES = [
   'évasion n°1.jpg',
   'script.svg',
   'plain.svg',
+  'day1.jpg',
+  'day2.jpg',
 ] as const;
 
 export type FixtureName = (typeof FIXTURE_NAMES)[number];
@@ -54,10 +56,18 @@ function patternSvg(w: number, h: number): string {
 </svg>`;
 }
 
-async function jpeg(w: number, h: number, orientation?: number): Promise<Buffer> {
+async function jpeg(
+  w: number,
+  h: number,
+  options: { orientation?: number; takenAt?: string } = {},
+): Promise<Buffer> {
   let image = sharp(Buffer.from(patternSvg(w, h))).jpeg({ quality: 85 });
   // Sets the EXIF Orientation tag only: the stored pixels are not rotated.
-  if (orientation !== undefined) image = image.withMetadata({ orientation });
+  if (options.orientation !== undefined)
+    image = image.withMetadata({ orientation: options.orientation });
+  // `DateTimeOriginal` lives in the Exif sub-directory (IFD2) of the metadata sharp writes.
+  if (options.takenAt !== undefined)
+    image = image.withExifMerge({ IFD2: { DateTimeOriginal: options.takenAt } });
   return image.toBuffer();
 }
 
@@ -92,9 +102,13 @@ const SCRIPT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="
 </svg>
 `;
 
+/** EXIF capture times of `day1.jpg` and `day2.jpg`: two different days, in EXIF's own notation. */
+export const DAY_1 = '2026:06:10 14:30:00';
+export const DAY_2 = '2026:06:11 09:05:00';
+
 const BUILDERS: Record<FixtureName, () => Promise<Buffer | string>> = {
   'landscape.jpg': () => jpeg(6000, 4000),
-  'portrait-o6.jpg': () => jpeg(6000, 4000, 6),
+  'portrait-o6.jpg': () => jpeg(6000, 4000, { orientation: 6 }),
   'pano.jpg': () => jpeg(12000, 3000),
   'small.jpg': () => jpeg(800, 600),
   'truncated.jpg': async () => {
@@ -107,6 +121,9 @@ const BUILDERS: Record<FixtureName, () => Promise<Buffer | string>> = {
   'évasion n°1.jpg': () => jpeg(1200, 800),
   'script.svg': async () => SCRIPT_SVG,
   'plain.svg': async () => PLAIN_SVG,
+  // Two photos shot on different days (EXIF DateTimeOriginal, camera wall-clock digits).
+  'day1.jpg': () => jpeg(3000, 2000, { takenAt: DAY_1 }),
+  'day2.jpg': () => jpeg(2000, 3000, { takenAt: DAY_2 }),
 };
 
 async function exists(path: string): Promise<boolean> {

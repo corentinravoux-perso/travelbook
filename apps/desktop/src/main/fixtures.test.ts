@@ -2,6 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { basename } from 'node:path';
 import sharp from 'sharp';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { readPhotoMeta } from './photos/exif';
 import {
   ensureFixtures,
   FIXTURE_NAMES,
@@ -82,5 +83,16 @@ describe('image fixtures', () => {
     const plain = await readFile(fixturePath('plain.svg'), 'utf8');
     expect(plain).not.toMatch(/<script|\son\w+=/);
     expect((await meta('plain.svg')).format).toBe('svg');
+  });
+
+  it('stamps day1.jpg and day2.jpg with EXIF capture times on two different days', async () => {
+    const [one, two] = await Promise.all([
+      readPhotoMeta(fixturePath('day1.jpg')),
+      readPhotoMeta(fixturePath('day2.jpg')),
+    ]);
+    expect(one.exif?.takenAt).toBe('2026-06-10T14:30:00');
+    expect(two.exif?.takenAt).toBe('2026-06-11T09:05:00');
+    expect(one.pixel).toEqual({ w: 3000, h: 2000 });
+    expect(two.pixel).toEqual({ w: 2000, h: 3000 });
   });
 });
