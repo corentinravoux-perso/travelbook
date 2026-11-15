@@ -10,12 +10,13 @@ import { inspectImage } from './import-files';
  * Store an SVG made by the renderer (a recoloured poster illustration) in the project's
  * `assets/` as a sticker: sanitised first, then kept as `assets/<sha16>.svg` with the id
  * `sticker-<sha16>` (the convention of `importAssetFiles`), written once whatever the number of
- * calls. `name` becomes the original name; `licence` travels with the asset to the credits.
+ * calls. `name` becomes the original name; `licence`, when given, travels with the asset to the
+ * credits (none for the user's own file).
  */
 export async function assetFromSvg(
   dir: string,
   svg: string,
-  meta: { name: string; licence: Licence },
+  meta: { name: string; licence?: Licence },
 ): Promise<AssetRef> {
   const clean = Buffer.from(sanitizeSvg(svg), 'utf8');
   await inspectImage(clean, '.svg');
@@ -37,6 +38,6 @@ export async function assetFromSvg(
     file,
     originalName: `${meta.name}.svg`,
     sha256,
-    licence: { ...meta.licence },
+    ...(meta.licence ? { licence: { ...meta.licence } } : {}),
   };
 }

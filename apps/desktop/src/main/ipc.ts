@@ -222,7 +222,7 @@ const schemas = {
   palette: z.tuple([z.array(identifier).max(500)]),
   fromSvg: z.tuple([
     z.string().min(1).max(MAX_SVG_CHARS),
-    z.object({ name: z.string().min(1).max(200), licence: LicenceSchema }).strict(),
+    z.object({ name: z.string().min(1).max(200), licence: LicenceSchema.optional() }).strict(),
   ]),
   clipboardWrite: z.tuple([clipboardPayload]),
   externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),

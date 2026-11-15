@@ -6,7 +6,7 @@ import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
 import { POSTER_DESTINATIONS, presetsOf } from './presets';
 
-const apply = vi.fn(async () => true);
+const apply = vi.fn<(...args: unknown[]) => Promise<boolean>>(async () => true);
 vi.mock('./posterActions', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./posterActions')>()),
   applyPosterToCover: (...args: unknown[]) => apply(...(args as [])),
@@ -112,6 +112,63 @@ describe('PosterDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: t.apply }));
     fireEvent.click(screen.getByRole('button', { name: t.replace }));
     expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it('says inside the dialog when the poster could not be applied, and stays open', async () => {
+    apply.mockResolvedValueOnce(false);
+    await openWith(book);
+    fireEvent.click(screen.getByRole('button', { name: t.apply }));
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain(t.applyFailed);
+    expect(screen.getByRole('dialog', { hidden: true }).hasAttribute('open')).toBe(true);
+  });
+
+  it('disables apply and says so when the drawing cannot be loaded', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 404, text: async () => '' }) as Response),
+    );
+    await openWith(book);
+    expect((await screen.findByRole('alert')).textContent).toContain(t.illustrationMissing);
+    expect((screen.getByRole('button', { name: t.apply }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+  });
+
+  it('offers only SVG library stickers and applies one with its own title and licence', async () => {
+    const cc = {
+      source: 'Openverse',
+      author: 'Ada',
+      licence: 'CC-BY-4.0',
+      url: 'https://example.org/a',
+      requiresAttribution: true,
+    };
+    const item = (id: string, file: string, title: string, licence?: typeof cc) => ({
+      id,
+      kind: 'sticker',
+      file,
+      title,
+      tags: [],
+      addedAt: '2026-11-15T00:00:00Z',
+      favourite: false,
+      ...(licence ? { licence } : {}),
+    });
+    (window as unknown as { tb: { library: { list: unknown } } }).tb.library.list = vi.fn(
+      async () => [
+        item('sticker-a', 'files/sticker-a.svg', 'Avion', cc),
+        item('sticker-b', 'files/sticker-b.png', 'Photo'),
+      ],
+    );
+    await openWith(book);
+    fireEvent.click(screen.getByRole('button', { name: t.otherSticker }));
+    const avion = await screen.findByRole('button', { name: 'Avion' });
+    expect(screen.queryByRole('button', { name: 'Photo' })).toBeNull();
+    fireEvent.click(avion);
+    fireEvent.click(screen.getByRole('button', { name: t.apply }));
+    expect(apply).toHaveBeenCalledWith(
+      expect.objectContaining({ illustration: { itemId: 'sticker-a' } }),
+      { name: 'Avion', licence: cc },
+    );
   });
 
   it('warns when the title vanishes into the background', async () => {

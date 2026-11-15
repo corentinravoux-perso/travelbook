@@ -123,6 +123,21 @@ describe('applyPosterToCover', () => {
     expect(editorStore.getState().notice).toBe(fr.poster.applyFailed);
   });
 
+  it('stores a library drawing under its own title and licence, none when it has none', async () => {
+    const own = { ...spec(), illustration: { itemId: 'sticker-abc' } };
+    await applyPosterToCover(own, { name: 'Mon dessin' });
+    expect(stored[0]!.meta).toEqual({ name: 'Mon dessin' });
+    const cc = {
+      source: 'Openverse',
+      author: 'Ada',
+      licence: 'CC-BY-4.0',
+      url: 'https://example.org/a',
+      requiresAttribution: true,
+    };
+    await applyPosterToCover({ ...own, title: 'Autre' }, { name: 'Avion', licence: cc });
+    expect(stored[1]!.meta).toEqual({ name: 'Avion', licence: cc });
+  });
+
   it('recolours a recolourable drawing with the illustration colours', async () => {
     const s = {
       ...spec(),

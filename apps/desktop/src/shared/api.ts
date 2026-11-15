@@ -422,7 +422,7 @@ export interface TbApi {
      * Store an SVG made here (a recoloured poster illustration) in the open project's `assets/`
      * as a sticker: sanitised, written once per content, carrying `licence` to the credits.
      */
-    fromSvg(svg: string, meta: { name: string; licence: Licence }): Promise<AssetRef>;
+    fromSvg(svg: string, meta: { name: string; licence?: Licence }): Promise<AssetRef>;
     /** Up to 6 dominant colours of the given assets, as `#rrggbb`, most present first. */
     palette(assetIds: string[]): Promise<string[]>;
   };

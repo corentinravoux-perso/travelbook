@@ -147,6 +147,7 @@ export const fr = {
     cancelReplace: 'Garder la couverture',
     undoApply: 'Appliquer une affiche',
     applyFailed: "L'affiche n'a pas pu être appliquée.",
+    illustrationMissing: "Ce dessin n'a pas pu être chargé : choisissez-en un autre.",
   },
   cover: {
     tools: 'Outils de la couverture',

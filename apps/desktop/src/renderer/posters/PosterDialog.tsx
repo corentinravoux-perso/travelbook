@@ -4,7 +4,6 @@ import {
   SPINE_TEXT_MIN,
   recolorIllustration,
   type Book,
-  type Licence,
   type PosterFont,
   type PosterLayout,
   type PosterPreset,
@@ -25,7 +24,13 @@ import {
   type ColorRole,
   type PosterDialogState,
 } from './dialogModel';
-import { AFFICHES_LICENCE, applyPosterToCover, illustrationUrl } from './posterActions';
+import {
+  AFFICHES_LICENCE,
+  RECOLOURABLE,
+  applyPosterToCover,
+  illustrationUrl,
+  type IllustrationOrigin,
+} from './posterActions';
 import { PosterPreview } from './PosterPreview';
 import { POSTER_DESTINATIONS, POSTER_PRESETS, presetsOf } from './presets';
 import './PosterDialog.css';
@@ -53,8 +58,6 @@ function useSvg(url: string | null): { text: string; ratio: number } | null {
   }, [url]);
   return svg && svg.url === url ? svg : null;
 }
-
-const RECOLOURABLE = /\sclass\s*=\s*["'][^"']*\btb-main\b/;
 
 /**
  * A blob URL of the illustration recoloured as the spec says, rebuilt 120 ms after the colours
@@ -130,14 +133,14 @@ function PresetTile({
   );
 }
 
-/** The user's library stickers, to use one as the illustration. */
+/** The user's SVG library stickers, to use one as the illustration (a poster drawing is an SVG). */
 function LibraryPicker({ onPick }: { onPick(item: LibraryItem): void }) {
   const [items, setItems] = useState<LibraryItem[] | null>(null);
   useEffect(() => {
     let live = true;
     window.tb.library
       .list('sticker')
-      .then((list) => live && setItems(list))
+      .then((list) => live && setItems(list.filter((item) => /\.svg$/i.test(item.file))))
       .catch(() => live && setItems([]));
     return () => {
       live = false;
@@ -181,7 +184,8 @@ function colorOf(state: PosterDialogState, role: ColorRole): string {
 
 function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
   const [state, dispatch] = useReducer(posterReducer, book.title, initialPosterState);
-  const [licence, setLicence] = useState<Licence>(AFFICHES_LICENCE);
+  const [origin, setOrigin] = useState<IllustrationOrigin>({ licence: AFFICHES_LICENCE });
+  const [failed, setFailed] = useState(false);
   const [asking, setAsking] = useState(false);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -191,6 +195,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
   const url = illustrationUrl(spec.illustration);
   const svg = useSvg(url);
   const previewUrl = usePreviewUrl(url, svg?.text, spec.colors.illustration);
+  const missing = svg !== null && svg.text === '';
 
   const gallery = presetsOf(state.destination);
   // The drawings offered: those of the filtered destination, else of the current preset's.
@@ -205,9 +210,11 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
 
   const apply = async (): Promise<void> => {
     setAsking(false);
+    setFailed(false);
     setBusy(true);
-    const ok = await applyPosterToCover(spec, licence);
+    const ok = await applyPosterToCover(spec, origin);
     setBusy(false);
+    setFailed(!ok);
     if (ok) {
       const store = editorStore.getState();
       if (store.book) store.goToSpread(store.book.cover.id);
@@ -242,7 +249,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
               preset={p}
               pressed={state.presetId === p.id}
               onPick={() => {
-                setLicence(AFFICHES_LICENCE);
+                setOrigin({ licence: AFFICHES_LICENCE });
                 dispatch({ type: 'pickPreset', id: p.id });
               }}
             />
@@ -375,7 +382,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
                       illustrationUrl(spec.illustration) === illustrationUrl(p.spec.illustration)
                     }
                     onClick={() => {
-                      setLicence(AFFICHES_LICENCE);
+                      setOrigin({ licence: AFFICHES_LICENCE });
                       dispatch({
                         type: 'setIllustration',
                         illustration: p.spec.illustration,
@@ -399,7 +406,10 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
             {picking && (
               <LibraryPicker
                 onPick={(item) => {
-                  setLicence(item.licence ?? AFFICHES_LICENCE);
+                  setOrigin({
+                    name: item.title,
+                    ...(item.licence ? { licence: item.licence } : {}),
+                  });
                   dispatch({ type: 'setIllustration', illustration: { itemId: item.id } });
                   setPicking(false);
                 }}
@@ -420,6 +430,11 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
         </div>
       </div>
 
+      {(missing || failed) && (
+        <p className="field__help is-error poster-dialog__error" role="alert">
+          {missing ? t.illustrationMissing : t.applyFailed}
+        </p>
+      )}
       {asking ? (
         <div className="dialog__actions poster-dialog__ask" role="alert">
           <p>{t.replaceQuestion}</p>
@@ -438,7 +453,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
           <button
             type="button"
             className="button button--primary"
-            disabled={!canApply(state) || busy}
+            disabled={!canApply(state) || busy || missing}
             onClick={() => (frontTaken ? setAsking(true) : void apply())}
           >
             {t.apply}
