@@ -64,7 +64,8 @@ function isTrustedSender(event: Pick<IpcMainInvokeEvent, 'senderFrame' | 'sender
 }
 
 void app.whenReady().then(async () => {
-  // The folder holding the bundled resources; Task 8.1 ships them next to the app when packaged.
+  // The folder holding the bundled resources: `resources/` of the sources in dev, and in a
+  // packaged app `<resourcesPath>/resources/`, where `extraResources` of electron-builder.yml puts it.
   const resourcesDir = app.isPackaged
     ? join(process.resourcesPath, 'resources')
     : join(app.getAppPath(), 'resources');

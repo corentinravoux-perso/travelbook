@@ -1,10 +1,71 @@
-# Minimal for now; Task 8.1 completes packaging.
-appId: fr.ravoux.travelbook
+# Installers: `npm run dist:linux` (a .deb) and `npm run dist:win` (an NSIS .exe). Both run
+# `npm run build` first, which builds the sticker packs (a build output, never committed) and
+# then the app into `out/`.
+appId: io.github.corentinravoux.travelbook
 productName: travelbook
+copyright: Copyright (c) 2026 Corentin Ravoux
 directories:
   output: dist
+
+# Only the built app goes into app.asar; node_modules of the production dependencies are added
+# by electron-builder.
 files:
   - out/**
-# Task 8.1: ship `resources/` next to the app, including `resources/stickers/packs/`. The packs are
-# built, not committed: `npm run build` (so `dist:linux` and `dist:win`) runs `npm run stickers`
-# first, and CI builds them on demand in the tests.
+
+# sharp ships native binaries (@img/sharp-*, @img/sharp-libvips-*): they cannot be loaded from
+# inside an asar archive, so they stay on disk in app.asar.unpacked/.
+asarUnpack:
+  - '**/node_modules/sharp/**'
+  - '**/node_modules/@img/**'
+
+# The bundled library (fonts, sticker packs, patterns, textures, templates and the lists that
+# describe them) is read from the disk by the main process and served over tb://resource, so it
+# ships outside the asar, at <resources>/resources/. `src/main/index.ts` resolves the same
+# folder from `process.resourcesPath`. The app icon is a build resource, not shipped with the
+# library, and the French keyword list is only read by the sticker build script.
+extraResources:
+  - from: resources
+    to: resources
+    filter:
+      - '**/*'
+      - '!icons/**'
+      - '!stickers/fr-keywords.json'
+
+# There is no native module to compile: sharp downloads prebuilt binaries as optional packages.
+npmRebuild: false
+
+linux:
+  executableName: travelbook
+  target:
+    - target: deb
+      arch: [x64]
+  icon: resources/icons/png
+  category: Graphics
+  maintainer: Corentin Ravoux <corentin.ravoux.research@gmail.com>
+  # The French text of the menu entry: electron-builder writes `description` as the `Comment` of
+  # the .desktop file (a `desktop.entry.Comment` would be overwritten), and `synopsis` and
+  # `description` as the first line and the body of the package description.
+  synopsis: Éditeur d'albums photo de voyage
+  description: Composer des albums photo de voyage prêts à imprimer.
+  # Electron names the window's app_id after `desktopName` in package.json: the entry's
+  # StartupWMClass and file name must match it, or the shell does not link the window to the
+  # launcher (wrong icon in the dock).
+  syncDesktopName: true
+deb:
+  packageCategory: graphics
+  artifactName: travelbook_${version}_${arch}.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: resources/icons/icon.ico
+nsis:
+  # A one-click, per-user installer: no administrator prompt, installed under
+  # %LOCALAPPDATA%\Programs\travelbook, with a Start-menu shortcut and no desktop shortcut.
+  # The installer is not signed (no certificate): SmartScreen asks for a confirmation.
+  oneClick: true
+  perMachine: false
+  createStartMenuShortcut: true
+  createDesktopShortcut: false
+  artifactName: travelbook-setup-${version}-${arch}.${ext}
