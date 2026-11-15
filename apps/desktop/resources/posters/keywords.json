@@ -9,6 +9,7 @@
   "costa-rica-rainette": ["costa rica", "grenouille", "rainette", "jungle", "tropique"],
   "costa-rica-toucan": ["costa rica", "toucan", "oiseau", "jungle", "tropique"],
   "costa-rica-volcan": ["costa rica", "volcan", "arenal", "forêt", "jungle"],
+  "ecosse-chardon": ["ecosse", "écosse", "chardon", "fleur", "emblème"],
   "ecosse-chateau": [
     "ecosse",
     "écosse",
@@ -19,6 +20,10 @@
     "highlands",
     "forteresse"
   ],
+  "ecosse-vache": ["ecosse", "écosse", "vache", "highland", "highlands", "bétail"],
+  "italie-colisee": ["italie", "colisée", "rome", "amphithéâtre", "antique"],
+  "italie-moka": ["italie", "café", "cafetière", "moka", "expresso"],
+  "italie-vespa": ["italie", "scooter", "vespa", "rome", "dolce vita"],
   "japon-fuji": ["japon", "fuji", "mont", "montagne", "volcan", "pagode"],
   "japon-maneki-neko": ["japon", "chat", "maneki", "neko", "porte-bonheur"],
   "japon-ramen": ["japon", "ramen", "bol", "nouilles", "baguettes", "cuisine"],
@@ -29,6 +34,9 @@
   "perou-chullo": ["pérou", "perou", "chullo", "bonnet", "laine", "andes"],
   "perou-lama": ["pérou", "perou", "lama", "alpaga", "andes"],
   "perou-vinicunca": ["pérou", "perou", "vinicunca", "montagne", "arc-en-ciel", "andes"],
+  "suede-dala": ["suède", "suede", "cheval", "dalécarlie", "dala", "bois"],
+  "suede-elan": ["suède", "suede", "élan", "elan", "forêt", "neige"],
+  "suede-maison": ["suède", "suede", "maison", "rouge", "campagne", "chalet"],
   "thailande-bateau": ["thaïlande", "thailande", "bateau", "longue queue", "mer", "île", "falaise"],
   "thailande-elephant": ["thaïlande", "thailande", "éléphant", "elephant"],
   "thailande-stupa": ["thaïlande", "thailande", "stupa", "chedi", "temple", "bouddhisme"],

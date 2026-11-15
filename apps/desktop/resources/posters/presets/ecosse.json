@@ -1,0 +1,83 @@
+[
+  {
+    "id": "ecosse-chateau",
+    "destination": "ecosse",
+    "name": "Écosse, château sur un loch",
+    "spec": {
+      "layout": "classique",
+      "title": "ÉCOSSE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#dde8de",
+        "title": "#2e4a5e",
+        "accent": "#2e4a5e",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#b9a48a",
+          "shade": "#7c6a55"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "ecosse-chateau"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "ecosse-vache",
+    "destination": "ecosse",
+    "name": "Écosse, vache highland",
+    "spec": {
+      "layout": "horizon",
+      "title": "ÉCOSSE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f3e0c8",
+        "title": "#8e3f17",
+        "accent": "#2b2723",
+        "decor": "#b9c48a",
+        "illustration": {
+          "main": "#8e3f17",
+          "shade": "#8e3f17"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "ecosse-vache"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "ecosse-chardon",
+    "destination": "ecosse",
+    "name": "Écosse, chardon",
+    "spec": {
+      "layout": "soleil",
+      "title": "ÉCOSSE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#ece6f4",
+        "title": "#5d3a78",
+        "accent": "#3f6a3a",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#8a5aa8",
+          "shade": "#5d3a78"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "ecosse-chardon"
+      },
+      "spine": true
+    }
+  }
+]
