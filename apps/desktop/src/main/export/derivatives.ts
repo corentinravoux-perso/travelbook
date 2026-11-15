@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import sharp, { type Sharp } from 'sharp';
+import sharp, { type Sharp } from '../imaging';
 import { mmToPxAtDpi, visibleRect, type Crop, type Mm, type PhotoElement } from '@travelbook/core';
 import { featherMaskSvg } from '@travelbook/render/src/masks.ts';
 

@@ -11,7 +11,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { Readable } from 'node:stream';
 import sharp from 'sharp';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -504,7 +504,7 @@ describe('importPhotos: folders', () => {
       recursive: true,
     });
     expect(deep.added.map((a) => a.originalName)).toEqual(['b.jpg', 'deeper.jpg']);
-    expect(deep.duplicates.map((d) => d.path.split('/').pop())).toEqual(['a.jpg', 'again.jpg']);
+    expect(deep.duplicates.map((d) => basename(d.path))).toEqual(['a.jpg', 'again.jpg']);
   }, 30_000);
 
   it('does not walk into album folders when going recursive', async () => {
@@ -652,7 +652,7 @@ describe('importPhotos: copy verification', () => {
     await importPhotos(dir, book, fx('small.jpg'));
     expect(vi.mocked(copyFile)).toHaveBeenCalledWith(
       fixturePath('small.jpg'),
-      expect.stringMatching(/originals\/[0-9a-f]{16}\.jpg$/),
+      expect.stringMatching(/originals[\\/][0-9a-f]{16}\.jpg$/),
       constants.COPYFILE_FICLONE,
     );
   });
