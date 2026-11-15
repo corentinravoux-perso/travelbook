@@ -9,6 +9,7 @@ import {
   type Background,
   type Book,
   type Element,
+  type PhotoElement,
   type Spread,
   BookFormatError,
   BookSchema,
@@ -59,7 +60,15 @@ describe('newSpread / newElement', () => {
     const p = newElement('photo', rect);
     expect(p).toMatchObject({ type: 'photo', ...rect, assetId: null, opacity: 1, rotation: 0 });
     expect(p.crop).toEqual({ scale: 1, cx: 0.5, cy: 0.5 });
-    expect(p.adjust).toEqual({ brightness: 1, contrast: 1, saturation: 1, grayscale: 0, sepia: 0 });
+    expect(p.adjust).toEqual({
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+      grayscale: 0,
+      sepia: 0,
+      vignette: 0,
+    });
+    expect(p.edge).toBeNull();
   });
 
   it('every element type validates inside a book', () => {
@@ -102,6 +111,68 @@ describe('BookSchema', () => {
     p.crop.scale = 0.5;
     b.spreads[1]!.elements.push(p);
     expect(BookSchema.safeParse(b).success).toBe(false);
+  });
+
+  describe('photo look', () => {
+    /** A book with one photo, patched by `edit`; `edit` may delete fields to imitate an older file. */
+    function bookWithPhoto(edit: (photo: Record<string, unknown>) => void): unknown {
+      const b = newBook({ title: 'T', innerSpreads: 1 });
+      b.spreads[1]!.elements.push(newElement('photo', rect));
+      const raw = JSON.parse(JSON.stringify(b)) as Book;
+      edit(raw.spreads[1]!.elements[0] as unknown as Record<string, unknown>);
+      return raw;
+    }
+    const adjustOf = (p: Record<string, unknown>) => p['adjust'] as Record<string, unknown>;
+
+    it('accepts a vignette at both ends of 0..1', () => {
+      for (const vignette of [0, 0.5, 1]) {
+        const raw = bookWithPhoto((p) => (adjustOf(p)['vignette'] = vignette));
+        expect(BookSchema.safeParse(raw).success).toBe(true);
+      }
+    });
+    it('rejects a vignette outside 0..1', () => {
+      for (const vignette of [-0.1, 1.01, Number.NaN]) {
+        const raw = bookWithPhoto((p) => (adjustOf(p)['vignette'] = vignette));
+        expect(BookSchema.safeParse(raw).success).toBe(false);
+      }
+    });
+    it('accepts a feather of 0 and more, and rejects a negative one', () => {
+      for (const feather of [0, 4, 15]) {
+        const raw = bookWithPhoto((p) => (p['edge'] = { feather }));
+        expect(BookSchema.safeParse(raw).success).toBe(true);
+      }
+      const raw = bookWithPhoto((p) => (p['edge'] = { feather: -1 }));
+      expect(BookSchema.safeParse(raw).success).toBe(false);
+    });
+    it('keeps a stored feather and vignette', () => {
+      const raw = bookWithPhoto((p) => {
+        adjustOf(p)['vignette'] = 0.4;
+        p['edge'] = { feather: 3 };
+      });
+      const photo = migrate(raw).spreads[1]!.elements[0] as PhotoElement;
+      expect(photo.adjust.vignette).toBe(0.4);
+      expect(photo.edge).toEqual({ feather: 3 });
+    });
+    it('fills the defaults for a book written without them', () => {
+      const raw = bookWithPhoto((p) => {
+        delete adjustOf(p)['vignette'];
+        delete p['edge'];
+      });
+      const photo = migrate(raw).spreads[1]!.elements[0] as PhotoElement;
+      expect(photo.adjust).toEqual({
+        brightness: 1,
+        contrast: 1,
+        saturation: 1,
+        grayscale: 0,
+        sepia: 0,
+        vignette: 0,
+      });
+      expect(photo.edge).toBeNull();
+    });
+    it('reads a stored null edge as no feather', () => {
+      const raw = bookWithPhoto((p) => (p['edge'] = null));
+      expect((migrate(raw).spreads[1]!.elements[0] as PhotoElement).edge).toBeNull();
+    });
   });
 
   it('rejects opacity > 1', () => {

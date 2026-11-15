@@ -195,3 +195,96 @@
 .insp-reset {
   align-self: flex-start;
 }
+
+/* Preset masks: one button per shape, drawn as the shape. A pressed one inverts, like a segment. */
+.shape-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--s3);
+}
+.shape-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-h);
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--surface);
+  color: var(--ink-2);
+  transition:
+    border-color var(--fast),
+    color var(--fast);
+}
+.shape-tile:hover {
+  border-color: var(--ink-2);
+  color: var(--ink);
+}
+.shape-tile svg {
+  width: 26px;
+  height: 20px;
+  fill: currentColor;
+}
+.shape-tile[aria-pressed='true'] {
+  border-color: var(--invert-bg);
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+
+/* Looks: the photo through each preset. The selected one has the outline of a selected thumbnail. */
+.look-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s4) var(--s3);
+}
+.look-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+  text-align: left;
+}
+.look-tile__image {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--line);
+}
+.look-tile__image img,
+.look-tile__swatch,
+.look-tile__vignette {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.look-tile__image img {
+  object-fit: cover;
+}
+/* Without a photo the preset shows on a neutral ramp: the filters still read on it. */
+.look-tile__swatch {
+  background: linear-gradient(135deg, var(--ink-3), var(--surface));
+}
+.look-tile__vignette {
+  pointer-events: none;
+}
+.look-tile__name {
+  overflow: hidden;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.look-tile:hover .look-tile__name {
+  color: var(--ink);
+}
+.look-tile[aria-pressed='true'] .look-tile__image {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.look-tile[aria-pressed='true'] .look-tile__name {
+  font-weight: var(--w-medium);
+  color: var(--ink);
+}

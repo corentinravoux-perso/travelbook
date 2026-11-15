@@ -2,6 +2,7 @@ export const PACKAGE_NAME = '@travelbook/core';
 export * from './schema';
 export { defaultCrop, newBook, newSpread, newElement, pageCount, setIdSource } from './factory';
 export { migrate, BookFormatError } from './migrate';
+export * from './photoLook';
 export * from './geometry';
 export * from './template';
 export * from './ops';

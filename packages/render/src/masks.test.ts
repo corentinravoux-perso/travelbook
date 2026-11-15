@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MASK_PRESETS, maskCss } from './masks';
+import { MASK_PRESETS, featherCss, maskCss } from './masks';
 
 const FRAME = { w: 80, h: 50 };
 
@@ -43,7 +43,18 @@ describe('maskCss', () => {
   });
 
   it('lists the presets', () => {
-    expect([...MASK_PRESETS]).toEqual(['arch', 'circle', 'diamond', 'heart', 'hexagon', 'star']);
+    expect([...MASK_PRESETS]).toEqual([
+      'arch',
+      'blob',
+      'brush',
+      'circle',
+      'diamond',
+      'heart',
+      'hexagon',
+      'star',
+      'torn',
+      'wave',
+    ]);
   });
 
   describe.each([...MASK_PRESETS])('preset %s', (preset) => {
@@ -80,6 +91,59 @@ describe('maskCss', () => {
     });
   });
 
+  it('draws nothing for a frame with no area', () => {
+    for (const preset of MASK_PRESETS) {
+      expect(maskCss({ kind: 'preset', preset }, { w: 0, h: 40 })).toEqual({});
+      expect(maskCss({ kind: 'preset', preset }, { w: 40, h: 0 })).toEqual({});
+    }
+  });
+
+  describe.each(['torn', 'wave', 'blob', 'brush'])('irregular preset %s', (preset) => {
+    const outlineIn = (frame: { w: number; h: number }) =>
+      maskCss({ kind: 'preset', preset }, frame).outline ?? '';
+
+    it.each([
+      { w: 30, h: 30 },
+      { w: 200, h: 120 },
+      { w: 20, h: 300 },
+      { w: 3, h: 3 },
+    ])('stays inside a $w x $h mm frame, whatever its size', (frame) => {
+      const points = pairs(outlineIn(frame));
+      expect(points.length).toBeGreaterThan(4);
+      for (const [x, y] of points) {
+        expect(x).toBeGreaterThanOrEqual(-1e-6);
+        expect(y).toBeGreaterThanOrEqual(-1e-6);
+        expect(x).toBeLessThanOrEqual(frame.w + 1e-6);
+        expect(y).toBeLessThanOrEqual(frame.h + 1e-6);
+      }
+    });
+
+    it('is the same shape every time', () => {
+      expect(outlineIn(FRAME)).toBe(outlineIn({ ...FRAME }));
+    });
+
+    it('is not a rectangle, an ellipse or any regular figure: it has many distinct points', () => {
+      const points = pairs(outlineIn({ w: 120, h: 80 }));
+      expect(new Set(points.map(([x, y]) => `${x},${y}`)).size).toBeGreaterThan(20);
+    });
+  });
+
+  it('gives a torn edge teeth of a fixed depth, so a large frame has more of them', () => {
+    const small = pairs(
+      maskCss({ kind: 'preset', preset: 'torn' }, { w: 60, h: 40 }).outline ?? '',
+    );
+    const large = pairs(
+      maskCss({ kind: 'preset', preset: 'torn' }, { w: 240, h: 160 }).outline ?? '',
+    );
+    expect(large.length).toBeGreaterThan(2 * small.length);
+    // How far in from the nearest side a point of the outline is.
+    const inset = ([x, y]: [number, number], w: number, h: number) => Math.min(x, w - x, y, h - y);
+    expect(Math.max(...large.map((p) => inset(p, 240, 160)))).toBeLessThanOrEqual(3);
+    expect(Math.max(...large.map((p) => inset(p, 240, 160)))).toBeGreaterThan(1.5);
+    // Some points sit on the frame itself, so the shape still fills it.
+    expect(Math.min(...large.map((p) => inset(p, 240, 160)))).toBe(0);
+  });
+
   it('keeps a circle round in a frame that is not square', () => {
     const points = pairs(
       maskCss({ kind: 'preset', preset: 'circle' }, { w: 80, h: 50 }).outline ?? '',
@@ -109,5 +173,69 @@ describe('maskCss', () => {
       { w: 33.333333, h: 33.333333 },
     ).outline;
     expect(outline).not.toMatch(/\d\.\d{4,}/);
+  });
+});
+
+describe('featherCss', () => {
+  const decode = (css: ReturnType<typeof featherCss>): string => {
+    const match = /^url\("data:image\/svg\+xml,([^"]*)"\)$/.exec(css?.maskImage ?? '');
+    return decodeURIComponent(match?.[1] ?? '');
+  };
+
+  it('is nothing when there is no feather', () => {
+    expect(featherCss({ kind: 'rect' }, FRAME, 0)).toBeUndefined();
+    expect(featherCss({ kind: 'rect' }, FRAME, -2)).toBeUndefined();
+    expect(featherCss({ kind: 'rect' }, FRAME, Number.NaN)).toBeUndefined();
+  });
+
+  it('stretches one SVG image over the frame, once', () => {
+    const css = featherCss({ kind: 'rect' }, FRAME, 5);
+    expect(css?.maskSize).toBe('100% 100%');
+    expect(css?.maskRepeat).toBe('no-repeat');
+    const svg = decode(css);
+    expect(svg).toMatch(/^<svg [^>]*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+    expect(svg).toContain('viewBox="0 0 80 50"');
+    expect(svg).toContain('preserveAspectRatio="none"');
+  });
+
+  it('fades the outline from nothing at the edge to full at the feather width', () => {
+    // Pull the edge in by half the feather, then blur it by a quarter of it either side.
+    const svg = decode(featherCss({ kind: 'rect' }, FRAME, 6));
+    expect(svg).toContain('<feMorphology operator="erode" radius="3"/>');
+    expect(svg).toContain('<feGaussianBlur stdDeviation="1.5"/>');
+  });
+
+  it('follows the shape of the mask', () => {
+    expect(decode(featherCss({ kind: 'rect' }, FRAME, 4))).toContain(
+      '<rect width="80" height="50"',
+    );
+    expect(decode(featherCss({ kind: 'rounded', radius: 6 }, FRAME, 4))).toContain('rx="6"');
+    expect(decode(featherCss({ kind: 'ellipse' }, FRAME, 4))).toContain(
+      '<ellipse cx="40" cy="25" rx="40" ry="25"',
+    );
+    const outline = maskCss({ kind: 'preset', preset: 'heart' }, FRAME).outline;
+    expect(decode(featherCss({ kind: 'preset', preset: 'heart' }, FRAME, 4))).toContain(
+      `<path d="${outline}"`,
+    );
+  });
+
+  it('treats an unknown preset and an unset radius as a rect', () => {
+    expect(decode(featherCss({ kind: 'preset', preset: 'nope' }, FRAME, 4))).toContain('<rect ');
+    const svg = decode(featherCss({ kind: 'rounded' }, FRAME, 4));
+    expect(svg).toContain('<rect ');
+    expect(svg).not.toContain('rx=');
+  });
+
+  it('never fades past the middle of the short side', () => {
+    // A 15 mm feather on a 20 mm frame would leave nothing to see: it is held to 10 mm.
+    const svg = decode(featherCss({ kind: 'rect' }, { w: 40, h: 20 }, 15));
+    expect(svg).toContain('<feMorphology operator="erode" radius="5"/>');
+    expect(svg).toContain('<feGaussianBlur stdDeviation="2.5"/>');
+  });
+
+  it('makes a data URI that holds no quote, parenthesis or space', () => {
+    const css = featherCss({ kind: 'preset', preset: 'star' }, FRAME, 4);
+    const uri = /^url\("([^"]*)"\)$/.exec(css?.maskImage ?? '')?.[1] ?? '';
+    expect(uri).toMatch(/^data:image\/svg\+xml,[^"'() ]+$/);
   });
 });
