@@ -1,8 +1,10 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { PANELS, useEditor, editorStore, type PanelId } from '../store/editor';
+import { installBookFonts } from '../fonts/bookFonts';
 import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
+import { TextPanel } from '../panels/TextPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
@@ -34,6 +36,8 @@ const PANEL_ICONS: Record<PanelId, IconName> = {
  * panel and inspector widths are the user's, kept across sessions. Later tasks fill the regions.
  */
 export function Shell() {
+  // The book's fonts are declared as soon as an album is open: text is drawn with them.
+  useEffect(() => installBookFonts(), []);
   const [widths, setWidths] = useState<PanelWidths>(() => readWidths(localStorage));
   useEffect(() => writeWidths(localStorage, widths), [widths]);
   const resize = (side: PanelSide) => (width: number) =>
@@ -197,7 +201,13 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
     <section id="shell-panel" className="shell-panel" aria-label={fr.shell.panel(name)}>
       <h2 className="shell-panel__title">{name}</h2>
       <ImportStatus />
-      {panel === 'photos' ? <PhotosPanel /> : <p className="shell-empty">{fr.shell.panelEmpty}</p>}
+      {panel === 'photos' ? (
+        <PhotosPanel />
+      ) : panel === 'text' ? (
+        <TextPanel />
+      ) : (
+        <p className="shell-empty">{fr.shell.panelEmpty}</p>
+      )}
       <ResizeHandle
         side="panel"
         width={width}

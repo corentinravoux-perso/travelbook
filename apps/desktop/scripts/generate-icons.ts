@@ -12,6 +12,15 @@ import { format, resolveConfig } from 'prettier';
 /** Tabler names (https://tabler.io/icons), in any order. */
 export const ICON_NAMES = [
   'arrow-back-up',
+  'align-center',
+  'align-justified',
+  'align-left',
+  'align-right',
+  'bold',
+  'italic',
+  'list',
+  'list-numbers',
+  'underline',
   'alert-triangle',
   'arrow-forward-up',
   'arrows-exchange',

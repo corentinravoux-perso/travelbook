@@ -1,3 +1,4 @@
+import type { Editor } from '@tiptap/core';
 import { spreadSize } from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
 import {
@@ -8,6 +9,7 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
+  type ReactNode,
 } from 'react';
 import { editorStore, findSpread, useEditor } from '../store/editor';
 import { MissingNotice } from './MissingNotice';
@@ -19,7 +21,12 @@ import { DpiBadges } from './DpiBadge';
 import { Guides } from './Guides';
 import { usePhotoDrop, usePhotoSwap } from './PhotoDrop';
 import { spreadName } from './pages';
-import { Selection } from './Selection';
+import { Selection, frame } from './Selection';
+import { addDrawnText, leaveTextEdit } from './textActions';
+import { TextEditing } from './TextEditing';
+import { TextToolbar } from './TextToolbar';
+import { MIN_DRAWN_MM } from './draw';
+import { useDraw } from './useDraw';
 import { useShortcuts } from './shortcuts';
 import {
   elementAt,
@@ -31,11 +38,14 @@ import {
 } from './transform';
 import { DRAG_SLOP_PX, useTransform } from './useTransform';
 import { useZoomPan } from './useZoomPan';
-import type { PhotoElement, Rect } from '@travelbook/core';
+import type { Element, PhotoElement, Rect } from '@travelbook/core';
 import './PhotoEditing.css';
 
 /** How long a notice stays up, in ms. */
 const NOTICE_MS = 5000;
+/** Size of a text box made by a click with the text tool, in mm. */
+const DEFAULT_TEXT_W = 60;
+const DEFAULT_TEXT_H = 12;
 
 /**
  * The current spread, editable: click, Shift-click and marquee select; handles move, resize and
@@ -52,6 +62,10 @@ export function Canvas() {
   const showGuides = useEditor((s) => s.guides);
   const zoom = useEditor((s) => s.zoom);
   const notice = useEditor((s) => s.notice);
+  const tool = useEditor((s) => s.tool);
+  const editingId = useEditor((s) => s.editingId);
+  const editSelectAll = useEditor((s) => s.editSelectAll);
+  const [textEditor, setTextEditor] = useState<Editor | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   const [marquee, setMarquee] = useState<Rect | null>(null);
@@ -74,6 +88,7 @@ export function Canvas() {
   const photoDrop = usePhotoDrop(toMm);
   const swap = usePhotoSwap(toMm);
   const crop = useCrop(hostRef, toMm);
+  const draw = useDraw(toMm);
   useShortcuts();
 
   // The selection holds only elements of this spread that still exist (undo, delete, new spread).
@@ -82,6 +97,12 @@ export function Canvas() {
     const alive = selection.filter((id) => spread.elements.some((el) => el.id === id));
     if (alive.length !== selection.length) editorStore.getState().select(alive);
   }, [spread, selection]);
+
+  // The text being typed in is an element of this spread that still exists (undo, delete).
+  useEffect(() => {
+    if (editingId === null || !spread) return;
+    if (!spread.elements.some((el) => el.id === editingId && el.type === 'text')) leaveTextEdit();
+  }, [spread, editingId]);
 
   useEffect(() => {
     if (notice === null) return;
@@ -133,6 +154,21 @@ export function Canvas() {
     }
     if (e.button !== 0) return;
     const at = toMm(e.clientX, e.clientY);
+    // The text box being typed in is Tiptap's: the caret and the selection are its own.
+    const editing =
+      editingId === null ? undefined : spread.elements.find((el) => el.id === editingId);
+    if (editing) {
+      if (pointInElement(editing, at)) return;
+      leaveTextEdit();
+    }
+    if (tool === 'text') {
+      draw.start(e, 'box', (from, to, dragged) => {
+        const box = normalizedRect(from, to);
+        const drawn = dragged && box.w >= MIN_DRAWN_MM && box.h >= MIN_DRAWN_MM;
+        addDrawnText(drawn ? box : { x: from.x, y: from.y, w: DEFAULT_TEXT_W, h: DEFAULT_TEXT_H });
+      });
+      return;
+    }
     // Crop mode: a press on the frame drags the photo inside it, a press anywhere else leaves.
     if (crop.element) {
       if (pointInElement(crop.element, at)) crop.startPan(e);
@@ -186,6 +222,8 @@ export function Canvas() {
     const hit = elementAt(spread, toMm(e.clientX, e.clientY));
     if (hit?.type === 'photo' && hit.assetId !== null && !hit.locked) {
       editorStore.getState().enterCrop(hit.id);
+    } else if (hit?.type === 'text' && hit.id !== editingId) {
+      editorStore.getState().enterTextEdit(hit.id);
     }
   };
 
@@ -200,6 +238,25 @@ export function Canvas() {
     [spread, selection],
   );
   const hover = spread?.elements.find((el) => el.id === hoverId);
+  const editing = spread?.elements.find((el) => el.id === editingId);
+
+  /** The editor draws the text being typed in, in place of the static text. */
+  const renderElement = useCallback(
+    (el: Element, node: ReactNode): ReactNode =>
+      el.type === 'text' && el.id === editingId && spread ? (
+        <TextEditing
+          key={el.id}
+          el={el}
+          spreadId={spread.id}
+          frenchTypography={book?.settings.frenchTypography ?? false}
+          selectAll={editSelectAll}
+          onEditor={setTextEditor}
+        />
+      ) : (
+        node
+      ),
+    [editingId, spread, book, editSelectAll],
+  );
 
   return (
     <main className="shell-canvas" aria-label={fr.shell.canvas}>
@@ -222,6 +279,7 @@ export function Canvas() {
         data-panning={panning || undefined}
         data-over-selection={hoverId !== null && selection.includes(hoverId) ? '' : undefined}
         data-cropping={crop.element ? '' : undefined}
+        data-tool={tool === 'select' ? undefined : tool}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerLeave={() => setHoverId(null)}
@@ -250,6 +308,7 @@ export function Canvas() {
                     quality="preview"
                     assetUrl={assetUrl}
                     showEmptySlots
+                    renderElement={renderElement}
                   />
                 </div>
               </div>
@@ -266,13 +325,25 @@ export function Canvas() {
                 <CropOverlay element={crop.element} asset={crop.asset} scale={scale} />
               )}
               <Selection
-                selected={crop.element ? [] : selected}
+                selected={crop.element || editing ? [] : selected}
                 hover={crop.element ? undefined : hover}
                 target={swap.target ?? photoDrop.hover}
                 scale={scale}
                 onResize={(handle, e) => transform.startResize(handle, e)}
                 onRotate={(e) => transform.startRotate(e)}
               />
+              {editing?.type === 'text' && (
+                <div
+                  className="text-edit-frame"
+                  style={{ ...frame(editing, scale), transform: `rotate(${editing.rotation}deg)` }}
+                />
+              )}
+              {editing?.type === 'text' && textEditor && (
+                <TextToolbar editor={textEditor} element={editing} scale={scale} />
+              )}
+              {draw.draft?.kind === 'box' && (
+                <div className="canvas-draft" style={frame(draw.draft.rect, scale)} />
+              )}
               {marquee && (
                 <div
                   className="canvas-marquee"
