@@ -62,6 +62,15 @@ export function createOpenversePhotosSource(http: SourceHttp): StickerSource {
 
 const PHOTO_TYPES = new Set(['jpg', 'jpeg', 'png', 'webp']);
 
+/** The extension an address ends with, lower case and without the dot (the query is not part of it). */
+function extensionOf(address: string): string {
+  try {
+    return new URL(address).pathname.split('.').pop()?.toLowerCase() ?? '';
+  } catch {
+    return '';
+  }
+}
+
 function createOpenverse(http: SourceHttp, mode: 'stickers' | 'backgrounds'): StickerSource {
   const stickers = mode === 'stickers';
   return {
@@ -78,7 +87,9 @@ function createOpenverse(http: SourceHttp, mode: 'stickers' | 'backgrounds'): St
       for (const r of answer.results) {
         const spdx = licenceId(r.license, r.license_version);
         if (spdx === undefined || !/^https:\/\//.test(r.url)) continue;
-        const type = (r.filetype ?? '').toLowerCase();
+        // Openverse leaves `filetype` empty for most of the photographs it lists (every Flickr one):
+        // the address then tells.
+        const type = (r.filetype ?? extensionOf(r.url)).toLowerCase();
         if (!stickers && !PHOTO_TYPES.has(type)) continue;
         items.push({
           source: stickers ? 'openverse' : 'openverse-photos',
