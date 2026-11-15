@@ -505,16 +505,17 @@ test('every page matches the image route, within 2 % mean absolute difference', 
   console.log(worst.join(', '));
 });
 
-test('with crop marks the MediaBox is 228 x 315 mm and the TrimBox is unchanged', async () => {
+test('with crop marks the MediaBox is 230 x 317 mm and the TrimBox is unchanged', async () => {
   const outDir = join(work, 'marks');
   const report = await exportWith({ outDir, cropMarks: true, pages: { from: 4, to: 5 } });
   const file = report.files[0]!;
   const [w, h] = await box(file, 'MediaBox', 1);
-  expect([w, h]).toEqual([expect.closeTo(228, 2), expect.closeTo(315, 2)]);
+  expect([w, h]).toEqual([expect.closeTo(230, 2), expect.closeTo(317, 2)]);
   const [tw, th] = await box(file, 'TrimBox', 1);
   expect([tw, th]).toEqual([expect.closeTo(210, 2), expect.closeTo(297, 2)]);
-  // The horizontal mark of the top-left corner runs along the trim edge (9 mm down), from 4 to 7 mm
-  // across: its pixels are dark, and the page beside it, in the slug, is white.
+  // The horizontal mark of the top-left corner runs along the trim edge (10 mm down), from 4 to
+  // 7 mm across, outside the 3 mm bleed (which starts at 7 mm): its pixels are dark, and the page
+  // beside it, in the slug, is white.
   const png = join(work, 'marks-page');
   await poppler('pdftoppm', '-r', '600', '-f', '1', '-l', '1', '-png', '-singlefile', file, png);
   const { data, info } = await sharp(`${png}.png`)
@@ -524,12 +525,12 @@ test('with crop marks the MediaBox is 228 x 315 mm and the TrimBox is unchanged'
   const at = (xMm: number, yMm: number): number =>
     data[(Math.round((yMm * 600) / 25.4) * info.width + Math.round((xMm * 600) / 25.4)) * 3]!;
   const darkestOnLine = Math.min(
-    ...[8.97, 9, 9.03].map((y) => at(5.5, y)),
-    ...[8.95, 9, 9.05].map((y) => at(5.5, y)),
+    ...[9.97, 10, 10.03].map((y) => at(5.5, y)),
+    ...[9.95, 10, 10.05].map((y) => at(5.5, y)),
   );
   expect(darkestOnLine).toBeLessThan(120);
-  expect(at(5.5, 7)).toBeGreaterThan(240);
-  expect(at(2, 9)).toBeGreaterThan(240);
+  expect(at(5.5, 8)).toBeGreaterThan(240);
+  expect(at(2, 10)).toBeGreaterThan(240);
 });
 
 test('the cover is a flat sheet of its own: both covers, the spine and the cover bleed', async () => {

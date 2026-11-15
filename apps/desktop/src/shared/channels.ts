@@ -34,6 +34,7 @@ export const CHANNEL = {
   exportRun: 'export:run',
   exportCancel: 'export:cancel',
   exportPreflight: 'export:preflight',
+  exportReveal: 'export:reveal',
   exportPresetsList: 'export:presetsList',
   exportPresetsSave: 'export:presetsSave',
   exportPresetsDelete: 'export:presetsDelete',

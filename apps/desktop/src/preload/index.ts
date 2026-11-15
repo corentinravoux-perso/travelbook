@@ -91,6 +91,7 @@ const tb: TbApi = {
       };
     },
     preflight: () => ipcRenderer.invoke(CHANNEL.exportPreflight),
+    reveal: () => ipcRenderer.invoke(CHANNEL.exportReveal),
     presets: {
       list: () => ipcRenderer.invoke(CHANNEL.exportPresetsList),
       save: (name, options) => ipcRenderer.invoke(CHANNEL.exportPresetsSave, name, options),

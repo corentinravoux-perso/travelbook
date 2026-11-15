@@ -17,11 +17,16 @@ import { rasterReasons } from './rasterFallback';
 
 const PT_PER_MM = 72 / 25.4;
 
-/** Slug the crop marks sit in, on each side of the bleed box. */
-export const SLUG_MM = 6;
 const MARK_WIDTH_PT = 0.25;
 const MARK_LENGTH_MM = 3;
-const MARK_OFFSET_MM = 2;
+/** White left beyond the end of a mark, on each side. */
+const MARK_MARGIN_MM = 1;
+
+/**
+ * Slug (mm) added on each side of the bleed box when there are crop marks: the marks start
+ * `markOffset` (the book's bleed) from the trim, so outside the bleed, run 3 mm, and leave 1 mm.
+ */
+export const slugMm = (markOffset: Mm): Mm => markOffset + MARK_LENGTH_MM + MARK_MARGIN_MM;
 
 /** Resolution of the capture of a page that falls back to the raster route. */
 export const RASTER_FALLBACK_DPI = 600;
@@ -46,13 +51,22 @@ export interface PdfPageInput {
   trim: Rect;
   /** Bleed on the four sides of the page. */
   bleed: Mm;
+  /**
+   * Where the crop marks start, measured from the trim: the book's bleed (cover: `coverBleed`),
+   * even when the export has no bleed. Defaults to `bleed`.
+   */
+  markOffset?: Mm;
 }
 
 const mmToPt = (v: number): number => v * PT_PER_MM;
 
-/** Crop marks at the four corners of the trim box: 3 mm long, 2 mm clear of the trim. */
-function drawCropMarks(page: PDFPage, trim: { x: number; y: number; w: number; h: number }): void {
-  const offset = mmToPt(MARK_OFFSET_MM);
+/** Crop marks at the four corners of the trim box: 3 mm long, `markOffset` mm clear of the trim. */
+function drawCropMarks(
+  page: PDFPage,
+  trim: { x: number; y: number; w: number; h: number },
+  markOffset: Mm,
+): void {
+  const offset = mmToPt(markOffset);
   const length = mmToPt(MARK_LENGTH_MM);
   const black = cmyk(0, 0, 0, 1);
   for (const x of [trim.x, trim.x + trim.w]) {
@@ -81,12 +95,14 @@ const isJpeg = (bytes: Buffer): boolean => bytes[0] === 0xff && bytes[1] === 0xd
  * Merge the pages into one PDF. Every page gets its MediaBox, TrimBox and BleedBox from the
  * millimetres, exactly: Chromium rounds a page to whole points, so a printed page is a little short
  * (up to 0.18 mm, inside the bleed) and is drawn at the top left of a page of the right size.
- * With `cropMarks` the MediaBox grows by a 6 mm slug on each side and the marks are drawn there.
+ * With `cropMarks` the MediaBox grows by a slug on each side (`slugMm`) and the marks are drawn
+ * there, outside the bleed so that they never overlay artwork.
  */
 export async function assemblePdf(pages: PdfPageInput[], cropMarks: boolean): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const slug = cropMarks ? mmToPt(SLUG_MM) : 0;
   for (const input of pages) {
+    const markOffset = input.markOffset ?? input.bleed;
+    const slug = cropMarks ? mmToPt(slugMm(markOffset)) : 0;
     const bleed = mmToPt(input.bleed);
     const trimW = mmToPt(input.trim.w);
     const trimH = mmToPt(input.trim.h);
@@ -109,16 +125,24 @@ export async function assemblePdf(pages: PdfPageInput[], cropMarks: boolean): Pr
     } else {
       throw new Error('Une page du PDF n’a ni PDF ni image.');
     }
-    if (cropMarks) drawCropMarks(page, { x: slug + bleed, y: slug + bleed, w: trimW, h: trimH });
+    if (cropMarks) {
+      drawCropMarks(page, { x: slug + bleed, y: slug + bleed, w: trimW, h: trimH }, markOffset);
+    }
   }
   return doc.save();
 }
 
 /** The trim box a target stands for, and the bleed around it. */
-function pageBoxes(book: Book, o: ExportOptions, target: PageTarget): { trim: Rect; bleed: Mm } {
-  const bleed = o.bleed ? (target.name.startsWith('couverture') ? book.coverBleed : book.bleed) : 0;
+function pageBoxes(
+  book: Book,
+  o: ExportOptions,
+  target: PageTarget,
+): { trim: Rect; bleed: Mm; markOffset: Mm } {
+  const bookBleed = target.name.startsWith('couverture') ? book.coverBleed : book.bleed;
+  const bleed = o.bleed ? bookBleed : 0;
   return {
     bleed,
+    markOffset: bookBleed,
     trim: { x: bleed, y: bleed, w: target.clip.w - 2 * bleed, h: target.clip.h - 2 * bleed },
   };
 }

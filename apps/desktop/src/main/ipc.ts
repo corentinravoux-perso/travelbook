@@ -1,4 +1,4 @@
-import { basename, extname, isAbsolute, join, resolve } from 'node:path';
+import { basename, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { BookSchema, TemplateSchema } from '@travelbook/core';
@@ -29,13 +29,14 @@ import {
   touchUsed,
 } from './library/userLibrary';
 import {
-  DEFAULT_JPEG_QUALITY,
   cancelExport,
   exportPreflight,
   runImageExport,
   type ExportRenderer,
 } from './export/images';
+import { absolutePath, exportOptions } from './export/options';
 import { runPdfExport } from './export/pdf';
+import { deletePreset, listPresets, savePreset } from './export/presets';
 import { projectFilePath } from './protocol';
 import { serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
@@ -91,12 +92,6 @@ export type IpcHandlers = Record<
   (ctx: HandlerContext, ...args: unknown[]) => Promise<unknown>
 >;
 
-/** Source paths of photos and files named by the renderer: absolute, and a sane number of them. */
-const absolutePath = z
-  .string()
-  .min(1)
-  .max(4096)
-  .refine((path) => !path.includes('\0') && isAbsolute(path), 'must be an absolute path');
 const MAX_PATHS = 10_000;
 const pathList = z.array(absolutePath).max(MAX_PATHS);
 
@@ -112,29 +107,6 @@ const captureRect = z.strictObject({
 });
 
 const pageSize = z.number().finite().positive().max(5000);
-
-const exportOptions = z.strictObject({
-  route: z.enum(['pdf', 'images']),
-  pages: z.union([
-    z.literal('all'),
-    z
-      .strictObject({
-        from: z.number().int().min(1).max(10_000),
-        to: z.number().int().min(1).max(10_000),
-      })
-      .refine((range) => range.from <= range.to, 'from must not exceed to'),
-  ]),
-  includeCover: z.boolean(),
-  dpi: z.number().int().min(72).max(1200),
-  nativeResolution: z.boolean(),
-  bleed: z.boolean(),
-  cropMarks: z.boolean(),
-  imageFormat: z.enum(['jpeg', 'png']),
-  jpegQuality: z.number().int().min(1).max(100).default(DEFAULT_JPEG_QUALITY),
-  perSpread: z.boolean(),
-  coverMode: z.enum(['flat', 'panels']),
-  outDir: absolutePath,
-});
 
 const libraryKind = z.enum(['sticker', 'background', 'font', 'template']);
 const libraryFileKind = z.enum(['sticker', 'background', 'font']);
@@ -223,6 +195,8 @@ async function paletteFiles(session: Session, ids: readonly string[]): Promise<s
  * folder named by the renderer after that.
  */
 export function createHandlers(host: Host): IpcHandlers {
+  /** The files of the last export that finished: what `exportReveal` shows. */
+  let lastExportFiles: string[] = [];
   return {
     [CHANNEL.projectCreate]: async (_ctx, ...args) => {
       const [options] = parseArgs(CHANNEL.projectCreate, schemas.create, args);
@@ -435,6 +409,7 @@ export function createHandlers(host: Host): IpcHandlers {
       };
       const run = options.route === 'pdf' ? runPdfExport : runImageExport;
       const report = await run(book, session.dir, options as ExportOptions, deps);
+      lastExportFiles = report.files;
       return { ...report, warnings: await exportPreflight(session.dir, book) };
     },
 
@@ -449,20 +424,27 @@ export function createHandlers(host: Host): IpcHandlers {
       return exportPreflight(session.dir, session.book);
     },
 
-    // Presets are stored by Task 7.4; the interface is here so that the window can be built on it.
+    [CHANNEL.exportReveal]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.exportReveal, schemas.none, args);
+      // Only what main wrote: the renderer names no path.
+      const first = lastExportFiles[0];
+      if (first === undefined) throw new Error('Aucun export à afficher.');
+      host.showInFolder(first);
+    },
+
     [CHANNEL.exportPresetsList]: async (_ctx, ...args) => {
       parseArgs(CHANNEL.exportPresetsList, schemas.none, args);
-      return [];
+      return listPresets();
     },
 
     [CHANNEL.exportPresetsSave]: async (_ctx, ...args) => {
-      parseArgs(CHANNEL.exportPresetsSave, schemas.exportPresetSave, args);
-      throw new Error('Les préréglages d’export arrivent avec la tâche 7.4.');
+      const [name, options] = parseArgs(CHANNEL.exportPresetsSave, schemas.exportPresetSave, args);
+      await savePreset(name, options as ExportOptions);
     },
 
     [CHANNEL.exportPresetsDelete]: async (_ctx, ...args) => {
-      parseArgs(CHANNEL.exportPresetsDelete, schemas.exportPresetName, args);
-      throw new Error('Les préréglages d’export arrivent avec la tâche 7.4.');
+      const [name] = parseArgs(CHANNEL.exportPresetsDelete, schemas.exportPresetName, args);
+      await deletePreset(name);
     },
 
     [CHANNEL.appVersion]: async (_ctx, ...args) => {

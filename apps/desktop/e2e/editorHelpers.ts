@@ -10,6 +10,7 @@ export interface EditorHandle {
     book: Book;
     zoom: number;
     selection: string[];
+    currentSpreadId: string;
     tool: string;
     editingId: string | null;
     history: { labels: string[] };

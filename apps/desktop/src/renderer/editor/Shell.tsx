@@ -16,6 +16,7 @@ import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
+import { ExportDialog } from '../export/ExportDialog';
 import { Preview } from '../preview/Preview';
 import { Inspector } from './inspector/Inspector';
 import { ResizeHandle } from './ResizeHandle';
@@ -88,6 +89,7 @@ function TopBar() {
   const { undo, redo } = editorStore.getState();
   const book = useEditor((s) => s.book);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <header className="shell-top" aria-label={fr.shell.topBar}>
@@ -177,12 +179,23 @@ function TopBar() {
             <Icon name="eye" />
             {fr.shell.preview}
           </button>
+          <button
+            type="button"
+            className="button button--primary"
+            disabled={book === null}
+            onClick={() => setExportOpen(true)}
+          >
+            {fr.shell.export}
+          </button>
           <span className="shell-sep" />
         </>
       )}
       <ThemeToggle />
       {settingsOpen && book !== null && (
         <BookSettings book={book} onClose={() => setSettingsOpen(false)} />
+      )}
+      {exportOpen && book !== null && (
+        <ExportDialog book={book} onClose={() => setExportOpen(false)} />
       )}
     </header>
   );

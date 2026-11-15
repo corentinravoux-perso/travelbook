@@ -81,32 +81,66 @@ describe('assemblePdf', () => {
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
   });
 
-  it('grows the MediaBox by a 6 mm slug on each side with crop marks, and draws eight marks', async () => {
+  it('grows the MediaBox by a 7 mm slug on each side with crop marks, and draws eight marks', async () => {
     const bytes = await assemblePdf([await pageOf()], true);
     const [, , mw, mh] = await boxMm(bytes, 'MediaBox');
-    expect([mw, mh]).toEqual([expect.closeTo(228, 6), expect.closeTo(315, 6)]);
+    // Offset 3 mm (the bleed) + 3 mm mark + 1 mm of white.
+    expect([mw, mh]).toEqual([expect.closeTo(230, 6), expect.closeTo(317, 6)]);
     const [bx, by, bw, bh] = await boxMm(bytes, 'BleedBox');
-    expect([bx, by, bw, bh]).toEqual([6, 6, 216, 303].map((v) => expect.closeTo(v, 6)));
+    expect([bx, by, bw, bh]).toEqual([7, 7, 216, 303].map((v) => expect.closeTo(v, 6)));
     const [tx, ty, tw, th] = await boxMm(bytes, 'TrimBox');
-    expect([tx, ty, tw, th]).toEqual([9, 9, 210, 297].map((v) => expect.closeTo(v, 6)));
+    expect([tx, ty, tw, th]).toEqual([10, 10, 210, 297].map((v) => expect.closeTo(v, 6)));
     const content = await contentOf(bytes);
     // Two lines per corner, 0.25 pt wide.
     expect(content.match(/ l\b/g)).toHaveLength(8);
     expect(content).toContain('0.25 w');
   });
 
-  it('draws the marks 2 mm clear of the trim, 3 mm long', async () => {
-    const content = await contentOf(await assemblePdf([await pageOf()], true));
-    const lines = [...content.matchAll(/([\d.]+) ([\d.]+) m\s+([\d.]+) ([\d.]+) l/g)].map((m) =>
+  /** The mark lines of the first page, in mm of the media. */
+  const marksOf = async (bytes: Uint8Array) =>
+    [...(await contentOf(bytes)).matchAll(/([\d.]+) ([\d.]+) m\s+([\d.]+) ([\d.]+) l/g)].map((m) =>
       [m[1], m[2], m[3], m[4]].map((v) => Number(v) / PT),
     );
-    // Bottom-left corner of the trim is at (9, 9) mm of the media: the marks leave from 7 and 4 mm.
-    const horizontal = lines.find((l) => Math.abs(l[1]! - 9) < 1e-3 && l[0]! < 9 && l[2]! < 9);
+
+  it('starts the marks outside the bleed: the book bleed from the trim, 3 mm long', async () => {
+    const lines = await marksOf(await assemblePdf([await pageOf()], true));
+    // Bottom-left corner of the trim is at (10, 10) mm of the media: the marks leave from 7 mm,
+    // which is the edge of the bleed box, and end at 4 mm.
+    const horizontal = lines.find((l) => Math.abs(l[1]! - 10) < 1e-3 && l[0]! < 10 && l[2]! < 10);
     expect(horizontal?.[0]).toBeCloseTo(7, 2);
     expect(horizontal?.[2]).toBeCloseTo(4, 2);
-    const vertical = lines.find((l) => Math.abs(l[0]! - 9) < 1e-3 && l[1]! < 9 && l[3]! < 9);
+    const vertical = lines.find((l) => Math.abs(l[0]! - 10) < 1e-3 && l[1]! < 10 && l[3]! < 10);
     expect(vertical?.[1]).toBeCloseTo(7, 2);
     expect(vertical?.[3]).toBeCloseTo(4, 2);
+    // No mark touches the bleed box.
+    const [bx = 0, by = 0, bw = 0, bh = 0] = await boxMm(
+      await assemblePdf([await pageOf()], true),
+      'BleedBox',
+    );
+    for (const [x1, y1, x2, y2] of lines) {
+      for (const [x, y] of [
+        [x1!, y1!],
+        [x2!, y2!],
+      ] as const) {
+        const inside = x > bx + 1e-3 && x < bx + bw - 1e-3 && y > by + 1e-3 && y < by + bh - 1e-3;
+        expect(inside).toBe(false);
+      }
+    }
+  });
+
+  it('keeps the book bleed as the mark offset when the export has no bleed', async () => {
+    const bytes = await assemblePdf(
+      [await pageOf({ bleed: 0, trim: { x: 0, y: 0, w: 210, h: 297 }, markOffset: 3 })],
+      true,
+    );
+    const [, , mw, mh] = await boxMm(bytes, 'MediaBox');
+    expect([mw, mh]).toEqual([expect.closeTo(224, 6), expect.closeTo(311, 6)]);
+    const horizontal = (await marksOf(bytes)).find(
+      (l) => Math.abs(l[1]! - 7) < 1e-3 && l[0]! < 7 && l[2]! < 7,
+    );
+    // Trim corner at (7, 7): the mark leaves 3 mm from it, at 4 mm.
+    expect(horizontal?.[0]).toBeCloseTo(4, 2);
+    expect(horizontal?.[2]).toBeCloseTo(1, 2);
   });
 
   it('draws an image page across the bleed box (PNG and JPEG)', async () => {
@@ -260,7 +294,7 @@ describe('runPdfExport', () => {
     expect(doc.getPageCount()).toBe(2);
     // Crop marks on the image page too.
     const [, , w] = await boxMm(new Uint8Array(await readFile(report.files[0]!)), 'MediaBox', 1);
-    expect(w).toBeCloseTo(228, 6);
+    expect(w).toBeCloseTo(230, 6);
   });
 
   it('removes the files of a failed run', async () => {

@@ -158,3 +158,13 @@ is the exact 612.283 x 858.898 pt, so the missing 0.1 mm is blank, inside the bl
 Time (Linux, software-composited Electron): 0.33 s per vector page (derivatives, print, merge; text and photo pages),
 13.4 s for a page sent to the raster fallback (two windows opened, a 600 dpi capture, JPEG encode). The 100-page time and peak
 memory of the stress fixture are measured by Task 8.2.
+
+## Crop marks start outside the bleed (Task 7.4)
+
+Task 7.3 placed the marks 2 mm from the trim, inside the 3 mm bleed, where they overlay bleed artwork. A printer expects
+marks that never touch printed content. The marks now start `markOffset` from the trim, the book's bleed (cover:
+`coverBleed`), even when the export itself has no bleed, run 3 mm, and the MediaBox slug beyond the bleed box is
+`markOffset + 3 mm + 1 mm` (`slugMm`). For the default 3 mm bleed the slug is 7 mm and an A4 page with marks is
+**230 x 317 mm** (it was 228 x 315); BleedBox 216 x 303 at (7, 7), TrimBox 210 x 297 at (10, 10). The cover sheet has its own
+slug, from `coverBleed`. Covered by `pdf.test.ts` (no mark point inside the bleed box) and `export-pdf.spec.ts` (dark mark
+pixel at 5.5 mm, white slug beside it).
