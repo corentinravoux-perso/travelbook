@@ -50,7 +50,7 @@ the most overview and keeps a large page, but the open drawer covers part of the
 changing accent may distract some people, so it may need a setting to fix the hue. Condensed type
 is also less comfortable for long reading.
 
-All three show the same content: *Islande 2026*, pages 4–5. The selected photo has its handles
+All three show the same content: _Islande 2026_, pages 4–5. The selected photo has its handles
 and a resolution badge (212 ppp, acceptable), the bleed, safe-margin and gutter guides are on, and
 the Photos panel marks used and unused photos. The icons are hand-drawn approximations of each
 named set; the app will load the real ones from `@iconify-json`.
