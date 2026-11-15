@@ -13,6 +13,7 @@ import {
 } from '@travelbook/core';
 import { z } from 'zod';
 import type { CatalogueEntry, FontCategory, FontFamily, LibraryItem } from '../../shared/api';
+import { appFetch } from '../app-fetch';
 import { userDataDir } from '../user-data';
 import { addToLibrary, copyIntoProject, listLibrary } from './userLibrary';
 import { DiskCache } from './stickers/cache';
@@ -367,8 +368,12 @@ export function createFontCatalogue(options: {
 let catalogue: Promise<FontCatalogue> | null = null;
 
 function sharedCatalogue(version: () => string): Promise<FontCatalogue> {
-  catalogue ??= userDataDir().then((dir) =>
-    createFontCatalogue({ cacheDir: join(dir, 'online-cache', 'fontsource'), version: version() }),
+  catalogue ??= Promise.all([userDataDir(), appFetch()]).then(([dir, fetchImpl]) =>
+    createFontCatalogue({
+      cacheDir: join(dir, 'online-cache', 'fontsource'),
+      version: version(),
+      fetchImpl,
+    }),
   );
   return catalogue;
 }
