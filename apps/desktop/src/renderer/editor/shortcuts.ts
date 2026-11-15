@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { editorStore } from '../store/editor';
+import { leaveTextEdit } from './textActions';
 import {
   clearSelection,
   copySelection,
   cutSelection,
   deleteSelection,
   duplicateSelection,
+  editSelectedText,
   group,
   nudge,
   pasteClipboard,
@@ -33,7 +35,9 @@ export type Command =
         | 'backward'
         | 'zoomIn'
         | 'zoomOut'
-        | 'fit';
+        | 'fit'
+        | 'textTool'
+        | 'edit';
     };
 
 type KeyInfo = Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>;
@@ -72,6 +76,8 @@ export function commandFor(e: KeyInfo): Command | null {
   if (e.key === '-' && !e.altKey) return { kind: 'zoomOut' };
   if (e.key === '0' && !mod && !e.altKey) return { kind: 'fit' };
   if (e.key === 'Escape') return { kind: 'escape' };
+  if (!mod && !e.altKey && e.key.toLowerCase() === 't') return { kind: 'textTool' };
+  if (e.key === 'Enter' && !mod && !e.altKey) return { kind: 'edit' };
   if ((e.key === 'Delete' || e.key === 'Backspace') && !mod) return { kind: 'delete' };
   if (mod && !e.altKey) {
     const key = e.key.toLowerCase();
@@ -124,7 +130,13 @@ function run(command: Command): void {
     case 'selectAll':
       return selectAll();
     case 'escape':
-      return clearSelection();
+      // The first Escape ends typing or drops a drawing tool, the next one the selection.
+      if (s.editingId !== null) return leaveTextEdit();
+      return s.tool === 'select' ? clearSelection() : s.setTool('select');
+    case 'textTool':
+      return s.setTool('text');
+    case 'edit':
+      return editSelectedText();
     case 'forward':
       return stack('forward');
     case 'backward':
@@ -148,6 +160,10 @@ export function useShortcuts(): void {
       if (e.target instanceof Element && e.target.closest('dialog')) return;
       const command = commandFor(e);
       if (command === null) return;
+      // Enter on a focused button presses it; it must not also start typing in a text.
+      if (command.kind === 'edit' && e.target instanceof Element && e.target.closest('button, a')) {
+        return;
+      }
       // While a photo is cropped the keys that edit the selection would change the wrong thing.
       if (editorStore.getState().cropId !== null && !CROP_KEYS.has(command.kind)) return;
       e.preventDefault();

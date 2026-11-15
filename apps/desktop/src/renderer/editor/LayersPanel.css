@@ -1,0 +1,122 @@
+/* Layers tab: hairline rows, the selected one inverted, a line shows where a drag would land. */
+.layers {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s4);
+  min-height: 0;
+  padding: var(--s5) 0 0;
+}
+.layers__hint {
+  padding: 0 var(--s5);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.layers__list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  border-top: 1px solid var(--line);
+}
+.layer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 32px;
+  padding: 0 var(--s4) 0 var(--s5);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-sm);
+  cursor: default;
+}
+.layer[data-in-group] {
+  padding-left: calc(var(--s5) + var(--s7));
+}
+.layer:hover {
+  background: var(--surface);
+}
+.layer[data-selected] {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+.layer[data-hidden] .layer__label {
+  opacity: 0.5;
+}
+.layer[data-dragging] {
+  opacity: 0.4;
+}
+.layer[data-drop='above']::before,
+.layer[data-drop='below']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--ink);
+}
+.layer[data-selected][data-drop]::before,
+.layer[data-selected][data-drop]::after {
+  background: var(--invert-fg);
+}
+.layer[data-drop='above']::before {
+  top: -1px;
+}
+.layer[data-drop='below']::after {
+  bottom: -1px;
+}
+.layer__type {
+  display: flex;
+  flex: none;
+  color: var(--ink-2);
+}
+.layer[data-selected] .layer__type {
+  color: inherit;
+}
+.layer__label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+.layer__name {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layer__rename {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 var(--s3);
+  border: 1px solid var(--ink-2);
+  border-radius: var(--r1);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--t-sm);
+}
+.layer__toggle,
+.layer__fold {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+.layer[data-selected] .layer__toggle,
+.layer[data-selected] .layer__fold {
+  color: inherit;
+}
+/* An eye or padlock that is off is quiet; a hidden or locked layer shows it is on. */
+.layer__toggle[aria-pressed='false'] {
+  opacity: 0.45;
+}
+.layer--group {
+  background: var(--surface);
+  padding-left: var(--s4);
+  font-weight: var(--w-medium);
+}

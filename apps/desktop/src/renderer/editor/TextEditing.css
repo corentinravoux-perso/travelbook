@@ -1,0 +1,57 @@
+/* Text editing: the box mounted over the static text, and the floating toolbar above it. */
+
+/* The frame of the text being typed in, drawn over the page like a selection outline. */
+.text-edit-frame {
+  position: absolute;
+  pointer-events: none;
+  outline: 1px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.tb-text--editing .tb-text__content {
+  cursor: text;
+  caret-color: var(--ink);
+}
+
+.text-toolbar {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--ink-2);
+  border-radius: var(--r1);
+  background: var(--chrome);
+  white-space: nowrap;
+  cursor: default;
+}
+.text-toolbar__font {
+  width: 140px;
+}
+.text-toolbar__size {
+  width: 76px;
+}
+/* The size and colour fields are named by their label, which the bar does not show. */
+.text-toolbar .insp-field {
+  display: block;
+}
+.text-toolbar .insp-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.text-toolbar__color .insp-color {
+  width: 26px;
+}
+.text-toolbar__sep {
+  align-self: stretch;
+  width: 1px;
+  margin: 0 var(--s2);
+  background: var(--line);
+}
+.tb-text--editing .tb-text__content {
+  user-select: text;
+}

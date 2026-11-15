@@ -1,9 +1,12 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { PANELS, useEditor, editorStore, type PanelId } from '../store/editor';
+import { installBookFonts } from '../fonts/bookFonts';
 import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
 import { TemplatesPanel } from '../panels/TemplatesPanel';
+import { ShapesPanel } from '../panels/ShapesPanel';
+import { TextPanel } from '../panels/TextPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
@@ -12,7 +15,7 @@ import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
-import { InspectorContent } from './inspector/InspectorContent';
+import { Inspector } from './inspector/Inspector';
 import { ResizeHandle } from './ResizeHandle';
 import { SaveIndicator } from './SaveIndicator';
 import { SpreadStrip } from './SpreadStrip';
@@ -35,6 +38,8 @@ const PANEL_ICONS: Record<PanelId, IconName> = {
  * panel and inspector widths are the user's, kept across sessions. Later tasks fill the regions.
  */
 export function Shell() {
+  // The book's fonts are declared as soon as an album is open: text is drawn with them.
+  useEffect(() => installBookFonts(), []);
   const [widths, setWidths] = useState<PanelWidths>(() => readWidths(localStorage));
   useEffect(() => writeWidths(localStorage, widths), [widths]);
   const resize = (side: PanelSide) => (width: number) =>
@@ -62,7 +67,7 @@ export function Shell() {
             controls="shell-inspector"
             onResize={resize('inspector')}
           />
-          <InspectorContent />
+          <Inspector />
         </aside>
         <SpreadStrip />
         <CoverStage />
@@ -202,6 +207,10 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
         <PhotosPanel />
       ) : panel === 'templates' ? (
         <TemplatesPanel />
+      ) : panel === 'text' ? (
+        <TextPanel />
+      ) : panel === 'shapes' ? (
+        <ShapesPanel />
       ) : (
         <p className="shell-empty">{fr.shell.panelEmpty}</p>
       )}

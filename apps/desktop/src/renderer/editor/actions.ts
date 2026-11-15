@@ -199,3 +199,10 @@ export async function pasteClipboard(): Promise<void> {
   }, fr.canvas.undoPaste);
   selectTop(elements.length);
 }
+
+/** Enter: start typing in the selected text element, if one alone is selected and unlocked. */
+export function editSelectedText(): void {
+  const c = context();
+  const only = c?.elements.length === 1 ? c.elements[0] : undefined;
+  if (only?.type === 'text' && !only.locked) editorStore.getState().enterTextEdit(only.id);
+}

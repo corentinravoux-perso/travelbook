@@ -399,6 +399,42 @@ describe('editor store', () => {
     });
   });
 
+  describe('text editing and drawing tools', () => {
+    it('typing in a text selects it alone and ends crop, the picker and any drawing tool', async () => {
+      const { store } = await setup();
+      store.getState().setTool('text');
+      store.getState().enterCrop('p');
+      store.getState().enterTextEdit('t', true);
+      const s = store.getState();
+      expect(s.editingId).toBe('t');
+      expect(s.editSelectAll).toBe(true);
+      expect(s.selection).toEqual(['t']);
+      expect(s.cropId).toBeNull();
+      expect(s.tool).toBe('select');
+      store.getState().exitTextEdit();
+      expect(store.getState().editingId).toBeNull();
+      expect(store.getState().editSelectAll).toBe(false);
+    });
+
+    it('choosing a shape tool sets what it draws; the plain tools keep the last shape', async () => {
+      const { store } = await setup();
+      store.getState().setTool('shape', 'star');
+      expect(store.getState()).toMatchObject({ tool: 'shape', shapeKind: 'star' });
+      store.getState().setTool('select');
+      store.getState().setTool('shape');
+      expect(store.getState().shapeKind).toBe('star');
+    });
+
+    it('leaves text editing when another spread is shown', async () => {
+      const { store } = await setup();
+      const book = store.getState().book!;
+      store.getState().goToSpread(book.spreads[1]!.id);
+      store.getState().enterTextEdit('t');
+      store.getState().goToSpread(book.spreads[2]!.id);
+      expect(store.getState().editingId).toBeNull();
+    });
+  });
+
   describe('crop mode and the photo picker', () => {
     it('starts with neither open', async () => {
       const { store } = await setup();

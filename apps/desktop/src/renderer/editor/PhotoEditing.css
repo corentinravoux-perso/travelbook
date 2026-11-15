@@ -121,3 +121,33 @@
     0 0 0 2px var(--sel-outer),
     inset 0 0 0 2px var(--sel-outer);
 }
+
+/* The box being drawn with the text or shape tool. */
+.canvas-draft {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed var(--sel-inner);
+  outline: 1px dashed var(--sel-outer);
+}
+.canvas-scroller[data-tool] {
+  cursor: crosshair;
+}
+.canvas-draft-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.canvas-draft-line__outer {
+  stroke: var(--sel-outer);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.canvas-draft-line__inner {
+  stroke: var(--sel-inner);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
