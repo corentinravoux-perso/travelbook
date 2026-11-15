@@ -372,4 +372,12 @@ The five gaps that matter most for v1, checked against the observations above:
 
 ## Gate decisions
 
-(to be filled after Corentin reviews the gap list)
+Decided by Corentin on 2026-11-15:
+
+- All five "Priorities for v1" above are accepted. They are carried into `design.md` and
+  `plan.md` (template counts and panels, themes and covers, photo-look presets, photo tray
+  and spread overview).
+- The capture method is accepted: guest editor, one input event at a time over CDP, test
+  photos set on the file input, no account. The scripted catalogue loop was blocked and
+  never ran.
+- Gaps rated O and marked "Keep omitted" stay out of v1.
