@@ -23,6 +23,7 @@ import {
   type Host,
   type IpcHandlers,
 } from './ipc';
+import { setBundledResourcesDir, type BundledTemplates } from './library/templates';
 import { addToLibrary, listLibrary } from './library/userLibrary';
 import { recentProjects } from './project/recent';
 import { setUserDataDir } from './user-data';
@@ -898,7 +899,7 @@ describe('library', () => {
 
   describe('user templates', () => {
     const template = (id: string, name = 'Deux photos'): Template => ({
-      id,
+      id: `user-${id}`,
       name,
       category: 'photos',
       scope: 'page',
@@ -917,10 +918,10 @@ describe('library', () => {
         template('t2', 'A'),
         template('t1', 'B'),
       ]);
-      await call(CHANNEL.libraryTemplateDelete, 't1');
-      await call(CHANNEL.libraryTemplateDelete, 't1');
+      await call(CHANNEL.libraryTemplateDelete, 'user-t1');
+      await call(CHANNEL.libraryTemplateDelete, 'user-t1');
       expect((await call<Template[]>(CHANNEL.libraryTemplateList)).map((t) => t.id)).toEqual([
-        't2',
+        'user-t2',
       ]);
     });
 
@@ -934,6 +935,14 @@ describe('library', () => {
       await expect(call(CHANNEL.libraryTemplateSave, value)).rejects.toThrow(
         /library:saveTemplate/,
       );
+      expect(await call(CHANNEL.libraryTemplateList)).toEqual([]);
+    });
+
+    it('rejects an id without the user- prefix, such as a bundled one', async () => {
+      await expect(
+        call(CHANNEL.libraryTemplateSave, { ...template('t1'), id: 'b-p1-photo-m' }),
+      ).rejects.toThrow(/user-/);
+      await expect(call(CHANNEL.libraryTemplateDelete, 'b-p1-photo-m')).rejects.toThrow(/user-/);
       expect(await call(CHANNEL.libraryTemplateList)).toEqual([]);
     });
 
@@ -951,8 +960,25 @@ describe('library', () => {
       ['list with an argument', CHANNEL.libraryTemplateList, ['x']],
       ['delete with no id', CHANNEL.libraryTemplateDelete, []],
       ['delete with a bad id', CHANNEL.libraryTemplateDelete, ['../t1']],
+      ['bundled with an argument', CHANNEL.libraryBundledTemplates, ['x']],
     ])('rejects %s', async (_label, channel, args) => {
       await expect(call(channel, ...args)).rejects.toThrow(new RegExp(channel));
+    });
+  });
+
+  describe('bundled templates', () => {
+    afterEach(() => setBundledResourcesDir(null));
+
+    it('answers the shipped templates and themes', async () => {
+      setBundledResourcesDir(join(import.meta.dirname, '../../resources'));
+      const { templates, themes } = await call<BundledTemplates>(CHANNEL.libraryBundledTemplates);
+      expect(templates.length).toBeGreaterThanOrEqual(129);
+      expect(themes.length).toBeGreaterThanOrEqual(3);
+      expect(templates.every((t) => t.origin === 'bundled' && t.id.startsWith('b-'))).toBe(true);
+    });
+
+    it('fails when the resources are not set', async () => {
+      await expect(call(CHANNEL.libraryBundledTemplates)).rejects.toThrow(/not set/);
     });
   });
 });

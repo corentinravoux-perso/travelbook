@@ -1,6 +1,6 @@
 // TbApi and all IPC payload types live here. Types only: this file is compiled for the renderer,
 // the preload and the main process alike.
-import type { AssetRef, Book, Element, Licence, Template } from '@travelbook/core';
+import type { AssetRef, Book, Element, Licence, Template, Theme } from '@travelbook/core';
 
 /** One entry of a project's `history/` folder. */
 export interface SnapshotInfo {
@@ -103,7 +103,9 @@ export interface LibraryApi {
   setFavourite(itemId: string, on: boolean): Promise<void>;
   /** Forget an item and delete its file. Albums that already hold a copy keep it. */
   remove(itemId: string): Promise<void>;
-  /** The user's own templates (`origin: 'user'`), one JSON file each. */
+  /** The templates and themes the app ships with (`origin: 'bundled'`, ids start with `b-`). */
+  bundledTemplates(): Promise<{ templates: Template[]; themes: Theme[] }>;
+  /** The user's own templates (`origin: 'user'`, ids start with `user-`), one JSON file each. */
   userTemplates: {
     /** Replaces the template with the same id. */
     save(template: Template): Promise<void>;

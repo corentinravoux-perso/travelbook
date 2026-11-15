@@ -26,6 +26,7 @@ export const CHANNEL = {
   libraryTemplateSave: 'library:saveTemplate',
   libraryTemplateList: 'library:listTemplates',
   libraryTemplateDelete: 'library:deleteTemplate',
+  libraryBundledTemplates: 'library:bundledTemplates',
   clipboardWrite: 'clipboard:write',
   clipboardRead: 'clipboard:read',
   appVersion: 'app:version',

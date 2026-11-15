@@ -61,6 +61,7 @@ const tb: TbApi = {
     add: (kind, paths) => ipcRenderer.invoke(CHANNEL.libraryAdd, kind, paths),
     setFavourite: (itemId, on) => ipcRenderer.invoke(CHANNEL.librarySetFavourite, itemId, on),
     remove: (itemId) => ipcRenderer.invoke(CHANNEL.libraryRemove, itemId),
+    bundledTemplates: () => ipcRenderer.invoke(CHANNEL.libraryBundledTemplates),
     userTemplates: {
       save: (template) => ipcRenderer.invoke(CHANNEL.libraryTemplateSave, template),
       list: () => ipcRenderer.invoke(CHANNEL.libraryTemplateList),
