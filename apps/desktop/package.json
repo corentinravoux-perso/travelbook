@@ -19,6 +19,7 @@
     "backgrounds": "node scripts/build-backgrounds.ts",
     "templates": "node scripts/build-templates.ts && vitest run scripts/build-templates.test.ts",
     "e2e": "npm run stickers && electron-vite build --mode e2e && playwright test",
+    "e2e:packaged": "playwright test -c playwright.packaged.config.ts",
     "dist:linux": "npm run build && electron-builder --linux deb",
     "dist:win": "npm run build && electron-builder --win nsis",
     "stickers": "node scripts/build-sticker-packs.ts",
