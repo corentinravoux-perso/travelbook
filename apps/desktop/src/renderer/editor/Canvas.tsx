@@ -1,10 +1,13 @@
-import { spreadSize, type Book, type Spread } from '@travelbook/core';
+import { spreadSize } from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { editorStore, findSpread, useEditor } from '../store/editor';
 import { MissingNotice } from './MissingNotice';
 import { fr } from '../strings/fr';
+import { assetUrl } from './assetUrl';
+import { CoverTools, SpineZone } from './CoverEditor';
 import { Guides } from './Guides';
+import { spreadName } from './pages';
 import { Selection } from './Selection';
 import { useShortcuts } from './shortcuts';
 import { elementAt, enclosedBy, normalizedRect, withGroups, type Pt } from './transform';
@@ -14,13 +17,6 @@ import type { Rect } from '@travelbook/core';
 
 /** How long a notice stays up, in ms. */
 const NOTICE_MS = 5000;
-
-function spreadName(book: Book, spread: Spread): string {
-  if (spread.kind === 'cover') return fr.shell.coverName;
-  return fr.shell.spreadName(book.spreads.indexOf(spread) + 1);
-}
-
-const assetUrl = (id: string, q: string) => `tb://asset/${id}?v=${q === 'export' ? 'original' : q}`;
 
 /**
  * The current spread, editable: click, Shift-click and marquee select; handles move, resize and
@@ -146,6 +142,7 @@ export function Canvas() {
   return (
     <main className="shell-canvas" aria-label={fr.shell.canvas}>
       <MissingNotice />
+      {book && spread && <CoverTools book={book} spread={spread} />}
       {notice !== null && (
         <p className="canvas-notice" role="status">
           {notice}
@@ -186,6 +183,7 @@ export function Canvas() {
                   />
                 </div>
               </div>
+              {spread.kind === 'cover' && <SpineZone book={book} scale={scale} />}
               <Guides
                 book={book}
                 spread={spread}

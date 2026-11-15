@@ -15,7 +15,7 @@ const info = (label: SnapshotInfo['label']): SnapshotInfo => ({
   pages: 24,
 });
 
-function setup() {
+function setup(flushCover?: () => Promise<void>) {
   const save = vi.fn<(book: Book) => Promise<void>>(() => Promise.resolve());
   const editor = createEditorStore({ save });
   const api = {
@@ -24,7 +24,7 @@ function setup() {
     recent: vi.fn(() => Promise.resolve([])),
     snapshot: vi.fn((label: SnapshotInfo['label']) => Promise.resolve(info(label))),
   };
-  const store = createProjectStore({ editor, api });
+  const store = createProjectStore({ editor, api, flushCover });
   return { save, editor, api, store };
 }
 
@@ -110,6 +110,28 @@ describe('project store', () => {
     await store.getState().goHome();
     expect(store.getState().view).toBe('home');
     expect(api.recent).toHaveBeenCalled();
+  });
+
+  it('goHome brings the cover thumbnail up to date after the save, while the editor shows', async () => {
+    const flushCover = vi.fn(() => Promise.resolve());
+    const { store, editor, api, save } = setup(flushCover);
+    api.open.mockResolvedValue(opened(newBook({ title: 'A' })));
+    await store.getState().openProject('/a');
+    editor.getState().apply(retitle('A2'), 'Renommer');
+    save.mockRejectedValueOnce(new Error('disk full'));
+    await store.getState().goHome();
+    expect(flushCover).not.toHaveBeenCalled();
+    let viewDuring = '';
+    flushCover.mockImplementationOnce(() => {
+      viewDuring = store.getState().view;
+      return Promise.resolve();
+    });
+    await store.getState().goHome();
+    expect(viewDuring).toBe('editor');
+    expect(save.mock.invocationCallOrder.at(-1)).toBeLessThan(
+      flushCover.mock.invocationCallOrder[0]!,
+    );
+    expect(store.getState().view).toBe('home');
   });
 
   describe('snapshots', () => {

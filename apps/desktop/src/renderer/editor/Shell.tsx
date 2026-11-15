@@ -5,9 +5,13 @@ import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
 import { readWidths, writeWidths, type PanelSide, type PanelWidths } from './layout';
+import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
+import { CoverStage } from './CoverStage';
+import { Overview } from './Overview';
 import { ResizeHandle } from './ResizeHandle';
 import { SaveIndicator } from './SaveIndicator';
+import { SpreadStrip } from './SpreadStrip';
 import { ThemeToggle } from './ThemeToggle';
 import { ViewMenu } from './ViewMenu';
 import { ZoomControls } from './ZoomControls';
@@ -37,26 +41,30 @@ export function Shell() {
     '--inspector-w': `${widths.inspector}px`,
   } as CSSProperties;
 
+  const overview = useEditor((s) => s.overview);
+
   return (
-    <div className="shell" style={style}>
-      <TopBar />
-      <Rail />
-      <Panel width={widths.panel} onResize={resize('panel')} />
-      <Canvas />
-      <aside id="shell-inspector" className="shell-inspector" aria-label={fr.shell.inspector}>
-        <ResizeHandle
-          side="inspector"
-          width={widths.inspector}
-          label={fr.shell.resizeInspector}
-          controls="shell-inspector"
-          onResize={resize('inspector')}
-        />
-        <p className="shell-empty">{fr.shell.inspectorEmpty}</p>
-      </aside>
-      <nav className="shell-strip" aria-label={fr.shell.spreads}>
-        <p className="shell-empty">{fr.shell.spreadsEmpty}</p>
-      </nav>
-    </div>
+    <>
+      <div className="shell" style={style} inert={overview || undefined}>
+        <TopBar />
+        <Rail />
+        <Panel width={widths.panel} onResize={resize('panel')} />
+        <Canvas />
+        <aside id="shell-inspector" className="shell-inspector" aria-label={fr.shell.inspector}>
+          <ResizeHandle
+            side="inspector"
+            width={widths.inspector}
+            label={fr.shell.resizeInspector}
+            controls="shell-inspector"
+            onResize={resize('inspector')}
+          />
+          <p className="shell-empty">{fr.shell.inspectorEmpty}</p>
+        </aside>
+        <SpreadStrip />
+        <CoverStage />
+      </div>
+      {overview && <Overview />}
+    </>
   );
 }
 
@@ -65,6 +73,8 @@ function TopBar() {
   const format = useEditor((s) => s.book?.format);
   const { canUndo, canRedo } = useEditor((s) => s.history);
   const { undo, redo } = editorStore.getState();
+  const book = useEditor((s) => s.book);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <header className="shell-top" aria-label={fr.shell.topBar}>
@@ -117,6 +127,29 @@ function TopBar() {
         <Icon name="arrow-forward-up" />
       </button>
       <span className="shell-sep" />
+      {book !== null && (
+        <>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={fr.shell.overview}
+            title={fr.shell.overview}
+            onClick={() => editorStore.getState().setOverview(true)}
+          >
+            <Icon name="layout-grid" />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={fr.shell.bookSettings}
+            title={fr.shell.bookSettings}
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Icon name="settings" />
+          </button>
+          <span className="shell-sep" />
+        </>
+      )}
       {title !== undefined && (
         <>
           <ViewMenu />
@@ -125,6 +158,9 @@ function TopBar() {
         </>
       )}
       <ThemeToggle />
+      {settingsOpen && book !== null && (
+        <BookSettings book={book} onClose={() => setSettingsOpen(false)} />
+      )}
     </header>
   );
 }

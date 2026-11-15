@@ -25,6 +25,8 @@ export const fr = {
     panelEmpty: 'Ouvrez un album pour utiliser ce panneau.',
     inspectorEmpty: 'Sélectionnez un élément pour voir ses propriétés.',
     spreadsEmpty: "Les doubles pages de l'album apparaîtront ici.",
+    bookSettings: 'Réglages du livre',
+    overview: 'Vue d’ensemble des doubles pages',
   },
   // Canvas: zoom controls, View menu, notices.
   canvas: {
@@ -56,6 +58,85 @@ export const fr = {
     undoUngroup: 'Dissocier',
     undoForward: 'Avancer',
     undoBackward: 'Reculer',
+  },
+  // Spreads strip: cover and spreads as thumbnails, page numbers, page count, spread actions.
+  strip: {
+    tile: (name: string, pages: string) => (pages === '' ? name : `${name}, ${pages}`),
+    /** The page numbers of a spread, as written under its thumbnail. */
+    pages: (left: number | null, right: number | null): string => {
+      if (left !== null && right !== null) return `${left}–${right}`;
+      const only = left ?? right;
+      return only === null ? '' : String(only);
+    },
+    pagesLong: (left: number | null, right: number | null): string => {
+      if (left !== null && right !== null) return `pages ${left} et ${right}`;
+      const only = left ?? right;
+      return only === null ? '' : `page ${only}`;
+    },
+    actions: 'Actions sur la double page',
+    add: 'Ajouter une double page',
+    duplicate: 'Dupliquer la double page',
+    remove: 'Supprimer la double page',
+    swap: 'Échanger les deux pages',
+    pageCount: (pages: number) => (pages === 1 ? '1 page' : `${pages} pages`),
+    ruleBroken: (pages: number, min: number, multiple: number) => {
+      const multipleText = multiple === 1 ? '' : `, multiple de ${multiple}`;
+      return `${pages} pages : l’impression demande au moins ${min} pages${multipleText}.`;
+    },
+    undoAdd: 'Ajouter une double page',
+    undoDuplicate: 'Dupliquer une double page',
+    undoRemove: 'Supprimer une double page',
+    undoSwap: 'Échanger les pages',
+    undoMove: 'Déplacer une double page',
+  },
+  // Overview of all spreads (full-screen grid).
+  overview: {
+    title: 'Vue d’ensemble',
+    close: 'Fermer la vue d’ensemble',
+    hint: 'Glissez une double page pour la déplacer (ou Alt + flèche). Le + entre deux doubles pages en insère une. Échap pour fermer.',
+    insert: 'Insérer une double page ici',
+  },
+  // Cover editing: the spine zone.
+  cover: {
+    tools: 'Outils de la couverture',
+    spineZone: 'Dos du livre',
+    spineText: 'Texte sur le dos',
+    spineNone: 'Définissez la largeur du dos dans les réglages du livre pour y placer du texte.',
+    undoSpineText: 'Ajouter un texte sur le dos',
+  },
+  // Book settings dialog.
+  bookSettings: {
+    title: 'Réglages du livre',
+    format: 'Format des pages',
+    preset: 'Format prédéfini',
+    custom: 'Personnalisé',
+    width: 'Largeur',
+    height: 'Hauteur',
+    scaleContent: 'Adapter le contenu au nouveau format',
+    scaleHelp: 'Les éléments suivent le format. Sinon ils gardent leur position en mm.',
+    print: 'Impression',
+    bleed: 'Fond perdu des pages',
+    coverBleed: 'Fond perdu de la couverture',
+    safeMargin: 'Marge de sécurité',
+    spineWidth: 'Largeur du dos',
+    pageRule: 'Règle du nombre de pages',
+    pageMin: 'Pages au minimum',
+    pageMultiple: 'Multiple de',
+    quality: 'Qualité',
+    frenchTypography: 'Typographie française',
+    frenchHelp: 'Espaces insécables avant « : ; ! ? », guillemets français.',
+    dpiGood: 'Résolution bonne à partir de',
+    dpiLow: 'Résolution faible sous',
+    mm: 'mm',
+    dpi: 'ppp',
+    pages: 'pages',
+    sizeRange: (min: number, max: number) => `Entre ${min} et ${max} mm.`,
+    dpiRange: (min: number, max: number) => `Entre ${min} et ${max} ppp.`,
+    dpiOrder: 'La résolution bonne doit être au moins égale à la résolution faible.',
+    pagesRange: (min: number, max: number) => `Entre ${min} et ${max} pages.`,
+    cancel: 'Annuler',
+    apply: 'Appliquer',
+    undo: 'Modifier les réglages du livre',
   },
   // Rail entries, in rail order; also the panel titles.
   panels: {

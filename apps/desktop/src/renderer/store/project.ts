@@ -7,6 +7,7 @@ import type {
   RecentProject,
   SnapshotInfo,
 } from '../../shared/api';
+import { captureCoverThumb, createCoverThumbs } from '../editor/coverThumb';
 import { editorStore, type EditorStore } from './editor';
 
 /** An automatic snapshot is taken this often while the book has changed since the last one. */
@@ -46,6 +47,8 @@ export interface ProjectState {
 
 export interface ProjectStoreDeps {
   editor: EditorStore;
+  /** Brings the cover thumbnail up to date; called while the editor is still on screen. */
+  flushCover?(): Promise<void>;
   api: {
     create(options: CreateProjectOptions): Promise<ProjectInfo | null>;
     open(dir?: string): Promise<OpenedProject | null>;
@@ -56,7 +59,7 @@ export interface ProjectStoreDeps {
 
 export type ProjectStore = StoreApi<ProjectState>;
 
-export function createProjectStore({ editor, api }: ProjectStoreDeps): ProjectStore {
+export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps): ProjectStore {
   /** The book as it was at the last snapshot (or when it was opened): the baseline of "changed". */
   let snapshotBase: Book | null = null;
   let noteTimer: ReturnType<typeof setTimeout> | undefined;
@@ -130,6 +133,7 @@ export function createProjectStore({ editor, api }: ProjectStoreDeps): ProjectSt
         } catch {
           return; // the top bar shows the failed save and offers a retry
         }
+        await flushCover?.(); // never rejects: the thumbnail is a cache
         set({ view: 'home' });
         await get().refreshRecent();
       },
@@ -160,9 +164,17 @@ export function createProjectStore({ editor, api }: ProjectStoreDeps): ProjectSt
   });
 }
 
+/** Keeps the cover thumbnail of the open album up to date for the home screen. */
+export const coverThumbs = createCoverThumbs({
+  store: editorStore,
+  capture: captureCoverThumb,
+  hasThumb: () => window.tb.project.hasCoverThumb(),
+});
+
 /** The app's project store, over `window.tb` and the app's editor store. */
 export const projectStore = createProjectStore({
   editor: editorStore,
+  flushCover: () => coverThumbs.flush(),
   api: {
     create: (o) => window.tb.project.create(o),
     open: (d) => window.tb.project.open(d),

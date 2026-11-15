@@ -1,4 +1,4 @@
-import { newBook, type Book } from '@travelbook/core';
+import { deleteSpread, newBook, type Book } from '@travelbook/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEditorStore, MAX_ZOOM, MIN_ZOOM, SAVE_DELAY_MS } from './editor';
 
@@ -353,5 +353,40 @@ describe('editor store', () => {
     expect(store.getState().selection).toBe(before);
     store.getState().setGuide('bleed', false);
     expect(store.getState().guides).toEqual({ bleed: false, trim: true, safe: true, gutter: true });
+  });
+
+  describe('current spread', () => {
+    it('goToSpread shows another spread (the cover included) and empties the selection', async () => {
+      const { store } = await setup();
+      const { book } = store.getState();
+      store.getState().select(['x']);
+      store.getState().goToSpread(book!.cover.id);
+      expect(store.getState()).toMatchObject({ currentSpreadId: book!.cover.id, selection: [] });
+      store.getState().goToSpread('nope');
+      expect(store.getState().currentSpreadId).toBe(book!.cover.id);
+    });
+
+    it('moves to the spread that takes the place of a deleted one', async () => {
+      const { store } = await setup();
+      const [, a, b] = store.getState().book!.spreads;
+      store.getState().goToSpread(a!.id);
+      store.getState().apply((bk) => deleteSpread(bk, a!.id), 'Supprimer');
+      expect(store.getState().currentSpreadId).toBe(b!.id);
+      store.getState().undo();
+      expect(store.getState().currentSpreadId).toBe(b!.id);
+      store.getState().goToSpread(b!.id);
+      store.getState().apply((bk) => deleteSpread(bk, b!.id), 'Supprimer');
+      expect(store.getState().book!.spreads.map((s) => s.id)).not.toContain(b!.id);
+      expect(store.getState().currentSpreadId).toBe(store.getState().book!.spreads[2]!.id);
+      expect(store.getState().book!.spreads[2]!.kind).toBe('last');
+    });
+
+    it('opens and closes the overview', async () => {
+      const { store } = await setup();
+      store.getState().setOverview(true);
+      expect(store.getState().overview).toBe(true);
+      store.getState().setOverview(false);
+      expect(store.getState().overview).toBe(false);
+    });
   });
 });
