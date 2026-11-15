@@ -819,3 +819,67 @@ button.page-bar__label:hover,
 .missing-notice__hint {
   color: var(--ink-2);
 }
+
+/* ---------- credits dialog ---------- */
+.credits-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  margin: 0;
+  padding: 0 0 0 var(--s6);
+  font-size: var(--t-sm);
+  line-height: var(--lh);
+}
+.credits-empty {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.credits-entry {
+  width: auto;
+  padding: 0 var(--s4);
+  font-size: var(--t-sm);
+}
+
+/* ---------- fonts dialog ---------- */
+.fonts-dialog--over {
+  outline: 1px dashed var(--ink-2);
+  outline-offset: 4px;
+}
+.fonts-results {
+  min-height: 120px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.fonts-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fonts-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line);
+}
+.fonts-list__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-md);
+}
+.fonts-list__category {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.fonts-import {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+.font-more {
+  margin-top: var(--s3);
+}

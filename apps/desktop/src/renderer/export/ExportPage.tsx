@@ -1,8 +1,8 @@
-import { SpreadView, type AssetUrl } from '@travelbook/render';
+import { projectFontFiles, SpreadView, whenFontsReady, type AssetUrl } from '@travelbook/render';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { ExportPageHandle, ExportPageJob } from '../../shared/exportPage';
-import { BOOK_FONTS, bookFontsReady } from '../fonts/bookFonts';
+import { BOOK_FONTS, installBookFonts } from '../fonts/bookFonts';
 
 /**
  * The page the hidden export window loads (`#export`): it draws one page at a time, by the same
@@ -102,7 +102,13 @@ export function installExportPage(host: HTMLElement): void {
           />,
         ),
       );
-      await bookFontsReady(BOOK_FONTS.map((f) => f.family));
+      // The bundled fonts, and the faces the album carries (SpreadView declares them): a font
+      // that is not loaded would be measured and drawn with a fallback.
+      installBookFonts();
+      const projectFamilies = projectFontFiles(job.book.assets, assetUrlOf(job)).map(
+        (f) => f.family,
+      );
+      await whenFontsReady([...BOOK_FONTS.map((f) => f.family), ...projectFamilies]);
       await imagesReady(host);
       await nextFrame();
       await nextFrame();

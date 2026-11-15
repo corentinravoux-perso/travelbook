@@ -98,8 +98,152 @@ export interface LibraryQuery {
   recent?: number;
 }
 
-/** Filled in further by phase 6 (online sources). */
+/** One sticker found by a search, offline or online. */
+export interface StickerHit {
+  /** Where it comes from: an offline set id (`noto`) or an online source id (`openverse`). */
+  source: string;
+  /** Unique inside `source`. */
+  id: string;
+  title: string;
+  /** URL the renderer can show in an `<img>`: always a `tb://` address (`sticker/` or `remote-thumb/`). */
+  thumbUrl: string;
+  /** URL of the full file. Main only: the renderer never loads it. */
+  fileUrl: string;
+  format: 'svg' | 'png' | 'webp' | 'jpg';
+  licence: Licence;
+  /** A monochrome pictogram that draws in `currentColor` and can be recoloured. */
+  mono: boolean;
+}
+
+/** The offline sticker browser's pseudo source id; the other ids are online sources. */
+export const OFFLINE_SOURCE = 'offline';
+
+export interface StickerSearchQuery {
+  /** `offline` or the id of an online source. */
+  source: string;
+  q: string;
+  /** From 1. */
+  page: number;
+  /** Offline only: one set, one category (French name), colour or monochrome, licence filter. */
+  set?: string;
+  category?: string;
+  mono?: boolean;
+  noAttribution?: boolean;
+}
+
+export interface StickerSearchResult {
+  items: StickerHit[];
+  hasMore: boolean;
+  /** Offline searches know the total. */
+  total?: number;
+}
+
+export interface StickerSetInfo {
+  id: string;
+  name: string;
+  count: number;
+  licence: Licence;
+  mono: boolean;
+}
+
+export interface StickerSourceInfo {
+  id: string;
+  label: string;
+  /** The source asks for an account or key; none of the built-in ones does. */
+  needsKey: boolean;
+  /** Offered by the backgrounds panel (photographs) rather than the stickers panel. */
+  backgrounds: boolean;
+  /** A key is stored for it (the key itself never leaves main). */
+  hasKey: boolean;
+}
+
+/** Why an online call failed; carried in the message of the error the renderer gets. */
+export type SourceErrorKind = 'offline' | 'rateLimited' | 'badAnswer' | 'tooLarge' | 'notFound';
+
+/** The kind of a `SourceError` that crossed the IPC bridge, or `null` for any other error. */
+export function sourceErrorKind(error: unknown): SourceErrorKind | null {
+  const message = error instanceof Error ? error.message : String(error);
+  const match = /SourceError:(offline|rateLimited|badAnswer|tooLarge|notFound)/.exec(message);
+  return match ? (match[1] as SourceErrorKind) : null;
+}
+
+/** The sticker browser: offline packs, online sources and the user's own files. */
+export interface StickersApi {
+  /** The offline sets, in display order. */
+  sets(): Promise<StickerSetInfo[]>;
+  /** The French categories of an offline set, with their sticker counts. */
+  categories(setId: string): Promise<{ name: string; count: number }[]>;
+  /** The online sources. */
+  sources(): Promise<StickerSourceInfo[]>;
+  /** Rejects with a `SourceError` kind (see `sourceErrorKind`) when an online source fails. */
+  search(query: StickerSearchQuery): Promise<StickerSearchResult>;
+  /**
+   * Keep a found sticker in the user library (downloading it first when it is online) and give
+   * the item; the same sticker again gives the same item. Only hits main handed out are known.
+   */
+  add(hit: { source: string; id: string }): Promise<LibraryItem>;
+  /**
+   * Keep an image the renderer holds as bytes (pasted, or dragged out of a browser) as a sticker
+   * of the library. PNG, JPEG, WebP or SVG, at most 20 MB.
+   */
+  addBytes(name: string, bytes: Uint8Array): Promise<LibraryItem>;
+  /**
+   * Whether a raster hit has no transparent pixel (so it has a background that will show).
+   * `undefined` for an SVG or when it cannot be told.
+   */
+  isOpaque(hit: { source: string; id: string }): Promise<boolean | undefined>;
+  /** Save (or, with an empty string, forget) the key of a source that needs one. */
+  setKey(sourceId: string, key: string): Promise<void>;
+}
+
+/** The five groups of the font list. */
+export type FontCategory = 'manuscrite' | 'serif' | 'sans' | 'titre' | 'machine';
+
+/** A family of fonts the editor can offer. */
+export interface FontFamily {
+  family: string;
+  category: FontCategory;
+  /** `bundled`: ships with the app; `library`: the user's own; `project`: only the album has it. */
+  origin: 'bundled' | 'library' | 'project';
+  faces: {
+    weight: number;
+    style: 'normal' | 'italic';
+    /** A `tb://` address the page declares the face with. */
+    url: string;
+    /** For a `library` face: the library item, which `assets.fromLibrary` copies into an album. */
+    itemId?: string;
+  }[];
+  licence: Licence;
+}
+
+/** A family found in the Fontsource catalogue. */
+export interface CatalogueEntry {
+  id: string;
+  family: string;
+  category: FontCategory;
+}
+
+export interface FontsApi {
+  /** Bundled families first, then the user's own. */
+  list(): Promise<FontFamily[]>;
+  /** Search the Fontsource catalogue (OFL and Apache fonts); rejects with a `SourceError` kind. */
+  searchCatalogue(q: string): Promise<CatalogueEntry[]>;
+  /** Download a family into the user library; rejects with a `SourceError` kind. */
+  addFromCatalogue(id: string): Promise<FontFamily>;
+  /** A font file dialog (TTF, OTF, WOFF2); `null` when the user cancels. */
+  pickFile(): Promise<string | null>;
+  /** Keep a TTF, OTF or WOFF2 file in the user library. */
+  importFile(path: string): Promise<FontFamily>;
+  /**
+   * Copy the faces of these user-library families into the open album's `assets/` and give the
+   * asset records, for the caller to add to its book (`store.apply`). Other families are skipped.
+   */
+  assetsFor(families: string[]): Promise<AssetRef[]>;
+}
+
 export interface LibraryApi {
+  stickers: StickersApi;
+  fonts: FontsApi;
   /** Newest first, or most recently used first with `query.recent`. */
   list(kind: LibraryItemKind, query?: LibraryQuery): Promise<LibraryItem[]>;
   /**

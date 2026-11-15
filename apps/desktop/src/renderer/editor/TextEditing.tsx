@@ -2,7 +2,8 @@ import { Editor, type JSONContent } from '@tiptap/core';
 import { updateElements, type TextElement } from '@travelbook/core';
 import { textBoxStyle } from '@travelbook/render';
 import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
-import { bookFontsReady, firstFamily } from '../fonts/bookFonts';
+import { firstFamily } from '../fonts/bookFonts';
+import { fontsReady } from '../fonts/fontList';
 import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
 import { leaveTextEdit } from './textActions';
@@ -76,7 +77,7 @@ export function TextEditing({
     latest.current.onEditor(editor);
     editor.commands.focus(selectAll ? 'all' : 'end');
     // Text is laid out again when a face arrives; a face that never does is worth telling.
-    void bookFontsReady([firstFamily(latest.current.el.style.fontFamily)]).catch(() =>
+    void fontsReady([firstFamily(latest.current.el.style.fontFamily)]).catch(() =>
       editorStore.getState().notify(fr.text.fontsNotLoaded),
     );
     return () => {

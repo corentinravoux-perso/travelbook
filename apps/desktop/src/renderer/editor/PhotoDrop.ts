@@ -13,8 +13,10 @@ import {
 } from '@travelbook/core';
 import { useCallback, useLayoutEffect, useRef, useState, type DragEvent } from 'react';
 import { editorStore, findSpread, type BookOp } from '../store/editor';
+import { STICKER_DRAG_TYPE, decodeStickerDrag } from '../panels/stickers/model';
 import { fr } from '../strings/fr';
 import { droppedPaths, photoImporter } from './photoImport';
+import { placeSticker } from './stickerActions';
 import { pointInElement, round3, type Pt } from './transform';
 import { DRAG_SLOP_PX, type ToMm } from './useTransform';
 
@@ -177,9 +179,14 @@ export function swapFrames(spreadId: string, a: string, b: string): void {
     );
 }
 
-/** Does this drag carry photos the page can take: the tray's, or files from the system? */
+/**
+ * Does this drag carry something the page can take: photos of the tray, a sticker of the stickers
+ * panel, or files from the system?
+ */
 function carriesPhotos(types: readonly string[]): boolean {
-  return types.includes(PHOTO_DRAG_TYPE) || types.includes('Files');
+  return (
+    types.includes(PHOTO_DRAG_TYPE) || types.includes(STICKER_DRAG_TYPE) || types.includes('Files')
+  );
 }
 
 export interface PhotoDrop {
@@ -212,7 +219,10 @@ export function usePhotoDrop(toMm: ToMm): PhotoDrop {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
     const { spread } = spreadNow();
-    const target = spread ? dropTarget(spread, toMmRef.current(e.clientX, e.clientY)) : null;
+    // A sticker never fills a photo frame: no outline for it.
+    const sticker = e.dataTransfer.types.includes(STICKER_DRAG_TYPE);
+    const target =
+      spread && !sticker ? dropTarget(spread, toMmRef.current(e.clientX, e.clientY)) : null;
     const frame = target?.kind === 'slot' ? target.element : null;
     setHover((old) => (old?.id === frame?.id ? old : frame));
   }, []);
@@ -233,6 +243,11 @@ export function usePhotoDrop(toMm: ToMm): PhotoDrop {
     if (!spread) return;
     const at = toMmRef.current(e.clientX, e.clientY);
 
+    const sticker = decodeStickerDrag(e.dataTransfer.getData(STICKER_DRAG_TYPE));
+    if (sticker !== null) {
+      void placeSticker(sticker, at);
+      return;
+    }
     const own = e.dataTransfer.getData(PHOTO_DRAG_TYPE);
     if (own !== '') {
       placePhotos(spread.id, decodePhotoDrag(own), at);

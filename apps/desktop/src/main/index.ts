@@ -5,7 +5,10 @@ import { guardWindowClose } from './close-guard';
 import { askCloseChoice, createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { setBundledResourcesDir } from './library/templates';
+import { setFontsResourcesDir } from './library/fonts';
 import { setBackgroundsResourcesDir } from './library/backgrounds';
+import { setStickersResourcesDir, stickerSvg } from './library/stickers/offline';
+import { getStickerService } from './library/stickers/service';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { exportJobLookup } from './export/images';
 import { ensureProxies } from './photos/proxies';
@@ -68,6 +71,8 @@ void app.whenReady().then(async () => {
   const libraryDir = join(app.getPath('userData'), LIBRARY_FOLDER);
   setBundledResourcesDir(resourcesDir);
   setBackgroundsResourcesDir(resourcesDir);
+  setStickersResourcesDir(resourcesDir);
+  setFontsResourcesDir(resourcesDir);
 
   // tb://library/<id> is answered from the library index, which is read once before any window.
   setLibraryFileLookup(libraryFile);
@@ -85,6 +90,8 @@ void app.whenReady().then(async () => {
       await ensureProxies(session.dir, asset);
     },
     fetchFile: (path) => net.fetch(pathToFileURL(path).toString()),
+    stickerSvg: (set, id) => stickerSvg(set, id),
+    remoteThumb: async (key) => (await getStickerService(() => app.getVersion())).thumb(key),
   });
   registerIpc(
     ipcMain,
