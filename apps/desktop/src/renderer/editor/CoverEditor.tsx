@@ -6,6 +6,7 @@ import {
   type Spread,
   type TextElement,
 } from '@travelbook/core';
+import { openPosterDialog } from '../posters/PosterDialog';
 import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
@@ -84,6 +85,10 @@ export function CoverTools({ book, spread }: { book: Book; spread: Spread }) {
   const spine = book.spineWidth > 0;
   return (
     <div className="cover-tools" role="toolbar" aria-label={fr.cover.tools}>
+      <button type="button" className="button button--small" onClick={openPosterDialog}>
+        <Icon name="layout-grid" />
+        {fr.poster.open}
+      </button>
       <button
         type="button"
         className="button button--small"
