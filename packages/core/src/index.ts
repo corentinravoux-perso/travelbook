@@ -6,6 +6,7 @@ export * from './photoLook';
 export * from './geometry';
 export * from './template';
 export * from './ops';
+export * from './fonts';
 export * from './typography';
 export * from './snap';
 export * from './preflight';

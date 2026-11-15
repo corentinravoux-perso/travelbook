@@ -1,6 +1,6 @@
 import { updateElements, type Element, type TextElement } from '@travelbook/core';
 import { useEffect, useRef } from 'react';
-import { BOOK_FONTS, bookFontOf } from '../../fonts/bookFonts';
+import { FontSelect } from '../FontSelect';
 import { editorStore } from '../../store/editor';
 import { fr } from '../../strings/fr';
 import { joinColor, splitColor } from './color';
@@ -56,7 +56,6 @@ export function TextInspector({ spreadId, element }: { spreadId: string; element
   }, [spreadId, element]);
 
   const { style, box, outline, shadow } = element;
-  const font = bookFontOf(style.fontFamily);
   const shadowColor = shadow ? splitColor(shadow.color) : null;
 
   return (
@@ -66,24 +65,14 @@ export function TextInspector({ spreadId, element }: { spreadId: string; element
           <label className="insp-field__label" htmlFor="text-font">
             {t.font}
           </label>
-          <select
+          <FontSelect
             id="text-font"
             className="input insp-select"
-            value={font?.css ?? ''}
-            style={{ fontFamily: font?.css }}
-            onChange={(e) => setStyle({ fontFamily: e.target.value }, t.undoFont)}
-          >
-            {font === undefined && (
-              <option value="" disabled>
-                {fr.text.fontOther}
-              </option>
-            )}
-            {BOOK_FONTS.map((f) => (
-              <option key={f.family} value={f.css} style={{ fontFamily: f.css }}>
-                {f.family}
-              </option>
-            ))}
-          </select>
+            label={t.font}
+            value={style.fontFamily}
+            more
+            onChange={(css) => setStyle({ fontFamily: css }, t.undoFont)}
+          />
         </div>
         <NumberField
           label={t.size}

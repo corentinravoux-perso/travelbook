@@ -13,6 +13,7 @@ import { PhotoView } from './elements/PhotoView';
 import { ShapeView } from './elements/ShapeView';
 import { StickerView } from './elements/StickerView';
 import { TextView } from './elements/TextView';
+import { projectFontFiles, useProjectFonts } from './projectFonts';
 import type { SpreadViewProps } from './types';
 import { mm } from './units';
 
@@ -56,6 +57,8 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
  */
 export function SpreadView(p: SpreadViewProps): ReactElement {
   const { book, spread, quality, assetUrl } = p;
+  // The album's own fonts are declared before anything is drawn with them.
+  useProjectFonts(projectFontFiles(book.assets, assetUrl));
   const size = spreadSize(book, spread);
   const clip = p.clip ?? { x: 0, y: 0, w: size.w, h: size.h };
   const bleed = spread.kind === 'cover' ? book.coverBleed : book.bleed;

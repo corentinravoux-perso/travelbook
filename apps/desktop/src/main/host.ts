@@ -13,6 +13,8 @@ import type { Host } from './ipc';
 
 /** Extensions the photo import takes (see `PHOTO_EXTENSIONS` in `photos/import.ts`). */
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+/** Font files the font import takes. */
+const FONT_EXTENSIONS = ['ttf', 'otf', 'woff2'];
 
 /** The real desktop: native dialogs over `window`, the system shell and the app. */
 export function createElectronHost(window: () => BrowserWindow | null): Host {
@@ -37,6 +39,14 @@ export function createElectronHost(window: () => BrowserWindow | null): Host {
         properties: ['openFile', 'multiSelections'],
         filters: [{ name: fr.dialogs.imageFilter, extensions: IMAGE_EXTENSIONS }],
       }),
+    pickFont: async () => {
+      const [file] = await pick({
+        title: fr.dialogs.chooseFont,
+        properties: ['openFile'],
+        filters: [{ name: fr.dialogs.fontFilter, extensions: FONT_EXTENSIONS }],
+      });
+      return file ?? null;
+    },
     openExternal: (url) => shell.openExternal(url),
     showInFolder: (path) => shell.showItemInFolder(path),
     version: () => app.getVersion(),

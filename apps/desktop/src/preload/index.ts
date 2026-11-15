@@ -64,6 +64,14 @@ const tb: TbApi = {
     remove: (itemId) => ipcRenderer.invoke(CHANNEL.libraryRemove, itemId),
     bundledBackgrounds: () => ipcRenderer.invoke(CHANNEL.libraryBundledBackgrounds),
     bundledTemplates: () => ipcRenderer.invoke(CHANNEL.libraryBundledTemplates),
+    fonts: {
+      list: () => ipcRenderer.invoke(CHANNEL.fontsList),
+      searchCatalogue: (q) => ipcRenderer.invoke(CHANNEL.fontsSearch, q),
+      addFromCatalogue: (id) => ipcRenderer.invoke(CHANNEL.fontsAdd, id),
+      pickFile: () => ipcRenderer.invoke(CHANNEL.fontsPick),
+      importFile: (path) => ipcRenderer.invoke(CHANNEL.fontsImport, path),
+      assetsFor: (families) => ipcRenderer.invoke(CHANNEL.fontsAssetsFor, families),
+    },
     stickers: {
       sets: () => ipcRenderer.invoke(CHANNEL.stickersSets),
       categories: (setId) => ipcRenderer.invoke(CHANNEL.stickersCategories, setId),

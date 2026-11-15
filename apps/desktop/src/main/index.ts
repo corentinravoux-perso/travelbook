@@ -5,6 +5,7 @@ import { guardWindowClose } from './close-guard';
 import { askCloseChoice, createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { setBundledResourcesDir } from './library/templates';
+import { setFontsResourcesDir } from './library/fonts';
 import { setBackgroundsResourcesDir } from './library/backgrounds';
 import { setStickersResourcesDir, stickerSvg } from './library/stickers/offline';
 import { getStickerService } from './library/stickers/service';
@@ -70,6 +71,7 @@ void app.whenReady().then(async () => {
   setBundledResourcesDir(resourcesDir);
   setBackgroundsResourcesDir(resourcesDir);
   setStickersResourcesDir(resourcesDir);
+  setFontsResourcesDir(resourcesDir);
 
   // tb://library/<id> is answered from the library index, which is read once before any window.
   setLibraryFileLookup(libraryFile);
