@@ -8,13 +8,7 @@
  *   TB_PACKAGED_EXECUTABLE=/opt/travelbook/travelbook npm run e2e:packaged
  *                                                     check an installed copy
  */
-import {
-  _electron as electron,
-  expect,
-  test,
-  type ElectronApplication,
-  type Page,
-} from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -23,18 +17,12 @@ import { newElement, type Book } from '@travelbook/core';
 import { ensureFixtures, fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import type { TbApi } from '../../src/shared/api';
 import { createFromHome, pickFolders } from '../home';
+import { expectNoMainErrors, launchPackaged, requirePackagedApp } from '../packagedApp';
 
 type Win = { tb: TbApi };
 
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
-const EXECUTABLE =
-  process.env['TB_PACKAGED_EXECUTABLE'] ??
-  join(
-    import.meta.dirname,
-    '../../dist',
-    process.platform === 'win32' ? 'win-unpacked/travelbook.exe' : 'linux-unpacked/travelbook',
-  );
 const TITLE = 'Livre packagé';
 
 let work: string;
@@ -42,9 +30,7 @@ let userData: string;
 let albums: string;
 
 test.beforeAll(async () => {
-  await access(EXECUTABLE).catch(() => {
-    throw new Error(`No packaged app at ${EXECUTABLE}: run "npm run dist:linux" first.`);
-  });
+  await requirePackagedApp();
   await ensureFixtures();
   work = await mkdtemp(join(tmpdir(), 'travelbook-e2e-packaged-'));
   userData = join(work, 'user data');
@@ -55,28 +41,6 @@ test.afterAll(async () => {
   await rm(work, { recursive: true, force: true });
 });
 
-/** The packaged app, with its own user data folder and with what it writes to stderr kept. */
-async function launchPackaged(): Promise<{ app: ElectronApplication; stderr: () => string }> {
-  // Some hosts (e.g. VS Code terminals) export ELECTRON_RUN_AS_NODE, which turns Electron into plain Node.
-  const env = { ...process.env } as Record<string, string>;
-  delete env['ELECTRON_RUN_AS_NODE'];
-  const app = await electron.launch({
-    executablePath: EXECUTABLE,
-    args: [`--user-data-dir=${userData}`],
-    env,
-  });
-  let text = '';
-  app.process().stderr?.on('data', (chunk: Buffer) => (text += chunk.toString()));
-  return { app, stderr: () => text };
-}
-
-/** Main logs a failed IPC handler on stderr; GLib-GObject lines are what sharp warns about. */
-function expectNoMainErrors(stderr: string): void {
-  expect(
-    stderr.split('\n').filter((l) => /Error occurred in handler|GLib-GObject/.test(l)),
-  ).toEqual([]);
-}
-
 const projectDir = async (): Promise<string> => {
   const dirs = (await readdir(albums)).filter((n) => n.endsWith('.travelbook'));
   expect(dirs).toHaveLength(1);
@@ -84,7 +48,7 @@ const projectDir = async (): Promise<string> => {
 };
 
 test('the packaged app opens, makes a book, imports a photo, and finds its fonts and stickers', async () => {
-  const { app, stderr } = await launchPackaged();
+  const { app, stderr } = await launchPackaged(userData);
   try {
     const page = await app.firstWindow();
     await expect(page).toHaveTitle('travelbook');
@@ -178,7 +142,7 @@ test('the saved book exports a page as a JPEG with its photo and fonts', async (
   };
   await writeFile(bookFile, JSON.stringify(withPhoto, null, 2));
 
-  const { app, stderr } = await launchPackaged();
+  const { app, stderr } = await launchPackaged(userData);
   try {
     const page: Page = await app.firstWindow();
     await page.getByRole('button', { name: new RegExp(TITLE) }).click();
