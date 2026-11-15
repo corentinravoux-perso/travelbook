@@ -1,4 +1,12 @@
-import { app, BrowserWindow, ipcMain, net, protocol, type IpcMainInvokeEvent } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  net,
+  protocol,
+  session,
+  type IpcMainInvokeEvent,
+} from 'electron';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { guardWindowClose } from './close-guard';
@@ -12,6 +20,7 @@ import { getStickerService } from './library/stickers/service';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { exportJobLookup } from './export/images';
 import { ensureProxies } from './photos/proxies';
+import { denyAllPermissions } from './permissions';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
 import { currentSession, setLibraryFileLookup, tbRoots } from './session';
 import { enforceSingleInstance } from './single-instance';
@@ -67,8 +76,12 @@ function isTrustedSender(event: Pick<IpcMainInvokeEvent, 'senderFrame' | 'sender
 // One instance per user: two of them would overwrite each other's saves (see `single-instance.ts`).
 const isFirstInstance = enforceSingleInstance(app, () => mainWindow, createWindow);
 
+// No page may ask for a permission, in any session (the main window and the export windows).
+app.on('session-created', denyAllPermissions);
+
 void app.whenReady().then(async () => {
   if (!isFirstInstance) return;
+  denyAllPermissions(session.defaultSession);
   // The folder holding the bundled resources: `resources/` of the sources in dev, and in a
   // packaged app `<resourcesPath>/resources/`, where `extraResources` of electron-builder.yml puts it.
   const resourcesDir = app.isPackaged
