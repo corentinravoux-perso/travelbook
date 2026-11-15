@@ -147,6 +147,29 @@ describe('online search and thumbnails', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
+  it('downloads a thumbnail once when the tile and the opacity check ask for it together', async () => {
+    // Each tile asks for its picture and for its opacity at the same moment: two downloads of
+    // the same file doubled the requests and drew Wikimedia's rate limit.
+    const body = await png(255);
+    const fetchImpl = vi.fn(async () => new Response(new Uint8Array(body)));
+    const svc = make({
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      search: async () => ({
+        items: [hitOf('a', 'https://thumbs.example.org/a.png')],
+        hasMore: false,
+      }),
+    });
+    const { items } = await svc.search({ source: 'fake', q: 'x', page: 1 });
+    const key = items[0]!.thumbUrl.split('/').pop()!;
+    const [bytes, opaque] = await Promise.all([
+      svc.thumb(key),
+      svc.isOpaque({ source: 'fake', id: 'a' }),
+    ]);
+    expect(bytes).toBeDefined();
+    expect(opaque).toBe(true);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
   it('answers undefined for a key it never handed out, without any request', async () => {
     const fetchImpl = vi.fn();
     const svc = make({ fetchImpl: fetchImpl as unknown as typeof fetch });

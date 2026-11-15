@@ -40,6 +40,20 @@ export class SourceError extends Error {
 }
 
 export const REQUEST_TIMEOUT_MS = 10_000;
+/**
+ * A 429 whose Retry-After is at most this many seconds is waited out and asked again, up to
+ * `MAX_RETRIES` times: Wikimedia's front caches throttle a burst of thumbnails with
+ * "Retry-After: 1". A longer one (Openverse's daily quota) fails at once.
+ */
+export const MAX_RETRY_AFTER_S = 5;
+const MAX_RETRIES = 3;
+
+/** The seconds of a Retry-After given in seconds; undefined when absent or given as a date. */
+function retryAfterSeconds(response: Response): number | undefined {
+  const value = response.headers.get('retry-after');
+  return value !== null && /^\d+$/.test(value.trim()) ? Number(value) : undefined;
+}
+
 export const MAX_IN_FLIGHT = 2;
 /** Largest download kept, in bytes. */
 export const MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024;
@@ -97,14 +111,22 @@ export class SourceHttp {
       );
       try {
         let response: Response;
-        try {
-          response = await this.fetchImpl(url, {
-            signal: controller.signal,
-            redirect: 'follow',
-            headers: { 'User-Agent': this.options.userAgent, Accept: accept },
-          });
-        } catch (error) {
-          throw new SourceError('offline', `No answer from ${new URL(url).host}`, { cause: error });
+        for (let attempt = 0; ; attempt++) {
+          try {
+            response = await this.fetchImpl(url, {
+              signal: controller.signal,
+              redirect: 'follow',
+              headers: { 'User-Agent': this.options.userAgent, Accept: accept },
+            });
+          } catch (error) {
+            throw new SourceError('offline', `No answer from ${new URL(url).host}`, {
+              cause: error,
+            });
+          }
+          const wait = response.status === 429 ? retryAfterSeconds(response) : undefined;
+          if (wait === undefined || wait > MAX_RETRY_AFTER_S || attempt >= MAX_RETRIES) break;
+          await response.body?.cancel();
+          await new Promise((resolve) => setTimeout(resolve, wait * 1000));
         }
         if (response.status === 429) {
           throw new SourceError('rateLimited', `${new URL(url).host} is rate limiting us`);

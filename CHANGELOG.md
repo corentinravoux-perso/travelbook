@@ -40,6 +40,10 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 
 ### Fixed
 
+- Online stickers from Openverse showed as blank tiles. Openverse's thumbnail proxy answers 424
+  for every Wikimedia image, so those now take Wikimedia's own 250 px thumbnail. Online requests
+  go through Electron's network stack, since Wikimedia throttled Node's `fetch` inside Electron;
+  a thumbnail is downloaded once, not twice, and a short "Retry-After" is waited out.
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 

@@ -156,6 +156,23 @@ describe('adapters map a recorded answer', () => {
     );
   });
 
+  it('openverse: a Wikimedia hit takes its thumbnail from Wikimedia, not from the Openverse proxy', async () => {
+    // Openverse's /thumb/ answers 424 "Thumbnail unavailable from provider" for every Wikimedia
+    // image (checked 2026-11-15), which left the tiles blank. Wikimedia serves its own thumbnails
+    // at standard widths only (250 yes, 256 no) and never wider than the file.
+    const answer = JSON.parse(await recorded('openverse-search-suitcase.json')) as {
+      results: { provider?: string; url: string; thumbnail: string; width?: number }[];
+    };
+    answer.results[1]!.width = 120; // narrower than a thumbnail: the file itself
+    const { fetchImpl } = fakeFetch(() => json(JSON.stringify(answer)));
+    const { items } = await createOpenverseSource(httpFor('openverse', fetchImpl)).search('a', 1);
+    expect(items.map((i) => i.thumbUrl)).toEqual([
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Suitcase_Sam_2012.png/250px-Suitcase_Sam_2012.png',
+      'https://upload.wikimedia.org/wikipedia/commons/b/b9/Suitcase_Bomb_Diagram_Bombing_Of_Naco_1929.png',
+      answer.results[2]!.thumbnail, // rawpixel: the Openverse proxy works
+    ]);
+  });
+
   it('openverse photos: no PNG filter, JPEG kept, scoped to backgrounds', async () => {
     const answer = JSON.parse(await recorded('openverse-search-suitcase.json')) as {
       results: { filetype: string }[];
@@ -285,6 +302,29 @@ describe.each(ADAPTERS)('$id failures (Review Focus 5)', ({ id, make, answer }) 
       expect(await cached(id)).toEqual([]);
     },
   );
+
+  it('a 429 with a short Retry-After is waited out and asked again', async () => {
+    // Wikimedia's front caches throttle a burst of thumbnails with "Retry-After: 1".
+    let fail = true;
+    const body = await recorded(answer);
+    const { fetchImpl, calls } = fakeFetch(() => {
+      if (!fail) return json(body);
+      fail = false;
+      return new Response('x', { status: 429, headers: { 'Retry-After': '0' } });
+    });
+    const source = make(httpFor(id, fetchImpl));
+    await source.search('suitcase', 1);
+    expect(calls).toHaveLength(2);
+  });
+
+  it('a 429 with a long Retry-After fails at once', async () => {
+    const { fetchImpl, calls } = fakeFetch(
+      () => new Response('x', { status: 429, headers: { 'Retry-After': '3600' } }),
+    );
+    const source = make(httpFor(id, fetchImpl));
+    await expect(source.search('suitcase', 1)).rejects.toMatchObject({ kind: 'rateLimited' });
+    expect(calls).toHaveLength(1);
+  });
 
   it('a good answer after a failure is fetched and cached', async () => {
     let fail = true;

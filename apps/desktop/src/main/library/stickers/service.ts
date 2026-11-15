@@ -10,6 +10,7 @@ import {
   type StickerSetInfo,
   type StickerSourceInfo,
 } from '../../../shared/api';
+import { appFetch } from '../../app-fetch';
 import { userDataDir } from '../../user-data';
 import { addToLibrary } from '../userLibrary';
 import { DiskCache } from './cache';
@@ -108,7 +109,21 @@ export function createStickerService(options: StickerServiceOptions): StickerSer
     options.now ? { now: options.now } : {},
   );
 
-  async function loadThumb(url: string): Promise<Thumb> {
+  /**
+   * A thumbnail download in progress, by URL: a tile asks for its picture and for its opacity at
+   * the same moment, and both share one download.
+   */
+  const loading = new Map<string, Promise<Thumb>>();
+  function loadThumb(url: string): Promise<Thumb> {
+    let pending = loading.get(url);
+    if (pending === undefined) {
+      pending = fetchThumb(url).finally(() => loading.delete(url));
+      loading.set(url, pending);
+    }
+    return pending;
+  }
+
+  async function fetchThumb(url: string): Promise<Thumb> {
     const cached = await thumbCache.get(url);
     if (cached !== undefined) {
       try {
@@ -268,8 +283,8 @@ let shared: Promise<StickerService> | null = null;
  * folder, which is only known once the app is ready).
  */
 export function getStickerService(version: () => string): Promise<StickerService> {
-  shared ??= userDataDir().then((dir) =>
-    createStickerService({ cacheDir: join(dir, 'online-cache'), version: version() }),
+  shared ??= Promise.all([userDataDir(), appFetch()]).then(([dir, fetchImpl]) =>
+    createStickerService({ cacheDir: join(dir, 'online-cache'), version: version(), fetchImpl }),
   );
   return shared;
 }

@@ -27,6 +27,7 @@ const AnswerSchema = z.object({
       foreign_landing_url: z.string().nullish(),
       provider: z.string().nullish(),
       filetype: z.string().nullish(),
+      width: z.number().nullish(),
     }),
   ),
 });
@@ -62,6 +63,30 @@ export function createOpenversePhotosSource(http: SourceHttp): StickerSource {
 
 const PHOTO_TYPES = new Set(['jpg', 'jpeg', 'png', 'webp']);
 
+/** A standard width of Wikimedia's thumbnailer: other widths answer 400. */
+export const WIKIMEDIA_THUMB_WIDTH = 250;
+const COMMONS_FILE =
+  /^(https:\/\/upload\.wikimedia\.org\/wikipedia\/commons)\/([0-9a-f])\/([0-9a-f]{2})\/([^/?#]+)$/;
+
+/**
+ * The thumbnail of a hit. Openverse's own `/thumb/` proxy answers 424 ("Thumbnail unavailable
+ * from provider") for every Wikimedia image, so a Commons file takes Wikimedia's thumbnail
+ * instead, or the file itself when it is not wider than the thumbnail (Wikimedia does not
+ * enlarge). Other providers keep Openverse's thumbnail.
+ */
+function thumbnailOf(r: {
+  provider?: string | null;
+  url: string;
+  thumbnail?: string | null;
+  width?: number | null;
+}): string {
+  const commons = r.provider === 'wikimedia' ? COMMONS_FILE.exec(r.url) : null;
+  if (commons === null) return r.thumbnail ?? r.url;
+  const [, base, a, ab, name] = commons;
+  if (r.width == null || r.width <= WIKIMEDIA_THUMB_WIDTH) return r.url;
+  return `${base}/thumb/${a}/${ab}/${name}/${WIKIMEDIA_THUMB_WIDTH}px-${name}`;
+}
+
 /** The extension an address ends with, lower case and without the dot (the query is not part of it). */
 function extensionOf(address: string): string {
   try {
@@ -95,7 +120,7 @@ function createOpenverse(http: SourceHttp, mode: 'stickers' | 'backgrounds'): St
           source: stickers ? 'openverse' : 'openverse-photos',
           id: r.id,
           title: r.title?.trim() || 'Sans titre',
-          thumbUrl: r.thumbnail ?? r.url,
+          thumbUrl: thumbnailOf(r),
           fileUrl: r.url,
           format: stickers ? 'png' : type === 'png' ? 'png' : type === 'webp' ? 'webp' : 'jpg',
           licence: {
