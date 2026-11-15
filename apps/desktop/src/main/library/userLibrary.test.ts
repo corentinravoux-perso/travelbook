@@ -745,3 +745,95 @@ describe('the tb://library lookup', () => {
     expect(libraryFile(b.id)).toBe(b.file);
   });
 });
+
+describe('SVG files are sanitised (Task 6.2)', () => {
+  const UNSAFE = /<script|onload|onclick|href="http|<foreignObject/;
+
+  it('addToLibrary stores a sanitised SVG whose hash is its id', async () => {
+    const item = await addToLibrary(
+      'sticker',
+      { path: fixturePath('script.svg'), ext: '.svg' },
+      { title: 'Piégé' },
+    );
+    const stored = await readFile(join(library, item.file));
+    expect(stored.toString()).not.toMatch(UNSAFE);
+    expect(stored.toString()).toContain('<circle');
+    expect(item.id).toBe(`sticker-${sha256(stored).slice(0, 16)}`);
+    // The same file again, and the same bytes given directly, are the one item.
+    const again = await addToLibrary(
+      'sticker',
+      { bytes: await readFile(fixturePath('script.svg')), ext: 'SVG' },
+      { title: 'Piégé' },
+    );
+    expect(again.id).toBe(item.id);
+  });
+
+  it('keeps a plain SVG as it is drawn', async () => {
+    const item = await addToLibrary(
+      'sticker',
+      { path: fixturePath('plain.svg'), ext: '.svg' },
+      { title: 'Simple' },
+    );
+    const stored = await readFile(join(library, item.file), 'utf8');
+    expect(stored).toContain('<rect');
+    expect(stored).toContain('fill="#3366cc"');
+  });
+
+  it('refuses a file that is not an SVG, as a sticker or a background', async () => {
+    await expect(
+      addToLibrary('sticker', { path: fixturePath('alpha.png'), ext: '.svg' }, { title: 'Faux' }),
+    ).rejects.toThrow(/Not an SVG/);
+    await expect(
+      addToLibrary('background', { bytes: Buffer.from('<html/>'), ext: '.svg' }, { title: 'Faux' }),
+    ).rejects.toThrow();
+    expect(await listLibrary('sticker')).toEqual([]);
+    expect(await listLibrary('background')).toEqual([]);
+  });
+
+  it('copyIntoProject copies an SVG that is already clean byte for byte', async () => {
+    const item = await addToLibrary(
+      'sticker',
+      { path: fixturePath('script.svg'), ext: '.svg' },
+      { title: 'Piégé' },
+    );
+    const asset = await copyIntoProject(project, newBookWith(), item.id);
+    expect(asset.id).toBe(item.id);
+    expect(await readFile(join(project, asset.file))).toEqual(
+      await readFile(join(library, item.file)),
+    );
+  });
+
+  it('copyIntoProject sanitises a library SVG that was stored before sanitising existed', async () => {
+    const raw = await readFile(fixturePath('script.svg'));
+    const id = `sticker-${sha256(raw).slice(0, 16)}`;
+    await mkdir(join(library, 'files'), { recursive: true });
+    await writeFile(join(library, 'files', `${id}.svg`), raw);
+    await writeFile(
+      join(library, 'index.json'),
+      JSON.stringify({
+        version: 1,
+        items: [
+          {
+            id,
+            kind: 'sticker',
+            file: `files/${id}.svg`,
+            title: 'Ancien',
+            tags: [],
+            addedAt: '2026-01-01T00:00:00.000Z',
+            favourite: false,
+          },
+        ],
+      }),
+    );
+    const asset = await copyIntoProject(project, newBookWith(), id);
+    const copied = await readFile(join(project, asset.file), 'utf8');
+    expect(copied).not.toMatch(UNSAFE);
+    expect(asset.originalName).toBe('Ancien.svg');
+    expect(asset.file).toBe(`assets/${sha256(Buffer.from(copied)).slice(0, 16)}.svg`);
+    // The library file itself is untouched, and no scratch file is left in assets/.
+    expect(await readFile(join(library, 'files', `${id}.svg`))).toEqual(raw);
+    expect(await readdir(join(project, 'assets'))).toEqual([asset.file.replace('assets/', '')]);
+  });
+});
+
+const newBookWith = (): Book => ({ ...newBook({ title: 'Mon livre' }), assets: {} });

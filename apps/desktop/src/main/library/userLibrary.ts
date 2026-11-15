@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, rename, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
 import { z } from 'zod';
 import { LicenceSchema, type AssetRef, type Book, type Licence } from '@travelbook/core';
@@ -14,6 +15,7 @@ import { describeError, ID_LENGTH, sha256File } from '../photos/import';
 import { serialize, writeFileAtomic } from '../project/atomic-write';
 import { projectFilePath } from '../protocol';
 import { userDataDir } from '../user-data';
+import { sanitizeSvg } from './stickers/sanitizeSvg';
 
 export type { LibraryItem, LibraryQuery };
 
@@ -151,8 +153,10 @@ const cleanTags = (tags: readonly string[] = []): string[] => [
  * `files/<id>.<ext>` and the index is updated only after the file is in place; if the index
  * cannot be written the new file is removed again.
  *
- * Images are decoded to prove they are whole, like an album import does. Templates are not files:
- * they are kept with `saveUserTemplate`.
+ * Images are decoded to prove they are whole, like an album import does. An SVG goes through
+ * `sanitizeSvg` first (scripts, event handlers and external references are removed, a file that
+ * is not an SVG is refused), and it is the sanitised file that is hashed and stored, so the id
+ * still matches the stored bytes. Templates are not files: they are kept with `saveUserTemplate`.
  */
 export async function addToLibrary(
   kind: LibraryItemKind,
@@ -175,26 +179,33 @@ export async function addToLibrary(
   if (title === '') throw new Error('A library item needs a title');
 
   return withIndex(async (items, commit, root) => {
+    // An SVG is sanitised before anything else, whatever its origin: the clean bytes replace
+    // the source from here on.
+    let source: LibrarySource = src;
+    if (ext === '.svg') {
+      const raw = src.path !== undefined ? await readFile(src.path) : (src.bytes as Buffer);
+      source = { bytes: Buffer.from(sanitizeSvg(raw.toString('utf8')), 'utf8'), ext };
+    }
     let sha256: string;
-    if (src.path !== undefined) {
-      if (!(await stat(src.path)).isFile()) throw new Error('Not a regular file');
-      sha256 = await sha256File(src.path);
+    if (source.path !== undefined) {
+      if (!(await stat(source.path)).isFile()) throw new Error('Not a regular file');
+      sha256 = await sha256File(source.path);
     } else {
       sha256 = createHash('sha256')
-        .update(src.bytes as Buffer)
+        .update(source.bytes as Buffer)
         .digest('hex');
     }
     const id = `${kind}-${sha256.slice(0, ID_LENGTH)}`;
     const existing = items.find((item) => item.id === id);
     if (existing) return existing;
 
-    if (kind !== 'font') await inspectImage(src.path ?? (src.bytes as Buffer), ext);
+    if (kind !== 'font') await inspectImage(source.path ?? (source.bytes as Buffer), ext);
 
     const file = `${FILES_FOLDER}/${id}${ext}`;
     const stored = join(root, file);
     await mkdir(join(root, FILES_FOLDER), { recursive: true });
-    if (src.path !== undefined) await copyFileVerified(src.path, stored, sha256);
-    else await writeFileAtomic(stored, src.bytes as Buffer);
+    if (source.path !== undefined) await copyFileVerified(source.path, stored, sha256);
+    else await writeFileAtomic(stored, source.bytes as Buffer);
 
     const item: LibraryItem = {
       id,
@@ -304,6 +315,36 @@ const exists = (path: string): Promise<boolean> =>
   );
 
 /**
+ * Import a library file into a project. An SVG is sanitised on the way (a file added before
+ * sanitising existed may still carry a script): when sanitising changes it, the clean copy is
+ * what is imported.
+ */
+async function importLibraryFile(
+  dir: string,
+  kind: Exclude<LibraryItemKind, 'template'>,
+  source: string,
+  title: string,
+): ReturnType<typeof importAssetFiles> {
+  if (extname(source).toLowerCase() !== '.svg') return importAssetFiles(dir, kind, [source]);
+  const original = await readFile(source);
+  let clean: string;
+  try {
+    clean = sanitizeSvg(original.toString('utf8'));
+  } catch (error) {
+    throw new Error(`${title}: ${describeError(error)}`, { cause: error });
+  }
+  if (Buffer.from(clean, 'utf8').equals(original)) return importAssetFiles(dir, kind, [source]);
+  const scratch = await mkdtemp(join(tmpdir(), 'tb-svg-'));
+  try {
+    const file = join(scratch, `${createHash('sha256').update(clean).digest('hex')}.svg`);
+    await writeFile(file, clean);
+    return await importAssetFiles(dir, kind, [file]);
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
+}
+
+/**
  * Copy a library item into a project's `assets/` and describe it as `importFiles` would: id
  * `<kind>-<sha16>`, file `assets/<sha16>.<ext>`, pixel size for an image. The asset also carries
  * the item's licence, and the item's title (with the extension) as its original name.
@@ -343,7 +384,7 @@ export async function copyIntoProject(dir: string, book: Book, itemId: string): 
     throw new Error(`The library file of ${item.title} changed since it was added`);
   }
 
-  const [asset] = await importAssetFiles(dir, item.kind, [source]);
+  const [asset] = await importLibraryFile(dir, item.kind, source, item.title);
   if (asset === undefined) throw new Error(`${item.title}: nothing was copied`);
   return {
     ...asset,
