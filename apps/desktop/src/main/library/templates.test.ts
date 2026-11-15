@@ -4,7 +4,12 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TemplateSchema, newElement, type Template } from '@travelbook/core';
 import { setUserDataDir } from '../user-data';
-import { deleteUserTemplate, listUserTemplates, saveUserTemplate } from './templates';
+import {
+  deleteUserTemplate,
+  listUserTemplates,
+  loadBundledTemplates,
+  saveUserTemplate,
+} from './templates';
 
 // Pass-through wrapper so a test can make `rename` fail (atomic-write test).
 vi.mock('node:fs/promises', async (importOriginal) => {
@@ -36,7 +41,7 @@ const exists = (path: string): Promise<boolean> =>
   );
 
 const grid = (id: string, name = `Modèle ${id}`): Template => ({
-  id,
+  id: `user-${id}`,
   name,
   category: 'photos',
   scope: 'page',
@@ -49,7 +54,7 @@ const grid = (id: string, name = `Modèle ${id}`): Template => ({
 });
 
 const free = (id: string): Template => ({
-  id,
+  id: `user-${id}`,
   name: 'Collage libre',
   category: 'double',
   scope: 'spread',
@@ -84,15 +89,15 @@ describe('user templates', () => {
 
   it('keeps each template in templates/<id>.json as plain JSON', async () => {
     await saveUserTemplate(grid('t1'));
-    expect(await readdir(folder)).toEqual(['t1.json']);
-    expect(JSON.parse(await readFile(join(folder, 't1.json'), 'utf8'))).toEqual(grid('t1'));
+    expect(await readdir(folder)).toEqual(['user-t1.json']);
+    expect(JSON.parse(await readFile(join(folder, 'user-t1.json'), 'utf8'))).toEqual(grid('t1'));
   });
 
   it('replaces the template with the same id', async () => {
     await saveUserTemplate(grid('t1', 'Avant'));
     await saveUserTemplate(grid('t1', 'Après'));
     expect((await listUserTemplates()).map((t) => t.name)).toEqual(['Après']);
-    expect(await readdir(folder)).toEqual(['t1.json']);
+    expect(await readdir(folder)).toEqual(['user-t1.json']);
   });
 
   it('lists by name, accents and numbers in French order', async () => {
@@ -111,10 +116,10 @@ describe('user templates', () => {
   it('deletes a template, and an unknown or already deleted one is not an error', async () => {
     await saveUserTemplate(grid('t1'));
     await saveUserTemplate(grid('t2'));
-    await deleteUserTemplate('t1');
-    await deleteUserTemplate('t1');
-    await deleteUserTemplate('never-there');
-    expect((await listUserTemplates()).map((t) => t.id)).toEqual(['t2']);
+    await deleteUserTemplate('user-t1');
+    await deleteUserTemplate('user-t1');
+    await deleteUserTemplate('user-never-there');
+    expect((await listUserTemplates()).map((t) => t.id)).toEqual(['user-t2']);
   });
 
   describe('save refuses, and writes nothing,', () => {
@@ -123,6 +128,8 @@ describe('user templates', () => {
       ['a template with neither grid nor free', { ...grid('t1'), grid: undefined }],
       ['a template with both grid and free', { ...grid('t1'), free: free('t1').free }],
       ['a bundled template', { ...grid('t1'), origin: 'bundled' }],
+      ['an id that does not start with user-', { ...grid('t1'), id: 't1' }],
+      ['an id that a bundled template has', { ...grid('t1'), id: 'b-p1-photo-m' }],
       ['an id that is not a plain file name', grid('../outside')],
       ['an id with a separator', grid('a/b')],
       ['an id with a dot', grid('a.b')],
@@ -160,38 +167,124 @@ describe('user templates', () => {
       await writeFile(join(folder, 'empty.json'), '');
       await writeFile(join(folder, 'array.json'), '[]');
       await writeFile(join(folder, 'null.json'), 'null');
-      expect((await listUserTemplates()).map((t) => t.id)).toEqual(['good']);
+      expect((await listUserTemplates()).map((t) => t.id)).toEqual(['user-good']);
     });
 
     it('a file named for another id than the one inside, and one that is not a user template', async () => {
-      await writeFile(join(folder, 'other.json'), JSON.stringify(grid('not-other')));
+      await writeFile(join(folder, 'user-other.json'), JSON.stringify(grid('not-other')));
       await writeFile(
-        join(folder, 'bundled.json'),
+        join(folder, 'user-bundled.json'),
         JSON.stringify({ ...grid('bundled'), origin: 'bundled' }),
       );
-      expect((await listUserTemplates()).map((t) => t.id)).toEqual(['good']);
+      // A user file may not take the id of a bundled template, nor go without the user- prefix.
+      await writeFile(
+        join(folder, 'b-p1-photo-m.json'),
+        JSON.stringify({ ...grid('x'), id: 'b-p1-photo-m' }),
+      );
+      await writeFile(join(folder, 'plain.json'), JSON.stringify({ ...grid('x'), id: 'plain' }));
+      expect((await listUserTemplates()).map((t) => t.id)).toEqual(['user-good']);
     });
 
     it('stray files: a half-written .tmp, other extensions, a folder', async () => {
-      await writeFile(join(folder, 'good.json.tmp'), '{"id": "good", "tr');
+      await writeFile(join(folder, 'user-good.json.tmp'), '{"id": "user-good", "tr');
       await writeFile(join(folder, 'notes.txt'), 'hello');
-      expect((await listUserTemplates()).map((t) => t.id)).toEqual(['good']);
+      expect((await listUserTemplates()).map((t) => t.id)).toEqual(['user-good']);
     });
   });
 
   it('is replaced atomically: a failed rename keeps the previous template and leaves no temp file', async () => {
     await saveUserTemplate(grid('t1', 'Avant'));
     vi.mocked(rename).mockImplementation(async (from, to) => {
-      if (String(to).endsWith('t1.json')) throw new Error('simulated crash');
+      if (String(to).endsWith('user-t1.json')) throw new Error('simulated crash');
       return realRename(from, to);
     });
     await expect(saveUserTemplate(grid('t1', 'Après'))).rejects.toThrow('simulated crash');
     expect((await listUserTemplates()).map((t) => t.name)).toEqual(['Avant']);
-    expect(await readdir(folder)).toEqual(['t1.json']);
+    expect(await readdir(folder)).toEqual(['user-t1.json']);
   });
 
   it('keeps every template when several are saved at once', async () => {
     await Promise.all(Array.from({ length: 8 }, (_, i) => saveUserTemplate(grid(`t${i}`))));
     expect(await listUserTemplates()).toHaveLength(8);
+  });
+});
+
+describe('bundled templates', () => {
+  const resources = join(import.meta.dirname, '../../../resources');
+
+  it('loads the shipped set: every id starts with b-, nothing is duplicated, every theme has its cover', async () => {
+    const { templates, themes } = await loadBundledTemplates(resources);
+    expect(templates.length).toBeGreaterThanOrEqual(129);
+    expect(themes.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(templates.map((t) => t.id)).size).toBe(templates.length);
+    for (const t of templates) {
+      expect(t.id.startsWith('b-')).toBe(true);
+      expect(t.origin).toBe('bundled');
+    }
+    for (const theme of themes) {
+      expect(templates.find((t) => t.id === theme.coverTemplateId)?.themeId).toBe(theme.id);
+    }
+  });
+
+  describe('from a folder of its own', () => {
+    let dir: string;
+    const bundled = (id: string, extra: Partial<Template> = {}): Template => ({
+      ...grid('x'),
+      id,
+      origin: 'bundled',
+      ...extra,
+    });
+    const cover = bundled('b-cover', { category: 'couverture', themeId: 'th' });
+    const theme = { id: 'th', name: 'Thème', coverTemplateId: 'b-cover', fonts: ['Lora'] };
+    const put = (name: string, data: unknown) =>
+      writeFile(
+        join(dir, 'templates', name),
+        typeof data === 'string' ? data : JSON.stringify(data),
+      );
+
+    beforeEach(async () => {
+      dir = join(work, 'resources');
+      await mkdir(join(dir, 'templates'), { recursive: true });
+    });
+
+    it('reads every category file and the themes', async () => {
+      await put('photos.json', [bundled('b-one')]);
+      await put('covers.json', [cover]);
+      await put('themes.json', [theme]);
+      const { templates, themes } = await loadBundledTemplates(dir);
+      expect(templates.map((t) => t.id).sort()).toEqual(['b-cover', 'b-one']);
+      expect(themes).toEqual([theme]);
+    });
+
+    it('skips what is not a valid bundled template, without failing', async () => {
+      await put('photos.json', [
+        bundled('b-good'),
+        { ...bundled('b-bad'), photoCount: 17 },
+        bundled('no-prefix'),
+        bundled('b-user', { origin: 'user' }),
+        bundled('b-good', { name: 'Doublon' }),
+        'not a template',
+      ]);
+      await put('broken.json', '[{"id": "b-cut"');
+      await put('object.json', '{}');
+      await put('notes.txt', 'hello');
+      const { templates } = await loadBundledTemplates(dir);
+      expect(templates.map((t) => [t.id, t.name])).toEqual([['b-good', 'Modèle x']]);
+    });
+
+    it('drops a theme whose cover is missing or is not a cover of it, and an invalid theme', async () => {
+      await put('covers.json', [cover, bundled('b-other', { category: 'couverture' })]);
+      await put('themes.json', [
+        theme,
+        { ...theme, id: 'lost', coverTemplateId: 'b-nowhere' },
+        { ...theme, id: 'other', coverTemplateId: 'b-other' },
+        { id: 'x' },
+      ]);
+      expect((await loadBundledTemplates(dir)).themes).toEqual([theme]);
+    });
+
+    it('fails when the folder is not there: the app was packaged without it', async () => {
+      await expect(loadBundledTemplates(join(work, 'nowhere'))).rejects.toThrow();
+    });
   });
 });

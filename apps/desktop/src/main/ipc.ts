@@ -8,7 +8,12 @@ import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channel
 import { clipboardPayload, readElements, writeElements, type ClipboardHost } from './clipboard';
 import { importAssetFiles } from './assets/import-files';
 import { dominantColours } from './assets/palette';
-import { deleteUserTemplate, listUserTemplates, saveUserTemplate } from './library/templates';
+import {
+  bundledTemplates,
+  deleteUserTemplate,
+  listUserTemplates,
+  saveUserTemplate,
+} from './library/templates';
 import {
   addToLibrary,
   copyIntoProject,
@@ -332,6 +337,11 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.libraryTemplateList]: async (_ctx, ...args) => {
       parseArgs(CHANNEL.libraryTemplateList, schemas.none, args);
       return listUserTemplates();
+    },
+
+    [CHANNEL.libraryBundledTemplates]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.libraryBundledTemplates, schemas.none, args);
+      return bundledTemplates();
     },
 
     [CHANNEL.libraryTemplateDelete]: async (_ctx, ...args) => {
