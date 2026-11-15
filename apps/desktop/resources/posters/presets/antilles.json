@@ -1,0 +1,110 @@
+[
+  {
+    "id": "antilles-hamac",
+    "destination": "antilles",
+    "name": "Martinique, palmiers et hamac",
+    "spec": {
+      "layout": "classique",
+      "title": "MARTINIQUE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#d7f0ee",
+        "title": "#e2603a",
+        "accent": "#2b2723",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#e2603a",
+          "shade": "#a73f22"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "antilles-hamac"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "antilles-yole",
+    "destination": "antilles",
+    "name": "Martinique, yole",
+    "spec": {
+      "layout": "horizon",
+      "title": "MARTINIQUE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fff1c9",
+        "title": "#2f78b8",
+        "accent": "#2f9a5a",
+        "decor": "#9fd8e0",
+        "illustration": {
+          "main": "#2f78b8",
+          "shade": "#2f78b8"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "antilles-yole"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "antilles-hibiscus",
+    "destination": "antilles",
+    "name": "Guadeloupe, hibiscus et colibri",
+    "spec": {
+      "layout": "soleil",
+      "title": "GUADELOUPE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fde0e4",
+        "title": "#b52a44",
+        "accent": "#1f6e66",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#b52a44",
+          "shade": "#b52a44"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "antilles-hibiscus"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "antilles-ti-punch",
+    "destination": "antilles",
+    "name": "Guadeloupe, ti-punch",
+    "spec": {
+      "layout": "classique",
+      "title": "GUADELOUPE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#e3f3d6",
+        "title": "#4f8a2a",
+        "accent": "#c9a066",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#4f8a2a",
+          "shade": "#4f8a2a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "antilles-ti-punch"
+      },
+      "spine": true
+    }
+  }
+]
