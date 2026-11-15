@@ -6,6 +6,7 @@ import { askCloseChoice, createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { setBundledResourcesDir } from './library/templates';
 import { setBackgroundsResourcesDir } from './library/backgrounds';
+import { setStickersResourcesDir } from './library/stickers/offline';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { ensureProxies } from './photos/proxies';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
@@ -67,6 +68,7 @@ void app.whenReady().then(async () => {
   const libraryDir = join(app.getPath('userData'), LIBRARY_FOLDER);
   setBundledResourcesDir(resourcesDir);
   setBackgroundsResourcesDir(resourcesDir);
+  setStickersResourcesDir(resourcesDir);
 
   // tb://library/<id> is answered from the library index, which is read once before any window.
   setLibraryFileLookup(libraryFile);
