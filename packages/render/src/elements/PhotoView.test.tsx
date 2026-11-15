@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { asset, photo, urlOf } from '../test-helpers';
 import type { AssetUrl, Quality } from '../types';
 import { PhotoView } from './PhotoView';
-import { adjustFilter, imagePlacement } from './photoStyle';
+import { adjustFilter, imagePlacement, vignetteGradient } from './photoStyle';
 
 const LANDSCAPE = asset('p1', 'photo', { w: 6000, h: 4000 });
 
@@ -129,6 +129,25 @@ describe('PhotoView', () => {
     expect(img?.style.objectFit).toBe('fill');
   });
 
+  it('keeps the mask shape in export quality, where the CSS still cuts it', () => {
+    const el = photo(frame, {
+      assetId: 'p1',
+      mask: { kind: 'preset', preset: 'heart' },
+      adjust: {
+        brightness: 1.3,
+        contrast: 1,
+        saturation: 1,
+        grayscale: 0,
+        sepia: 0,
+        vignette: 0.6,
+      },
+      edge: { feather: 4 },
+    });
+    const { frame: f } = draw(el, 'export');
+    expect(f?.style.clipPath).toMatch(/^path\(/);
+    expect(f?.style.overflow).toBe('hidden');
+  });
+
   it('falls back to a cover fit around the crop centre when the pixel size is unknown', () => {
     const el = photo(frame, { assetId: 'p1', crop: { scale: 2, cx: 0.25, cy: 0.75 } });
     const { img } = draw(el, 'preview', { asset: asset('p1') });
@@ -170,15 +189,128 @@ describe('PhotoView', () => {
   });
 
   describe('adjustments', () => {
+    const adjust = {
+      brightness: 1.2,
+      contrast: 1,
+      saturation: 1,
+      grayscale: 0.5,
+      sepia: 0,
+      vignette: 0,
+    };
+
     it('puts no filter on the image when they are neutral', () => {
       expect(draw(photo(frame, { assetId: 'p1' })).img?.style.filter).toBe('');
     });
-    it('puts a CSS filter on the image otherwise, in export quality as well', () => {
-      const adjust = { brightness: 1.2, contrast: 1, saturation: 1, grayscale: 0.5, sepia: 0 };
-      for (const quality of ['preview', 'export'] as const) {
-        const { img } = draw(photo(frame, { assetId: 'p1', adjust }), quality);
-        expect(img?.style.filter).toBe('brightness(1.2) grayscale(0.5)');
-      }
+    it.each(['thumb', 'preview'] as const)('puts a CSS filter on the image at %s quality', (q) => {
+      const { img } = draw(photo(frame, { assetId: 'p1', adjust }), q);
+      expect(img?.style.filter).toBe('brightness(1.2) grayscale(0.5)');
+    });
+    it('puts none on the export image, which carries the adjustments itself', () => {
+      const { img } = draw(photo(frame, { assetId: 'p1', adjust }), 'export');
+      expect(img?.style.filter).toBe('');
+    });
+  });
+
+  describe('vignette', () => {
+    const adjust = (vignette: number) => ({
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+      grayscale: 0,
+      sepia: 0,
+      vignette,
+    });
+    const overlay = (el: PhotoElement, quality: Quality = 'preview') =>
+      draw(el, quality).q<HTMLElement>('[data-role="vignette"]');
+
+    it('draws no overlay when there is none', () => {
+      expect(overlay(photo(frame, { assetId: 'p1' }))).toBeNull();
+    });
+    it('draws a dark gradient over the image, inside the frame, when it is set', () => {
+      const { q } = draw(photo(frame, { assetId: 'p1', adjust: adjust(0.5) }));
+      const layer = q<HTMLElement>('[data-role="frame"] > [data-role="vignette"]');
+      expect(layer).not.toBeNull();
+      // jsdom drops the parts of the gradient that are CSS defaults, so only its stops are compared.
+      expect(layer?.style.backgroundImage).toMatch(/^radial-gradient\(/);
+      expect(layer?.style.backgroundImage).toContain('rgba(0, 0, 0, 0.5) 100%');
+      expect(layer?.style.pointerEvents).toBe('none');
+    });
+    it('sits over the image and under the border, and does not turn with the flip', () => {
+      const { q } = draw(
+        photo(frame, {
+          assetId: 'p1',
+          flipH: true,
+          adjust: adjust(0.5),
+          border: { width: 1, color: '#ffffff' },
+        }),
+      );
+      const kids = [...(q('[data-role="frame"]')?.children ?? [])].map((c) =>
+        c.getAttribute('data-role'),
+      );
+      expect(kids).toEqual(['flip', 'vignette', 'border']);
+    });
+    it('is darker in the corners the stronger it is', () => {
+      const alpha = (g: string) => Number(/rgba\(0, 0, 0, ([\d.]+)\) 100%/.exec(g)?.[1]);
+      expect(alpha(vignetteGradient(1))).toBe(1);
+      expect(alpha(vignetteGradient(0.25))).toBe(0.25);
+      expect(vignetteGradient(0.5)).toMatch(
+        /^radial-gradient\(ellipse farthest-corner at 50% 50%, /,
+      );
+    });
+    it('does not darken the middle of the photo', () => {
+      expect(vignetteGradient(0.8)).toMatch(/rgba\(0, 0, 0, 0\) 4\d%/);
+    });
+    it('is not drawn in export quality, whose image carries it', () => {
+      expect(overlay(photo(frame, { assetId: 'p1', adjust: adjust(0.5) }), 'export')).toBeNull();
+    });
+    it('is not drawn on an empty frame', () => {
+      const slot = photo(frame, { adjust: adjust(0.5) });
+      const view = draw(slot, 'preview', { showEmptySlots: true });
+      expect(view.q('[data-role="vignette"]')).toBeNull();
+    });
+  });
+
+  describe('feathered edge', () => {
+    const feathered = (feather: number, patch: Partial<PhotoElement> = {}) =>
+      photo(frame, { assetId: 'p1', edge: { feather }, ...patch });
+
+    it('has no mask when the edge is sharp', () => {
+      const { frame: f } = draw(photo(frame, { assetId: 'p1' }));
+      expect(f?.style.maskImage).toBe('');
+      expect(
+        draw(photo(frame, { assetId: 'p1', edge: { feather: 0 } })).frame?.style.maskImage,
+      ).toBe('');
+    });
+    it('fades the outline of the frame over the feather width, in mm', () => {
+      const { frame: f } = draw(feathered(5));
+      expect(f?.style.maskImage).toMatch(/^url\("data:image\/svg\+xml,/);
+      const svg = decodeURIComponent(f?.style.maskImage ?? '');
+      expect(svg).toContain('viewBox="0 0 90 60"');
+      expect(svg).toContain('<feMorphology operator="erode" radius="2.5"/>');
+      expect(f?.style.maskSize).toBe('100% 100%');
+    });
+    it('goes with the frame mask: the same node is clipped to the shape', () => {
+      const { frame: f } = draw(feathered(4, { mask: { kind: 'preset', preset: 'heart' } }));
+      expect(f?.style.clipPath).toMatch(/^path\(/);
+      expect(f?.style.maskImage).toMatch(/^url\(/);
+      expect(decodeURIComponent(f?.style.maskImage ?? '')).toContain('<path d="M ');
+    });
+    it('follows a rounded mask', () => {
+      const { frame: f } = draw(feathered(4, { mask: { kind: 'rounded', radius: 6 } }));
+      expect(f?.style.borderRadius).toBe('6mm');
+      expect(decodeURIComponent(f?.style.maskImage ?? '')).toContain('rx="6"');
+    });
+    it.each(['thumb', 'preview'] as const)('is drawn at %s quality', (q) => {
+      expect(draw(feathered(5), q).frame?.style.maskImage).toMatch(/^url\(/);
+    });
+    it('is not drawn in export quality, whose image carries it', () => {
+      expect(draw(feathered(5), 'export').frame?.style.maskImage).toBe('');
+    });
+    it('is not drawn on an empty frame', () => {
+      const view = draw(photo(frame, { edge: { feather: 5 } }), 'preview', {
+        showEmptySlots: true,
+      });
+      expect(view.frame?.style.maskImage).toBe('');
     });
   });
 

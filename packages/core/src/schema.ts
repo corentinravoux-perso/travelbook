@@ -75,14 +75,20 @@ export interface PhotoElement extends ElementBase {
   mask: { kind: 'rect' | 'rounded' | 'ellipse' | 'preset'; radius?: Mm; preset?: string };
   border: { width: Mm; color: string } | null;
   shadow: Shadow | null;
-  /** brightness, contrast, saturation: 1 is neutral. grayscale, sepia: 0..1. */
+  /**
+   * brightness, contrast, saturation: 1 is neutral. grayscale, sepia: 0..1. vignette: 0..1, how
+   * dark the corners get (0 is none). A book written before the vignette existed has none.
+   */
   adjust: {
     brightness: number;
     contrast: number;
     saturation: number;
     grayscale: number;
     sepia: number;
+    vignette: number;
   };
+  /** Soft edge: the outline fades out over `feather` mm. `null` keeps it sharp. Absent in older books. */
+  edge: { feather: Mm } | null;
 }
 
 /** What a text frame is for. Templates have text slots of a role; a text element remembers its own. */
@@ -243,7 +249,10 @@ const PhotoSchema = z.object({
     saturation: z.number().min(0),
     grayscale: unit,
     sepia: unit,
+    // Optional on disk: a book from before the vignette is read as having none.
+    vignette: unit.default(0),
   }),
+  edge: z.object({ feather: nonNegMm }).nullable().default(null),
 });
 
 export const TextRoleSchema = z.enum(['title', 'caption', 'body']);

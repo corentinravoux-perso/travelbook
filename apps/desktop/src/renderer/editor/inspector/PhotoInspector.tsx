@@ -12,12 +12,15 @@ import { Icon } from '../../theme/Icon';
 import { photoResolution, type Resolution } from '../dpi';
 import { joinColor, splitColor } from './color';
 import { ColorField, NumberField, Section, SliderField } from './controls';
+import { MaskShapes } from './MaskShapes';
+import { PhotoLook } from './PhotoLook';
 import './Inspector.css';
 
 const t = fr.photoInspector;
 
 type Mask = PhotoElement['mask'];
-type Adjust = PhotoElement['adjust'];
+/** The five adjustments of the "Ajustements" section; the vignette has its own slider in "Style". */
+type Adjust = Omit<PhotoElement['adjust'], 'vignette'>;
 
 const MASKS: [Mask['kind'], string][] = [
   ['rect', t.maskRect],
@@ -86,8 +89,9 @@ function ResolutionSection({ book, resolution }: { book: Book; resolution: Resol
 
 /**
  * The inspector of one selected photo frame: its photo and resolution, replace and remove, the
- * mask, border, shadow, flip and the five adjustments. Every change is one `updateElements`
- * through the store, so it is undoable; a slider drag is one step.
+ * mask, the look (presets, vignette, soft edge), border, shadow, flip and the five adjustments.
+ * Every change is one `updateElements` (or `applyLook`) through the store, so it is undoable; a
+ * slider drag is one step.
  */
 export function PhotoInspector({
   book,
@@ -179,7 +183,16 @@ export function PhotoInspector({
             onCommit={(radius) => change({ mask: { kind: 'rounded', radius } }, t.undoMask)}
           />
         )}
+        <MaskShapes
+          mask={mask}
+          onPick={(preset) => {
+            if (mask.kind === 'preset' && mask.preset === preset) return;
+            change({ mask: { kind: 'preset', preset } }, t.undoMask);
+          }}
+        />
       </Section>
+
+      <PhotoLook spreadId={spreadId} element={element} />
 
       <Section title={t.border}>
         <NumberField
@@ -319,7 +332,7 @@ export function PhotoInspector({
           type="button"
           className="button button--small insp-reset"
           disabled={!adjusted}
-          onClick={() => change({ adjust: { ...NEUTRAL } }, t.undoAdjust)}
+          onClick={() => change({ adjust: { ...adjust, ...NEUTRAL } }, t.undoAdjust)}
         >
           {t.resetAdjust}
         </button>

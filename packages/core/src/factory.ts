@@ -53,7 +53,8 @@ export function newElement<T extends Element['type']>(
         mask: { kind: 'rect' },
         border: null,
         shadow: null,
-        adjust: { brightness: 1, contrast: 1, saturation: 1, grayscale: 0, sepia: 0 },
+        adjust: { brightness: 1, contrast: 1, saturation: 1, grayscale: 0, sepia: 0, vignette: 0 },
+        edge: null,
       };
       break;
     case 'text':

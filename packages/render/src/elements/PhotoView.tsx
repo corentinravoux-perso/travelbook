@@ -1,10 +1,10 @@
 import { MM_TO_PX, type AssetRef, type PhotoElement } from '@travelbook/core';
 import type { CSSProperties, ReactElement } from 'react';
-import { maskCss } from '../masks';
+import { featherCss, maskCss } from '../masks';
 import type { AssetUrl, Quality } from '../types';
 import { mm, round } from '../units';
 import { elementBoxStyle, flipTransform } from './boxStyle';
-import { adjustFilter, imagePlacement } from './photoStyle';
+import { adjustFilter, imagePlacement, vignetteGradient } from './photoStyle';
 
 export interface PhotoViewProps {
   el: PhotoElement;
@@ -24,7 +24,9 @@ function imageStyle(
   asset: AssetRef | undefined,
   quality: Quality,
 ): CSSProperties {
-  const filter = adjustFilter(el.adjust);
+  // The export derivative has the adjustments baked in (Task 7.1): drawing them again would
+  // apply them twice. The editor's own qualities draw them as CSS.
+  const filter = quality === 'export' ? undefined : adjustFilter(el.adjust);
   const common: CSSProperties = { position: 'absolute', maxWidth: 'none', filter };
   if (quality === 'export') {
     // The export derivative is the visible window already: it is the frame.
@@ -136,6 +138,10 @@ export function PhotoView({
   if (empty && !showEmptySlots) return null;
   const mask = maskCss(el.mask, el);
   const { shadow } = el;
+  // Vignette and feather, like the filter, are in the export derivative: only the editor draws them.
+  const styled = !empty && quality !== 'export';
+  const vignette = styled ? el.adjust.vignette : 0;
+  const feather = styled && el.edge ? featherCss(el.mask, el, el.edge.feather) : undefined;
   return (
     <div data-element-id={el.id} data-element-type="photo" style={elementBoxStyle(el)}>
       <div
@@ -156,6 +162,7 @@ export function PhotoView({
             overflow: 'hidden',
             borderRadius: mask.borderRadius,
             clipPath: mask.clipPath,
+            ...feather,
           }}
         >
           {empty ? (
@@ -169,6 +176,16 @@ export function PhotoView({
                 style={imageStyle(el, asset, quality)}
               />
             </div>
+          )}
+          {vignette > 0 && (
+            <div
+              data-role="vignette"
+              style={{
+                ...FILL,
+                backgroundImage: vignetteGradient(vignette),
+                pointerEvents: 'none',
+              }}
+            />
           )}
           {el.border && el.border.width > 0 ? <Border border={el.border} mask={mask} /> : null}
         </div>
