@@ -116,9 +116,8 @@ export function PhotoInspector({
   const adjusted = ADJUSTMENTS.some(({ key }) => adjust[key] !== NEUTRAL[key]);
 
   return (
-    <div className="inspector" data-testid="photo-inspector">
+    <div data-testid="photo-inspector">
       <Section>
-        <h2 className="insp-title">{t.title}</h2>
         <p className="insp-file">
           {asset ? t.file(asset.originalName, asset.pixel?.w ?? 0, asset.pixel?.h ?? 0) : t.empty}
         </p>

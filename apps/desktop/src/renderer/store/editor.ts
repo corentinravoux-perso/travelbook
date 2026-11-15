@@ -1,4 +1,11 @@
-import { createHistory, type Book, type History, type Side, type Spread } from '@travelbook/core';
+import {
+  createHistory,
+  type Book,
+  type History,
+  type ShapeElement,
+  type Side,
+  type Spread,
+} from '@travelbook/core';
 import { createStore, useStore, type StoreApi } from 'zustand';
 
 /** Every document change is saved this long after the last one. */
@@ -8,8 +15,11 @@ export const SAVE_DELAY_MS = 1000;
 export const PANELS = ['photos', 'templates', 'stickers', 'backgrounds', 'text', 'shapes'] as const;
 export type PanelId = (typeof PANELS)[number];
 
-/** What a drag on the canvas does. Task 5.2 adds tools as it needs them. */
-export type Tool = 'select' | 'pan';
+/** What a drag on the canvas does: select, pan, draw a text box, or draw a shape (`shapeKind`). */
+export type Tool = 'select' | 'pan' | 'text' | 'shape';
+
+/** The kinds of shape the shape tool draws. */
+export type ShapeKind = ShapeElement['shape'];
 
 /** The overlays drawn over the spread, each switchable (spec §8). */
 export interface Guides {
@@ -49,6 +59,8 @@ export interface EditorState {
   /** While true the canvas keeps the whole spread in view: it sets `zoom` itself. */
   fit: boolean;
   tool: Tool;
+  /** What the shape tool draws. */
+  shapeKind: ShapeKind;
   panel: PanelId;
   /**
    * The page of an inner spread that page templates go on: the one the user last pointed at.
@@ -64,6 +76,10 @@ export interface EditorState {
   cropId: string | null;
   /** The photo frame whose photo the picker is choosing, or `null`. Always in the current spread. */
   pickerId: string | null;
+  /** The text element being typed in (Tiptap is mounted over it), or `null`. Always in the current spread. */
+  editingId: string | null;
+  /** True when the editing session of `editingId` starts with all its text selected (a new preset). */
+  editSelectAll: boolean;
   saveStatus: SaveStatus;
   /** True while `openWith` saves the old book and switches albums; changes are refused. */
   opening: boolean;
@@ -95,6 +111,11 @@ export interface EditorState {
   setPanel(panel: PanelId): void;
   /** Point at a page of the spread in view (see `activePage`). */
   setActivePage(page: Side): void;
+  /** Choose what a drag on the canvas does; `shape` is the kind drawn when `tool` is `shape`. */
+  setTool(tool: Tool, shape?: ShapeKind): void;
+  /** Type in the text element `id`: it alone is selected, crop and picker close. */
+  enterTextEdit(id: string, selectAll?: boolean): void;
+  exitTextEdit(): void;
   /** Edit the spread `id` (the cover or an inner spread); the selection is emptied. */
   goToSpread(id: string): void;
   /** Open or close the overview of the spreads. */
@@ -220,7 +241,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
         book: next,
         history: snapshot(),
         ...(currentSpreadId !== get().currentSpreadId
-          ? { currentSpreadId, selection: [], cropId: null, pickerId: null }
+          ? { currentSpreadId, selection: [], cropId: null, pickerId: null, editingId: null }
           : {}),
       });
       scheduleSave();
@@ -244,6 +265,8 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
         selection: [],
         cropId: null,
         pickerId: null,
+        editingId: null,
+        tool: 'select',
         fit: true,
         overview: false,
         saveStatus: 'saved',
@@ -258,6 +281,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       zoom: 1,
       fit: true,
       tool: 'select',
+      shapeKind: 'rect',
       panel: 'photos',
       activePage: 'left',
       guides: { bleed: true, trim: true, safe: true, gutter: true },
@@ -265,6 +289,8 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       notice: null,
       cropId: null,
       pickerId: null,
+      editingId: null,
+      editSelectAll: false,
       saveStatus: 'saved',
       opening: false,
 
@@ -301,10 +327,32 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       setActivePage(page) {
         if (get().activePage !== page) set({ activePage: page });
       },
+      setTool(tool, shape) {
+        set({ tool, ...(shape !== undefined ? { shapeKind: shape } : {}) });
+      },
+      enterTextEdit(id, selectAll = false) {
+        set({
+          editingId: id,
+          editSelectAll: selectAll,
+          cropId: null,
+          pickerId: null,
+          selection: [id],
+          tool: 'select',
+        });
+      },
+      exitTextEdit() {
+        if (get().editingId !== null) set({ editingId: null, editSelectAll: false });
+      },
       goToSpread(id) {
         const { book, currentSpreadId } = get();
         if (!findSpread(book, id) || id === currentSpreadId) return;
-        set({ currentSpreadId: id, selection: [], cropId: null, pickerId: null });
+        set({
+          currentSpreadId: id,
+          selection: [],
+          cropId: null,
+          pickerId: null,
+          editingId: null,
+        });
       },
       setOverview(open) {
         if (get().overview !== open) set({ overview: open });
@@ -327,13 +375,13 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
         set({ notice: message });
       },
       enterCrop(id) {
-        set({ cropId: id, pickerId: null, selection: [id] });
+        set({ cropId: id, pickerId: null, editingId: null, selection: [id] });
       },
       exitCrop() {
         if (get().cropId !== null) set({ cropId: null });
       },
       openPicker(id) {
-        set({ pickerId: id, cropId: null, panel: 'photos' });
+        set({ pickerId: id, cropId: null, editingId: null, panel: 'photos' });
       },
       closePicker() {
         if (get().pickerId !== null) set({ pickerId: null });
