@@ -30,6 +30,7 @@ npm run e2e            # Playwright against the built Electron app
 npm run dist:linux     # .deb package: apps/desktop/dist/travelbook_<version>_amd64.deb
 npm run dist:win       # Windows NSIS installer: apps/desktop/dist/travelbook-setup-<version>-x64.exe
 npm run e2e:packaged   # Playwright against the app that dist:linux built (dist/linux-unpacked)
+npm run e2e:stress     # 100-page book of 400 photos of 24 MP: measurements for docs/acceptance.md (~15 min, Linux)
 ```
 
 `npm run e2e` needs a display; on a headless Linux machine run it under `xvfb-run`.
