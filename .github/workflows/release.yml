@@ -1,0 +1,77 @@
+name: Release
+
+# A tag `vX.Y.Z` builds the installers and publishes them on a GitHub Release. The tag must
+# equal the version of apps/desktop/package.json, which names the installers.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    name: Installer (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-latest
+            dist: dist:linux
+            files: apps/desktop/dist/*.deb
+          - os: windows-latest
+            dist: dist:win
+            files: apps/desktop/dist/*.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: The tag matches the app version
+        shell: bash
+        run: |
+          version=$(node -p "require('./apps/desktop/package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the app version $version"
+            exit 1
+          fi
+      # The sticker packs are a build output (never committed) that the unit tests read.
+      - run: npm run stickers -w @travelbook/desktop
+      - run: npm test
+      - run: npm run ${{ matrix.dist }}
+      # Run the installed layout (the files the .deb ships) before anything is published.
+      # Ubuntu 24.04 blocks the unprivileged user namespaces Chromium's sandbox needs.
+      - name: Check the packaged app
+        if: runner.os == 'Linux'
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          xvfb-run --auto-servernum npm run e2e:packaged
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ runner.os }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+
+  publish:
+    name: GitHub Release
+    needs: installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: installers
+          merge-multiple: true
+      # The workflow's own token creates the release: nothing to configure.
+      - name: Create the release and upload the installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" installers/* \
+            --verify-tag --title "travelbook ${GITHUB_REF_NAME#v}" --generate-notes
