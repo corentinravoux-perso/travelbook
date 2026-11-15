@@ -3,6 +3,12 @@ export const fr = {
   app: {
     name: 'travelbook',
   },
+  // Shown instead of a blank window when a part of the interface fails to draw.
+  crash: {
+    title: 'Un problème d’affichage est survenu',
+    body: 'Vos modifications sont enregistrées. Rechargez la fenêtre pour reprendre.',
+    reload: 'Recharger',
+  },
   // Editor shell: accessible names of its regions and their empty states.
   shell: {
     topBar: 'Barre du haut',

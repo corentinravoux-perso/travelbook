@@ -11,12 +11,16 @@ if (__RENDER_FIXTURE__ && location.hash === '#render-fixture') {
   void import('./export/ExportPage').then((m) => m.installExportPage(root));
 } else {
   // Loaded on demand, so the app's global styles never reach the render fixture page.
-  void import('./App').then(({ App, initTheme }) => {
-    initTheme();
-    createRoot(root).render(
-      <StrictMode>
-        <App />
-      </StrictMode>,
-    );
-  });
+  void Promise.all([import('./App'), import('./ErrorBoundary')]).then(
+    ([{ App, initTheme }, { ErrorBoundary }]) => {
+      initTheme();
+      createRoot(root).render(
+        <StrictMode>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </StrictMode>,
+      );
+    },
+  );
 }
