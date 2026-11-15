@@ -212,13 +212,15 @@ describe('posterLayout details', () => {
     expect(total * PT_MM * 0.8).toBeLessThanOrEqual(0.3 * front.h + EPS);
   });
 
-  it('places the year right-aligned in the accent colour under a classique title', () => {
-    const { elements } = posterLayout(b, input(spec({ year: '2026' })));
+  it.each(Object.values(FORMATS))('sets the year large, in the title face (%o)', (format) => {
+    const bk = book(format);
+    const { elements } = posterLayout(bk, input(spec({ year: '2026', font: 'Lilita One' })));
     const year = named(elements, 'Affiche · année')[0] as TextElement;
     const title = titleOf(elements);
     expect(year.align).toBe('right');
     expect(year.style.color).toBe(validSpec.colors.accent);
-    expect(year.style.fontFamily).toBe('Work Sans');
+    expect(year.style.fontFamily).toBe('Lilita One');
+    expect(year.style.fontSizePt).toBeGreaterThanOrEqual(20);
     expect(year.textRole).toBe('caption');
     expect(year.y).toBeGreaterThanOrEqual(title.y + title.h - EPS);
   });
@@ -265,6 +267,19 @@ describe('posterLayout details', () => {
     const sticker = stickerOf(elements);
     expect(sticker.x).toBeGreaterThanOrEqual(rect.x - EPS);
     expect(sticker.x + sticker.w).toBeLessThanOrEqual(rect.x + rect.w + EPS);
+  });
+
+  it.each([0.6, 1.6, 2.4])('centres an illustration of ratio %s in the arch', (ratio) => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'arche' }), ratio));
+    const arch = named(elements, 'Affiche · décor').find(
+      (d) => d.type === 'shape' && d.shape === 'ellipse',
+    )!;
+    const sticker = stickerOf(elements);
+    const m = 0.07 * Math.min(front.w, front.h);
+    const top = arch.y + 0.16 * arch.w;
+    const bottom = front.h - m;
+    expect(sticker.y + sticker.h).toBeLessThanOrEqual(bottom + EPS);
+    expect(sticker.y + sticker.h / 2).toBeCloseTo((top + bottom) / 2, 3);
   });
 
   it.each([0.6, 1.6, 2.4])('fills the arch with an illustration of ratio %s', (ratio) => {
