@@ -5,3 +5,6 @@ directories:
   output: dist
 files:
   - out/**
+# Task 8.1: ship `resources/` next to the app, including `resources/stickers/packs/`. The packs are
+# built, not committed: `npm run build` (so `dist:linux` and `dist:win`) runs `npm run stickers`
+# first, and CI builds them on demand in the tests.
