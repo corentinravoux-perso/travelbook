@@ -1,0 +1,83 @@
+[
+  {
+    "id": "costa-rica-toucan",
+    "destination": "costa-rica",
+    "name": "Costa Rica, toucan",
+    "spec": {
+      "layout": "classique",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fff0b8",
+        "title": "#3f7d3a",
+        "accent": "#d9412f",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#3f7d3a",
+          "shade": "#3f7d3a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-toucan"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "costa-rica-rainette",
+    "destination": "costa-rica",
+    "name": "Costa Rica, rainette aux yeux rouges",
+    "spec": {
+      "layout": "arche",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#ffd9cc",
+        "title": "#3f8f36",
+        "accent": "#e0362c",
+        "decor": "#fff4ee",
+        "illustration": {
+          "main": "#3f8f36",
+          "shade": "#3f8f36"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-rainette"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "costa-rica-volcan",
+    "destination": "costa-rica",
+    "name": "Costa Rica, volcan",
+    "spec": {
+      "layout": "soleil",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#e0f0e4",
+        "title": "#454a52",
+        "accent": "#6f7f3e",
+        "decor": "#f7d8b5",
+        "illustration": {
+          "main": "#6b7078",
+          "shade": "#454a52"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-volcan"
+      },
+      "spine": true
+    }
+  }
+]
