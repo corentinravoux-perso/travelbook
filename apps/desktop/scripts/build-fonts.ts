@@ -64,6 +64,8 @@ export const FAMILIES: [id: string, category: FontCategory][] = [
   ['cinzel', 'titre'],
   ['alfa-slab-one', 'titre'],
   ['yeseva-one', 'titre'],
+  // The poster covers' title face (Affiches): chunky, rounded, slightly condensed.
+  ['lilita-one', 'titre'],
   ['special-elite', 'machine'],
   ['courier-prime', 'machine'],
   ['ibm-plex-mono', 'machine'],

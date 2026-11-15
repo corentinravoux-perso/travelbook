@@ -74,4 +74,31 @@ describe('lintIllustration', () => {
   it('rejects a drawing without a viewBox', () => {
     failsWith('<svg><path class="tb-main" fill="#111111" d="M0 0h1"/></svg>', 'viewBox');
   });
+
+  describe('the pixory family', () => {
+    const pixory = (body: string) =>
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" data-tb-style="pixory">${body}</svg>`;
+    const colours = (n: number) =>
+      Array.from(
+        { length: n },
+        (_, i) =>
+          `<rect fill="#${(0x101010 * (i + 1)).toString(16).padStart(6, '0')}" width="1" height="1"/>`,
+      ).join('');
+
+    it('allows up to eight colours and no colour role', () => {
+      expect(lintIllustration(pixory(colours(8)))).toEqual([]);
+    });
+
+    it('rejects a ninth colour', () => {
+      failsWith(pixory(colours(9)), '9 colours');
+    });
+
+    it('keeps the other rules', () => {
+      failsWith(pixory(`${colours(2)}<linearGradient id="g"/>`), 'linearGradient');
+    });
+  });
+
+  it('rejects an unknown family', () => {
+    failsWith(svg('').replace('<svg ', '<svg data-tb-style="cartoon" '), 'data-tb-style');
+  });
 });

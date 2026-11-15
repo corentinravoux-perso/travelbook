@@ -23,7 +23,11 @@ describe('PosterSpecSchema', () => {
   it('rejects an unknown layout or font', () => {
     expect(PosterSpecSchema.safeParse({ ...validSpec, layout: 'x' }).success).toBe(false);
     expect(PosterSpecSchema.safeParse({ ...validSpec, layout: 'bas' }).success).toBe(false);
+    expect(PosterSpecSchema.safeParse({ ...validSpec, layout: 'encadre' }).success).toBe(false);
     expect(PosterSpecSchema.safeParse({ ...validSpec, font: 'Inter' }).success).toBe(false);
+  });
+  it('accepts the poster face Lilita One', () => {
+    expect(PosterSpecSchema.safeParse({ ...validSpec, font: 'Lilita One' }).success).toBe(true);
   });
 });
 

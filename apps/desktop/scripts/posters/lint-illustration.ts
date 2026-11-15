@@ -3,7 +3,8 @@
  * checker: flat fills only (no filter, mask, clip path, gradient, pattern, embedded image, text,
  * style sheet or style attribute, no link), at most five colours, written as hex; at least one
  * `tb-main` shape; every `tb-main` / `tb-shade` shape carries its own default `fill`; a `viewBox`
- * on the root. Pure string work, no DOM. The base-on-the-bottom-edge rule needs a render: the
+ * on the root. Two families: "découpé" (the default: at most five colours, a `tb-main` shape) and
+ * "pixory" (`<svg data-tb-style="pixory">`: natural colours, at most eight, no role required). Pure string work, no DOM. The base-on-the-bottom-edge rule needs a render: the
  * presets test checks it.
  */
 
@@ -28,6 +29,8 @@ const BANNED_ELEMENTS = [
   'marker',
 ];
 export const MAX_COLOURS = 5;
+export const MAX_COLOURS_PIXORY = 8;
+export const FAMILIES = ['decoupe', 'pixory'] as const;
 
 const TAG = /<([A-Za-z][\w:-]*)(\s[^<>]*?)?\/?>/g;
 const ATTR = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
@@ -51,6 +54,7 @@ export function lintIllustration(svg: string): string[] {
   const colours = new Set<string>();
   let root = true;
   let mains = 0;
+  let family: string = 'decoupe';
   for (const m of svg.matchAll(TAG)) {
     const name = m[1]!;
     const attrs = attributes(m[2]);
@@ -58,6 +62,10 @@ export function lintIllustration(svg: string): string[] {
       root = false;
       if (name !== 'svg') errors.push(`the root element is <${name}>, not <svg>`);
       if (!attrs.has('viewBox')) errors.push('the root <svg> has no viewBox');
+      family = attrs.get('data-tb-style') ?? 'decoupe';
+      if (!(FAMILIES as readonly string[]).includes(family)) {
+        errors.push(`data-tb-style="${family}" is not one of ${FAMILIES.join(', ')}`);
+      }
     }
     const banned = BANNED_ELEMENTS.find((b) => b.toLowerCase() === name.toLowerCase());
     if (banned !== undefined) errors.push(`<${banned}> element is not allowed`);
@@ -78,9 +86,10 @@ export function lintIllustration(svg: string): string[] {
     }
   }
   if (root) errors.push('no <svg> element');
-  if (colours.size > MAX_COLOURS) {
-    errors.push(`${colours.size} colours (at most ${MAX_COLOURS}): ${[...colours].join(' ')}`);
+  const max = family === 'pixory' ? MAX_COLOURS_PIXORY : MAX_COLOURS;
+  if (colours.size > max) {
+    errors.push(`${colours.size} colours (at most ${max}): ${[...colours].join(' ')}`);
   }
-  if (mains === 0) errors.push('no shape has class="tb-main"');
+  if (mains === 0 && family !== 'pixory') errors.push('no shape has class="tb-main"');
   return errors;
 }

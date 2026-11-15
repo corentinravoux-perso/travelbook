@@ -4,8 +4,9 @@ import { z } from 'zod';
  * Every layout has the same header (title on top, the year under it on the right); the layout is
  * the composition around the illustration.
  */
-export type PosterLayout = 'classique' | 'empile' | 'encadre' | 'arche' | 'soleil' | 'horizon';
-export type PosterFont = 'Anton' | 'Bebas Neue' | 'Oswald';
+export type PosterLayout = 'classique' | 'empile' | 'arche' | 'soleil' | 'horizon';
+/** Lilita One is the house face of every preset; the others stay as choices. */
+export type PosterFont = 'Lilita One' | 'Anton' | 'Bebas Neue' | 'Oswald';
 
 /** A sticker of a bundled set, or an item of the user's sticker library. */
 export type PosterIllustration = { set: string; id: string } | { itemId: string };
@@ -13,7 +14,7 @@ export type PosterIllustration = { set: string; id: string } | { itemId: string 
 export interface PosterColors {
   background: string;
   title: string;
-  /** Subtitle, year and the encadre frame. */
+  /** Subtitle and year. */
   accent: string;
   /** The large shapes of a composition: the arch, the disc, the band. */
   decor: string;
@@ -42,15 +43,8 @@ export interface PosterPreset {
   spec: PosterSpec;
 }
 
-export const POSTER_LAYOUTS = [
-  'classique',
-  'empile',
-  'encadre',
-  'arche',
-  'soleil',
-  'horizon',
-] as const;
-export const POSTER_FONTS = ['Anton', 'Bebas Neue', 'Oswald'] as const;
+export const POSTER_LAYOUTS = ['classique', 'empile', 'arche', 'soleil', 'horizon'] as const;
+export const POSTER_FONTS = ['Lilita One', 'Anton', 'Bebas Neue', 'Oswald'] as const;
 
 const hex = z.string().regex(/^#[0-9a-f]{6}$/i, 'colour must be #rrggbb');
 
