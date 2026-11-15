@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="300 170 680 636" data-tb-style="pixory">
+  <!-- Steam -->
+  <path fill="#e6e3dd" d="M430 220q14 -20 0 -40q-14 -20 0 -40q14 -20 0 -40q-14 -20 0 -40h8q-14 20 0 40q14 20 0 40q-14 20 0 40q14 20 0 40z"/>
+  <path fill="#e6e3dd" d="M480 220q-14 -20 0 -40q14 -20 0 -40q-14 -20 0 -40q14 -20 0 -40h8q14 20 0 40q-14 20 0 40q14 20 0 40q-14 20 0 40z"/>
+  <path fill="#e6e3dd" d="M530 220q14 -20 0 -40q-14 -20 0 -40q14 -20 0 -40q-14 -20 0 -40h8q-14 20 0 40q14 20 0 40q-14 20 0 40q14 20 0 40z"/>
+  <!-- Moka pot: octagonal top chamber with lid and knob -->
+  <path fill="#97938c" d="M380 300L420 250H580L620 300z"/>
+  <circle fill="#2b2723" cx="500" cy="240" r="18"/>
+  <path fill="#c9c6c0" d="M360 300H640L600 520H400z"/>
+  <path fill="#97938c" d="M560 300H640L600 520H540z"/>
+  <path fill="#e6e3dd" d="M410 300H440L430 520H410z"/>
+  <!-- Spout -->
+  <path fill="#97938c" d="M370 310L320 280 330 330 372 350z"/>
+  <!-- Handle -->
+  <path fill="#2b2723" d="M640 330C720 330 740 400 720 470C710 500 680 510 650 500L660 470C690 476 700 440 690 410C680 380 660 370 636 372z"/>
+  <!-- Waist and base chamber -->
+  <path fill="#97938c" d="M400 520H600L620 560H380z"/>
+  <path fill="#c9c6c0" d="M380 560H620L660 800H340z"/>
+  <path fill="#97938c" d="M560 560H620L660 800H580z"/>
+  <path fill="#e6e3dd" d="M400 560H430L408 800H370z"/>
+  <path fill="#97938c" d="M360 700l40 20-6 18-40-20z"/>
+  <!-- Espresso cup and saucer -->
+  <ellipse fill="#d9cdb3" cx="820" cy="800" rx="120" ry="18"/>
+  <path fill="#f6ecd3" d="M720 690H900C900 760 860 790 810 790C760 790 720 760 720 690z"/>
+  <path fill="#f6ecd3" d="M900 710C950 710 960 760 912 768l-4-12C930 750 930 724 900 724z"/>
+  <ellipse fill="#6b3b2c" cx="810" cy="692" rx="90" ry="12"/>
+</svg>
+

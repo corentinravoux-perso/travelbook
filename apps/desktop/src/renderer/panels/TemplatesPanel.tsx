@@ -4,6 +4,7 @@ import { formatNumber, SliderField } from '../editor/inspector/controls';
 import { pageNumbers } from '../editor/pages';
 import { findSpread, useEditor } from '../store/editor';
 import { templatesStore, useTemplates } from '../store/templates';
+import { openPosterDialog } from '../posters/PosterDialog';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import { TemplateThumb, WhenVisible } from './TemplateThumb';
@@ -316,6 +317,15 @@ function Templates({ book }: { book: Book }) {
         ))}
       </div>
 
+      {view === 'cover' && (
+        <button
+          type="button"
+          className="button button--small tpl-poster"
+          onClick={openPosterDialog}
+        >
+          {fr.poster.open}
+        </button>
+      )}
       <div className="tpl-controls">
         <p className="tpl-target">
           {view === 'cover' ? t.targetCover : t.targetPage(number ?? null)}

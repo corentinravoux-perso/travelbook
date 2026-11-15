@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="110 220 860 664" data-tb-style="pixory">
+  <!-- Shadow -->
+  <ellipse fill="#6f6d7a" cx="560" cy="872" rx="400" ry="12"/>
+  <!-- Far legs -->
+  <path fill="#6f6d7a" d="M470 560h92l-6 300h-82z"/>
+  <path fill="#6f6d7a" d="M720 560h92l-4 300h-84z"/>
+  <!-- Tail -->
+  <path fill="#6f6d7a" d="M905 430C930 480 936 560 926 640l-10-2C924 566 918 490 896 440z"/>
+  <path fill="#2b2723" d="M916 630l22 4 6 46-18 12-16-14z"/>
+  <!-- Body -->
+  <path fill="#9a98a3" d="M300 520C300 380 420 290 600 286C760 282 900 330 924 470C940 560 900 620 830 640H420C350 630 300 590 300 520z"/>
+  <path fill="#6f6d7a" d="M840 320C900 360 930 420 924 500C918 580 880 620 830 640H780C850 600 880 540 880 470C880 410 870 360 840 320z"/>
+  <!-- Near legs and toenails -->
+  <path fill="#9a98a3" d="M380 560h100l-4 300h-94z"/>
+  <path fill="#9a98a3" d="M780 560h100l-6 300h-90z"/>
+  <ellipse fill="#efe6d2" cx="401" cy="854" rx="10" ry="9"/>
+  <ellipse fill="#efe6d2" cx="429" cy="854" rx="10" ry="9"/>
+  <ellipse fill="#efe6d2" cx="457" cy="854" rx="10" ry="9"/>
+  <ellipse fill="#efe6d2" cx="490" cy="854" rx="9" ry="9"/>
+  <ellipse fill="#efe6d2" cx="515" cy="854" rx="9" ry="9"/>
+  <ellipse fill="#efe6d2" cx="540" cy="854" rx="9" ry="9"/>
+  <ellipse fill="#efe6d2" cx="741" cy="854" rx="9" ry="9"/>
+  <ellipse fill="#efe6d2" cx="766" cy="854" rx="9" ry="9"/>
+  <ellipse fill="#efe6d2" cx="791" cy="854" rx="9" ry="9"/>
+  <ellipse fill="#efe6d2" cx="800" cy="854" rx="10" ry="9"/>
+  <ellipse fill="#efe6d2" cx="828" cy="854" rx="10" ry="9"/>
+  <ellipse fill="#efe6d2" cx="856" cy="854" rx="10" ry="9"/>
+  <!-- Saddle cloth -->
+  <path fill="#e2ad3b" d="M520 300C580 284 700 282 780 300L800 540C720 560 600 560 520 544z"/>
+  <path fill="#c8382f" d="M536 314C590 302 700 300 764 314L782 526C712 544 604 544 536 530z"/>
+  <path fill="#e2ad3b" d="M528 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M558 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M588 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M618 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M648 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M678 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M708 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M738 546l15 26 15-26z"/>
+  <path fill="#e2ad3b" d="M768 546l15 26 15-26z"/>
+  <circle fill="#e2ad3b" cx="600" cy="380" r="20"/>
+  <circle fill="#c8382f" cx="600" cy="380" r="9"/>
+  <circle fill="#e2ad3b" cx="700" cy="380" r="20"/>
+  <circle fill="#c8382f" cx="700" cy="380" r="9"/>
+  <circle fill="#e2ad3b" cx="650" cy="460" r="20"/>
+  <circle fill="#c8382f" cx="650" cy="460" r="9"/>
+  <!-- Head and trunk raised in greeting -->
+  <path fill="#9a98a3" d="M330 250C420 230 480 300 470 400C462 470 420 520 360 530C320 536 300 560 292 600C282 660 270 720 238 770C214 806 168 812 140 790C120 772 124 740 150 734C170 730 182 750 196 744C224 700 232 640 236 580C240 520 220 470 220 400C220 320 260 262 330 250z"/>
+  <path fill="#6f6d7a" d="M150 734C170 730 182 750 196 744L188 762C170 768 160 752 146 756z"/>
+  <!-- Ear -->
+  <path fill="#6f6d7a" d="M400 300C460 290 500 340 496 410C492 470 456 500 420 490C400 440 390 360 400 300z"/>
+  <circle fill="#e3ada2" cx="450" cy="380" r="9"/>
+  <circle fill="#e3ada2" cx="470" cy="420" r="7"/>
+  <circle fill="#e3ada2" cx="440" cy="440" r="6"/>
+  <!-- Headdress -->
+  <path fill="#e2ad3b" d="M250 270C300 240 380 236 420 262L400 300C360 284 300 286 262 304z"/>
+  <path fill="#c8382f" d="M268 282C306 266 360 264 394 280L388 292C356 280 306 282 276 296z"/>
+  <circle fill="#c8382f" cx="330" cy="258" r="14"/>
+  <circle fill="#e2ad3b" cx="330" cy="258" r="7"/>
+  <!-- Eye and tusk -->
+  <circle fill="#2b2723" cx="300" cy="360" r="9"/>
+  <path fill="#efe6d2" d="M282 470C258 500 250 530 262 560l12-4C266 530 274 504 296 480z"/>
+</svg>
+

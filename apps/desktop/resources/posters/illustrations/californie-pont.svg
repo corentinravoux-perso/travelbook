@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 170 1200 550">
+  <!-- Headlands -->
+  <path fill="#6f7f3e" d="M0 640C80 560 180 520 260 540C300 552 320 600 330 640z"/>
+  <path fill="#6f7f3e" d="M880 640C900 580 960 520 1060 520C1120 520 1180 580 1200 640z"/>
+  <!-- Fog banks -->
+  <path fill="#e8dcc4" d="M136 560h268a16 16 0 0 1 0 32h-268a16 16 0 0 1 0-32z"/>
+  <path fill="#e8dcc4" d="M776 540h248a16 16 0 0 1 0 32h-248a16 16 0 0 1 0-32z"/>
+  <path fill="#e8dcc4" d="M436 600h168a16 16 0 0 1 0 32h-168a16 16 0 0 1 0-32z"/>
+  <!-- Main cables and suspenders -->
+  <path class="tb-main" fill="#c8502f" d="M60 545L68 543L76 540L84 537L92 534L100 530L108 526L116 522L124 517L132 513L140 508L148 502L156 496L164 490L172 484L180 478L188 471L196 463L204 456L212 448L220 440L228 432L236 423L244 414L252 405L260 395L268 385L276 375L284 364L292 354L300 342L308 331L316 319L324 307L332 295L340 282L348 270L356 256L364 243L372 229L380 215L380 225L372 239L364 253L356 266L348 280L340 292L332 305L324 317L316 329L308 341L300 352L292 364L284 374L276 385L268 395L260 405L252 415L244 424L236 433L228 442L220 450L212 458L204 466L196 473L188 481L180 488L172 494L164 500L156 506L148 512L140 518L132 523L124 527L116 532L108 536L100 540L92 544L84 547L76 550L68 553L60 555z"/>
+  <path class="tb-main" fill="#c8502f" d="M74 545h3v15h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M90 539h3v21h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M106 531h3v29h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M122 522h3v38h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M138 512h3v48h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M154 501h3v59h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M170 489h3v71h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M186 476h3v84h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M202 461h3v99h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M218 445h3v115h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M234 428h3v132h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M250 410h3v150h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M266 390h3v170h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M282 369h3v191h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M298 348h3v212h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M314 324h3v236h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M330 300h3v260h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M346 275h3v285h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M380 215L391 244L402 272L413 298L424 323L435 346L446 368L457 388L468 407L479 424L490 440L501 454L512 467L523 478L534 488L545 496L556 503L567 508L578 512L589 514L600 515L611 514L622 512L633 508L644 503L655 496L666 488L677 478L688 467L699 454L710 440L721 424L732 407L743 388L754 368L765 346L776 323L787 298L798 272L809 244L820 215L820 225L809 254L798 282L787 308L776 333L765 356L754 378L743 398L732 417L721 434L710 450L699 464L688 477L677 488L666 498L655 506L644 513L633 518L622 522L611 524L600 525L589 524L578 522L567 518L556 513L545 506L534 498L523 488L512 477L501 464L490 450L479 434L468 417L457 398L446 378L435 356L424 333L413 308L402 282L391 254L380 225z"/>
+  <path class="tb-main" fill="#c8502f" d="M422 328h3v232h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M444 373h3v187h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M466 412h3v148h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M488 445h3v115h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M510 472h3v88h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M532 493h3v67h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M554 508h3v52h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M576 517h3v43h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M598 520h3v40h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M620 517h3v43h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M642 508h3v52h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M664 493h3v67h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M686 472h3v88h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M708 445h3v115h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M730 412h3v148h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M752 373h3v187h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M774 328h3v232h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M820 215L828 229L836 243L844 256L852 270L860 282L868 295L876 307L884 319L892 331L900 342L908 354L916 364L924 375L932 385L940 395L948 405L956 414L964 423L972 432L980 440L988 448L996 456L1004 463L1012 471L1020 478L1028 484L1036 490L1044 496L1052 502L1060 508L1068 513L1076 517L1084 522L1092 526L1100 530L1108 534L1116 537L1124 540L1132 543L1140 545L1140 555L1132 553L1124 550L1116 547L1108 544L1100 540L1092 536L1084 532L1076 527L1068 523L1060 518L1052 512L1044 506L1036 500L1028 494L1020 488L1012 481L1004 473L996 466L988 458L980 450L972 442L964 433L956 424L948 415L940 405L932 395L924 385L916 374L908 364L900 352L892 341L884 329L876 317L868 305L860 292L852 280L844 266L836 253L828 239L820 225z"/>
+  <path class="tb-main" fill="#c8502f" d="M850 275h3v285h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M866 300h3v260h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M882 324h3v236h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M898 348h3v212h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M914 369h3v191h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M930 390h3v170h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M946 410h3v150h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M962 428h3v132h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M978 445h3v115h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M994 461h3v99h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1010 476h3v84h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1026 489h3v71h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1042 501h3v59h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1058 512h3v48h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1074 522h3v38h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1090 531h3v29h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1106 539h3v21h-3z"/>
+  <path class="tb-main" fill="#c8502f" d="M1122 545h3v15h-3z"/>
+  <!-- Deck -->
+  <path class="tb-main" fill="#c8502f" d="M0 560h1200v26h-1200z"/>
+  <path class="tb-shade" fill="#8a3218" d="M0 578h1200v8h-1200z"/>
+  <!-- Towers with their portal beams -->
+  <path class="tb-main" fill="#c8502f" d="M346 200h12l4 520h-20z"/>
+  <path class="tb-shade" fill="#8a3218" d="M354 200h4l4 520h-8z"/>
+  <path class="tb-main" fill="#c8502f" d="M402 200h12l4 520h-20z"/>
+  <path class="tb-shade" fill="#8a3218" d="M410 200h4l4 520h-8z"/>
+  <path class="tb-main" fill="#c8502f" d="M346 230h68v20h-68z"/>
+  <path class="tb-main" fill="#c8502f" d="M346 340h68v18h-68z"/>
+  <path class="tb-main" fill="#c8502f" d="M346 450h68v16h-68z"/>
+  <path class="tb-main" fill="#c8502f" d="M346 600h68v16h-68z"/>
+  <path class="tb-shade" fill="#8a3218" d="M340 700h80v20h-80z"/>
+  <path class="tb-main" fill="#c8502f" d="M786 200h12l4 520h-20z"/>
+  <path class="tb-shade" fill="#8a3218" d="M794 200h4l4 520h-8z"/>
+  <path class="tb-main" fill="#c8502f" d="M842 200h12l4 520h-20z"/>
+  <path class="tb-shade" fill="#8a3218" d="M850 200h4l4 520h-8z"/>
+  <path class="tb-main" fill="#c8502f" d="M786 230h68v20h-68z"/>
+  <path class="tb-main" fill="#c8502f" d="M786 340h68v18h-68z"/>
+  <path class="tb-main" fill="#c8502f" d="M786 450h68v16h-68z"/>
+  <path class="tb-main" fill="#c8502f" d="M786 600h68v16h-68z"/>
+  <path class="tb-shade" fill="#8a3218" d="M780 700h80v20h-80z"/>
+  <!-- Water -->
+  <path class="tb-shade" fill="#8a3218" d="M0 650h1200v6h-1200z"/>
+  <path class="tb-shade" fill="#8a3218" d="M100 680h1000v6h-1000z"/>
+  <path class="tb-shade" fill="#8a3218" d="M240 706h720v6h-720z"/>
+  <path class="tb-shade" fill="#8a3218" d="M0 714h1200v6h-1200z"/>
+</svg>
+

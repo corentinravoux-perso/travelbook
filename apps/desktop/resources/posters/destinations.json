@@ -1,0 +1,15 @@
+[
+  { "id": "chine", "label": "Chine" },
+  { "id": "perou", "label": "Pérou" },
+  { "id": "suede", "label": "Suède" },
+  { "id": "japon", "label": "Japon" },
+  { "id": "sicile", "label": "Sicile" },
+  { "id": "antilles", "label": "Martinique / Guadeloupe" },
+  { "id": "costa-rica", "label": "Costa Rica" },
+  { "id": "thailande", "label": "Thaïlande" },
+  { "id": "californie", "label": "Californie" },
+  { "id": "kenya", "label": "Kenya" },
+  { "id": "crete", "label": "Crète" },
+  { "id": "italie", "label": "Italie" },
+  { "id": "ecosse", "label": "Écosse" }
+]

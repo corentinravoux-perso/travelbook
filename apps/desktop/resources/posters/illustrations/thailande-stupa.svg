@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 380 1010 620">
+  <!-- Palms -->
+  <path fill="#2b2723" d="M122 1000C124 772.0 140 677.0 156 620l12 4C150 696.0 140 810.0 140 1000z"/>
+  <path fill="#6f7f3e" d="M160 620Q110 575 47 605Q102 599 160 620z"/>
+  <path fill="#6f7f3e" d="M160 620Q134 551 76 546Q114 568 160 620z"/>
+  <path fill="#6f7f3e" d="M160 620Q180 569 160 556Q154 569 160 620z"/>
+  <path fill="#6f7f3e" d="M160 620Q217 577 244 546Q197 560 160 620z"/>
+  <path fill="#6f7f3e" d="M160 620Q223 612 273 605Q214 588 160 620z"/>
+  <path fill="#6f7f3e" d="M160 620Q195 648 245 677Q204 624 160 620z"/>
+  <path fill="#6f7f3e" d="M160 620Q111 611 75 677Q120 635 160 620z"/>
+  <path fill="#2b2723" d="M872 1000C874 802.0 870 719.5 854 670l12 4C860 736.0 890 835.0 890 1000z"/>
+  <path fill="#6f7f3e" d="M850 670Q800 625 737 655Q792 649 850 670z"/>
+  <path fill="#6f7f3e" d="M850 670Q824 601 766 596Q804 618 850 670z"/>
+  <path fill="#6f7f3e" d="M850 670Q870 619 850 606Q844 619 850 670z"/>
+  <path fill="#6f7f3e" d="M850 670Q907 627 934 596Q887 610 850 670z"/>
+  <path fill="#6f7f3e" d="M850 670Q913 662 963 655Q904 638 850 670z"/>
+  <path fill="#6f7f3e" d="M850 670Q885 698 935 727Q894 674 850 670z"/>
+  <path fill="#6f7f3e" d="M850 670Q801 661 765 727Q810 685 850 670z"/>
+  <!-- Side chedis and the main chedi -->
+  <path fill="#e8dcc4" d="M178 978h144v22h-144z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M296 978h26v22h-26z"/>
+  <path class="tb-main" fill="#d9a441" d="M190 959h120v19h-120z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M288 959h22v19h-22z"/>
+  <path class="tb-main" fill="#d9a441" d="M201 941h99v17h-99z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M282 941h18v17h-18z"/>
+  <path class="tb-main" fill="#d9a441" d="M202 941C202 881 231 855 250 855S298 881 298 941z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M263 857C285 872 298 898 298 941H275C275 898 271 872 263 857z"/>
+  <path fill="#e8dcc4" d="M199 936h102v6h-102z"/>
+  <path class="tb-main" fill="#d9a441" d="M233 839h35v16h-35z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M257 839h11v16h-11z"/>
+  <path class="tb-main" fill="#d9a441" d="M236 832h29v6h-29z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M257 832h7v6h-7z"/>
+  <path class="tb-main" fill="#d9a441" d="M237 825h26v6h-26z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M257 825h7v6h-7z"/>
+  <path class="tb-main" fill="#d9a441" d="M238 819h24v6h-24z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M256 819h6v6h-6z"/>
+  <path class="tb-main" fill="#d9a441" d="M240 812h21v6h-21z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M255 812h5v6h-5z"/>
+  <path class="tb-main" fill="#d9a441" d="M241 805h18v6h-18z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M255 805h5v6h-5z"/>
+  <path class="tb-main" fill="#d9a441" d="M242 798h16v6h-16z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M254 798h4v6h-4z"/>
+  <path class="tb-main" fill="#d9a441" d="M244 792h13v6h-13z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M253 792h3v6h-3z"/>
+  <path class="tb-main" fill="#d9a441" d="M245 785h10v6h-10z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M253 785h3v6h-3z"/>
+  <path class="tb-main" fill="#d9a441" d="M246 778h8v6h-8z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M252 778h2v6h-2z"/>
+  <path class="tb-main" fill="#d9a441" d="M247 778L250 711L253 778z"/>
+  <path fill="#e8dcc4" d="M688 978h144v22h-144z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M806 978h26v22h-26z"/>
+  <path class="tb-main" fill="#d9a441" d="M700 959h120v19h-120z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M798 959h22v19h-22z"/>
+  <path class="tb-main" fill="#d9a441" d="M711 941h99v17h-99z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M792 941h18v17h-18z"/>
+  <path class="tb-main" fill="#d9a441" d="M712 941C712 881 741 855 760 855S808 881 808 941z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M773 857C795 872 808 898 808 941H785C785 898 781 872 773 857z"/>
+  <path fill="#e8dcc4" d="M709 936h102v6h-102z"/>
+  <path class="tb-main" fill="#d9a441" d="M743 839h35v16h-35z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M767 839h11v16h-11z"/>
+  <path class="tb-main" fill="#d9a441" d="M746 832h29v6h-29z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M767 832h7v6h-7z"/>
+  <path class="tb-main" fill="#d9a441" d="M747 825h26v6h-26z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M767 825h7v6h-7z"/>
+  <path class="tb-main" fill="#d9a441" d="M748 819h24v6h-24z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M766 819h6v6h-6z"/>
+  <path class="tb-main" fill="#d9a441" d="M750 812h21v6h-21z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M765 812h5v6h-5z"/>
+  <path class="tb-main" fill="#d9a441" d="M751 805h18v6h-18z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M765 805h5v6h-5z"/>
+  <path class="tb-main" fill="#d9a441" d="M752 798h16v6h-16z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M764 798h4v6h-4z"/>
+  <path class="tb-main" fill="#d9a441" d="M754 792h13v6h-13z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M763 792h3v6h-3z"/>
+  <path class="tb-main" fill="#d9a441" d="M755 785h10v6h-10z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M763 785h3v6h-3z"/>
+  <path class="tb-main" fill="#d9a441" d="M756 778h8v6h-8z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M762 778h2v6h-2z"/>
+  <path class="tb-main" fill="#d9a441" d="M757 778L760 711L763 778z"/>
+  <path fill="#e8dcc4" d="M355 954h300v46h-300z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M601 954h54v46h-54z"/>
+  <path class="tb-main" fill="#d9a441" d="M380 914h250v40h-250z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M585 914h45v40h-45z"/>
+  <path class="tb-main" fill="#d9a441" d="M402 878h206v36h-206z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M571 878h37v36h-37z"/>
+  <path class="tb-main" fill="#d9a441" d="M405 878C405 752 465 698 505 698S605 752 605 878z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M533 702C577 734 605 788 605 878H557C557 788 549 734 533 702z"/>
+  <path fill="#e8dcc4" d="M399 866h212v12h-212z"/>
+  <path fill="#2b2723" d="M483 1000v-80a22 26 0 0 1 44 0v80z"/>
+  <path class="tb-main" fill="#d9a441" d="M469 664h72v34h-72z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M519 664h22v34h-22z"/>
+  <path class="tb-main" fill="#d9a441" d="M475 650h60v12h-60z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M520 650h15v12h-15z"/>
+  <path class="tb-main" fill="#d9a441" d="M478 636h54v12h-54z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M519 636h14v12h-14z"/>
+  <path class="tb-main" fill="#d9a441" d="M480 622h49v12h-49z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M517 622h12v12h-12z"/>
+  <path class="tb-main" fill="#d9a441" d="M483 608h44v12h-44z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M516 608h11v12h-11z"/>
+  <path class="tb-main" fill="#d9a441" d="M486 594h38v12h-38z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M514 594h10v12h-10z"/>
+  <path class="tb-main" fill="#d9a441" d="M489 580h32v12h-32z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M513 580h8v12h-8z"/>
+  <path class="tb-main" fill="#d9a441" d="M492 566h27v12h-27z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M512 566h7v12h-7z"/>
+  <path class="tb-main" fill="#d9a441" d="M494 552h22v12h-22z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M510 552h5v12h-5z"/>
+  <path class="tb-main" fill="#d9a441" d="M497 538h16v12h-16z"/>
+  <path class="tb-shade" fill="#9a6f22" d="M509 538h4v12h-4z"/>
+  <path class="tb-main" fill="#d9a441" d="M498 538L505 398L512 538z"/>
+</svg>
+

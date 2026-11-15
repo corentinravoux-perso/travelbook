@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 110 620 850" data-tb-style="pixory">
+  <!-- Stand -->
+  <path fill="#9c2519" d="M220 900h560v60H220z"/>
+  <path fill="#d0372b" d="M260 880h480v24H260z"/>
+  <!-- Legs: a carved block with a notch between them -->
+  <path fill="#d0372b" d="M300 600H700L716 880H600L580 760H420L400 880H284z"/>
+  <path fill="#9c2519" d="M600 600H700L716 880H640z"/>
+  <!-- Body and neck in one carved block -->
+  <path fill="#d0372b" d="M280 640C270 560 300 500 360 480L420 460L380 300C370 260 380 220 420 200L500 180C540 172 560 196 556 230L540 300L560 420C620 430 700 450 730 500C760 550 740 620 700 640z"/>
+  <path fill="#9c2519" d="M560 420C620 430 700 450 730 500C760 550 740 620 700 640H640C690 600 700 520 640 470C610 446 580 436 560 420z"/>
+  <!-- Tail -->
+  <path fill="#2b2723" d="M720 500C770 520 800 580 790 660L760 650C766 590 750 550 712 530z"/>
+  <!-- Muzzle and ears -->
+  <path fill="#d0372b" d="M420 200L360 240C330 262 334 300 368 304L430 296z"/>
+  <path fill="#d0372b" d="M470 186L480 130 504 182z"/>
+  <path fill="#9c2519" d="M500 182L516 132 532 186z"/>
+  <!-- Mane, eye, nostril, bridle -->
+  <path fill="#2b2723" d="M500 180C540 172 560 196 556 230L540 300L560 420L540 420L520 300L534 232C536 210 524 196 500 196z"/>
+  <circle fill="#fbf5ea" cx="444" cy="236" r="9"/>
+  <circle fill="#2b2723" cx="444" cy="236" r="4"/>
+  <circle fill="#2b2723" cx="352" cy="282" r="5"/>
+  <path fill="#fbf5ea" d="M368 304L430 296L436 248L424 246L420 286L370 292z"/>
+  <!-- Saddle and harness painted in kurbits style -->
+  <path fill="#fbf5ea" d="M430 470C480 452 560 450 620 466L640 560C580 580 480 580 420 560z"/>
+  <path fill="#2f6fb0" d="M444 480C490 466 560 464 610 478L626 548C574 564 486 564 436 548z"/>
+  <circle fill="#f2c230" cx="452" cy="490" r="6"/>
+  <circle fill="#f2c230" cx="478" cy="490" r="6"/>
+  <circle fill="#f2c230" cx="504" cy="490" r="6"/>
+  <circle fill="#f2c230" cx="530" cy="490" r="6"/>
+  <circle fill="#f2c230" cx="556" cy="490" r="6"/>
+  <circle fill="#f2c230" cx="582" cy="490" r="6"/>
+  <circle fill="#f2c230" cx="608" cy="490" r="6"/>
+  <circle fill="#fbf5ea" cx="549" cy="522" r="13"/>
+  <circle fill="#fbf5ea" cx="540" cy="539" r="13"/>
+  <circle fill="#fbf5ea" cx="520" cy="539" r="13"/>
+  <circle fill="#fbf5ea" cx="511" cy="522" r="13"/>
+  <circle fill="#fbf5ea" cx="520" cy="505" r="13"/>
+  <circle fill="#fbf5ea" cx="540" cy="505" r="13"/>
+  <circle fill="#f2c230" cx="530" cy="522" r="13"/>
+  <circle fill="#d0372b" cx="530" cy="522" r="6"/>
+  <path fill="#4f9a5a" d="M470 522Q456 504 432 512Q446 530 470 522z"/>
+  <path fill="#4f9a5a" d="M590 522Q614 530 628 512Q604 504 590 522z"/>
+  <!-- Painted swirls on the neck and legs -->
+  <circle fill="#fbf5ea" cx="460" cy="340" r="18"/>
+  <circle fill="#d0372b" cx="460" cy="340" r="10"/>
+  <circle fill="#fbf5ea" cx="464" cy="336" r="4"/>
+  <circle fill="#fbf5ea" cx="330" cy="600" r="16"/>
+  <circle fill="#d0372b" cx="330" cy="600" r="9"/>
+  <circle fill="#fbf5ea" cx="333" cy="597" r="4"/>
+  <circle fill="#fbf5ea" cx="650" cy="720" r="14"/>
+  <circle fill="#d0372b" cx="650" cy="720" r="8"/>
+  <circle fill="#fbf5ea" cx="653" cy="717" r="4"/>
+  <circle fill="#fbf5ea" cx="350" cy="820" r="12"/>
+  <circle fill="#d0372b" cx="350" cy="820" r="7"/>
+  <circle fill="#fbf5ea" cx="352" cy="818" r="3"/>
+  <path fill="#fbf5ea" d="M300 640H700V660H300z"/>
+  <circle fill="#2f6fb0" cx="316" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="356" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="396" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="436" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="476" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="516" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="556" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="596" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="636" cy="650" r="6"/>
+  <circle fill="#2f6fb0" cx="676" cy="650" r="6"/>
+</svg>
+

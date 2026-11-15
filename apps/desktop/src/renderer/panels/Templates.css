@@ -205,3 +205,8 @@
   font-size: var(--t-xs);
   color: var(--ink-2);
 }
+/* "Créer une affiche…", at the top of the cover templates. */
+.tpl-poster {
+  align-self: stretch;
+  margin: var(--s4) var(--s5) 0;
+}

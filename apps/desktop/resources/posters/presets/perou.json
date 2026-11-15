@@ -1,0 +1,83 @@
+[
+  {
+    "id": "perou-lama",
+    "destination": "perou",
+    "name": "Pérou, lama",
+    "spec": {
+      "layout": "arche",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#bfe3e0",
+        "title": "#d6453a",
+        "accent": "#2a9d8f",
+        "decor": "#f3fbf9",
+        "illustration": {
+          "main": "#d6453a",
+          "shade": "#d6453a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-lama"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "perou-chullo",
+    "destination": "perou",
+    "name": "Pérou, bonnet chullo",
+    "spec": {
+      "layout": "classique",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fbd5df",
+        "title": "#d6453a",
+        "accent": "#2a9d8f",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#d6453a",
+          "shade": "#d6453a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-chullo"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "perou-vinicunca",
+    "destination": "perou",
+    "name": "Pérou, montagne arc-en-ciel",
+    "spec": {
+      "layout": "horizon",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#dbeefa",
+        "title": "#c8503a",
+        "accent": "#8a4b33",
+        "decor": "#c9a07a",
+        "illustration": {
+          "main": "#c8503a",
+          "shade": "#c8503a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-vinicunca"
+      },
+      "spine": true
+    }
+  }
+]

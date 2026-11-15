@@ -626,6 +626,43 @@ describe('assets', () => {
     });
   });
 
+  describe('fromSvg', () => {
+    const licence = {
+      source: 'travelbook',
+      author: 'Corentin Ravoux',
+      licence: 'MIT',
+      url: 'https://github.com/corentinravoux/travelbook',
+      requiresAttribution: false,
+    };
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path fill="#123456" d="M0 0h10v10H0z"/></svg>';
+
+    it('stores the SVG in assets/, indexes it, and gives the same asset twice', async () => {
+      const created = await create();
+      const a = await call<AssetRef>(CHANNEL.assetsFromSvg, svg, { name: 'Japon, torii', licence });
+      const b = await call<AssetRef>(CHANNEL.assetsFromSvg, svg, { name: 'Japon, torii', licence });
+      expect(b).toEqual(a);
+      expect(a).toMatchObject({ kind: 'sticker', originalName: 'Japon, torii.svg', licence });
+      expect(await exists(join(created.dir, a.file))).toBe(true);
+      const session = currentSession();
+      expect(session && knownAssets(session)).toEqual({ [a.id]: a });
+    });
+
+    it('accepts a drawing without a licence and stores none', async () => {
+      await create();
+      const a = await call<AssetRef>(CHANNEL.assetsFromSvg, svg, { name: 'Mon dessin' });
+      expect('licence' in a).toBe(false);
+    });
+
+    it('refuses a malformed call', async () => {
+      await create();
+      await expect(call(CHANNEL.assetsFromSvg, svg, { licence })).rejects.toThrow(/assets:fromSvg/);
+      await expect(call(CHANNEL.assetsFromSvg, 42, { name: 'x', licence })).rejects.toThrow(
+        /assets:fromSvg/,
+      );
+    });
+  });
+
   describe('fromLibrary', () => {
     const licence = {
       source: 'Openclipart',

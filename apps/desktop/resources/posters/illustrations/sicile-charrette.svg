@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 330 880 500" data-tb-style="pixory">
+  <!-- Shadow -->
+  <ellipse fill="#a8723f" cx="560" cy="820" rx="420" ry="12"/>
+  <!-- Shafts -->
+  <path fill="#a8723f" d="M120 520L460 540 460 556 120 540z"/>
+  <!-- Cart box with painted panels -->
+  <path fill="#f2c230" d="M360 380H860L840 600H380z"/>
+  <path fill="#d9412f" d="M372 400H848L832 580H388z"/>
+  <path fill="#f6ecd3" d="M392 412h136v156h-136z"/>
+  <path fill="#2f6fb0" d="M400 420h120v140h-120z"/>
+  <circle fill="#f2c230" cx="432" cy="452" r="16"/>
+  <path fill="#4f9a5a" d="M400 560Q442 500 482 540Q502 520 520 530V560z"/>
+  <path fill="#2b2723" d="M488 470h4v60h-4z"/>
+  <path fill="#d9412f" d="M492 470l26 10-26 10z"/>
+  <path fill="#f6ecd3" d="M542 412h136v156h-136z"/>
+  <path fill="#2f6fb0" d="M550 420h120v140h-120z"/>
+  <circle fill="#f2c230" cx="582" cy="452" r="16"/>
+  <path fill="#4f9a5a" d="M550 560Q592 500 632 540Q652 520 670 530V560z"/>
+  <path fill="#2b2723" d="M638 470h4v60h-4z"/>
+  <path fill="#d9412f" d="M642 470l26 10-26 10z"/>
+  <path fill="#f6ecd3" d="M692 412h136v156h-136z"/>
+  <path fill="#2f6fb0" d="M700 420h120v140h-120z"/>
+  <circle fill="#f2c230" cx="732" cy="452" r="16"/>
+  <path fill="#4f9a5a" d="M700 560Q742 500 782 540Q802 520 820 530V560z"/>
+  <path fill="#2b2723" d="M788 470h4v60h-4z"/>
+  <path fill="#d9412f" d="M792 470l26 10-26 10z"/>
+  <path fill="#4f9a5a" d="M352 372H868V392H352z"/>
+  <path fill="#f2c230" d="M360 372l20-26 20 26zM400 372l20-26 20 26zM440 372l20-26 20 26zM480 372l20-26 20 26zM520 372l20-26 20 26zM560 372l20-26 20 26zM600 372l20-26 20 26zM640 372l20-26 20 26zM680 372l20-26 20 26zM720 372l20-26 20 26zM760 372l20-26 20 26zM800 372l20-26 20 26zM840 372l20-26 20 26z"/>
+  <!-- Carved undercarriage -->
+  <path fill="#4f9a5a" d="M420 600H800L780 640H440z"/>
+  <circle fill="#f2c230" cx="450" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="490" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="530" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="570" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="610" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="650" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="690" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="730" cy="620" r="8"/>
+  <circle fill="#f2c230" cx="770" cy="620" r="8"/>
+  <!-- Wheels with painted spokes -->
+  <circle fill="#2b2723" cx="470" cy="700" r="120"/>
+  <circle fill="#f2c230" cx="470" cy="700" r="104"/>
+  <path fill="#d9412f" d="M470 707L570 707L570 693L470 693zM466 706L553 756L560 744L474 694zM464 704L514 790L526 783L476 696zM463 700L463 800L477 800L477 700zM464 696L414 783L426 790L476 704zM466 694L380 744L387 756L474 706zM470 693L370 693L370 707L470 707zM474 694L387 644L380 656L466 706zM476 696L426 610L414 617L464 704zM477 700L477 600L463 600L463 700zM476 704L526 617L514 610L464 696zM474 706L560 656L553 644L466 694z"/>
+  <circle fill="#9c2c24" cx="470" cy="700" r="30"/>
+  <circle fill="#f2c230" cx="470" cy="700" r="14"/>
+  <circle fill="#2b2723" cx="760" cy="700" r="120"/>
+  <circle fill="#f2c230" cx="760" cy="700" r="104"/>
+  <path fill="#d9412f" d="M760 707L860 707L860 693L760 693zM756 706L843 756L850 744L764 694zM754 704L804 790L816 783L766 696zM753 700L753 800L767 800L767 700zM754 696L704 783L716 790L766 704zM756 694L670 744L677 756L764 706zM760 693L660 693L660 707L760 707zM764 694L677 644L670 656L756 706zM766 696L716 610L704 617L754 704zM767 700L767 600L753 600L753 700zM766 704L816 617L804 610L754 696zM764 706L850 656L843 644L756 694z"/>
+  <circle fill="#9c2c24" cx="760" cy="700" r="30"/>
+  <circle fill="#f2c230" cx="760" cy="700" r="14"/>
+</svg>
+

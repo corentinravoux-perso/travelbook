@@ -1,0 +1,110 @@
+[
+  {
+    "id": "thailande-tuk-tuk",
+    "destination": "thailande",
+    "name": "Thaïlande, tuk-tuk",
+    "spec": {
+      "layout": "classique",
+      "title": "THAÏLANDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#ffd6e0",
+        "title": "#1f9aa8",
+        "accent": "#13707b",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#1f9aa8",
+          "shade": "#1f9aa8"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "thailande-tuk-tuk"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "thailande-elephant",
+    "destination": "thailande",
+    "name": "Thaïlande, éléphant",
+    "spec": {
+      "layout": "arche",
+      "title": "THAÏLANDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#cfe8ef",
+        "title": "#c8382f",
+        "accent": "#6f6d7a",
+        "decor": "#fbf6e9",
+        "illustration": {
+          "main": "#c8382f",
+          "shade": "#c8382f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "thailande-elephant"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "thailande-stupa",
+    "destination": "thailande",
+    "name": "Thaïlande, stupa",
+    "spec": {
+      "layout": "soleil",
+      "title": "THAÏLANDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fbe7d3",
+        "title": "#9a6f22",
+        "accent": "#9a6f22",
+        "decor": "#f6c48f",
+        "illustration": {
+          "main": "#d9a441",
+          "shade": "#9a6f22"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "thailande-stupa"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "thailande-bateau",
+    "destination": "thailande",
+    "name": "Thaïlande, bateau à longue queue",
+    "spec": {
+      "layout": "horizon",
+      "title": "THAÏLANDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fff1c9",
+        "title": "#2f8f9d",
+        "accent": "#1d5d66",
+        "decor": "#9fd3d8",
+        "illustration": {
+          "main": "#2f8f9d",
+          "shade": "#1d5d66"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "thailande-bateau"
+      },
+      "spine": true
+    }
+  }
+]

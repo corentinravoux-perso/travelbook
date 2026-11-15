@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120">
+  <path class="tb-main" fill="#c8423b" d="M10 120 L10 40 L50 10 L90 40 L90 120 Z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M50 10 L90 40 L90 120 L50 120 Z"/>
+  <rect fill="#2b2b2b" x="40" y="80" width="20" height="40"/>
+</svg>

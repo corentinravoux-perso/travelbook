@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="320 140 720 860" data-tb-style="pixory">
+  <!-- Stem and leaves down to the bottom edge -->
+  <path fill="#2b6636" d="M520 1000C520 900 530 780 560 700l12 4C544 784 534 900 534 1000z"/>
+  <path fill="#3f8a46" d="M540 860Q476 773 352 792Q435 886 540 860z"/>
+  <path fill="#2b6636" d="M540 860Q456 827 352 792Q435 886 540 860z"/>
+  <path fill="#3f8a46" d="M536 800Q645 824 733 728Q604 711 536 800z"/>
+  <path fill="#2b6636" d="M536 800Q625 770 733 728Q604 711 536 800z"/>
+  <path fill="#3f8a46" d="M552 740Q516 650 405 655Q456 754 552 740z"/>
+  <path fill="#2b6636" d="M552 740Q487 700 405 655Q456 754 552 740z"/>
+  <path fill="#3f8a46" d="M566 700Q660 700 689 597Q583 608 566 700z"/>
+  <path fill="#2b6636" d="M566 700Q622 655 689 597Q583 608 566 700z"/>
+  <!-- Hibiscus flower: five petals, darker heart, long stamen -->
+  <path fill="#e8455f" d="M560 520C690 460 650 330 560 330C470 330 430 460 560 520z"/>
+  <path fill="#b52a44" d="M560 520L568 380L552 380z"/>
+  <path fill="#e8455f" d="M560 520C657 625 778 547 750 461C722 376 577 378 560 520z"/>
+  <path fill="#b52a44" d="M560 520L705 484L700 469z"/>
+  <path fill="#e8455f" d="M560 520C490 645 605 727 678 674C750 621 700 492 560 520z"/>
+  <path fill="#b52a44" d="M560 520L642 638L655 629z"/>
+  <path fill="#e8455f" d="M560 520C420 492 370 621 442 674C515 727 630 645 560 520z"/>
+  <path fill="#b52a44" d="M560 520L465 629L478 638z"/>
+  <path fill="#e8455f" d="M560 520C543 378 398 376 370 461C342 547 463 625 560 520z"/>
+  <path fill="#b52a44" d="M560 520L420 469L415 484z"/>
+  <circle fill="#b52a44" cx="560" cy="520" r="50"/>
+  <path fill="#f2c230" d="M560 520L700 370l8 8L568 528z"/>
+  <circle fill="#f2c230" cx="686" cy="352" r="8"/>
+  <circle fill="#f2c230" cx="696" cy="352" r="8"/>
+  <circle fill="#f2c230" cx="706" cy="352" r="8"/>
+  <circle fill="#f2c230" cx="686" cy="364" r="8"/>
+  <circle fill="#f2c230" cx="696" cy="364" r="8"/>
+  <circle fill="#f2c230" cx="706" cy="364" r="8"/>
+  <!-- Hummingbird hovering at the flower -->
+  <path fill="#2b2723" d="M790 324L680 370l4 6L792 336z"/>
+  <ellipse fill="#2f9a8a" cx="830" cy="330" rx="50" ry="32"/>
+  <path fill="#1f6e66" d="M840 344C860 364 900 370 930 410C890 400 860 380 830 360z"/>
+  <path fill="#1f6e66" d="M870 340l70 30-14 14-60-30z"/>
+  <circle fill="#2f9a8a" cx="792" cy="324" r="26"/>
+  <circle fill="#2b2723" cx="784" cy="320" r="6"/>
+  <path fill="#e8455f" d="M800 334C810 350 830 356 850 350C830 340 814 334 804 324z"/>
+  <!-- Wings, raised -->
+  <path fill="#1f6e66" d="M840 310C870 200 950 160 1000 170C960 210 910 270 860 316z"/>
+  <path fill="#2f9a8a" d="M824 308C836 210 890 160 930 154C904 200 870 260 844 310z"/>
+</svg>
+
