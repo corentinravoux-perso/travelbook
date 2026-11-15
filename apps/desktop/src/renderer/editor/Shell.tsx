@@ -116,7 +116,9 @@ function TopBar() {
       {title !== undefined && (
         <>
           <span className="shell-sep" />
-          <span className="shell-top__title">{title}</span>
+          <span className="shell-top__title" title={title}>
+            {title}
+          </span>
           {format !== undefined && (
             <span className="shell-top__format">
               {fr.shell.formatCaption(format.width, format.height)}
