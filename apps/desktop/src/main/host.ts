@@ -1,4 +1,5 @@
 import { app, dialog, shell, type BrowserWindow, type OpenDialogOptions } from 'electron';
+import type { CloseChoice } from './close-guard';
 import { fr } from '../renderer/strings/fr';
 import type { Host } from './ipc';
 
@@ -32,4 +33,22 @@ export function createElectronHost(window: () => BrowserWindow | null): Host {
     showInFolder: (path) => shell.showItemInFolder(path),
     version: () => app.getVersion(),
   };
+}
+
+/** Saving before close failed: ask the user what to do. Closing the dialog counts as cancel. */
+export async function askCloseChoice(
+  win: BrowserWindow,
+  reason: 'failed' | 'timeout',
+): Promise<CloseChoice> {
+  const { response } = await dialog.showMessageBox(win, {
+    type: 'warning',
+    title: fr.closeDialog.title,
+    message: fr.closeDialog.message,
+    detail: reason === 'timeout' ? fr.closeDialog.timeout : fr.closeDialog.failed,
+    buttons: [fr.closeDialog.retry, fr.closeDialog.quit, fr.closeDialog.cancel],
+    defaultId: 0,
+    cancelId: 2,
+    noLink: true,
+  });
+  return (['retry', 'quit', 'cancel'] as const)[response] ?? 'cancel';
 }

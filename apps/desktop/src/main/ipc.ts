@@ -173,6 +173,11 @@ export function createHandlers(host: Host): IpcHandlers {
       return opened;
     },
 
+    [CHANNEL.projectPickFolder]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.projectPickFolder, schemas.none, args);
+      return host.pickFolder('create');
+    },
+
     [CHANNEL.projectSave]: async (_ctx, ...args) => {
       const [book] = parseArgs(CHANNEL.projectSave, schemas.save, args);
       const session = requireSession();

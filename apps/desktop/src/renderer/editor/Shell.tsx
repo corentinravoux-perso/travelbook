@@ -1,11 +1,14 @@
-import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { PANELS, useEditor, editorStore, type PanelId } from '../store/editor';
+import { projectStore } from '../store/project';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
-import { currentTheme, setTheme, subscribeTheme } from '../theme/theme';
 import { readWidths, writeWidths, type PanelSide, type PanelWidths } from './layout';
+import { Canvas } from './Canvas';
 import { ResizeHandle } from './ResizeHandle';
+import { SaveIndicator } from './SaveIndicator';
+import { ThemeToggle } from './ThemeToggle';
 import './Shell.css';
 
 const PANEL_ICONS: Record<PanelId, IconName> = {
@@ -37,9 +40,7 @@ export function Shell() {
       <TopBar />
       <Rail />
       <Panel width={widths.panel} onResize={resize('panel')} />
-      <main className="shell-canvas" aria-label={fr.shell.canvas}>
-        <p className="shell-canvas__empty">{fr.shell.noAlbum}</p>
-      </main>
+      <Canvas />
       <aside id="shell-inspector" className="shell-inspector" aria-label={fr.shell.inspector}>
         <ResizeHandle
           side="inspector"
@@ -59,20 +60,40 @@ export function Shell() {
 
 function TopBar() {
   const title = useEditor((s) => s.book?.title);
+  const format = useEditor((s) => s.book?.format);
   const { canUndo, canRedo } = useEditor((s) => s.history);
-  const theme = useSyncExternalStore(subscribeTheme, currentTheme);
   const { undo, redo } = editorStore.getState();
 
   return (
     <header className="shell-top" aria-label={fr.shell.topBar}>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label={fr.shell.home}
+        title={fr.shell.home}
+        onClick={() => void projectStore.getState().goHome()}
+      >
+        <Icon name="home" />
+      </button>
       <h1 className="shell-top__mark">{fr.app.name}</h1>
       {title !== undefined && (
         <>
           <span className="shell-sep" />
           <span className="shell-top__title">{title}</span>
+          {format !== undefined && (
+            <span className="shell-top__format">
+              {fr.shell.formatCaption(format.width, format.height)}
+            </span>
+          )}
         </>
       )}
       <span className="shell-top__grow" />
+      {title !== undefined && (
+        <>
+          <SaveIndicator />
+          <span className="shell-sep" />
+        </>
+      )}
       <button
         type="button"
         className="icon-button"
@@ -94,24 +115,8 @@ function TopBar() {
         <Icon name="arrow-forward-up" />
       </button>
       <span className="shell-sep" />
-      <ThemeToggle theme={theme} />
+      <ThemeToggle />
     </header>
-  );
-}
-
-function ThemeToggle({ theme }: { theme: 'light' | 'dark' }) {
-  const next = theme === 'dark' ? 'light' : 'dark';
-  const label = next === 'dark' ? fr.shell.themeToDark : fr.shell.themeToLight;
-  return (
-    <button
-      type="button"
-      className="icon-button"
-      aria-label={label}
-      title={label}
-      onClick={() => setTheme(next)}
-    >
-      <Icon name={next === 'dark' ? 'moon' : 'sun'} />
-    </button>
   );
 }
 

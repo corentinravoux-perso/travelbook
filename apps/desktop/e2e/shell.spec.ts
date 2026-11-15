@@ -1,7 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type ElectronApplication, type Page } from '@playwright/test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createFromHome, pickFolders } from './home';
 import { launchApp } from './launch';
 
 let work: string;
@@ -12,12 +13,21 @@ test.afterEach(async () => {
   await rm(work, { recursive: true, force: true });
 });
 
+/** The editor shell is behind the home screen: create an album to reach it. */
+async function openShell(app: ElectronApplication): Promise<Page> {
+  await pickFolders(app, join(work, 'albums'));
+  const page = await app.firstWindow();
+  await createFromHome(page, 'Album de test');
+  await expect(page.getByRole('banner', { name: 'Barre du haut' })).toBeVisible();
+  return page;
+}
+
 const theme = (page: Page) => page.locator('html').getAttribute('data-theme');
 
 test('the shell shows its six regions under their French names', async () => {
   const app = await launchApp(join(work, 'user data'));
   try {
-    const page = await app.firstWindow();
+    const page = await openShell(app);
     await expect(page.getByRole('banner', { name: 'Barre du haut' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Outils' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Panneau Photos' })).toBeVisible();
@@ -94,7 +104,7 @@ test('panel and inspector widths follow their handles and survive a restart', as
 
   let app = await launchApp(userData);
   try {
-    const page = await app.firstWindow();
+    const page = await openShell(app);
     const panel = page.getByRole('separator', { name: 'Largeur du panneau' });
     await expect(panel).toHaveAttribute('aria-valuenow', '272');
     const box = await panel.boundingBox();
@@ -128,6 +138,7 @@ test('panel and inspector widths follow their handles and survive a restart', as
   app = await launchApp(userData);
   try {
     const page = await app.firstWindow();
+    await page.getByRole('button', { name: /Album de test/ }).click();
     await expect(page.getByRole('separator', { name: 'Largeur du panneau' })).toHaveAttribute(
       'aria-valuenow',
       '440',

@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, net, protocol, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createElectronHost } from './host';
+import { guardWindowClose } from './close-guard';
+import { askCloseChoice, createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { ensureProxies } from './photos/proxies';
@@ -35,6 +36,7 @@ function createWindow(): BrowserWindow {
     },
   });
   restrictToAppPage(win.webContents, appPage);
+  guardWindowClose(win, { ipcMain, isTrusted: isTrustedSender, askUser: askCloseChoice });
   win.once('ready-to-show', () => win.show());
   win.on('closed', () => {
     if (mainWindow === win) mainWindow = null;
@@ -50,7 +52,7 @@ function createWindow(): BrowserWindow {
 }
 
 /** Only the app's own top-level page may call the main process. */
-function isTrustedSender(event: IpcMainInvokeEvent): boolean {
+function isTrustedSender(event: Pick<IpcMainInvokeEvent, 'senderFrame' | 'sender'>): boolean {
   const frame = event.senderFrame;
   return frame !== null && frame === event.sender.mainFrame && isTrustedPage(frame.url, appPage);
 }
