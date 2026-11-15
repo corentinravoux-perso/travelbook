@@ -4,17 +4,24 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { textExtensions } from './tiptap';
 
 let editor: Editor | null = null;
+/** Every editor a test made: a live one keeps ProseMirror timers that fire after jsdom is gone. */
+const made: Editor[] = [];
 afterEach(() => {
   editor?.destroy();
   editor = null;
+  const live = made.filter((e) => !e.isDestroyed).length;
+  made.length = 0;
+  expect(live).toBe(0);
 });
 
 /** Type `text` one character at a time through ProseMirror's text input path, as a keyboard does. */
 function type(frenchTypography: boolean, text: string): string {
+  editor?.destroy();
   editor = new Editor({
     element: document.createElement('div'),
     extensions: textExtensions(frenchTypography),
   });
+  made.push(editor);
   const { view } = editor;
   for (const char of text) {
     const { from, to } = view.state.selection;

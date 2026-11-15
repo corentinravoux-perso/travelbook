@@ -60,37 +60,28 @@ function useSvg(url: string | null): { text: string; ratio: number } | null {
 }
 
 /**
- * A blob URL of the illustration recoloured as the spec says, rebuilt 120 ms after the colours
- * stop changing; the previous one is revoked when the next is ready, the last on unmount. A
- * drawing without colour roles is shown from its plain address.
+ * A `data:` URL of the illustration recoloured as the spec says, rebuilt 120 ms after the colours
+ * stop changing (the page's Content-Security-Policy lets `data:` images through, not `blob:`).
+ * A drawing without colour roles, or one whose recolouring is not ready yet, is shown from its
+ * plain address.
  */
 function usePreviewUrl(
   base: string,
   text: string | undefined,
   colors: { main: string; shade: string },
 ): string {
-  const [blob, setBlob] = useState<string | null>(null);
-  const shown = useRef<string | null>(null);
+  const [made, setMade] = useState<{ text: string; url: string } | null>(null);
   const { main, shade } = colors;
-  const recolour = !!text && RECOLOURABLE.test(text) && typeof URL.createObjectURL === 'function';
+  const recolour = !!text && RECOLOURABLE.test(text);
   useEffect(() => {
     if (!recolour || !text) return;
     const timer = setTimeout(() => {
       const svg = recolorIllustration(text, { main, shade });
-      const made = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-      if (shown.current) URL.revokeObjectURL(shown.current);
-      shown.current = made;
-      setBlob(made);
+      setMade({ text, url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}` });
     }, 120);
     return () => clearTimeout(timer);
   }, [recolour, text, main, shade]);
-  useEffect(
-    () => () => {
-      if (shown.current) URL.revokeObjectURL(shown.current);
-    },
-    [],
-  );
-  return recolour && blob ? blob : base;
+  return recolour && made && made.text === text ? made.url : base;
 }
 
 /** A preset in the gallery: its poster drawn small, once the tile comes into view. */
