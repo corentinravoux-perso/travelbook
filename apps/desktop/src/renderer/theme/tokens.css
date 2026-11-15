@@ -1,0 +1,91 @@
+/*
+ * Design tokens of direction A, "Gris neutre" (docs/design/visual-direction.md, taken from
+ * docs/design/sketches/a-gris-neutre.html). The chrome has no hue: the only colours of the
+ * interface are the three resolution states. Use these tokens; do not add colours or spacings.
+ * The theme is chosen by `data-theme` on <html> (see theme.ts); light is the base.
+ */
+:root {
+  /* Type: IBM Plex Sans, major-second scale around a 13 px base. */
+  --f-ui: 'IBM Plex Sans', 'Noto Sans', 'DejaVu Sans', system-ui, sans-serif;
+  --t-xxs: 10.5px; /* rail labels, badges, meter scales */
+  --t-xs: 11px;
+  --t-sm: 12px;
+  --t-md: 13px;
+  --t-lg: 14.5px;
+  --t-xl: 16px;
+  --lh: 1.35;
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+
+  /* Spacing: 4 px base. */
+  --s1: 2px;
+  --s2: 4px;
+  --s3: 6px;
+  --s4: 8px;
+  --s5: 12px;
+  --s6: 16px;
+  --s7: 24px;
+  --s8: 32px;
+
+  /* Radii: controls, then cards inside panels. Nothing rounder. */
+  --r1: 2px;
+  --r2: 4px;
+
+  /* Motion: hover and press, then panel swaps. Nothing moves by itself. */
+  --fast: 80ms;
+  --swap: 120ms;
+
+  /* Icons: Tabler outline, redrawn at stroke 1.5. */
+  --icon: 18px;
+  --icon-sm: 15px;
+  --icon-stroke: 1.5;
+
+  /* Shell sizes. The panel and inspector widths are the user's, within these bounds. */
+  --top-h: 44px;
+  --rail-w: 60px;
+  --strip-h: 96px;
+  --control-h: 28px;
+
+  /* Colour roles, light theme. */
+  color-scheme: light;
+  --ground: #9b9b9b; /* workspace surround, around the page */
+  --chrome: #ececec; /* bars, rail, panels */
+  --surface: #f7f7f7; /* fields, cards, hover */
+  --line: #cfcfcf; /* hairlines */
+  --ink: #1f1f1f; /* primary text */
+  --ink-2: #5c5c5c; /* secondary text, idle icons */
+  --ink-3: #8a8a8a; /* tertiary text, counts, placeholders */
+  --invert-bg: var(--ink); /* active and primary fill */
+  --invert-fg: #f7f7f7;
+  --good: #3f7f52; /* resolution >= 250 ppp */
+  --fair: #a8741a; /* resolution 150-250 ppp */
+  --low: #b0413e; /* resolution < 150 ppp */
+  --paper: #ffffff;
+
+  /* Selection on the canvas: the same in both themes, so it reads on any photo. */
+  --sel-inner: #ffffff;
+  --sel-outer: #000000;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ground: #474747;
+  --chrome: #262626;
+  --surface: #2f2f2f;
+  --line: #3a3a3a;
+  --ink: #e8e8e8;
+  --ink-2: #a3a3a3;
+  --ink-3: #767676;
+  --invert-fg: #1f1f1f;
+  --good: #6fb283;
+  --fair: #d6a24a;
+  --low: #e07a76;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fast: 0ms;
+    --swap: 0ms;
+  }
+}
