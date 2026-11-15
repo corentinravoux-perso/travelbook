@@ -320,8 +320,14 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
       break;
     }
     case 'arche': {
-      const top = headerBottom + m;
-      const aw = Math.min(0.72 * fw, (foot - top) * 0.8);
+      // The arch is sized from the drawing: it spans 90 % of the arch's width, with head room
+      // under the vault; the arch top comes down for a wide drawing, never above the header.
+      const ratio = input.illustration.ratio;
+      const minTop = headerBottom + m;
+      let aw = 0.76 * fw;
+      let top = Math.max(minTop, foot - (0.9 * aw) / ratio - 0.6 * aw);
+      if (foot - top < aw) aw = foot - top; // a low arch keeps its vault round
+      top = Math.max(minTop, Math.min(top, foot - aw));
       decor.push(
         decorShape({ x: cx - aw / 2, y: top, w: aw, h: aw }, 'ellipse', spec.colors.decor),
       );
@@ -332,7 +338,8 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
           spec.colors.decor,
         ),
       );
-      box = { x: cx - 0.42 * aw, y: top + 0.18 * aw, w: 0.84 * aw, h: foot - top - 0.18 * aw };
+      const illTop = top + 0.16 * aw;
+      box = { x: cx - 0.45 * aw, y: illTop, w: 0.9 * aw, h: foot - illTop };
       break;
     }
     case 'soleil': {

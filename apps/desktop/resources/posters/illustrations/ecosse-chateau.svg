@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 236 1200 764">
+  <!-- Highland hills behind -->
+  <path fill="#6f7f3e" d="M0 900C70 830 160 700 290 660C380 632 430 690 520 660L700 520C800 430 930 400 1020 470C1100 530 1160 760 1196 900z"/>
+  <!-- Bridge to the shore, three arches -->
+  <path class="tb-main" fill="#b9a48a" d="M40 760h360v40H40z"/>
+  <path class="tb-main" fill="#b9a48a" d="M60 800H380V900H363V870A42 42 0 0 0 279 870V900H262V870A42 42 0 0 0 178 870V900H161V870A42 42 0 0 0 77 870V900H60z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M40 792h360v8H40z"/>
+  <path class="tb-main" fill="#b9a48a" d="M44 744h14v16h-14zM70 744h14v16h-14zM96 744h14v16h-14zM122 744h14v16h-14zM148 744h14v16h-14zM174 744h14v16h-14zM200 744h14v16h-14zM226 744h14v16h-14zM252 744h14v16h-14zM278 744h14v16h-14zM304 744h14v16h-14zM330 744h14v16h-14zM356 744h14v16h-14zM382 744h14v16h-14z"/>
+  <!-- Left wall and gate -->
+  <path class="tb-main" fill="#b9a48a" d="M380 650h150v250h-150z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M500 650h30v250h-30z"/>
+  <path class="tb-main" fill="#b9a48a" d="M382 624h26v26h-26zM426 624h26v26h-26zM470 624h26v26h-26z"/>
+  <path fill="#2b2723" d="M418 900v-82.0a28.0 28.0 0 0 1 56 0v82.0z"/>
+  <!-- Keep -->
+  <path class="tb-main" fill="#b9a48a" d="M520 380h190v520h-190z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M660 380h50v520h-50z"/>
+  <path class="tb-main" fill="#b9a48a" d="M522 350h28v30h-28zM570 350h28v30h-28zM618 350h28v30h-28zM666 350h28v30h-28z"/>
+  <path fill="#2b2723" d="M560 506v-45.0a11.0 11.0 0 0 1 22 0v45.0z"/>
+  <path fill="#2b2723" d="M616 506v-45.0a11.0 11.0 0 0 1 22 0v45.0z"/>
+  <path fill="#2b2723" d="M560 616v-45.0a11.0 11.0 0 0 1 22 0v45.0z"/>
+  <path fill="#2b2723" d="M616 616v-45.0a11.0 11.0 0 0 1 22 0v45.0z"/>
+  <path fill="#2b2723" d="M560 726v-45.0a11.0 11.0 0 0 1 22 0v45.0z"/>
+  <path fill="#2b2723" d="M616 726v-45.0a11.0 11.0 0 0 1 22 0v45.0z"/>
+  <path fill="#2b2723" d="M670 506v-47.0a9.0 9.0 0 0 1 18 0v47.0z"/>
+  <path fill="#2b2723" d="M670 616v-47.0a9.0 9.0 0 0 1 18 0v47.0z"/>
+  <path fill="#2b2723" d="M670 726v-47.0a9.0 9.0 0 0 1 18 0v47.0z"/>
+  <!-- Corner turrets of the keep -->
+  <path class="tb-main" fill="#b9a48a" d="M500 330h40v110c-6 14-34 14-40 0z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M526 330h14v110c-2 6-8 10-14 12z"/>
+  <path fill="#2b2723" d="M494 334l26-84 26 84z"/>
+  <path class="tb-main" fill="#b9a48a" d="M690 330h40v110c-6 14-34 14-40 0z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M716 330h14v110c-2 6-8 10-14 12z"/>
+  <path fill="#2b2723" d="M684 334l26-84 26 84z"/>
+  <!-- Curtain wall -->
+  <path class="tb-main" fill="#b9a48a" d="M710 600h230v300h-230z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M710 600h230v22h-230z"/>
+  <path class="tb-main" fill="#b9a48a" d="M712 574h26v26h-26zM756 574h26v26h-26zM800 574h26v26h-26zM844 574h26v26h-26zM888 574h26v26h-26z"/>
+  <path fill="#2b2723" d="M750 724v-35.0a9.0 9.0 0 0 1 18 0v35.0z"/>
+  <path fill="#2b2723" d="M810 724v-35.0a9.0 9.0 0 0 1 18 0v35.0z"/>
+  <path fill="#2b2723" d="M870 724v-35.0a9.0 9.0 0 0 1 18 0v35.0z"/>
+  <!-- Round tower -->
+  <path class="tb-main" fill="#b9a48a" d="M920 520h110v380H920z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M990 520h40v380h-40z"/>
+  <path class="tb-main" fill="#b9a48a" d="M910 516h130v24h-130z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M994 516h46v24h-46z"/>
+  <path fill="#2b2723" d="M902 518l73-150 73 150z"/>
+  <path fill="#2b2723" d="M948 652v-42.0a10.0 10.0 0 0 1 20 0v42.0z"/>
+  <path fill="#2b2723" d="M948 752v-42.0a10.0 10.0 0 0 1 20 0v42.0z"/>
+  <!-- Flag on the keep -->
+  <path fill="#2b2723" d="M612 300h6v80h-6z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M618 302l56 16-56 18z"/>
+  <!-- Island rocks and grass -->
+  <path class="tb-shade" fill="#7c6a55" d="M318 904C326 872 356 852 404 846L520 836H1012C1060 840 1092 866 1104 904z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M404 846L470 904H380z"/>
+  <path fill="#6f7f3e" d="M350 862C378 846 420 840 462 840H1012C1044 842 1064 852 1076 864L1066 872H356z"/>
+  <!-- Reflection on the loch -->
+  <path class="tb-shade" fill="#7c6a55" d="M380 918h660v8h-660z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M420 940h580v8h-580z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M500 960h460v8h-460z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M540 978h360v8h-360z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M600 994h260v8h-260z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M60 930h280v8h-280z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M90 952h210v8h-210z"/>
+  <path class="tb-shade" fill="#7c6a55" d="M560 994h240v6H560z"/>
+</svg>
