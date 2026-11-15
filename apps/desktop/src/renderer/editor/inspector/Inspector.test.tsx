@@ -12,12 +12,12 @@ import { MASK_PRESETS } from '@travelbook/render';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editorStore } from '../../store/editor';
 import { fr } from '../../strings/fr';
-import { InspectorContent } from './InspectorContent';
+import { Inspector } from './Inspector';
 
 const state = () => editorStore.getState();
 const photos = (): PhotoElement[] => state().book!.spreads[1]!.elements as PhotoElement[];
 
-describe('InspectorContent', () => {
+describe('Inspector', () => {
   let a: PhotoElement;
   let b: PhotoElement;
 
@@ -40,16 +40,16 @@ describe('InspectorContent', () => {
     vi.useRealTimers();
   });
 
-  it('shows the inspector of the selected photo, and the hint when nothing is selected', () => {
-    render(<InspectorContent />);
+  it('shows the inspector of the selected photo, and the page when nothing is selected', () => {
+    render(<Inspector />);
     expect(screen.getByTestId('photo-inspector')).toBeTruthy();
     act(() => state().select([]));
     expect(screen.queryByTestId('photo-inspector')).toBeNull();
-    expect(screen.getByText('Sélectionnez un élément pour voir ses propriétés.')).toBeTruthy();
+    expect(screen.getByTestId('page-inspector')).toBeTruthy();
   });
 
   it('commits a typed value to the photo that was selected, not to the next one', () => {
-    render(<InspectorContent />);
+    render(<Inspector />);
     const width = screen.getByLabelText('Épaisseur');
     fireEvent.focus(width);
     fireEvent.change(width, { target: { value: '5' } });
@@ -63,7 +63,7 @@ describe('InspectorContent', () => {
   });
 
   it('starts every photo with fresh fields', () => {
-    render(<InspectorContent />);
+    render(<Inspector />);
     const width = screen.getByLabelText('Épaisseur') as HTMLInputElement;
     fireEvent.change(width, { target: { value: '7' } });
     expect(width.value).toBe('7');
@@ -72,7 +72,7 @@ describe('InspectorContent', () => {
   });
 
   it('still applies a value typed and committed on the same photo', () => {
-    render(<InspectorContent />);
+    render(<Inspector />);
     const width = screen.getByLabelText('Épaisseur');
     fireEvent.change(width, { target: { value: '2,5' } });
     fireEvent.blur(width);
@@ -86,7 +86,7 @@ describe('InspectorContent', () => {
     const tile = (id: string) => screen.getByRole('button', { name: preset(id).name });
 
     it('offers every preset, with the neutral one pressed on a fresh photo', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       for (const p of LOOK_PRESETS) expect(tile(p.id)).toBeTruthy();
       expect(tile('original').getAttribute('aria-pressed')).toBe('true');
       expect(tile('mono').getAttribute('aria-pressed')).toBe('false');
@@ -115,7 +115,7 @@ describe('InspectorContent', () => {
         ),
       };
       act(() => state().apply(() => book, 'Photo'));
-      render(<InspectorContent />);
+      render(<Inspector />);
       const img = tile('mono').querySelector('img');
       expect(img?.getAttribute('src')).toBe('tb://asset/x?v=thumb');
       expect(img?.style.filter).toBe('contrast(1.15) grayscale(1)');
@@ -124,7 +124,7 @@ describe('InspectorContent', () => {
     });
 
     it('applies a preset in one undo step, and marks it pressed', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       fireEvent.click(tile('retro'));
       expect(photos()[0]!.adjust).toEqual(preset('retro').adjust);
       expect(photos()[1]!.adjust).toEqual(preset('original').adjust);
@@ -136,14 +136,14 @@ describe('InspectorContent', () => {
     });
 
     it('takes two presets in a row as two steps', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       fireEvent.click(tile('retro'));
       fireEvent.click(tile('mono'));
       expect(labels()).toEqual(['Appliquer un style', 'Appliquer un style']);
     });
 
     it('sets the vignette from its slider, one undo step for a whole drag', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       const vignette = slider('Vignettage');
       fireEvent.pointerDown(vignette);
       for (const v of ['0.2', '0.4', '0.6']) fireEvent.change(vignette, { target: { value: v } });
@@ -156,14 +156,14 @@ describe('InspectorContent', () => {
     });
 
     it('keeps the other adjustments when the vignette moves', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       fireEvent.click(tile('mono'));
       fireEvent.change(slider('Vignettage'), { target: { value: '0.3' } });
       expect(photos()[0]!.adjust).toEqual({ ...preset('mono').adjust, vignette: 0.3 });
     });
 
     it('sets the soft edge in mm from its slider, and 0 turns it off', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       const feather = slider('Bords adoucis');
       expect(feather.max).toBe('15');
       expect(photos()[0]!.edge).toBeNull();
@@ -180,7 +180,7 @@ describe('InspectorContent', () => {
     });
 
     it('does not reset the vignette with the adjustments', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       fireEvent.click(tile('dramatic'));
       fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser' }));
       expect(photos()[0]!.adjust).toEqual({ ...preset('original').adjust, vignette: 0.5 });
@@ -193,7 +193,7 @@ describe('InspectorContent', () => {
     });
 
     it('offers every preset, the irregular ones included, and applies one', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       for (const id of MASK_PRESETS) {
         expect(
           screen.getByRole('button', { name: fr.photoInspector.shapeNames[id]! }),
@@ -211,13 +211,75 @@ describe('InspectorContent', () => {
     });
 
     it('goes back to a plain mask with the segmented control', () => {
-      render(<InspectorContent />);
+      render(<Inspector />);
       fireEvent.click(screen.getByRole('button', { name: 'Galet' }));
       fireEvent.click(screen.getByRole('button', { name: 'Rectangle' }));
       expect(photos()[0]!.mask).toEqual({ kind: 'rect' });
       expect(screen.getByRole('button', { name: 'Galet' }).getAttribute('aria-pressed')).toBe(
         'false',
       );
+    });
+  });
+
+  describe('common section and tabs', () => {
+    it('moves the selected element when X is typed, as one undo step', () => {
+      render(<Inspector />);
+      const x = screen.getByLabelText('X');
+      fireEvent.focus(x);
+      fireEvent.change(x, { target: { value: '30' } });
+      fireEvent.blur(x);
+      expect(photos()[0]!.x).toBe(30);
+      expect(state().history.labels.at(-1)).toBe('Déplacer');
+      act(() => state().undo());
+      expect(photos()[0]!.x).toBe(10);
+    });
+
+    it('takes a decimal comma and rejects what is not a number', () => {
+      render(<Inspector />);
+      const y = screen.getByLabelText('Y') as HTMLInputElement;
+      fireEvent.change(y, { target: { value: '12,5' } });
+      fireEvent.blur(y);
+      expect(photos()[0]!.y).toBe(12.5);
+      fireEvent.change(y, { target: { value: 'abc' } });
+      fireEvent.blur(y);
+      expect(photos()[0]!.y).toBe(12.5);
+      expect(y.value).toBe('12,5');
+    });
+
+    it('locks the element, and then refuses to move it from the fields', () => {
+      render(<Inspector />);
+      fireEvent.click(screen.getByRole('button', { name: 'Verrouiller' }));
+      expect(photos()[0]!.locked).toBe(true);
+      expect((screen.getByLabelText('X') as HTMLInputElement).disabled).toBe(true);
+      expect(screen.getByRole('button', { name: 'Déverrouiller' })).toBeTruthy();
+    });
+
+    it('aligns one element to the page, and offers selection or page for several', () => {
+      render(<Inspector />);
+      fireEvent.click(screen.getByRole('button', { name: 'Aligner à gauche' }));
+      // The first page of the first inner spread starts at x = 0 or at the spread's origin.
+      expect(photos()[0]!.x).toBeLessThan(10);
+      act(() => state().select([a.id, b.id]));
+      expect(screen.getByRole('group', { name: 'Aligner sur' })).toBeTruthy();
+      expect(screen.queryByLabelText('X')).toBeNull();
+      expect(screen.getByText(fr.inspector.selection(2))).toBeTruthy();
+      expect(
+        (screen.getByRole('button', { name: 'Répartir horizontalement' }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    });
+
+    it('switches between properties, layers and history', () => {
+      vi.stubGlobal('tb', {
+        project: { save: () => Promise.resolve(), listSnapshots: () => Promise.resolve([]) },
+      });
+      render(<Inspector />);
+      fireEvent.click(screen.getByRole('tab', { name: 'Calques' }));
+      expect(screen.getByTestId('layers')).toBeTruthy();
+      fireEvent.click(screen.getByRole('tab', { name: 'Historique' }));
+      expect(screen.getByTestId('history')).toBeTruthy();
+      fireEvent.click(screen.getByRole('tab', { name: 'Propriétés' }));
+      expect(screen.getByTestId('photo-inspector')).toBeTruthy();
     });
   });
 });

@@ -4,6 +4,7 @@ import { installBookFonts } from '../fonts/bookFonts';
 import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
+import { ShapesPanel } from '../panels/ShapesPanel';
 import { TextPanel } from '../panels/TextPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
@@ -13,7 +14,7 @@ import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
-import { InspectorContent } from './inspector/InspectorContent';
+import { Inspector } from './inspector/Inspector';
 import { ResizeHandle } from './ResizeHandle';
 import { SaveIndicator } from './SaveIndicator';
 import { SpreadStrip } from './SpreadStrip';
@@ -65,7 +66,7 @@ export function Shell() {
             controls="shell-inspector"
             onResize={resize('inspector')}
           />
-          <InspectorContent />
+          <Inspector />
         </aside>
         <SpreadStrip />
         <CoverStage />
@@ -205,6 +206,8 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
         <PhotosPanel />
       ) : panel === 'text' ? (
         <TextPanel />
+      ) : panel === 'shapes' ? (
+        <ShapesPanel />
       ) : (
         <p className="shell-empty">{fr.shell.panelEmpty}</p>
       )}
