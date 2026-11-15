@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { asset, photo, urlOf } from '../test-helpers';
 import type { AssetUrl, Quality } from '../types';
 import { PhotoView } from './PhotoView';
+import { photoShadowIsCast } from '../shadows';
 import { adjustFilter, imagePlacement, vignetteGradient } from './photoStyle';
 
 const LANDSCAPE = asset('p1', 'photo', { w: 6000, h: 4000 });
@@ -405,6 +406,59 @@ describe('PhotoView', () => {
       );
       // The frame is inside the node that has the shadow.
       expect(q('[data-role="shadow"] [data-role="frame"]')).not.toBeNull();
+    });
+  });
+
+  describe('shadow in export quality', () => {
+    const shadowed = photo(frame, {
+      assetId: 'p1',
+      mask: { kind: 'rounded', radius: 3 },
+      shadow: { dx: 1, dy: 2, blur: 4, color: '#000000' },
+    });
+
+    it('is cast by a plain shape under the photo, so the filter wraps no image', () => {
+      const { q, container } = draw(shadowed, 'export');
+      const cast = q<HTMLElement>('[data-role="shadow-cast"]');
+      expect(cast?.style.filter).toBe('drop-shadow(rgb(0, 0, 0) 1mm 2mm 2mm)');
+      expect(cast?.querySelector('img')).toBeNull();
+      expect(cast?.firstElementChild?.getAttribute('style')).toContain('border-radius: 3mm');
+      expect(q<HTMLElement>('[data-role="shadow"]')?.style.filter).toBe('');
+      expect(q('[data-role="shadow"] img')).not.toBeNull();
+      // Nothing on the photo's own path is filtered.
+      const filtered = [...container.querySelectorAll<HTMLElement>('*')].filter(
+        (n) => n.style.filter !== '' && n.querySelector('img'),
+      );
+      expect(filtered).toEqual([]);
+    });
+    it('keeps the filter on a feathered photo (its shadow follows the soft edge)', () => {
+      const feathered = { ...shadowed, edge: { feather: 2 } };
+      expect(photoShadowIsCast(feathered)).toBe(false);
+      const { q } = draw(feathered, 'export');
+      expect(q('[data-role="shadow-cast"]')).toBeNull();
+      expect(q<HTMLElement>('[data-role="shadow"]')?.style.filter).toContain('drop-shadow');
+    });
+    it('is unchanged in the editor qualities', () => {
+      expect(draw(shadowed, 'preview').q('[data-role="shadow-cast"]')).toBeNull();
+    });
+    it('has no filter at all on the photo at export quality with the whole look set', () => {
+      const looked = photo(frame, {
+        assetId: 'p1',
+        adjust: {
+          brightness: 1.2,
+          contrast: 1.1,
+          saturation: 1.3,
+          grayscale: 0,
+          sepia: 0,
+          vignette: 0.5,
+        },
+        edge: { feather: 2 },
+      });
+      const { container } = draw(looked, 'export');
+      const filtered = [...container.querySelectorAll<HTMLElement>('*')].filter(
+        (n) => n.style.filter !== '',
+      );
+      expect(filtered).toEqual([]);
+      expect(container.querySelector('[data-role="vignette"]')).toBeNull();
     });
   });
 

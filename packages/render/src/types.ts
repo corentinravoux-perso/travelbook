@@ -25,4 +25,10 @@ export interface SpreadViewProps {
   renderElement?(el: Element, node: ReactNode): ReactNode;
   /** Draw the frame of a photo that has no photo yet. `true` in the editor only. */
   showEmptySlots?: boolean;
+  /**
+   * `export` only: URL of the tile of the pattern background of `layer`, already painted with its
+   * foreground colour (PNG with alpha, natural size). With it the pattern is a tiled image: the
+   * mask a pattern is otherwise made of is rasterised at 300 dpi by `printToPDF`.
+   */
+  patternTile?(layer: 'spread' | 'left' | 'right'): string | undefined;
 }

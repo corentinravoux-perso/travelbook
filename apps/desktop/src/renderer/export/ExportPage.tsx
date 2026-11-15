@@ -79,8 +79,12 @@ export function installExportPage(host: HTMLElement): void {
   document.body.style.overflow = 'hidden';
   host.style.display = 'inline-block';
   const root = createRoot(host);
+  // `printToPDF` takes the size of a page from here (`preferCSSPageSize`): the export box.
+  const pageRule = document.createElement('style');
+  document.head.append(pageRule);
   window.__tbExport = {
     show: async (job) => {
+      pageRule.textContent = `@page { size: ${job.clip.w}mm ${job.clip.h}mm; margin: 0; }`;
       flushSync(() =>
         root.render(
           <SpreadView
@@ -89,6 +93,12 @@ export function installExportPage(host: HTMLElement): void {
             quality="export"
             clip={job.clip}
             assetUrl={assetUrlOf(job)}
+            patternTile={(layer) => {
+              const file = job.patternTiles?.[layer];
+              return file === undefined
+                ? undefined
+                : `tb://export/${job.token}/${encodeURIComponent(file)}`;
+            }}
           />,
         ),
       );

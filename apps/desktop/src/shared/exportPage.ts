@@ -16,6 +16,11 @@ export interface ExportPageJob {
   clip: Rect;
   /** File name of the derivative of each photo element, by element id. */
   derivatives: Record<string, string>;
+  /**
+   * File name of the tile of each pattern background of the spread, painted with its foreground
+   * colour (PDF route: see `bakePatternTile`). Backgrounds without an entry draw the stencil.
+   */
+  patternTiles?: Partial<Record<'spread' | 'left' | 'right', string>>;
 }
 
 /** What `window.__tbExport` offers main (called with `webContents.executeJavaScript`). */

@@ -35,6 +35,7 @@ import {
   runImageExport,
   type ExportRenderer,
 } from './export/images';
+import { runPdfExport } from './export/pdf';
 import { projectFilePath } from './protocol';
 import { serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
@@ -426,13 +427,14 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.exportRun]: async (ctx, ...args) => {
       const [options] = parseArgs(CHANNEL.exportRun, schemas.exportRun, args);
       const session = requireSession();
-      if (options.route === 'pdf') throw new Error('Le PDF d’impression arrive avec la tâche 7.3.');
       // The album as last saved: the window saves before it asks for an export.
       const book = session.book;
-      const report = await runImageExport(book, session.dir, options as ExportOptions, {
+      const deps = {
         openRenderer: () => host.openExportRenderer(),
         onProgress: ctx.exportProgress,
-      });
+      };
+      const run = options.route === 'pdf' ? runPdfExport : runImageExport;
+      const report = await run(book, session.dir, options as ExportOptions, deps);
       return { ...report, warnings: await exportPreflight(session.dir, book) };
     },
 

@@ -144,6 +144,9 @@ describe('runImageExport', () => {
         .png()
         .toBuffer();
     },
+    print: async () => {
+      throw new Error('print is not used by the images route');
+    },
     close: () => undefined,
   });
   const options = (outDir: string, patch: Partial<ExportOptions> = {}): ExportOptions => ({

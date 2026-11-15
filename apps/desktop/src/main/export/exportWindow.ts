@@ -7,6 +7,8 @@ import { MM_TO_PX } from '@travelbook/core';
 const SHOW_TIMEOUT_MS = 120_000;
 /** How long one capture may take; a 600 dpi A4 page takes about 7 s. */
 const CAPTURE_TIMEOUT_MS = 180_000;
+/** How long one page may take to print. */
+const PRINT_TIMEOUT_MS = 180_000;
 
 function withTimeout<T>(work: Promise<T>, ms: number, what: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -55,27 +57,34 @@ export async function capturePage(
   }
 }
 
+/** One hidden window showing the page `#export`, told what to draw by `show`. */
+interface Slot {
+  win: BrowserWindow;
+  show(job: ExportPageJob): Promise<void>;
+}
+
 /**
- * A window for the export: offscreen (a hidden window that is not offscreen never paints, so
- * `captureScreenshot` would hang), with no preload and no access to the app's API. It loads the
- * app's page at `#export` through `loadPage` and is told what to draw with `show`.
+ * Open a window on the app's page at `#export` through `loadPage`: no preload, no access to the
+ * app's API, and nothing but that page ever loaded. `offscreen` is for captures (a hidden window
+ * that is not offscreen never paints, so `captureScreenshot` would hang there); `printToPDF` is
+ * the other way round and hangs offscreen, so the PDF needs a plain hidden window.
  */
-export async function createExportWindow(
+async function openSlot(
   loadPage: (win: BrowserWindow) => Promise<void>,
-): Promise<ExportRenderer> {
+  offscreen: boolean,
+): Promise<Slot> {
   const win = new BrowserWindow({
     show: false,
     width: 1024,
     height: 768,
     webPreferences: {
-      offscreen: true,
+      offscreen,
       backgroundThrottling: false,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
     },
   });
-  // The page is only ever the one loaded below.
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (event) => event.preventDefault());
   try {
@@ -93,15 +102,59 @@ export async function createExportWindow(
     throw error;
   }
   return {
-    show: (job: ExportPageJob) =>
+    win,
+    show: (job) =>
       withTimeout(
         win.webContents.executeJavaScript(`window.__tbExport.show(${JSON.stringify(job)})`),
         SHOW_TIMEOUT_MS,
         'Dessin de la page',
       ).then(() => undefined),
-    capture: (target, dpi) => capturePage(win, target, dpi),
-    close: () => {
-      if (!win.isDestroyed()) win.destroy();
-    },
   };
+}
+
+/** The page `slot` shows, as a one-page PDF of the size of `@page` (the export box). */
+async function printSlot(slot: Slot): Promise<Buffer> {
+  return withTimeout(
+    slot.win.webContents.printToPDF({
+      printBackground: true,
+      preferCSSPageSize: true,
+      margins: { top: 0, bottom: 0, left: 0, right: 0 },
+    }),
+    PRINT_TIMEOUT_MS,
+    'Impression de la page',
+  );
+}
+
+/**
+ * The windows of an export, opened when first used: an offscreen one for `show` and `capture`,
+ * a plain hidden one for `print`.
+ */
+export function createExportWindow(
+  loadPage: (win: BrowserWindow) => Promise<void>,
+): Promise<ExportRenderer> {
+  let capture: Promise<Slot> | null = null;
+  let print: Promise<Slot> | null = null;
+  const closed: Slot[] = [];
+  const slot = (offscreen: boolean): Promise<Slot> => {
+    const opened = openSlot(loadPage, offscreen);
+    opened.then(
+      (s) => closed.push(s),
+      () => undefined,
+    );
+    return opened;
+  };
+  const offscreenSlot = (): Promise<Slot> => (capture ??= slot(true));
+  const plainSlot = (): Promise<Slot> => (print ??= slot(false));
+  return Promise.resolve({
+    show: async (job) => (await offscreenSlot()).show(job),
+    capture: async (target, dpi) => capturePage((await offscreenSlot()).win, target, dpi),
+    print: async (job) => {
+      const s = await plainSlot();
+      await s.show(job);
+      return printSlot(s);
+    },
+    close: () => {
+      for (const s of closed) if (!s.win.isDestroyed()) s.win.destroy();
+    },
+  });
 }
