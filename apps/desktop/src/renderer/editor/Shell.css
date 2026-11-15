@@ -187,3 +187,77 @@
 .resize-handle:focus-visible {
   outline: none;
 }
+
+.shell-top__format {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+/* ---------- autosave state ---------- */
+.save-state {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.save-state__text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.save-state .is-error {
+  color: var(--low);
+}
+.save-state__note {
+  color: var(--ink);
+}
+
+/* ---------- the current spread, fitted to the workspace ---------- */
+.canvas-page {
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--sel-outer);
+}
+
+/* ---------- missing originals: a notice over the canvas, never a modal ---------- */
+.missing-notice {
+  position: absolute;
+  top: var(--s5);
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s4);
+  width: min(520px, calc(100% - 2 * var(--s5)));
+  max-height: calc(100% - 2 * var(--s5));
+  padding: var(--s5) var(--s4) var(--s5) var(--s5);
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--fair);
+  border-radius: var(--r2);
+  background: var(--chrome);
+  font-size: var(--t-sm);
+}
+.missing-notice__body {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+.missing-notice__title {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  font-weight: var(--w-medium);
+}
+.missing-notice__list {
+  margin: var(--s3) 0;
+  padding-left: var(--s7);
+  max-height: 120px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.missing-notice__hint {
+  color: var(--ink-2);
+}

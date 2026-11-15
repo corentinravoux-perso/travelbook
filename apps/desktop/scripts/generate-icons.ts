@@ -12,15 +12,20 @@ import { format, resolveConfig } from 'prettier';
 /** Tabler names (https://tabler.io/icons), in any order. */
 export const ICON_NAMES = [
   'arrow-back-up',
+  'alert-triangle',
   'arrow-forward-up',
   'background',
+  'folder-open',
+  'home',
   'layout',
   'letter-t',
   'moon',
   'photo',
+  'plus',
   'sticker',
   'sun',
   'triangle-square-circle',
+  'x',
 ] as const;
 
 export const ICONS_FILE = join(import.meta.dirname, '../src/renderer/theme/icons.ts');

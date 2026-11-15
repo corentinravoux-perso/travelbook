@@ -11,6 +11,7 @@ export const CHANNEL = {
   projectListSnapshots: 'project:listSnapshots',
   projectReadSnapshot: 'project:readSnapshot',
   projectReveal: 'project:reveal',
+  projectPickFolder: 'project:pickFolder',
   photosPick: 'photos:pick',
   photosImport: 'photos:import',
   assetsImportFiles: 'assets:importFiles',
@@ -29,5 +30,10 @@ export const CHANNEL = {
 
 /** Sent from main to the renderer that started an import: `(done, total)`. */
 export const PROGRESS_CHANNEL = 'photos:progress';
+
+/** Main asks the window to save before it closes: `(requestId)`. */
+export const CLOSE_REQUEST_CHANNEL = 'app:closeRequest';
+/** The renderer's answer to a close request: `(requestId, ok)`. */
+export const CLOSE_REPLY_CHANNEL = 'app:closeReply';
 
 export type InvokeChannel = (typeof CHANNEL)[keyof typeof CHANNEL];

@@ -125,6 +125,8 @@ export interface TbApi {
     readSnapshot(id: string): Promise<Book>;
     /** Show the project folder in the system file manager. */
     reveal(): Promise<void>;
+    /** A folder dialog to choose where a new album goes; `null` when the user cancels it. */
+    pickFolder(): Promise<string | null>;
   };
   photos: {
     /** The image files the user picks in a dialog; empty when they cancel. */
@@ -154,5 +156,11 @@ export interface TbApi {
     version(): Promise<string>;
     /** Only `https:` URLs are opened. */
     openExternal(url: string): Promise<void>;
+    /**
+     * Register what runs when the window is about to close: it must resolve once the open album
+     * is saved, and reject if saving fails (main then asks the user what to do). One handler at
+     * a time; without one, the window closes at once. Returns the unregister function.
+     */
+    onCloseRequest(handler: () => Promise<void>): () => void;
   };
 }

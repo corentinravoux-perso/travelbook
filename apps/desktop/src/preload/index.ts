@@ -1,9 +1,27 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 import type { TbApi } from '../shared/api';
-import { CHANNEL, PROGRESS_CHANNEL } from '../shared/channels';
+import {
+  CHANNEL,
+  CLOSE_REPLY_CHANNEL,
+  CLOSE_REQUEST_CHANNEL,
+  PROGRESS_CHANNEL,
+} from '../shared/channels';
 
 // The only door between the renderer and the main process: each method invokes one channel and
 // returns its answer. Main validates every argument; nothing here exposes `ipcRenderer` itself.
+/**
+ * The close handshake lives here, not in the page: a request is answered even before the page has
+ * registered a handler (nothing to save yet), so main never waits on a page that cannot answer.
+ */
+let closeHandler: (() => Promise<void>) | null = null;
+ipcRenderer.on(CLOSE_REQUEST_CHANNEL, (_event: IpcRendererEvent, id: number) => {
+  const handler = closeHandler;
+  void (handler ? handler() : Promise.resolve()).then(
+    () => ipcRenderer.send(CLOSE_REPLY_CHANNEL, id, true),
+    () => ipcRenderer.send(CLOSE_REPLY_CHANNEL, id, false),
+  );
+});
+
 const tb: TbApi = {
   project: {
     create: (options) => ipcRenderer.invoke(CHANNEL.projectCreate, options),
@@ -14,6 +32,7 @@ const tb: TbApi = {
     listSnapshots: () => ipcRenderer.invoke(CHANNEL.projectListSnapshots),
     readSnapshot: (id) => ipcRenderer.invoke(CHANNEL.projectReadSnapshot, id),
     reveal: () => ipcRenderer.invoke(CHANNEL.projectReveal),
+    pickFolder: () => ipcRenderer.invoke(CHANNEL.projectPickFolder),
   },
   photos: {
     pick: () => ipcRenderer.invoke(CHANNEL.photosPick),
@@ -48,6 +67,12 @@ const tb: TbApi = {
   app: {
     version: () => ipcRenderer.invoke(CHANNEL.appVersion),
     openExternal: (url) => ipcRenderer.invoke(CHANNEL.appOpenExternal, url),
+    onCloseRequest: (handler) => {
+      closeHandler = handler;
+      return () => {
+        if (closeHandler === handler) closeHandler = null;
+      };
+    },
   },
 };
 

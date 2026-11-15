@@ -143,6 +143,17 @@ describe('project', () => {
     });
   });
 
+  describe('pickFolder', () => {
+    it('gives the folder the user picks, or null on cancel', async () => {
+      host.pickFolder.mockResolvedValueOnce('/albums');
+      expect(await call(CHANNEL.projectPickFolder)).toBe('/albums');
+      expect(host.pickFolder).toHaveBeenLastCalledWith('create');
+      host.pickFolder.mockResolvedValueOnce(null);
+      expect(await call(CHANNEL.projectPickFolder)).toBeNull();
+      await expect(call(CHANNEL.projectPickFolder, 'x')).rejects.toThrow(/project:pickFolder/);
+    });
+  });
+
   describe('open', () => {
     it('opens a project folder and returns its book and its missing assets', async () => {
       const created = await create();

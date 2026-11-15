@@ -21,7 +21,10 @@ export default defineConfig(({ mode }) => ({
   },
   renderer: {
     // The render fixture page (and its test fonts) exists only in the `e2e` build.
-    define: { __RENDER_FIXTURE__: JSON.stringify(mode === 'e2e') },
+    define: {
+      __RENDER_FIXTURE__: JSON.stringify(mode === 'e2e'),
+      __E2E__: JSON.stringify(mode === 'e2e'),
+    },
     plugins: [
       react(),
       {
