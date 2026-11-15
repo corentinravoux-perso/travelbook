@@ -1,0 +1,2047 @@
+[
+  {
+    "id": "b-c-photo-titre",
+    "name": "Photo et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [6, 1],
+        "children": [{ "slot": "photo" }, { "slot": "text", "textRole": "title" }]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-photo-titre-legende",
+    "name": "Photo, titre et légende",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [10, 2, 1],
+        "children": [
+          { "slot": "photo" },
+          { "slot": "text", "textRole": "title" },
+          { "slot": "text", "textRole": "caption" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-titre-haut",
+    "name": "Titre en haut",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 6],
+        "children": [{ "slot": "text", "textRole": "title" }, { "slot": "photo" }]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-plein-cadre",
+    "name": "Plein cadre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": { "root": { "slot": "photo" }, "fullBleed": true }
+  },
+  {
+    "id": "b-c-deux-titre",
+    "name": "Deux photos et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 2,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [5, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-deux-empilees",
+    "name": "Deux empilées et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 2,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [5, 5, 2],
+        "children": [
+          { "slot": "photo" },
+          { "slot": "photo" },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-trois-titre",
+    "name": "Trois colonnes et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 3,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [5, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-quatre-titre",
+    "name": "Quatre cases et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 4,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [5, 1],
+        "children": [
+          {
+            "split": "col",
+            "weights": [1, 1],
+            "children": [
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              },
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              }
+            ]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-grande-petites",
+    "name": "Une grande, trois petites et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 4,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [8, 1],
+        "children": [
+          {
+            "split": "col",
+            "weights": [3, 1],
+            "children": [
+              { "slot": "photo" },
+              {
+                "split": "row",
+                "weights": [1, 1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+              }
+            ]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-six-titre",
+    "name": "Six cases et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 6,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [5, 1],
+        "children": [
+          {
+            "split": "col",
+            "weights": [1, 1, 1],
+            "children": [
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              },
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              },
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              }
+            ]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-mosaique-titre",
+    "name": "Mosaïque et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 6,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [5, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [6, 4],
+            "children": [
+              {
+                "split": "col",
+                "weights": [6, 4],
+                "children": [
+                  {
+                    "split": "col",
+                    "weights": [5, 5],
+                    "children": [{ "slot": "photo" }, { "slot": "photo" }]
+                  },
+                  { "slot": "photo" }
+                ]
+              },
+              {
+                "split": "col",
+                "weights": [7, 3],
+                "children": [
+                  {
+                    "split": "col",
+                    "weights": [6, 4],
+                    "children": [{ "slot": "photo" }, { "slot": "photo" }]
+                  },
+                  { "slot": "photo" }
+                ]
+              }
+            ]
+          },
+          { "slot": "text", "textRole": "title" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-colonne-titre",
+    "name": "Colonne de photos et titre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 3,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [3, 2],
+        "children": [
+          {
+            "split": "col",
+            "weights": [1, 1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+          },
+          {
+            "split": "col",
+            "weights": [2, 1],
+            "children": [
+              { "slot": "text", "textRole": "title" },
+              { "slot": "text", "textRole": "caption" }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-c-polaroid",
+    "name": "Polaroïd",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.1618, "y": 0.1571, "w": 0.6688, "h": 0.5624, "rotation": -3 },
+        {
+          "kind": "text",
+          "x": 0.2024,
+          "y": 0.7412,
+          "w": 0.6384,
+          "h": 0.0814,
+          "rotation": -3,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.12,
+          "y": 0.12,
+          "w": 0.76,
+          "h": 0.74,
+          "rotation": -3,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-deux-polaroids",
+    "name": "Deux polaroïds",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 2,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.1093, "y": 0.1051, "w": 0.4928, "h": 0.38, "rotation": -5 },
+        { "kind": "photo", "x": 0.3784, "y": 0.4261, "w": 0.5104, "h": 0.3952, "rotation": 4 },
+        {
+          "kind": "text",
+          "x": 0.3661,
+          "y": 0.8363,
+          "w": 0.4872,
+          "h": 0.0572,
+          "rotation": 4,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0.08,
+          "w": 0.56,
+          "h": 0.5,
+          "rotation": -5,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.34,
+          "y": 0.4,
+          "w": 0.58,
+          "h": 0.52,
+          "rotation": 4,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-trois-polaroids",
+    "name": "Trois polaroïds",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 3,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.0839, "y": 0.0781, "w": 0.4048, "h": 0.2736, "rotation": -6 },
+        { "kind": "photo", "x": 0.4907, "y": 0.1981, "w": 0.4048, "h": 0.2736, "rotation": 5 },
+        { "kind": "photo", "x": 0.2521, "y": 0.522, "w": 0.4928, "h": 0.3344, "rotation": -2 },
+        {
+          "kind": "text",
+          "x": 0.2734,
+          "y": 0.8695,
+          "w": 0.4704,
+          "h": 0.0484,
+          "rotation": -2,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.06,
+          "y": 0.06,
+          "w": 0.46,
+          "h": 0.36,
+          "rotation": -6,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.46,
+          "y": 0.18,
+          "w": 0.46,
+          "h": 0.36,
+          "rotation": 5,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d3",
+          "type": "shape",
+          "x": 0.22,
+          "y": 0.5,
+          "w": 0.56,
+          "h": 0.44,
+          "rotation": -2,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-medaillon",
+    "name": "Médaillon",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.15,
+          "y": 0.1,
+          "w": 0.7,
+          "h": 0.4949,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.6549,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.11,
+          "y": 0.07,
+          "w": 0.78,
+          "h": 0.5549,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-arche",
+    "name": "Arche",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.19,
+          "y": 0.1,
+          "w": 0.62,
+          "h": 0.62,
+          "rotation": 0,
+          "mask": { "kind": "preset", "preset": "arch" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.78,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-coeur",
+    "name": "Cœur",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.15,
+          "y": 0.1,
+          "w": 0.7,
+          "h": 0.4949,
+          "rotation": 0,
+          "mask": { "kind": "preset", "preset": "heart" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.6549,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-hexagone",
+    "name": "Hexagone",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.15,
+          "y": 0.1,
+          "w": 0.7,
+          "h": 0.4949,
+          "rotation": 0,
+          "mask": { "kind": "preset", "preset": "hexagon" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.6549,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-galet",
+    "name": "Galet",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.13,
+          "y": 0.1,
+          "w": 0.74,
+          "h": 0.5,
+          "rotation": 0,
+          "mask": { "kind": "preset", "preset": "blob" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.66,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-cadre-fin",
+    "name": "Photo dans un cadre fin",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.14, "y": 0.1, "w": 0.72, "h": 0.62, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.8,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.066,
+          "w": 0.8,
+          "h": 0.7,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-bandeau-couleur",
+    "name": "Photo et bandeau coloré",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": -0.015, "y": -0.011, "w": 1.03, "h": 0.62, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.68,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.15,
+          "y": 0.82,
+          "w": 0.7,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0,
+          "y": 0.6,
+          "w": 1,
+          "h": 0.4,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#efe4d0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-fenetre",
+    "name": "Fenêtre",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.2, "y": 0.16, "w": 0.6, "h": 0.5, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.72,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.08,
+          "w": 0.8,
+          "h": 0.66,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e6e6e0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-bande-large",
+    "name": "Bande de photo",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.1,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        { "kind": "photo", "x": -0.015, "y": 0.3, "w": 1.03, "h": 0.4, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.76,
+          "w": 0.8,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.25,
+          "w": 0.8,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.4, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-pellicule",
+    "name": "Pellicule",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 3,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.12, "y": 0.07, "w": 0.34, "h": 0.25, "rotation": 0 },
+        { "kind": "photo", "x": 0.12, "y": 0.35, "w": 0.34, "h": 0.25, "rotation": 0 },
+        { "kind": "photo", "x": 0.12, "y": 0.63, "w": 0.34, "h": 0.25, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.54,
+          "y": 0.38,
+          "w": 0.38,
+          "h": 0.2,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0,
+          "w": 0.42,
+          "h": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#1f1f1f",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-quinconce",
+    "name": "Deux photos en quinconce",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 2,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.06, "y": 0.06, "w": 0.6, "h": 0.38, "rotation": 0 },
+        { "kind": "photo", "x": 0.34, "y": 0.42, "w": 0.6, "h": 0.38, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.06,
+          "y": 0.86,
+          "w": 0.88,
+          "h": 0.09,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-ronde-haut",
+    "name": "Photo ronde en haut",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.25,
+          "y": 0.08,
+          "w": 0.5,
+          "h": 0.3535,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.5,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.2,
+          "y": 0.64,
+          "w": 0.6,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.4,
+          "y": 0.47,
+          "w": 0.2,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-decalee",
+    "name": "Photo décalée",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.28, "y": 0.2, "w": 0.64, "h": 0.7, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.08,
+          "y": 0.06,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0.28,
+          "w": 0.34,
+          "h": 0.6,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e6e6e0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-deux-medaillons",
+    "name": "Deux médaillons",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 2,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.1,
+          "y": 0.12,
+          "w": 0.5,
+          "h": 0.3535,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "photo",
+          "x": 0.4,
+          "y": 0.36,
+          "w": 0.5,
+          "h": 0.3535,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.74,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-trois-medaillons",
+    "name": "Trois médaillons",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 3,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.05,
+          "y": 0.24,
+          "w": 0.28,
+          "h": 0.198,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "photo",
+          "x": 0.36,
+          "y": 0.24,
+          "w": 0.28,
+          "h": 0.198,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "photo",
+          "x": 0.67,
+          "y": 0.24,
+          "w": 0.28,
+          "h": 0.198,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.5,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.47,
+          "w": 0.8,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.4, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-quatre-inclinees",
+    "name": "Quatre photos inclinées",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 4,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.07, "y": 0.07, "w": 0.4, "h": 0.28, "rotation": -4 },
+        { "kind": "photo", "x": 0.53, "y": 0.09, "w": 0.4, "h": 0.28, "rotation": 3 },
+        { "kind": "photo", "x": 0.07, "y": 0.41, "w": 0.4, "h": 0.28, "rotation": 3 },
+        { "kind": "photo", "x": 0.53, "y": 0.43, "w": 0.4, "h": 0.28, "rotation": -3 },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.74,
+          "w": 0.8,
+          "h": 0.12,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-c-titre-encadre",
+    "name": "Titre encadré",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.16,
+          "y": 0.38,
+          "w": 0.68,
+          "h": 0.14,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.2,
+          "y": 0.55,
+          "w": 0.6,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0.06,
+          "w": 0.84,
+          "h": 0.88,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.075,
+          "w": 0.8,
+          "h": 0.85,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": null,
+          "stroke": { "width": 0.25, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-c-titre-seul",
+    "name": "Titre seul",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 0,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.4,
+          "w": 0.8,
+          "h": 0.14,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.4,
+          "y": 0.36,
+          "w": 0.2,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.4,
+          "y": 0.58,
+          "w": 0.2,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.6, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-plage-c",
+    "name": "Plage, couverture",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "themeId": "plage",
+    "background": {
+      "kind": "gradient",
+      "type": "linear",
+      "angle": 180,
+      "stops": [
+        { "offset": 0, "color": "#f8efdc" },
+        { "offset": 1, "color": "#fdf9ef" }
+      ]
+    },
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.1798, "y": 0.1931, "w": 0.6336, "h": 0.5016, "rotation": -3 },
+        {
+          "kind": "text",
+          "x": 0.2169,
+          "y": 0.714,
+          "w": 0.6048,
+          "h": 0.0726,
+          "rotation": -3,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.62,
+          "y": 0.03,
+          "w": 0.3,
+          "h": 0.2121,
+          "rotation": 0,
+          "opacity": 0.55,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#f2c46d",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.06,
+          "y": 0.94,
+          "w": 0.88,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#8fb8c9" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d3",
+          "type": "shape",
+          "x": 0.11,
+          "y": 0.955,
+          "w": 0.78,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#8fb8c9" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d4",
+          "type": "shape",
+          "x": 0.16,
+          "y": 0.97,
+          "w": 0.68,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#8fb8c9" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d5",
+          "type": "shape",
+          "x": 0.14,
+          "y": 0.16,
+          "w": 0.72,
+          "h": 0.66,
+          "rotation": -3,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-montagne-c",
+    "name": "Montagne, couverture",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "themeId": "montagne",
+    "background": {
+      "kind": "gradient",
+      "type": "linear",
+      "angle": 180,
+      "stops": [
+        { "offset": 0, "color": "#e4edf3" },
+        { "offset": 1, "color": "#f5f8fa" }
+      ]
+    },
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.2,
+          "y": 0.08,
+          "w": 0.6,
+          "h": 0.5,
+          "rotation": 0,
+          "mask": { "kind": "preset", "preset": "arch" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.62,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": -0.05,
+          "y": 0.775,
+          "w": 0.5,
+          "h": 0.3,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "polygon",
+          "fill": "#b8cad6",
+          "stroke": null,
+          "radius": 0,
+          "points": 3
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.3,
+          "y": 0.715,
+          "w": 0.6,
+          "h": 0.38,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "polygon",
+          "fill": "#9fb5c4",
+          "stroke": null,
+          "radius": 0,
+          "points": 3
+        },
+        {
+          "id": "d3",
+          "type": "shape",
+          "x": 0.62,
+          "y": 0.805,
+          "w": 0.46,
+          "h": 0.26,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "polygon",
+          "fill": "#c6d5de",
+          "stroke": null,
+          "radius": 0,
+          "points": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-foret-c",
+    "name": "Forêt, couverture",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "themeId": "foret",
+    "background": { "kind": "color", "color": "#e8f0e4" },
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.14,
+          "y": 0.12,
+          "w": 0.72,
+          "h": 0.5091,
+          "rotation": 0,
+          "mask": { "kind": "ellipse" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.72,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": -0.06,
+          "y": 0.9,
+          "w": 0.3,
+          "h": 0.07,
+          "rotation": -28,
+          "opacity": 0.7,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#bcd5b0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0.95,
+          "w": 0.26,
+          "h": 0.06,
+          "rotation": -12,
+          "opacity": 0.6,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#a6c598",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d3",
+          "type": "shape",
+          "x": 0.8,
+          "y": -0.01,
+          "w": 0.3,
+          "h": 0.07,
+          "rotation": -30,
+          "opacity": 0.7,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#bcd5b0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d4",
+          "type": "shape",
+          "x": 0.74,
+          "y": 0.04,
+          "w": 0.26,
+          "h": 0.06,
+          "rotation": -14,
+          "opacity": 0.6,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#a6c598",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d5",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.08,
+          "w": 0.8,
+          "h": 0.5657,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": null,
+          "stroke": { "width": 0.5, "color": "#6f8f64" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-ville-c",
+    "name": "Ville, couverture",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "themeId": "ville",
+    "background": { "kind": "color", "color": "#f0f0ee" },
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": -0.015, "y": -0.011, "w": 1.03, "h": 0.66, "rotation": 0 },
+        {
+          "kind": "text",
+          "x": 0.08,
+          "y": 0.7,
+          "w": 0.84,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.08,
+          "y": 0.81,
+          "w": 0.84,
+          "h": 0.04,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0,
+          "y": 0.93,
+          "w": 0.1,
+          "h": 0.07,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#d9d9d4",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.89,
+          "w": 0.07,
+          "h": 0.11,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e5ddd0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d3",
+          "type": "shape",
+          "x": 0.17,
+          "y": 0.95,
+          "w": 0.12,
+          "h": 0.05,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#cfcfca",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d4",
+          "type": "shape",
+          "x": 0.29,
+          "y": 0.87,
+          "w": 0.08,
+          "h": 0.13,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e0e0dc",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d5",
+          "type": "shape",
+          "x": 0.37,
+          "y": 0.92,
+          "w": 0.14,
+          "h": 0.08,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#d6d0c4",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d6",
+          "type": "shape",
+          "x": 0.51,
+          "y": 0.9,
+          "w": 0.09,
+          "h": 0.1,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#d9d9d4",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d7",
+          "type": "shape",
+          "x": 0.6,
+          "y": 0.96,
+          "w": 0.11,
+          "h": 0.04,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e5ddd0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d8",
+          "type": "shape",
+          "x": 0.71,
+          "y": 0.88,
+          "w": 0.07,
+          "h": 0.12,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#cfcfca",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d9",
+          "type": "shape",
+          "x": 0.78,
+          "y": 0.94,
+          "w": 0.12,
+          "h": 0.06,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#e0e0dc",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d10",
+          "type": "shape",
+          "x": 0.9,
+          "y": 0.91,
+          "w": 0.1,
+          "h": 0.09,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#d6d0c4",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-carnet-c",
+    "name": "Carnet, couverture",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "themeId": "carnet",
+    "background": { "kind": "color", "color": "#eadcc4" },
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.1426, "y": 0.1296, "w": 0.72, "h": 0.5772, "rotation": 2 },
+        {
+          "kind": "text",
+          "x": 0.1494,
+          "y": 0.7288,
+          "w": 0.672,
+          "h": 0.074,
+          "rotation": 2,
+          "textRole": "title"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.1,
+          "y": 0.1,
+          "w": 0.8,
+          "h": 0.74,
+          "rotation": 2,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#ffffff",
+          "stroke": { "width": 0.3, "color": "#cfcfcf" },
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.43,
+          "y": 0.088,
+          "w": 0.14,
+          "h": 0.026,
+          "rotation": -4,
+          "opacity": 0.85,
+          "locked": false,
+          "hidden": false,
+          "shape": "rect",
+          "fill": "#f3e3a4",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  },
+  {
+    "id": "b-fete-c",
+    "name": "Fête, couverture",
+    "category": "couverture",
+    "scope": "page",
+    "photoCount": 1,
+    "origin": "bundled",
+    "themeId": "fete",
+    "background": {
+      "kind": "gradient",
+      "type": "linear",
+      "angle": 180,
+      "stops": [
+        { "offset": 0, "color": "#fbeaf0" },
+        { "offset": 1, "color": "#f1ecfa" }
+      ]
+    },
+    "free": {
+      "slots": [
+        {
+          "kind": "photo",
+          "x": 0.16,
+          "y": 0.14,
+          "w": 0.68,
+          "h": 0.4808,
+          "rotation": 0,
+          "mask": { "kind": "preset", "preset": "hexagon" }
+        },
+        {
+          "kind": "text",
+          "x": 0.1,
+          "y": 0.66,
+          "w": 0.8,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        {
+          "kind": "text",
+          "x": 0.2,
+          "y": 0.78,
+          "w": 0.6,
+          "h": 0.05,
+          "rotation": 0,
+          "textRole": "caption"
+        }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.04,
+          "y": 0.02,
+          "w": 0.05,
+          "h": 0.0354,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "star",
+          "fill": "#f4c06a",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d2",
+          "type": "shape",
+          "x": 0.88,
+          "y": 0.03,
+          "w": 0.03,
+          "h": 0.0212,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#e89bb0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d3",
+          "type": "shape",
+          "x": 0.93,
+          "y": 0.12,
+          "w": 0.04,
+          "h": 0.0283,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "star",
+          "fill": "#9bc4e8",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d4",
+          "type": "shape",
+          "x": 0.02,
+          "y": 0.5,
+          "w": 0.025,
+          "h": 0.0177,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#b7a6e0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d5",
+          "type": "shape",
+          "x": 0.95,
+          "y": 0.55,
+          "w": 0.045,
+          "h": 0.0318,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "star",
+          "fill": "#f4c06a",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d6",
+          "type": "shape",
+          "x": 0.05,
+          "y": 0.93,
+          "w": 0.035,
+          "h": 0.0247,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#e89bb0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d7",
+          "type": "shape",
+          "x": 0.9,
+          "y": 0.94,
+          "w": 0.05,
+          "h": 0.0354,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "star",
+          "fill": "#9bc4e8",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        },
+        {
+          "id": "d8",
+          "type": "shape",
+          "x": 0.45,
+          "y": 0.97,
+          "w": 0.022,
+          "h": 0.0156,
+          "rotation": 0,
+          "opacity": 0.8,
+          "locked": false,
+          "hidden": false,
+          "shape": "ellipse",
+          "fill": "#b7a6e0",
+          "stroke": null,
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  }
+]

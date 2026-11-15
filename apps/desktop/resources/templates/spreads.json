@@ -1,0 +1,513 @@
+[
+  {
+    "id": "b-d-panorama",
+    "name": "Panorama plein cadre",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": { "root": { "slot": "photo" }, "fullBleed": true }
+  },
+  {
+    "id": "b-d-panorama-marges",
+    "name": "Panorama avec marges",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": { "root": { "slot": "photo" }, "fullBleed": false }
+  },
+  {
+    "id": "b-d-panorama-legende",
+    "name": "Panorama et légende",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [14, 1],
+        "children": [{ "slot": "photo" }, { "slot": "text", "textRole": "caption" }]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-panorama-titre",
+    "name": "Panorama et titre",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 7],
+        "children": [{ "slot": "text", "textRole": "title" }, { "slot": "photo" }]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-deux",
+    "name": "Une photo par page",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 2,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [1, 1],
+        "children": [{ "slot": "photo" }, { "slot": "photo" }]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-deux-plein",
+    "name": "Une photo par page, plein cadre",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 2,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [1, 1],
+        "children": [{ "slot": "photo" }, { "slot": "photo" }]
+      },
+      "fullBleed": true
+    }
+  },
+  {
+    "id": "b-d-grande-droite",
+    "name": "Une grande, deux petites à droite",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 3,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [2, 1],
+        "children": [
+          { "slot": "photo" },
+          {
+            "split": "col",
+            "weights": [1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-grande-gauche",
+    "name": "Deux petites à gauche, une grande",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 3,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [1, 2],
+        "children": [
+          {
+            "split": "col",
+            "weights": [1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }]
+          },
+          { "slot": "photo" }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-trois",
+    "name": "Trois colonnes",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 3,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [1, 1, 1],
+        "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-quatre",
+    "name": "Quatre cases",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 4,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-six",
+    "name": "Six cases",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 6,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1],
+            "children": [{ "slot": "photo" }, { "slot": "photo" }, { "slot": "photo" }]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-huit",
+    "name": "Huit cases",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 8,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-douze",
+    "name": "Douze cases",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 12,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 1, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-seize",
+    "name": "Seize cases",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 16,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [1, 1, 1, 1],
+        "children": [
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [1, 1, 1, 1],
+            "children": [
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" },
+              { "slot": "photo" }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-mosaique",
+    "name": "Mosaïque de huit",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 8,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "col",
+        "weights": [7, 3],
+        "children": [
+          {
+            "split": "col",
+            "weights": [5, 5],
+            "children": [
+              {
+                "split": "row",
+                "weights": [3, 7],
+                "children": [
+                  { "slot": "photo" },
+                  {
+                    "split": "row",
+                    "weights": [5, 5],
+                    "children": [{ "slot": "photo" }, { "slot": "photo" }]
+                  }
+                ]
+              },
+              {
+                "split": "row",
+                "weights": [5, 5],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              }
+            ]
+          },
+          {
+            "split": "row",
+            "weights": [3, 7],
+            "children": [
+              { "slot": "photo" },
+              {
+                "split": "row",
+                "weights": [6, 4],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-photo-texte",
+    "name": "Photo et texte",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 1,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [1, 1],
+        "children": [
+          { "slot": "photo" },
+          {
+            "split": "col",
+            "weights": [1, 5],
+            "children": [
+              { "slot": "text", "textRole": "title" },
+              { "slot": "text", "textRole": "body" }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-une-quatre",
+    "name": "Une grande et quatre petites",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 5,
+    "origin": "bundled",
+    "grid": {
+      "root": {
+        "split": "row",
+        "weights": [1, 1],
+        "children": [
+          { "slot": "photo" },
+          {
+            "split": "col",
+            "weights": [1, 1],
+            "children": [
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              },
+              {
+                "split": "row",
+                "weights": [1, 1],
+                "children": [{ "slot": "photo" }, { "slot": "photo" }]
+              }
+            ]
+          }
+        ]
+      },
+      "fullBleed": false
+    }
+  },
+  {
+    "id": "b-d-eparpille",
+    "name": "Six photos éparpillées",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 6,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.04, "y": 0.08, "w": 0.2, "h": 0.34, "rotation": -4 },
+        { "kind": "photo", "x": 0.28, "y": 0.46, "w": 0.2, "h": 0.34, "rotation": 3 },
+        { "kind": "photo", "x": 0.4, "y": 0.08, "w": 0.2, "h": 0.34, "rotation": 2 },
+        { "kind": "photo", "x": 0.52, "y": 0.46, "w": 0.2, "h": 0.34, "rotation": -3 },
+        { "kind": "photo", "x": 0.76, "y": 0.08, "w": 0.2, "h": 0.34, "rotation": 4 },
+        { "kind": "photo", "x": 0.04, "y": 0.5, "w": 0.2, "h": 0.34, "rotation": 2 }
+      ],
+      "decorations": []
+    }
+  },
+  {
+    "id": "b-d-bande",
+    "name": "Bande de photo sur la pliure",
+    "category": "double",
+    "scope": "spread",
+    "photoCount": 1,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        {
+          "kind": "text",
+          "x": 0.08,
+          "y": 0.1,
+          "w": 0.84,
+          "h": 0.1,
+          "rotation": 0,
+          "textRole": "title"
+        },
+        { "kind": "photo", "x": 0.04, "y": 0.3, "w": 0.92, "h": 0.42, "rotation": 0 }
+      ],
+      "decorations": [
+        {
+          "id": "d1",
+          "type": "shape",
+          "x": 0.08,
+          "y": 0.24,
+          "w": 0.84,
+          "h": 0,
+          "rotation": 0,
+          "opacity": 1,
+          "locked": false,
+          "hidden": false,
+          "shape": "line",
+          "fill": null,
+          "stroke": { "width": 0.4, "color": "#1f1f1f" },
+          "radius": 0,
+          "points": 5
+        }
+      ]
+    }
+  }
+]

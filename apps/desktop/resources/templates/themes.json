@@ -1,0 +1,23 @@
+[
+  { "id": "plage", "name": "Plage", "coverTemplateId": "b-plage-c", "fonts": ["Lora", "Inter"] },
+  {
+    "id": "montagne",
+    "name": "Montagne",
+    "coverTemplateId": "b-montagne-c",
+    "fonts": ["Inter", "Lora"]
+  },
+  { "id": "foret", "name": "Forêt", "coverTemplateId": "b-foret-c", "fonts": ["Lora", "Inter"] },
+  {
+    "id": "ville",
+    "name": "Ville",
+    "coverTemplateId": "b-ville-c",
+    "fonts": ["IBM Plex Sans", "Inter"]
+  },
+  {
+    "id": "carnet",
+    "name": "Carnet",
+    "coverTemplateId": "b-carnet-c",
+    "fonts": ["Lora", "IBM Plex Sans"]
+  },
+  { "id": "fete", "name": "Fête", "coverTemplateId": "b-fete-c", "fonts": ["Inter", "Lora"] }
+]
