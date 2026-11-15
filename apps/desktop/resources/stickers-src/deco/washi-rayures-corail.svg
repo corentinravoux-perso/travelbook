@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-rayures-corail"><path d="M6 0L4 7L7 14L4 21L2 28L2 35L6 42L7 49L3 56L3 63L5 70L5 77L8 84L420 84L419 77L416 70L419 63L415 56L419 49L416 42L412 35L414 28L414 21L413 14L420 7L417 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-rayures-corail)" opacity="0.92">
+<path d="M6 0L4 7L7 14L4 21L2 28L2 35L6 42L7 49L3 56L3 63L5 70L5 77L8 84L420 84L419 77L416 70L419 63L415 56L419 49L416 42L412 35L414 28L414 21L413 14L420 7L417 0Z" fill="#f9bba5"/>
+<path d="M-84 84L0 0L12 0L-72 84Z" fill="#de5038"/>
+<path d="M-56 84L28 0L40 0L-44 84Z" fill="#de5038"/>
+<path d="M-28 84L56 0L68 0L-16 84Z" fill="#de5038"/>
+<path d="M0 84L84 0L96 0L12 84Z" fill="#de5038"/>
+<path d="M28 84L112 0L124 0L40 84Z" fill="#de5038"/>
+<path d="M56 84L140 0L152 0L68 84Z" fill="#de5038"/>
+<path d="M84 84L168 0L180 0L96 84Z" fill="#de5038"/>
+<path d="M112 84L196 0L208 0L124 84Z" fill="#de5038"/>
+<path d="M140 84L224 0L236 0L152 84Z" fill="#de5038"/>
+<path d="M168 84L252 0L264 0L180 84Z" fill="#de5038"/>
+<path d="M196 84L280 0L292 0L208 84Z" fill="#de5038"/>
+<path d="M224 84L308 0L320 0L236 84Z" fill="#de5038"/>
+<path d="M252 84L336 0L348 0L264 84Z" fill="#de5038"/>
+<path d="M280 84L364 0L376 0L292 84Z" fill="#de5038"/>
+<path d="M308 84L392 0L404 0L320 84Z" fill="#de5038"/>
+<path d="M336 84L420 0L432 0L348 84Z" fill="#de5038"/>
+<path d="M364 84L448 0L460 0L376 84Z" fill="#de5038"/>
+<path d="M392 84L476 0L488 0L404 84Z" fill="#de5038"/>
+<path d="M420 84L504 0L516 0L432 84Z" fill="#de5038"/>
+<path d="M448 84L532 0L544 0L460 84Z" fill="#de5038"/>
+<path d="M476 84L560 0L572 0L488 84Z" fill="#de5038"/>
+</g>
+</svg>

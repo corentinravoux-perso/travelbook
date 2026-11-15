@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-grille-bleu"><path d="M1 0L9 7L6 14L8 21L7 28L6 35L4 42L4 49L2 56L6 63L6 70L3 77L3 84L414 84L415 77L417 70L419 63L412 56L412 49L418 42L419 35L412 28L417 21L419 14L419 7L417 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-grille-bleu)" opacity="0.92">
+<path d="M1 0L9 7L6 14L8 21L7 28L6 35L4 42L4 49L2 56L6 63L6 70L3 77L3 84L414 84L415 77L417 70L419 63L412 56L412 49L418 42L419 35L412 28L417 21L419 14L419 7L417 0Z" fill="#bcd5ef"/>
+<path d="M10 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M30 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M50 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M70 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M90 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M110 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M130 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M150 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M170 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M190 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M210 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M230 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M250 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M270 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M290 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M310 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M330 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M350 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M370 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M390 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M410 0V84" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M0 10H420" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M0 30H420" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M0 50H420" stroke="#2f5f9e" stroke-width="2"/>
+<path d="M0 70H420" stroke="#2f5f9e" stroke-width="2"/>
+</g>
+</svg>

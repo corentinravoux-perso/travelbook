@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 170">
+<path d="M10 70L80 70L80 150L10 150L40 110Z" fill="#6b5a48"/>
+<path d="M450 70L380 70L380 150L450 150L420 110Z" fill="#6b5a48"/>
+<path d="M60 130L80 150L80 130Z" fill="#00000055"/>
+<path d="M400 130L380 150L380 130Z" fill="#00000055"/>
+<path d="M60 30L400 30L400 130L60 130Z" fill="#fbf3e2"/>
+<path d="M72 44H388M72 116H388" stroke="#6b5a48" stroke-width="3" stroke-dasharray="8 6"/>
+</svg>

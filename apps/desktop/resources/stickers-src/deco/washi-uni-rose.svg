@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-uni-rose"><path d="M8 0L3 7L0 14L9 21L2 28L0 35L5 42L6 49L1 56L1 63L1 70L1 77L7 84L417 84L415 77L418 70L412 63L418 56L418 49L412 42L414 35L417 28L417 21L418 14L412 7L414 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-uni-rose)" opacity="0.92">
+<path d="M8 0L3 7L0 14L9 21L2 28L0 35L5 42L6 49L1 56L1 63L1 70L1 77L7 84L417 84L415 77L418 70L412 63L418 56L418 49L412 42L414 35L417 28L417 21L418 14L412 7L414 0Z" fill="#f6c1cc"/>
+<path d="M0 10H420M0 74H420" stroke="#fde4ea" stroke-width="3" stroke-dasharray="10 7"/>
+</g>
+</svg>
