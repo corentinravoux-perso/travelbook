@@ -1036,6 +1036,54 @@ describe('app', () => {
   );
 });
 
+describe('export presets and reveal', () => {
+  const options = {
+    route: 'images',
+    pages: 'all',
+    includeCover: true,
+    dpi: 300,
+    nativeResolution: false,
+    bleed: true,
+    cropMarks: false,
+    imageFormat: 'jpeg',
+    jpegQuality: 98,
+    perSpread: false,
+    coverMode: 'flat',
+    outDir: join(tmpdir(), 'out'),
+  };
+
+  it('lists the built-in presets, saves and deletes a user preset through the handlers', async () => {
+    const listed = () => call<{ name: string; builtin?: boolean }[]>(CHANNEL.exportPresetsList);
+    expect((await listed()).filter((p) => p.builtin)).toHaveLength(3);
+    await call(CHANNEL.exportPresetsSave, ' Mon réglage ', options);
+    expect((await listed()).map((p) => p.name)).toContain('Mon réglage');
+    await call(CHANNEL.exportPresetsDelete, 'Mon réglage');
+    expect((await listed()).map((p) => p.name)).not.toContain('Mon réglage');
+  });
+
+  it('validates the options of a preset like those of an export', async () => {
+    await expect(
+      call(CHANNEL.exportPresetsSave, 'x', { ...options, outDir: 'relative/path' }),
+    ).rejects.toThrow(/outDir/);
+    await expect(call(CHANNEL.exportPresetsSave, 'x', { ...options, extra: true })).rejects.toThrow(
+      /export:presetsSave/,
+    );
+    await expect(call(CHANNEL.exportPresetsSave, '', options)).rejects.toThrow(
+      /export:presetsSave/,
+    );
+  });
+
+  it('refuses to delete a built-in preset', async () => {
+    await expect(call(CHANNEL.exportPresetsDelete, "Lecture à l'écran")).rejects.toThrow(/intégré/);
+  });
+
+  it('reveals nothing before an export has run, and takes no argument after', async () => {
+    await expect(call(CHANNEL.exportReveal)).rejects.toThrow(/Aucun export/);
+    await expect(call(CHANNEL.exportReveal, '/etc')).rejects.toThrow(/export:reveal/);
+    expect(host.showInFolder).not.toHaveBeenCalled();
+  });
+});
+
 describe('registerIpc', () => {
   function fakeIpcMain(): {
     ipcMain: Pick<IpcMain, 'handle'>;

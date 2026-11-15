@@ -1,0 +1,106 @@
+/* ---------- export dialog ---------- */
+.dialog--export {
+  width: min(680px, calc(100vw - 2 * var(--s7)));
+}
+.export-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.export-presets {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s4);
+}
+.export-presets__select {
+  flex: 1;
+}
+.export-presets__save {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s4);
+  margin-top: calc(-1 * var(--s3));
+}
+.export-presets__save .field {
+  flex: 1;
+}
+.export-presets__save .button {
+  margin-top: calc(var(--t-sm) * var(--lh) + var(--s2));
+}
+.export-folder {
+  display: flex;
+  gap: var(--s4);
+}
+.export-note {
+  padding-left: var(--s5);
+  border-left: 2px solid var(--line);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.export-info {
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.export-preflight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+.export-preflight__title {
+  font-size: var(--t-md);
+  font-weight: var(--w-semibold);
+}
+
+/* The pre-flight list: a hairline per issue; a blocking one carries the "low" colour. */
+.preflight {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.preflight__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s4) 0 var(--s4) var(--s4);
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid var(--fair);
+  font-size: var(--t-sm);
+}
+.preflight__item.is-blocking {
+  border-left-color: var(--low);
+}
+.preflight__icon {
+  display: inline-flex;
+  color: var(--fair);
+}
+.is-blocking .preflight__icon {
+  color: var(--low);
+}
+.preflight__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-progress,
+.export-done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+.export-done {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s6);
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--good);
+  border-radius: var(--r2);
+  background: var(--surface);
+  font-size: var(--t-sm);
+}

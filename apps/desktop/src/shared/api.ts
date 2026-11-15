@@ -182,6 +182,8 @@ export interface ExportProgress {
 
 export interface ExportPreset {
   name: string;
+  /** A built-in preset: it has no destination (`outDir` is empty) and cannot be deleted. */
+  builtin?: boolean;
   options: ExportOptions;
 }
 
@@ -195,9 +197,14 @@ export interface ExportApi {
   cancel(): Promise<void>;
   onProgress(cb: (progress: ExportProgress) => void): () => void;
   preflight(): Promise<PreflightIssue[]>;
+  /** Show the files of the last export in the system file manager. */
+  reveal(): Promise<void>;
   presets: {
+    /** The built-in presets first, then the user's. */
     list(): Promise<ExportPreset[]>;
+    /** A name is unique (case ignored): an existing user preset of that name is replaced. */
     save(name: string, options: ExportOptions): Promise<void>;
+    /** Rejects for a built-in preset. */
     delete(name: string): Promise<void>;
   };
 }
