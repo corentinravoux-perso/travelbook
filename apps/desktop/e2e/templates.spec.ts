@@ -140,8 +140,9 @@ test('applies a 3-photo template, filters by photo count, follows the spacing sl
       const total = await tiles(page).count();
       expect(total).toBeGreaterThan(150);
       const drawnTiles = () => page.locator('.shell-panel .tpl-tile svg').count();
+      // The tiles in view are drawn when the observer has reported them, not at first paint.
+      await expect.poll(drawnTiles).toBeGreaterThan(0);
       const first = await drawnTiles();
-      expect(first).toBeGreaterThan(0);
       expect(first).toBeLessThan(total / 2);
       const last = tiles(page).last();
       await last.scrollIntoViewIfNeeded();
