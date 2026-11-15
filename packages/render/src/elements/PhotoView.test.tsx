@@ -181,6 +181,10 @@ describe('PhotoView', () => {
     it('mirrors both ways with scale(-1)', () => {
       expect(flipOf({ flipH: true, flipV: true })?.style.transform).toBe('scale(-1)');
     });
+    it('leaves the mirroring to the export derivative, which has it baked in', () => {
+      const { q } = draw(photo(frame, { assetId: 'p1', flipH: true, flipV: true }), 'export');
+      expect(q<HTMLElement>('[data-role="flip"]')?.style.transform).toBe('');
+    });
     it('flips the image, not the frame around it', () => {
       const { q } = draw(photo(frame, { assetId: 'p1', flipH: true }));
       expect(q<HTMLElement>('[data-role="frame"]')?.style.transform).toBe('');

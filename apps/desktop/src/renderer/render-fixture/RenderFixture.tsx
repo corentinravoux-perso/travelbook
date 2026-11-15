@@ -4,10 +4,13 @@ import {
   visibleRect,
   type AssetRef,
   type Book,
+  type Crop,
+  type PhotoElement,
   type Rect,
   type Spread,
 } from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
+import { PhotoView } from '@travelbook/render/src/elements/PhotoView';
 import { createRoot } from 'react-dom/client';
 import { installTextFixture, type TextFixture } from './TextFixture';
 
@@ -73,6 +76,20 @@ function fixtureBook(): { book: Book; spread: Spread } {
   return { book, spread };
 }
 
+/** A look to draw twice: the photo as the editor shows it, and the baked derivative as export draws it. */
+export interface ParitySpec {
+  crop: Crop;
+  flipH: boolean;
+  adjust: PhotoElement['adjust'];
+  edge: PhotoElement['edge'];
+  /** The whole original (1600 x 1000) and the derivative of the visible window. */
+  preview: string;
+  export: string;
+}
+
+/** Frame of the parity photo, in mm. */
+const PARITY_FRAME = { w: 90, h: 60 };
+
 /** `thumb` and `preview` are the whole photo; `export` is one cropped derivative per photo element. */
 export interface FixtureImages {
   thumb: string;
@@ -99,6 +116,8 @@ declare global {
       mount(images: FixtureImages): void;
       /** Replaces the page by the text comparison of `e2e/render.spec.ts`. */
       text: TextFixture;
+      /** One photo drawn at `preview` and at `export` quality (`e2e/derivatives.spec.ts`). */
+      parity: { frame: { w: number; h: number }; mount(spec: ParitySpec): void };
     };
   }
 }
@@ -108,6 +127,39 @@ export function installFixture(host: HTMLElement): void {
   const root = createRoot(host);
   window.__fixture = {
     text: installTextFixture(host),
+    parity: {
+      frame: PARITY_FRAME,
+      mount: (spec) => {
+        const el: PhotoElement = {
+          ...newElement('photo', { x: 0, y: 0, ...PARITY_FRAME }),
+          id: 'parity',
+          assetId: 'photo',
+          crop: spec.crop,
+          flipH: spec.flipH,
+          adjust: spec.adjust,
+          edge: spec.edge,
+        };
+        root.render(
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8mm', background: '#888' }}>
+            {(['preview', 'export'] as const).map((quality) => (
+              <div
+                key={quality}
+                data-testid={quality}
+                style={{ position: 'relative', width: '90mm', height: '60mm' }}
+              >
+                <PhotoView
+                  el={el}
+                  asset={PHOTO}
+                  quality={quality}
+                  assetUrl={() => spec[quality]}
+                  showEmptySlots={false}
+                />
+              </div>
+            ))}
+          </div>,
+        );
+      },
+    },
     clip: CLIP,
     crops: () =>
       spread.elements.flatMap((el) =>
