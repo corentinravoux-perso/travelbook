@@ -18,7 +18,16 @@ export interface RecentProject {
   title: string;
   /** ISO 8601. */
   openedAt: string;
+  /** A `tb://cover/...` address, set when the project has a cover thumbnail. */
   coverThumb?: string;
+}
+
+/** A region of the page, in CSS px from its top left corner. */
+export interface CaptureRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /** The outcome of `photos.import`. The renderer adds `added` to its book and then saves. */
@@ -136,6 +145,13 @@ export interface TbApi {
     reveal(): Promise<void>;
     /** A folder dialog to choose where a new album goes; `null` when the user cancels it. */
     pickFolder(): Promise<string | null>;
+    /**
+     * Write the project's cover thumbnail (`cache/cover-thumb.jpg`, long edge 320 px) from what
+     * the window shows in `rect` (CSS px of the page). The renderer draws the cover there first.
+     */
+    captureCover(rect: CaptureRect): Promise<void>;
+    /** Does the open project have a cover thumbnail? It is a cache: false means rebuild it. */
+    hasCoverThumb(): Promise<boolean>;
   };
   photos: {
     /** The image files the user picks in a dialog; empty when they cancel. */

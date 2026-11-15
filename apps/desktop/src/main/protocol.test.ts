@@ -70,6 +70,7 @@ function rootsFor(layout: Layout, projectOpen = true): TbRoots {
     resourcesDir: layout.resourcesDir,
     asset: (id) => (Object.hasOwn(ASSETS, id) ? ASSETS[id] : undefined),
     libraryFile: (id) => (id === 'lib1' ? 'files/lib1.png' : undefined),
+    coverDir: (id) => (id === 'cov1' ? layout.projectDir : undefined),
   };
 }
 
@@ -88,6 +89,26 @@ describe.each([
   ['POSIX (decomposed accents)', NFD],
 ])('resolveTbUrl, %s paths', (_name, layout) => {
   const resolve = sut(layout);
+
+  describe('tb://cover', () => {
+    it('maps a cover id main handed out to the thumbnail in cache/', () => {
+      expect(resolve('tb://cover/cov1?v=123')).toEqual({
+        ok: true,
+        path: at(layout, layout.projectDir, 'cache', 'cover-thumb.jpg'),
+        root: layout.projectDir,
+      });
+    });
+
+    it('answers 404 for an id main did not hand out, even a well-formed one', () => {
+      expect(resolve('tb://cover/other')).toMatchObject({ ok: false, status: 404 });
+    });
+
+    it('refuses an id that is not a plain identifier, and extra path segments', () => {
+      expect(resolve('tb://cover/..%2Fx')).toMatchObject({ ok: false, status: 400 });
+      expect(resolve('tb://cover/cov1/more')).toMatchObject({ ok: false, status: 400 });
+      expect(resolve('tb://cover/')).toMatchObject({ ok: false, status: 400 });
+    });
+  });
 
   describe('tb://asset', () => {
     it('maps a thumbnail to cache/<id>.thumb.jpg', () => {

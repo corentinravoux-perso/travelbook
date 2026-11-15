@@ -12,6 +12,8 @@ export const CHANNEL = {
   projectReadSnapshot: 'project:readSnapshot',
   projectReveal: 'project:reveal',
   projectPickFolder: 'project:pickFolder',
+  projectCaptureCover: 'project:captureCover',
+  projectHasCoverThumb: 'project:hasCoverThumb',
   photosPick: 'photos:pick',
   photosImport: 'photos:import',
   assetsImportFiles: 'assets:importFiles',

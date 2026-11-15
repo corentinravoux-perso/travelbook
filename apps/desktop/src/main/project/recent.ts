@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { RecentProject } from '../../shared/api';
 import { userDataDir } from '../user-data';
 import { serialize, writeFileAtomic } from './atomic-write';
+import { coverThumbUrl } from './cover-thumb';
 
 export type { RecentProject };
 
@@ -31,9 +32,19 @@ async function readList(file: string): Promise<RecentProject[]> {
   return Array.isArray(parsed) ? parsed.filter(isRecentProject) : [];
 }
 
-/** Recently opened projects, most recent first. */
+/**
+ * Recently opened projects, most recent first. A project's cover thumbnail is looked up on disk
+ * each time (`tb://cover/<id>`), so a deleted cache simply shows no cover until it is rebuilt.
+ */
 export async function recentProjects(): Promise<RecentProject[]> {
-  return readList(join(await userDataDir(), FILE_NAME));
+  const list = await readList(join(await userDataDir(), FILE_NAME));
+  return Promise.all(
+    list.map(async (entry) => {
+      const coverThumb = (await coverThumbUrl(entry.dir)) ?? entry.coverThumb;
+      const base: RecentProject = { dir: entry.dir, title: entry.title, openedAt: entry.openedAt };
+      return coverThumb === undefined ? base : { ...base, coverThumb };
+    }),
+  );
 }
 
 /**

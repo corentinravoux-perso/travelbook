@@ -61,6 +61,7 @@ beforeEach(async () => {
     openExternal: vi.fn<Host['openExternal']>(async () => undefined),
     showInFolder: vi.fn<Host['showInFolder']>(),
     version: vi.fn<Host['version']>(() => '1.2.3'),
+    captureJpeg: vi.fn<Host['captureJpeg']>(async () => new Uint8Array([0xff, 0xd8, 0xff, 0xd9])),
     clipboard: { write: async () => undefined, read: async () => null },
   };
   progress = [];
@@ -315,6 +316,39 @@ describe('project', () => {
     const b = await create('B');
     const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
     expect(recent.map((r) => r.dir)).toEqual([b.dir, a.dir]);
+  });
+
+  describe('cover thumbnail', () => {
+    const rect = { x: 4, y: 8, width: 320, height: 240 };
+
+    it('has none until captured, then writes cache/cover-thumb.jpg and lists it as recent', async () => {
+      const created = await create();
+      expect(await call(CHANNEL.projectHasCoverThumb)).toBe(false);
+      await call(CHANNEL.projectCaptureCover, rect);
+      expect(host.captureJpeg).toHaveBeenCalledExactlyOnceWith(rect, 320);
+      expect([...(await readFile(join(created.dir, 'cache', 'cover-thumb.jpg')))]).toEqual([
+        0xff, 0xd8, 0xff, 0xd9,
+      ]);
+      expect(await call(CHANNEL.projectHasCoverThumb)).toBe(true);
+      const [entry] = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(entry?.coverThumb).toMatch(/^tb:\/\/cover\//);
+    });
+
+    it('needs an open project', async () => {
+      await expect(call(CHANNEL.projectCaptureCover, rect)).rejects.toThrow(/No project is open/);
+    });
+
+    it.each([
+      ['a float', { ...rect, x: 1.5 }],
+      ['a negative origin', { ...rect, y: -1 }],
+      ['a tiny region', { ...rect, width: 2 }],
+      ['a huge region', { ...rect, height: 100_000 }],
+      ['an extra key', { ...rect, path: '/etc/passwd' }],
+    ])('rejects %s before capturing', async (_label, bad) => {
+      await create();
+      await expect(call(CHANNEL.projectCaptureCover, bad)).rejects.toThrow(/project:captureCover/);
+      expect(host.captureJpeg).not.toHaveBeenCalled();
+    });
   });
 
   it('reveals book.json in the file manager', async () => {
