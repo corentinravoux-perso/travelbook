@@ -229,24 +229,22 @@ describe('posterLayout details', () => {
     expect(named(elements, 'Affiche · sous-titre')).toHaveLength(0);
   });
 
-  it('runs the classique illustration to the trim bottom plus bleed', () => {
-    const sticker = stickerOf(posterLayout(b, input(spec())).elements);
-    expect(sticker.y + sticker.h).toBeCloseTo(front.h + b.coverBleed, 6);
-  });
-
-  it('frames encadre with an accent rect around the header and the illustration', () => {
-    const { elements } = posterLayout(b, input(spec({ layout: 'encadre' })));
-    const [frame] = named(elements, 'Affiche · cadre');
-    expect(frame?.type).toBe('shape');
-    if (frame?.type !== 'shape') return;
-    expect(frame.shape).toBe('rect');
-    expect(frame.fill).toBeNull();
-    expect(frame.stroke).toEqual({ width: 0.8, color: validSpec.colors.accent });
-    const title = titleOf(elements);
-    expect(title.align).toBe('left');
-    expect(inside(boundingBox(title), frame)).toBe(true);
-    expect(inside(boundingBox(stickerOf(elements)), frame)).toBe(true);
-  });
+  it.each(['classique', 'empile'] as PosterLayout[])(
+    'centres the %s illustration in the space under the header, inside the margins',
+    (layout) => {
+      for (const ratio of [0.5, 1, 2]) {
+        const { elements } = posterLayout(b, input(spec({ layout, year: '2026' }), ratio));
+        const year = named(elements, 'Affiche · année')[0]!;
+        const sticker = stickerOf(elements);
+        const m = 0.07 * Math.min(front.w, front.h);
+        const top = year.y + year.h;
+        expect(sticker.y + sticker.h).toBeLessThanOrEqual(front.h - m + EPS);
+        const free = { top: sticker.y - top, bottom: front.h - m - (sticker.y + sticker.h) };
+        expect(Math.abs(free.top - free.bottom)).toBeLessThanOrEqual(m / 2 + EPS);
+        expect(sticker.x + sticker.w / 2).toBeCloseTo(front.x + front.w / 2, 6);
+      }
+    },
+  );
 
   it('draws a disc in the decor colour behind a soleil illustration', () => {
     const { elements } = posterLayout(b, input(spec({ layout: 'soleil' })));

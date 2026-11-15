@@ -771,6 +771,22 @@
       ]
     },
     {
+      "id": "lilita-one",
+      "family": "Lilita One",
+      "category": "titre",
+      "css": "'Lilita One', sans-serif",
+      "licence": {
+        "source": "Fontsource",
+        "author": "Copyright (c) 2011 Juan Montoreano (juan@remolacha.biz), with Reserved Font Names \"Lilita One\"",
+        "licence": "OFL-1.1",
+        "url": "https://fontsource.org/fonts/lilita-one",
+        "requiresAttribution": false
+      },
+      "faces": [
+        { "weight": 400, "style": "normal", "file": "lilita-one/lilita-one-latin-400-normal.woff2" }
+      ]
+    },
+    {
       "id": "special-elite",
       "family": "Special Elite",
       "category": "machine",

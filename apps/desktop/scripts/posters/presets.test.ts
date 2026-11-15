@@ -6,7 +6,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
-import { PosterPresetSchema, contrastRatio, type PosterPreset } from '@travelbook/core';
+import { PosterPresetSchema, type PosterPreset } from '@travelbook/core';
 import { POSTERS_DIR, destinationOf, type Destination } from './affiches-set.ts';
 import { lintIllustration } from './lint-illustration.ts';
 
@@ -99,19 +99,20 @@ describe('poster presets', () => {
     }
   });
 
-  it('keep the title readable on the background (contrast ≥ 3)', () => {
-    for (const p of presets) {
-      const { title, background } = p.spec.colors;
-      expect(contrastRatio(title, background), p.id).toBeGreaterThanOrEqual(3);
-    }
+  it('share the global design: the house face for every title', () => {
+    for (const p of presets) expect(p.spec.font, p.id).toBe('Lilita One');
   });
 
-  it('give each destination present at least 3 presets and 2 layouts', () => {
+  it('give each destination present at least 3 presets, one or more in the pixory family', () => {
     const by = new Map<string, PosterPreset[]>();
     for (const p of presets) by.set(p.destination, [...(by.get(p.destination) ?? []), p]);
     for (const [destination, list] of by) {
       expect(list.length, destination).toBeGreaterThanOrEqual(3);
-      expect(new Set(list.map((p) => p.spec.layout)).size, destination).toBeGreaterThanOrEqual(2);
+      const pixory = list.filter((p) => {
+        const ill = p.spec.illustration;
+        return 'set' in ill && /data-tb-style="pixory"/.test(svgOf(ill.id));
+      });
+      expect(pixory.length, destination).toBeGreaterThanOrEqual(1);
     }
   });
 

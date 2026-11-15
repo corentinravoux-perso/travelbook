@@ -30,7 +30,6 @@ export const POSTER_NAMES = {
   subtitle: 'Affiche · sous-titre',
   year: 'Affiche · année',
   illustration: 'Affiche · illustration',
-  frame: 'Affiche · cadre',
   decor: 'Affiche · décor',
   spine: 'Affiche · dos',
 } as const;
@@ -46,7 +45,6 @@ const TITLE_LINE_HEIGHT = 1.05;
 const SMALL_LINE_HEIGHT = 1.3;
 const YEAR_PT = 14;
 const SUBTITLE_PT = 9;
-const FRAME_STROKE: Mm = 0.8;
 /** Texts are fitted to this share of their box, so a browser's rounding never wraps them. */
 const FIT_SLACK = 0.98;
 /** Spine texts only on a spine at least this wide. */
@@ -175,12 +173,13 @@ function textElement(
 const linesHeight = (lines: Line[], lh: number): Mm =>
   lines.reduce((s, l) => s + l.pt * PT_MM * lh, 0);
 
-/** `ratio` (w / h) fitted in `box`, centred across, set on the box bottom. */
-function fitRatio(box: Rect, ratio: number): Rect {
+/** `ratio` (w / h) fitted in `box`, centred across, set on the box bottom or centred. */
+function fitRatio(box: Rect, ratio: number, base: 'bottom' | 'middle'): Rect {
   const w = Math.min(box.w, Math.max(box.h, 0) * ratio);
   const h = w / ratio;
   const x = box.x + (box.w - w) / 2;
-  return { x, y: box.y + box.h - h, w, h };
+  const y = base === 'bottom' ? box.y + box.h - h : box.y + (box.h - h) / 2;
+  return { x, y, w, h };
 }
 
 /** The line under the title: the subtitle on the left, the year on the right. */
@@ -283,8 +282,7 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
   const m = 0.07 * Math.min(fw, fh);
   const gap = 0.2 * m;
   const layout = spec.layout;
-  const framed = layout === 'encadre';
-  const inset = framed ? 1.5 * m : m;
+  const inset = m;
   const innerW = fw - 2 * inset;
 
   // Header.
@@ -306,19 +304,8 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
   const foot = fh + bleed;
   const cx = fx + fw / 2;
   let box: Rect;
+  let base: 'bottom' | 'middle' = 'bottom';
   switch (layout) {
-    case 'encadre': {
-      decor.push({
-        ...newElement('shape', { x: fx + m / 2, y: m / 2, w: fw - m, h: fh - m }),
-        name: POSTER_NAMES.frame,
-        shape: 'rect',
-        fill: null,
-        stroke: { width: FRAME_STROKE, color: spec.colors.accent },
-      });
-      const top = headerBottom + m / 2;
-      box = { x: fx + inset, y: top, w: innerW, h: fh - inset - top };
-      break;
-    }
     case 'arche': {
       // The arch is sized from the drawing: it spans 90 % of the arch's width, with head room
       // under the vault; the arch top comes down for a wide drawing, never above the header.
@@ -361,14 +348,15 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
       break;
     }
     default: {
-      // classique, empile: the illustration runs to the foot, into the bleed.
-      const top = Math.max(0.46 * fh, headerBottom + m / 2);
-      box = { x: fx + m, y: top, w: innerW, h: foot - top };
+      // classique, empile: the illustration centred in the space under the header.
+      const top = headerBottom + m / 2;
+      box = { x: fx + m, y: top, w: innerW, h: fh - m - top };
+      base = 'middle';
     }
   }
 
   const sticker = {
-    ...newElement('sticker', fitRatio(box, input.illustration.ratio)),
+    ...newElement('sticker', fitRatio(box, input.illustration.ratio, base)),
     name: POSTER_NAMES.illustration,
     assetId: input.illustration.assetId,
   };
