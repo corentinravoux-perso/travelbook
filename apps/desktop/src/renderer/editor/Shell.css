@@ -36,23 +36,27 @@
   flex: none;
 }
 .shell-top__mark {
-  font-size: var(--t-md);
+  font-family: var(--f-display);
+  font-size: 17px;
   font-weight: var(--w-semibold);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 .shell-top__title {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: var(--w-medium);
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: var(--w-regular);
+  letter-spacing: -0.005em;
 }
 .shell-top__grow {
   flex: 1;
 }
 .shell-sep {
   width: 1px;
-  height: 20px;
+  height: 18px;
   margin: 0 var(--s2);
   background: var(--line);
 }
@@ -67,12 +71,16 @@
   border-radius: var(--r1);
   color: var(--ink-2);
   transition:
-    background var(--fast),
-    color var(--fast);
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
 }
 .icon-button:hover:not(:disabled) {
-  background: var(--surface);
+  background: var(--sunken);
   color: var(--ink);
+}
+.icon-button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 .icon-button:disabled {
   opacity: 0.4;
@@ -114,7 +122,8 @@
   padding: var(--s2);
   border: 1px solid var(--line);
   border-radius: var(--r2);
-  background: var(--chrome);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
 }
 .view-menu__item {
   display: flex;
@@ -127,7 +136,7 @@
   text-align: left;
 }
 .view-menu__item:hover {
-  background: var(--surface);
+  background: var(--sunken);
 }
 .view-menu__check {
   width: 14px;
@@ -139,8 +148,8 @@
   grid-area: rail;
   display: flex;
   flex-direction: column;
-  gap: var(--s1);
-  padding: var(--s3) var(--s2);
+  gap: var(--s2);
+  padding: var(--s4) var(--s2);
   border-right: 1px solid var(--line);
   background: var(--chrome);
 }
@@ -148,22 +157,42 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px; /* optical: the label sits close to its icon, as in the sketch */
-  padding: var(--s3) 0 5px;
-  border-radius: var(--r1);
+  gap: 3px; /* optical: the label sits close to its icon */
+  padding: var(--s2) 0 var(--s3);
   font-size: var(--t-xxs);
   color: var(--ink-2);
+  transition: color var(--fast) var(--ease);
+}
+/* The icon sits in a chip: sunken on hover, inverted when its panel is open. */
+.shell-rail__item .icon {
+  box-sizing: content-box;
+  padding: 5px 11px;
+  border-radius: var(--r2);
   transition:
-    background var(--fast),
-    color var(--fast);
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease);
 }
 .shell-rail__item:hover {
-  background: var(--surface);
   color: var(--ink);
 }
+.shell-rail__item:hover .icon {
+  background: var(--sunken);
+}
 .shell-rail__item[aria-pressed='true'] {
+  color: var(--ink);
+  font-weight: var(--w-medium);
+}
+.shell-rail__item[aria-pressed='true'] .icon {
   background: var(--invert-bg);
   color: var(--invert-fg);
+  box-shadow: var(--shadow-1);
+}
+.shell-rail__item:focus-visible {
+  outline: none;
+}
+.shell-rail__item:focus-visible .icon {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 /* ---------- panel and inspector ---------- */
@@ -180,9 +209,11 @@
   border-right: 1px solid var(--line);
 }
 .shell-panel__title {
-  padding: var(--s4) var(--s5) var(--s3);
-  font-size: var(--t-lg);
+  padding: var(--s5) var(--s5) var(--s4);
+  font-family: var(--f-display);
+  font-size: var(--t-panel);
   font-weight: var(--w-semibold);
+  letter-spacing: -0.01em;
 }
 .shell-inspector {
   grid-area: inspector;
@@ -237,7 +268,7 @@
   inset: 0;
   overflow: hidden;
   background: var(--paper);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-paper);
 }
 
 /* The strip under each page: its name and "Mise en page aléatoire", in the bottom margin of the stage. */
@@ -275,7 +306,7 @@
 }
 button.page-bar__label:hover,
 .page-bar__random:hover:not(:disabled) {
-  background: var(--chrome);
+  background: color-mix(in srgb, var(--chrome) 85%, transparent);
 }
 .page-bar__label[aria-pressed='true'] {
   background: var(--invert-bg);
@@ -442,7 +473,8 @@ button.page-bar__label:hover,
   transform: translateX(-50%);
   border: 1px solid var(--line);
   border-radius: var(--r2);
-  background: var(--chrome);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
   font-size: var(--t-sm);
 }
 
@@ -509,14 +541,21 @@ button.page-bar__label:hover,
   font-size: var(--t-xs);
   font-variant-numeric: tabular-nums;
 }
+.tile {
+  transition:
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease),
+    color var(--fast) var(--ease);
+}
 .tile:hover {
-  background: var(--surface);
+  background: var(--sunken);
   color: var(--ink);
 }
 .tile[aria-current='true'] {
   border-color: var(--ink);
   background: var(--surface);
   color: var(--ink);
+  font-weight: var(--w-medium);
 }
 .tile[data-dragging] {
   opacity: 0.4;
@@ -547,7 +586,9 @@ button.page-bar__label:hover,
   display: block;
   overflow: hidden;
   background: var(--paper);
-  box-shadow: 0 0 0 1px var(--line);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.12);
   pointer-events: none;
 }
 .thumb__paper {
@@ -589,8 +630,10 @@ button.page-bar__label:hover,
   background: var(--chrome);
 }
 .overview__title {
-  font-size: var(--t-md);
+  font-family: var(--f-display);
+  font-size: var(--t-panel);
   font-weight: var(--w-semibold);
+  letter-spacing: -0.01em;
 }
 .overview__hint {
   min-width: 0;
@@ -672,8 +715,9 @@ button.page-bar__label:hover,
   max-width: calc(100% - 2 * var(--s4));
   padding: var(--s2);
   border: 1px solid var(--line);
-  border-radius: var(--r1);
-  background: var(--chrome);
+  border-radius: var(--r2);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
 }
 .cover-tools__hint {
   font-size: var(--t-xs);
@@ -705,7 +749,8 @@ button.page-bar__label:hover,
 .settings-group > legend {
   margin-bottom: var(--s4);
   padding: 0;
-  font-size: var(--t-md);
+  font-family: var(--f-display);
+  font-size: var(--t-lg);
   font-weight: var(--w-semibold);
   color: var(--ink);
 }
@@ -812,7 +857,8 @@ button.page-bar__label:hover,
   border: 1px solid var(--line);
   border-left: 3px solid var(--fair);
   border-radius: var(--r2);
-  background: var(--chrome);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
   font-size: var(--t-sm);
 }
 .missing-notice__body {

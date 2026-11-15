@@ -1,3 +1,7 @@
+/* The display face: titles, the app name and book titles (bundled, latin subset, OFL 1.1). */
+@import '@fontsource/source-serif-4/latin-400.css';
+@import '@fontsource/source-serif-4/latin-600.css';
+
 /*
  * Design tokens of direction A, "Gris neutre" (docs/design/visual-direction.md, taken from
  * docs/design/sketches/a-gris-neutre.html). The chrome has no hue: the only colours of the
@@ -7,6 +11,11 @@
 :root {
   /* Type: IBM Plex Sans, major-second scale around a 13 px base. */
   --f-ui: 'IBM Plex Sans', 'Noto Sans', 'DejaVu Sans', system-ui, sans-serif;
+  /* Display: a book face for the app name, headings, dialog titles and the book's own title. */
+  --f-display: 'Source Serif 4', 'Noto Serif', 'DejaVu Serif', Georgia, serif;
+  --t-display: 30px; /* the home heading */
+  --t-title: 20px; /* dialog titles */
+  --t-panel: 17px; /* panel titles */
   --t-xxs: 10.5px; /* rail labels, badges, meter scales */
   --t-xs: 11px;
   --t-sm: 12px;
@@ -28,13 +37,15 @@
   --s7: 24px;
   --s8: 32px;
 
-  /* Radii: controls, then cards inside panels. Nothing rounder. */
-  --r1: 2px;
-  --r2: 4px;
+  /* Radii: controls, then cards and floating panels, then dialogs. Paper and photos stay square. */
+  --r1: 4px;
+  --r2: 6px;
+  --r3: 10px;
 
-  /* Motion: hover and press, then panel swaps. Nothing moves by itself. */
-  --fast: 80ms;
-  --swap: 120ms;
+  /* Motion: hover and press, then panel swaps and dialogs. Nothing moves by itself. */
+  --fast: 120ms;
+  --swap: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
   /* Icons: Tabler outline, redrawn at stroke 1.5. */
   --icon: 18px;
@@ -50,14 +61,25 @@
   /* Colour roles, light theme. */
   color-scheme: light;
   --ground: #9b9b9b; /* workspace surround, around the page */
-  --chrome: #ececec; /* bars, rail, panels */
-  --surface: #f7f7f7; /* fields, cards, hover */
-  --line: #cfcfcf; /* hairlines */
-  --ink: #1f1f1f; /* primary text */
-  --ink-2: #5c5c5c; /* secondary text, idle icons */
-  --ink-3: #8a8a8a; /* tertiary text, counts, placeholders */
+  --chrome: #f0f0f0; /* bars, rail, panels */
+  --surface: #fafafa; /* fields, cards, hover */
+  --sunken: #e6e6e6; /* tracks: the segmented controls, the home shelf */
+  --line: #dcdcdc; /* hairlines between regions */
+  --line-strong: #c4c4c4; /* borders of fields and buttons */
+  --ink: #1a1a1a; /* primary text */
+  --ink-2: #585858; /* secondary text, idle icons */
+  --ink-3: #868686; /* tertiary text, counts, placeholders */
   --invert-bg: var(--ink); /* active and primary fill */
-  --invert-fg: #f7f7f7;
+  --invert-fg: #fafafa;
+  --halo: rgba(26, 26, 26, 0.12); /* soft ring round a focused field */
+
+  /* Elevation, neutral only: a hairline lift, a floating menu, a dialog, paper on the grey. */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.1), 0 24px 64px rgba(0, 0, 0, 0.22);
+  --shadow-paper:
+    0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 18px rgba(0, 0, 0, 0.16),
+    0 24px 48px -12px rgba(0, 0, 0, 0.22);
   --good: #3f7f52; /* resolution >= 250 ppp */
   --fair: #a8741a; /* resolution 150-250 ppp */
   --low: #b0413e; /* resolution < 150 ppp */
@@ -83,13 +105,22 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --ground: #474747;
-  --chrome: #262626;
-  --surface: #2f2f2f;
-  --line: #3a3a3a;
-  --ink: #e8e8e8;
-  --ink-2: #a3a3a3;
-  --ink-3: #767676;
-  --invert-fg: #1f1f1f;
+  --chrome: #222222;
+  --surface: #2c2c2c;
+  --sunken: #1a1a1a;
+  --line: #333333;
+  --line-strong: #474747;
+  --ink: #ececec;
+  --ink-2: #a6a6a6;
+  --ink-3: #7a7a7a;
+  --invert-fg: #1a1a1a;
+  --halo: rgba(236, 236, 236, 0.16);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.4), 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-paper:
+    0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.3),
+    0 24px 48px -12px rgba(0, 0, 0, 0.4);
   --good: #6fb283;
   --fair: #d6a24a;
   --low: #e07a76;

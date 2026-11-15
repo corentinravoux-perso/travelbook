@@ -51,7 +51,8 @@
   gap: var(--s4);
 }
 .export-preflight__title {
-  font-size: var(--t-md);
+  font-family: var(--f-display);
+  font-size: var(--t-lg);
   font-weight: var(--w-semibold);
 }
 
