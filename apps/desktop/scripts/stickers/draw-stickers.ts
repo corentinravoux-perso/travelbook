@@ -6,7 +6,7 @@
  * Every SVG of a generated set is rewritten; files whose id no drawing produces any more are
  * removed. The SVG files are committed, so the pack build does not need this script.
  */
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { type Drawing, render } from './draw/core.ts';
 import * as boheme from './draw/boheme.ts';
@@ -44,10 +44,39 @@ export async function drawSet({ SET, DRAWINGS }: DrawnSet, root = STICKERS_SRC_D
   return ids.size;
 }
 
+const LICENCES_FILE = join(STICKERS_SRC_DIR, '../LICENCES.json');
+
+/**
+ * List every file of `resources/stickers-src/` in `LICENCES.json` (one entry, our own work), as
+ * `scripts/resources-licences.test.ts` requires an entry per bundled file.
+ */
+export async function recordLicences(): Promise<number> {
+  const files: string[] = [];
+  for (const set of (await readdir(STICKERS_SRC_DIR, { withFileTypes: true })).filter((e) => e.isDirectory())) {
+    for (const name of (await readdir(join(STICKERS_SRC_DIR, set.name))).sort()) {
+      files.push(`stickers-src/${set.name}/${name}`);
+    }
+  }
+  const doc = JSON.parse(await readFile(LICENCES_FILE, 'utf8')) as {
+    entries: { files: string[]; source: string; author: string; licence: string; url: string }[];
+  };
+  doc.entries = doc.entries.filter((e) => !e.files.some((f) => f.startsWith('stickers-src/')));
+  doc.entries.push({
+    files: files.sort(),
+    source: 'travelbook',
+    author: 'Corentin Ravoux',
+    licence: 'MIT',
+    url: 'https://github.com/corentinravoux/travelbook',
+  });
+  await writeFile(LICENCES_FILE, `${JSON.stringify(doc, null, 2)}\n`);
+  return files.length;
+}
+
 if (import.meta.main) {
   const only = process.argv[2];
   for (const set of DRAWN_SETS) {
     if (only !== undefined && set.SET.id !== only) continue;
     console.log(`draw-stickers: ${set.SET.id}: ${await drawSet(set)} drawings`);
   }
+  console.log(`draw-stickers: LICENCES.json lists ${await recordLicences()} files`);
 }

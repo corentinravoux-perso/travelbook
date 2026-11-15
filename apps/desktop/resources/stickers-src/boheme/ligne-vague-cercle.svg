@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<path d="M337 219C331.2 254.7 326.2 308.3 303 331C279.8 353.7 229.3 354.2 198 355C166.7 355.8 136 356.3 115 336C94 315.7 81.5 266.3 72 233C62.5 199.7 46.5 158.8 58 136C69.5 113.2 112.2 109 141 96C169.8 83 198.2 54.5 231 58C263.8 61.5 320.3 90.2 338 117C355.7 143.8 342.8 183.3 337 219Z" fill="#a9c3b4"/>
+<path d="M50 200 C50 315.1, 174.9 387.6, 275 329.9 M275 329.9 C321.7 303.7, 349.3 253.5, 350 200 M350 200 C350.6 84.7, 225 12.8, 125 70.1 M125 70.1 C78.4 96.5, 50 146.1, 50 200 M50 200 C50 200, 50 200, 50 200" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56 250 C92 196.4, 132.7 171.6, 180 176 M180 176 C225.3 181.1, 245.8 203.1, 240 240 M240 240 C235.3 267.3, 220.8 277.9, 196 272 M196 272 C177.7 267.3, 172.9 256.6, 182 240 M182 240 C189.5 230.3, 198.8 229.2, 210 236" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M68 280 C122.6 267.9, 166.8 271.9, 200 290 M200 290 C239.6 309.1, 286.8 304.9, 340 280" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M84 320 C134.6 309.4, 176.3 311.5, 210 326 M210 326 C243.9 338.9, 279.2 338.1, 318 322" fill="none" stroke="#1d1b1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M130 196 C156.6 185.5, 183.8 184.5, 210 194 M110 220 C136.9 206.8, 164.9 203.2, 196 208" fill="none" stroke="#1d1b1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M262 140a24 24 0 1 0 48 0a24 24 0 1 0 -48 0Z" fill="#f7c85c"/>
+<path d="M262 140 C262 158.7, 281.9 169.4, 298 160.8 M298 160.8 C305.3 155.9, 310.7 148.2, 310 140 M310 140 C309.7 121, 290 109.7, 274 119.2 M274 119.2 C266.3 124, 261.9 131.4, 262 140 M262 140 C262 140, 262 140, 262 140" fill="none" stroke="#1d1b1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M370 49Q372.4 57.6 381 60Q372.4 62.4 370 71Q367.6 62.4 359 60Q367.6 57.6 370 49Z" fill="#1d1b1a"/>
+<path d="M34 341Q36 348 43 350Q36 352 34 359Q32 352 25 350Q32 348 34 341Z" fill="#1d1b1a"/>
+</svg>

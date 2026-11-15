@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340">
+<path d="M360 211C355.8 233.8 353.5 248.3 324 263C294.5 277.7 219.3 296 183 299C146.7 302 134 297.5 106 281C78 264.5 26.5 222.3 15 200C3.5 177.7 13 165.5 37 147C61 128.5 121.7 101.2 159 89C196.3 76.8 229.3 67.8 261 74C292.7 80.2 332.5 103.2 349 126C365.5 148.8 364.2 188.2 360 211Z" fill="#f3dcae"/>
+<path d="M120 230 C120.3 163.7, 146 129.9, 200 130 M200 130 C253.6 130.6, 280.4 163.6, 280 230" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M122 204 C174.3 219.2, 226.2 218.1, 278 204" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M121 222 C174 237.3, 225.9 237.1, 279 222" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M124 228 C68.3 227.4, 43.1 237.4, 48 256 M48 256 C60.6 284.9, 110.2 300.4, 200 300 M200 300 C288.9 299.9, 339.6 284.7, 352 256 M352 256 C356.9 237.7, 331.8 228.2, 276 228" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M246 226 C257 249.5, 258.6 271.7, 252 292 M262 226 C282.3 243.5, 292.7 261.5, 292 282" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M244 218 C236.3 205.6, 238 201.3, 252 202 M252 202 C258.6 204.1, 261 211.3, 258 222 M258 222 C267.1 209.3, 274.6 207, 280 214 M280 214 C282 221.5, 275.7 226.6, 262 226" fill="none" stroke="#1d1b1a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150 170 C183.7 163, 216.8 163.6, 250 170 M140 190 C179.5 183.3, 220.1 183.8, 260 190" fill="none" stroke="#1d1b1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M330 77Q332.9 87.1 343 90Q332.9 92.9 330 103Q327.1 92.9 317 90Q327.1 87.1 330 77Z" fill="#1d1b1a"/>
+<path d="M70 111Q72 118 79 120Q72 122 70 129Q68 122 61 120Q68 118 70 111Z" fill="#1d1b1a"/>
+<path d="M297 50a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z" fill="#1d1b1a"/>
+<path d="M106.5 70a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0Z" fill="#1d1b1a"/>
+</svg>
