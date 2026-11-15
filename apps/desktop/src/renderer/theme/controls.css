@@ -78,3 +78,41 @@
 .field__help.is-error {
   color: var(--low);
 }
+
+/* A segmented control: one pressed entry, the only inverted fill of its group. */
+.seg {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  overflow: hidden;
+}
+.seg button {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0 var(--s2);
+  border-right: 1px solid var(--line);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    background var(--fast),
+    color var(--fast);
+}
+.seg button:last-child {
+  border-right: 0;
+}
+.seg button:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.seg button[aria-pressed='true'] {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+/* Inside a segmented control the focus ring must not be clipped by its rounded border. */
+.seg button:focus-visible {
+  outline-offset: -2px;
+}

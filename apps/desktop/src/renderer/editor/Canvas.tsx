@@ -1,27 +1,49 @@
 import { spreadSize } from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 import { editorStore, findSpread, useEditor } from '../store/editor';
 import { MissingNotice } from './MissingNotice';
 import { fr } from '../strings/fr';
 import { assetUrl } from './assetUrl';
 import { CoverTools, SpineZone } from './CoverEditor';
+import { CropBar, CropOverlay, useCrop } from './CropMode';
+import { DpiBadges } from './DpiBadge';
 import { Guides } from './Guides';
+import { usePhotoDrop, usePhotoSwap } from './PhotoDrop';
 import { spreadName } from './pages';
 import { Selection } from './Selection';
 import { useShortcuts } from './shortcuts';
-import { elementAt, enclosedBy, normalizedRect, withGroups, type Pt } from './transform';
+import {
+  elementAt,
+  enclosedBy,
+  normalizedRect,
+  pointInElement,
+  withGroups,
+  type Pt,
+} from './transform';
 import { DRAG_SLOP_PX, useTransform } from './useTransform';
 import { useZoomPan } from './useZoomPan';
-import type { Rect } from '@travelbook/core';
+import type { PhotoElement, Rect } from '@travelbook/core';
+import './PhotoEditing.css';
 
 /** How long a notice stays up, in ms. */
 const NOTICE_MS = 5000;
 
 /**
  * The current spread, editable: click, Shift-click and marquee select; handles move, resize and
- * rotate; Ctrl+wheel and the keys zoom; Space-drag pans; overlays show the print guides. The
- * document is drawn by `SpreadView`; everything here sits on top of it, in screen px.
+ * rotate; Ctrl+wheel and the keys zoom; Space-drag pans; overlays show the print guides and the
+ * resolution of each photo. Photos drop on it (from the tray, or as files from the system),
+ * a click on an empty frame opens the photo picker, a double-click crops a photo, and Ctrl-drag
+ * swaps two photos. The document is drawn by `SpreadView`; everything here sits on top of it, in
+ * screen px.
  */
 export function Canvas() {
   const book = useEditor((s) => s.book);
@@ -49,6 +71,9 @@ export function Canvas() {
     [scale],
   );
   const transform = useTransform(toMm, scale);
+  const photoDrop = usePhotoDrop(toMm);
+  const swap = usePhotoSwap(toMm);
+  const crop = useCrop(hostRef, toMm);
   useShortcuts();
 
   // The selection holds only elements of this spread that still exist (undo, delete, new spread).
@@ -107,7 +132,15 @@ export function Canvas() {
       return;
     }
     if (e.button !== 0) return;
-    const hit = elementAt(spread, toMm(e.clientX, e.clientY));
+    const at = toMm(e.clientX, e.clientY);
+    // Crop mode: a press on the frame drags the photo inside it, a press anywhere else leaves.
+    if (crop.element) {
+      if (pointInElement(crop.element, at)) crop.startPan(e);
+      else crop.leave();
+      return;
+    }
+    editorStore.getState().closePicker();
+    const hit = elementAt(spread, at);
     if (!hit) {
       startMarquee(e, e.shiftKey);
       return;
@@ -123,8 +156,37 @@ export function Canvas() {
       );
       return;
     }
+    // Ctrl-drag of a placed photo onto another frame swaps their photos instead of moving it.
+    if ((e.ctrlKey || e.metaKey) && hit.type === 'photo' && hit.assetId !== null && !hit.locked) {
+      select([hit.id]);
+      swap.start(e, hit);
+      return;
+    }
     if (!selection.includes(hit.id)) select(group);
     transform.startMove(e);
+    if (hit.type === 'photo' && hit.assetId === null && !hit.locked) armSlotClick(e, hit);
+  };
+
+  /** A press and release on an empty frame, without a drag, opens the photo picker for it. */
+  const armSlotClick = (first: PointerEvent, slot: PhotoElement) => {
+    const end = (ev: globalThis.PointerEvent) => {
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+      const clicked =
+        ev.type === 'pointerup' &&
+        Math.hypot(ev.clientX - first.clientX, ev.clientY - first.clientY) < DRAG_SLOP_PX;
+      if (clicked) editorStore.getState().openPicker(slot.id);
+    };
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  };
+
+  const onDoubleClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (!spread || crop.element) return;
+    const hit = elementAt(spread, toMm(e.clientX, e.clientY));
+    if (hit?.type === 'photo' && hit.assetId !== null && !hit.locked) {
+      editorStore.getState().enterCrop(hit.id);
+    }
   };
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -143,6 +205,9 @@ export function Canvas() {
     <main className="shell-canvas" aria-label={fr.shell.canvas}>
       <MissingNotice />
       {book && spread && <CoverTools book={book} spread={spread} />}
+      {crop.element && (
+        <CropBar element={crop.element} onScale={crop.setScale} onDone={crop.leave} />
+      )}
       {notice !== null && (
         <p className="canvas-notice" role="status">
           {notice}
@@ -156,9 +221,14 @@ export function Canvas() {
         ref={hostRef}
         data-panning={panning || undefined}
         data-over-selection={hoverId !== null && selection.includes(hoverId) ? '' : undefined}
+        data-cropping={crop.element ? '' : undefined}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerLeave={() => setHoverId(null)}
+        onDoubleClick={onDoubleClick}
+        onDragOver={photoDrop.onDragOver}
+        onDragLeave={photoDrop.onDragLeave}
+        onDrop={photoDrop.onDrop}
       >
         {book && spread && size && (
           <div className="canvas-stage">
@@ -191,9 +261,14 @@ export function Canvas() {
                 scale={scale}
                 snap={transform.guides}
               />
+              <DpiBadges book={book} spread={spread} scale={scale} />
+              {crop.element && (
+                <CropOverlay element={crop.element} asset={crop.asset} scale={scale} />
+              )}
               <Selection
-                selected={selected}
-                hover={hover}
+                selected={crop.element ? [] : selected}
+                hover={crop.element ? undefined : hover}
+                target={swap.target ?? photoDrop.hover}
                 scale={scale}
                 onResize={(handle, e) => transform.startResize(handle, e)}
                 onRotate={(e) => transform.startRotate(e)}

@@ -29,13 +29,19 @@ interface Props {
   selected: Element[];
   /** The element under the pointer, drawn lightly. */
   hover: Element | undefined;
+  /** The frame a drag is about to drop onto (a photo from the tray, a swap), outlined. */
+  target?: Element | null;
   /** Px per mm. */
   scale: number;
   onResize(handle: ResizeHandle, e: PointerEvent): void;
   onRotate(e: PointerEvent): void;
 }
 
-const frame = (r: { x: number; y: number; w: number; h: number }, s: number): CSSProperties => ({
+/** The box of a rect of the page (mm) over the page drawn at `s` px per mm. */
+export const frame = (
+  r: { x: number; y: number; w: number; h: number },
+  s: number,
+): CSSProperties => ({
   left: r.x * s,
   top: r.y * s,
   width: r.w * s,
@@ -47,8 +53,8 @@ const frame = (r: { x: number; y: number; w: number; h: number }, s: number): CS
  * size at any zoom: a double outline on each selected element, and for the whole selection a box
  * with 8 handles and a rotation handle. A locked element is outlined and has no handles.
  */
-export function Selection({ selected, hover, scale, onResize, onRotate }: Props) {
-  if (selected.length === 0 && !hover) return null;
+export function Selection({ selected, hover, target, scale, onResize, onRotate }: Props) {
+  if (selected.length === 0 && !hover && !target) return null;
   const editable = selected.length > 0 && selected.every((el) => !el.locked);
   const single = selected.length === 1 ? selected[0]! : null;
   // One element is handled in its own, possibly turned, frame; several in the box around them.
@@ -61,6 +67,13 @@ export function Selection({ selected, hover, scale, onResize, onRotate }: Props)
         <div
           className="sel-hover"
           style={{ ...frame(hover, scale), transform: `rotate(${hover.rotation}deg)` }}
+        />
+      )}
+      {target && (
+        <div
+          className="sel-target"
+          data-testid="drop-target"
+          style={{ ...frame(target, scale), transform: `rotate(${target.rotation}deg)` }}
         />
       )}
       {selected.map((el) => (

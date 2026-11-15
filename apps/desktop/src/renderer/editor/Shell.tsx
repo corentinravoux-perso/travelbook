@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { PANELS, useEditor, editorStore, type PanelId } from '../store/editor';
+import { PANELS, useEditor, editorStore, findSpread, type PanelId } from '../store/editor';
 import { projectStore } from '../store/project';
+import { PhotosPanel } from '../panels/PhotosPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
@@ -9,6 +10,7 @@ import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
+import { PhotoInspector } from './inspector/PhotoInspector';
 import { ResizeHandle } from './ResizeHandle';
 import { SaveIndicator } from './SaveIndicator';
 import { SpreadStrip } from './SpreadStrip';
@@ -58,7 +60,7 @@ export function Shell() {
             controls="shell-inspector"
             onResize={resize('inspector')}
           />
-          <p className="shell-empty">{fr.shell.inspectorEmpty}</p>
+          <InspectorContent />
         </aside>
         <SpreadStrip />
         <CoverStage />
@@ -187,12 +189,27 @@ function Rail() {
   );
 }
 
+/** What the inspector shows: the properties of the selected photo; later tasks add the other kinds. */
+function InspectorContent() {
+  const book = useEditor((s) => s.book);
+  const spreadId = useEditor((s) => s.currentSpreadId);
+  const selection = useEditor((s) => s.selection);
+  const spread = findSpread(book, spreadId);
+  const only =
+    selection.length === 1 ? spread?.elements.find((el) => el.id === selection[0]) : undefined;
+  if (book !== null && spread !== undefined && only?.type === 'photo') {
+    return <PhotoInspector book={book} spreadId={spread.id} element={only} />;
+  }
+  return <p className="shell-empty">{fr.shell.inspectorEmpty}</p>;
+}
+
 function Panel({ width, onResize }: { width: number; onResize(width: number): void }) {
-  const name = fr.panels[useEditor((s) => s.panel)];
+  const panel = useEditor((s) => s.panel);
+  const name = fr.panels[panel];
   return (
     <section id="shell-panel" className="shell-panel" aria-label={fr.shell.panel(name)}>
       <h2 className="shell-panel__title">{name}</h2>
-      <p className="shell-empty">{fr.shell.panelEmpty}</p>
+      {panel === 'photos' ? <PhotosPanel /> : <p className="shell-empty">{fr.shell.panelEmpty}</p>}
       <ResizeHandle
         side="panel"
         width={width}

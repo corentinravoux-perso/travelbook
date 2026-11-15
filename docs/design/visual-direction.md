@@ -47,23 +47,27 @@ Nothing is rounder.
 
 ## Colour roles
 
-| Token         | Role                                        | Light     | Dark      |
-| ------------- | ------------------------------------------- | --------- | --------- |
-| `--ground`    | workspace surround, around the page         | `#9b9b9b` | `#474747` |
-| `--chrome`    | top bar, rail, panel, inspector, strip      | `#ececec` | `#262626` |
-| `--surface`   | fields, cards, hover fill                   | `#f7f7f7` | `#2f2f2f` |
-| `--line`      | hairlines between regions and around fields | `#cfcfcf` | `#3a3a3a` |
-| `--ink`       | primary text, focus ring                    | `#1f1f1f` | `#e8e8e8` |
-| `--ink-2`     | secondary text, idle icons, empty states    | `#5c5c5c` | `#a3a3a3` |
-| `--ink-3`     | tertiary text: counts, units, placeholders  | `#8a8a8a` | `#767676` |
-| `--invert-bg` | active and primary fill (= `--ink`)         | `#1f1f1f` | `#e8e8e8` |
-| `--invert-fg` | text on `--invert-bg`                       | `#f7f7f7` | `#1f1f1f` |
-| `--good`      | resolution good (>= 250 ppp)                | `#3f7f52` | `#6fb283` |
-| `--fair`      | resolution acceptable (150 to 250 ppp)      | `#a8741a` | `#d6a24a` |
-| `--low`       | resolution low (< 150 ppp)                  | `#b0413e` | `#e07a76` |
-| `--paper`     | blank paper of a page                       | `#ffffff` | `#ffffff` |
-| `--sel-inner` | inner line of the selection outline         | `#ffffff` | `#ffffff` |
-| `--sel-outer` | outer line of the selection outline         | `#000000` | `#000000` |
+| Token                                         | Role                                         | Light                           | Dark      |
+| --------------------------------------------- | -------------------------------------------- | ------------------------------- | --------- |
+| `--ground`                                    | workspace surround, around the page          | `#9b9b9b`                       | `#474747` |
+| `--chrome`                                    | top bar, rail, panel, inspector, strip       | `#ececec`                       | `#262626` |
+| `--surface`                                   | fields, cards, hover fill                    | `#f7f7f7`                       | `#2f2f2f` |
+| `--line`                                      | hairlines between regions and around fields  | `#cfcfcf`                       | `#3a3a3a` |
+| `--ink`                                       | primary text, focus ring                     | `#1f1f1f`                       | `#e8e8e8` |
+| `--ink-2`                                     | secondary text, idle icons, empty states     | `#5c5c5c`                       | `#a3a3a3` |
+| `--ink-3`                                     | tertiary text: counts, units, placeholders   | `#8a8a8a`                       | `#767676` |
+| `--invert-bg`                                 | active and primary fill (= `--ink`)          | `#1f1f1f`                       | `#e8e8e8` |
+| `--invert-fg`                                 | text on `--invert-bg`                        | `#f7f7f7`                       | `#1f1f1f` |
+| `--good`                                      | resolution good (>= 250 ppp)                 | `#3f7f52`                       | `#6fb283` |
+| `--fair`                                      | resolution acceptable (150 to 250 ppp)       | `#a8741a`                       | `#d6a24a` |
+| `--low`                                       | resolution low (< 150 ppp)                   | `#b0413e`                       | `#e07a76` |
+| `--paper`                                     | blank paper of a page                        | `#ffffff`                       | `#ffffff` |
+| `--sel-inner`                                 | inner line of the selection outline          | `#ffffff`                       | `#ffffff` |
+| `--sel-outer`                                 | outer line of the selection outline          | `#000000`                       | `#000000` |
+| `--badge-bg`                                  | chip over a photo: resolution badge, count   | `rgba(20,20,20,.82)`            | same      |
+| `--badge-fg`                                  | text on that chip                            | `#f2f2f2`                       | same      |
+| `--badge-ring`                                | white ring round a count chip on a thumbnail | `rgba(255,255,255,.7)`          | same      |
+| `--badge-good`, `--badge-fair`, `--badge-low` | dot of the resolution badge                  | `#6fb283`, `#d6a24a`, `#e07a76` | same      |
 
 `--ink-3` is for short secondary text only (a count next to a title, a unit after a number): it
 is below 4.5:1 on `--chrome`. Sentences such as empty states use `--ink-2`.
@@ -109,7 +113,8 @@ is out of date. The `Icon` component draws them inline in `currentColor`, 18 px 
 
 Current choices: Photos `photo`, Modèles `layout`, Stickers `sticker`, Fonds `background`,
 Texte `letter-t`, Formes `triangle-square-circle`, Annuler `arrow-back-up`, Rétablir
-`arrow-forward-up`, theme `moon` / `sun`.
+`arrow-forward-up`, theme `moon` / `sun`, Recadrer `crop`, Retourner `flip-horizontal` /
+`flip-vertical`, Retirer du cadre `photo-off`.
 
 ## Motion
 

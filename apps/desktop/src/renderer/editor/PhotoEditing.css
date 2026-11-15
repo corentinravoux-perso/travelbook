@@ -1,0 +1,123 @@
+/* Over the page while editing photos: resolution badges, crop mode, drop targets. */
+
+/* ---------- resolution badge (visual-direction.md, "Canvas") ---------- */
+.dpi-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.dpi-frame {
+  position: absolute;
+  box-sizing: border-box;
+}
+.dpi-badge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--r1);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font: var(--w-medium) var(--t-xxs) / 1 var(--f-ui);
+  white-space: nowrap;
+}
+.dpi-badge[data-compact] {
+  padding: 0 5px;
+}
+.dpi-badge__dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--badge-fair);
+}
+.dpi-badge[data-level='good'] .dpi-badge__dot {
+  background: var(--badge-good);
+}
+.dpi-badge[data-level='low'] .dpi-badge__dot {
+  background: var(--badge-low);
+}
+
+/* ---------- crop mode: the whole image dimmed around the frame ---------- */
+.canvas-scroller[data-cropping] {
+  cursor: grab;
+}
+.canvas-scroller[data-cropping]:active {
+  cursor: grabbing;
+}
+.crop-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.crop-frame {
+  position: absolute;
+  box-sizing: border-box;
+}
+.crop-flip {
+  position: absolute;
+  inset: 0;
+}
+.crop-image {
+  position: absolute;
+  max-width: none;
+  opacity: 0.5;
+}
+.crop-outline {
+  position: absolute;
+  inset: 0;
+  outline: 1px solid var(--sel-inner);
+  box-shadow: 0 0 0 2px var(--sel-outer);
+}
+.crop-bar {
+  position: absolute;
+  top: var(--s4);
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3) var(--s4);
+  max-width: calc(100% - 2 * var(--s5));
+  padding: var(--s3) var(--s4);
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--chrome);
+}
+.crop-bar__slider {
+  width: 160px;
+  margin: 0;
+  accent-color: var(--ink);
+}
+.crop-bar__value {
+  min-width: 4ch;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  text-align: right;
+}
+.crop-bar__hint {
+  flex-basis: 100%;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+
+/* ---------- a frame a drag is about to drop onto ---------- */
+.sel-target {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 2px solid var(--sel-inner);
+  box-shadow:
+    0 0 0 2px var(--sel-outer),
+    inset 0 0 0 2px var(--sel-outer);
+}

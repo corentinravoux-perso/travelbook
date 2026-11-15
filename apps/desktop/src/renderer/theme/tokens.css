@@ -66,6 +66,18 @@
   /* Selection on the canvas: the same in both themes, so it reads on any photo. */
   --sel-inner: #ffffff;
   --sel-outer: #000000;
+
+  /*
+   * Chips drawn over a photo (the resolution badge, the usage count on a thumbnail): the same in
+   * both themes, since the photo behind them does not follow the theme. The dots are the dark
+   * theme's resolution colours, the ones that read on the dark chip.
+   */
+  --badge-bg: rgba(20, 20, 20, 0.82);
+  --badge-fg: #f2f2f2;
+  --badge-ring: rgba(255, 255, 255, 0.7);
+  --badge-good: #6fb283;
+  --badge-fair: #d6a24a;
+  --badge-low: #e07a76;
 }
 
 :root[data-theme='dark'] {

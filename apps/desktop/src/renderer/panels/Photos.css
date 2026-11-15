@@ -1,0 +1,242 @@
+/* Photos panel (the tray) and the photo picker, direction A: hairlines, inverted active state, no hue. */
+.photos {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ---------- controls ---------- */
+.photos__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: 0 var(--s5) var(--s4);
+}
+.photos__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.photos__caption {
+  flex: none;
+  width: 52px;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.photos__count {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+/* ---------- import progress and failures ---------- */
+.photos__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: 0 var(--s5) var(--s4);
+}
+.photos__progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.progress {
+  height: 4px;
+  border-radius: var(--r1);
+  background: var(--line);
+  overflow: hidden;
+}
+.progress__bar {
+  height: 100%;
+  background: var(--ink);
+}
+.photos__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  margin: 0 var(--s5) var(--s4);
+  padding: var(--s4) var(--s3) var(--s4) var(--s4);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--low);
+  border-radius: var(--r2);
+  background: var(--surface);
+  font-size: var(--t-sm);
+}
+.photos__notice-body {
+  flex: 1;
+  min-width: 0;
+}
+.photos__notice-title {
+  font-weight: var(--w-medium);
+}
+.photos__notice-list {
+  max-height: 96px;
+  margin: var(--s2) 0;
+  padding-left: var(--s6);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  font-size: var(--t-xs);
+}
+.photos__notice-hint {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+
+/* ---------- the virtualised grid ---------- */
+.photo-grid {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.photo-grid__content {
+  position: relative;
+}
+.photo-grid__row {
+  position: absolute;
+  left: var(--s5);
+  right: var(--s5);
+}
+.photo-grid__row--photos {
+  display: grid;
+  gap: 3px; /* the grid's own GAP (gridLayout.ts) */
+}
+.photo-grid__row--photos > div {
+  min-width: 0;
+}
+.photo-day {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100%;
+  padding-bottom: var(--s2);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.photo-day__check {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 0;
+  cursor: pointer;
+}
+.photo-day__check input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--ink);
+}
+.photo-day__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.photo-day__count {
+  flex: none;
+  color: var(--ink-3);
+}
+
+/* ---------- a thumbnail ---------- */
+.photo-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--line);
+  cursor: grab;
+}
+.photo-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-thumb[aria-pressed='true'] {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.photo-thumb:not([draggable='true']) {
+  cursor: pointer;
+}
+.photo-thumb__uses {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  box-shadow: 0 0 0 1px var(--badge-ring);
+  color: var(--badge-fg);
+  font-size: var(--t-xxs);
+  line-height: 16px;
+  text-align: center;
+}
+
+/* ---------- empty tray, import button, drop overlay ---------- */
+.photos__empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s3);
+  margin: var(--s4) var(--s5);
+  padding: var(--s5);
+  border: 1px dashed var(--ink-3);
+  border-radius: var(--r1);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  text-align: center;
+}
+.photos__empty-title {
+  font-weight: var(--w-medium);
+  color: var(--ink);
+}
+.photos__import {
+  flex: none;
+  margin: var(--s4) var(--s5) var(--s5);
+}
+.photos__drop {
+  position: absolute;
+  inset: var(--s3);
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--ink);
+  border-radius: var(--r2);
+  background: color-mix(in srgb, var(--chrome) 90%, transparent);
+  font-weight: var(--w-medium);
+  pointer-events: none;
+}
+
+/* ---------- the picker, over the tray ---------- */
+.photo-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--chrome);
+}
+.photo-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--s4) var(--s2) var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+.photo-picker__title {
+  font-size: var(--t-sm);
+  font-weight: var(--w-semibold);
+}
+.photo-picker__hint {
+  padding: var(--s3) var(--s5) var(--s2);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
