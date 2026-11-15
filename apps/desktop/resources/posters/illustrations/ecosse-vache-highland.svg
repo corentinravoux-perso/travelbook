@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 780">
+  <!-- Ground -->
+  <path fill="#6f7f3e" d="M60 780c40-46 200-64 440-64s400 18 440 64z"/>
+  <!-- Far legs and far horn, in shadow / behind -->
+  <path class="tb-shade" fill="#7f3a1c" d="M330 560h58l-6 160h-44z"/>
+  <path class="tb-shade" fill="#7f3a1c" d="M760 556h60l-4 164h-46z"/>
+  <path fill="#e8dcc4" d="M262 214c40-30 80-90 76-150 22 40 14 120-46 176z"/>
+  <!-- Tail -->
+  <path class="tb-shade" fill="#7f3a1c" d="M878 330q38 110 26 220h-14q12-104-24-212z"/>
+  <path class="tb-main" fill="#b5562a" d="M890 530l34 6 4 76-20 20-26-24z"/>
+  <!-- Body with a shaggy hem -->
+  <path class="tb-main" fill="#b5562a" d="M300 300c20-50 80-70 160-70h300c90 0 140 50 140 130v150c0 10-4 20-12 26l-22 50-26-40-26 44-28-44-28 46-28-44-28 46-28-46-28 46-28-46-28 46-28-46-28 46-28-46-28 46-28-46-26 44-24-50c-8-30-10-80-10-130z"/>
+  <!-- Near legs -->
+  <path class="tb-main" fill="#b5562a" d="M402 580h62l-6 140h-48z"/>
+  <path class="tb-main" fill="#b5562a" d="M680 580h64l-6 140h-48z"/>
+  <!-- Hooves -->
+  <path fill="#2b2723" d="M336 716h44l4 24h-52zM410 716h48l4 24h-56zM768 716h44l4 24h-52zM688 716h50l4 24h-58z"/>
+  <!-- Locks of the coat -->
+  <path class="tb-shade" fill="#7f3a1c" d="M520 300c40 10 60 50 50 100-10-30-30-60-60-70z"/>
+  <path class="tb-shade" fill="#7f3a1c" d="M660 280c44 10 66 54 56 108-12-34-34-64-66-76z"/>
+  <path class="tb-shade" fill="#7f3a1c" d="M790 300c40 14 56 60 42 112-10-36-28-66-56-80z"/>
+  <path class="tb-shade" fill="#7f3a1c" d="M600 420c40 10 60 50 50 96-10-28-30-56-60-66z"/>
+  <path class="tb-shade" fill="#7f3a1c" d="M740 430c40 10 58 50 48 94-10-28-28-54-58-64z"/>
+  <path class="tb-shade" fill="#7f3a1c" d="M470 440c38 10 56 46 46 90-10-26-28-52-56-62z"/>
+  <!-- Neck, joining the head to the back -->
+  <path class="tb-main" fill="#b5562a" d="M240 232c50-30 110-20 150 10l40 200-150 40z"/>
+  <!-- Head -->
+  <path class="tb-main" fill="#b5562a" d="M330 250c-20-30-70-40-120-30-50 10-80 40-90 90l-40 120c-10 40 10 70 50 76l110 10c50 4 90-30 100-80l20-110z"/>
+  <!-- Muzzle -->
+  <path fill="#2b2723" d="M80 440c-6 34 14 60 50 64l60 4c10-30 0-60-30-76l-50-14c-14 2-26 10-30 22z"/>
+  <circle class="tb-shade" fill="#7f3a1c" cx="104" cy="458" r="9"/>
+  <!-- Ear -->
+  <path class="tb-shade" fill="#7f3a1c" d="M300 270l60-20-10 46-40 10z"/>
+  <!-- Near horn -->
+  <path fill="#e8dcc4" d="M232 228c-50-20-110-60-130-130-6 40 10 110 90 160z"/>
+  <path fill="#2b2723" d="M102 98c-6 20-4 40 4 58l14-14c-8-12-14-28-18-44z"/>
+  <!-- Fringe over the eyes -->
+  <path class="tb-shade" fill="#7f3a1c" d="M130 300c20-60 80-90 150-80 40 6 60 30 60 60l-30 30-20-30-24 40-22-40-26 46-22-44-28 44-20-40-24 40c-10-20-4-40 6-56z"/>
+</svg>

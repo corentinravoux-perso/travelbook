@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000">
+  <!-- Pillars, wider at the foot; shadow on their right side -->
+  <path class="tb-main" fill="#c8423b" d="M292 240h76l14 760h-104z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M342 240h26l14 760h-40z"/>
+  <path class="tb-main" fill="#c8423b" d="M832 240h76l14 760h-104z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M882 240h26l14 760h-40z"/>
+  <!-- Black feet -->
+  <path fill="#2b2723" d="M274 912h112l4 88h-120z"/>
+  <path fill="#2b2723" d="M814 912h112l4 88h-120z"/>
+  <!-- Tie beam (nuki), its underside in shadow, and its wedges -->
+  <path class="tb-main" fill="#c8423b" d="M196 376h808l-10 56H206z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M204 418h792l-2 14H206z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M250 364h30v80h-30zM920 364h30v80h-30z"/>
+  <!-- Central strut and its plaque -->
+  <path class="tb-main" fill="#c8423b" d="M578 250h44v130h-44z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M606 250h16v130h-16z"/>
+  <rect fill="#2b2723" x="544" y="276" width="112" height="84" rx="6"/>
+  <rect class="tb-main" fill="#c8423b" x="562" y="292" width="76" height="52" rx="3"/>
+  <!-- Lower lintel (shimaki), curved -->
+  <path class="tb-main" fill="#c8423b" d="M108 160Q600 290 1092 160v50Q600 340 108 210z"/>
+  <path class="tb-shade" fill="#8f2c27" d="M108 196Q600 326 1092 196v14Q600 340 108 210z"/>
+  <!-- Top lintel (kasagi), black, ends turned up -->
+  <path fill="#2b2723" d="M36 88Q600 210 1164 88l-30 70Q600 290 66 158z"/>
+</svg>
