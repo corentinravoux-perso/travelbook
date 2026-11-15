@@ -14,7 +14,9 @@
  * `resources/stickers/fr-keywords.json` (French word to English icon words), used backwards: an
  * icon whose name contains `suitcase` gets `valise`.
  *
- * One local set comes first: `affiches`, the poster illustrations of `resources/posters/` (our own
+ * The drawn sets of `resources/stickers-src/` come first (our own drawings, MIT, see
+ * `scripts/stickers/local-sets.ts`); a `recommandes` set copies the picks its `meta.json` lists
+ * from them. Then comes `affiches`, the poster illustrations of `resources/posters/` (our own
  * drawings, see `scripts/posters/affiches-set.ts`). It is skipped while that folder is empty.
  */
 import { createHash } from 'node:crypto';
@@ -35,6 +37,7 @@ import {
   illustrationFiles,
   readAffichesSet,
 } from './posters/affiches-set.ts';
+import { LOCAL_LICENCE, localSetFiles, readLocalSets } from './stickers/local-sets.ts';
 
 const require = createRequire(import.meta.url);
 
@@ -416,6 +419,45 @@ async function buildAffiches(): Promise<ManifestSet | null> {
   };
 }
 
+/** The drawn sets of `resources/stickers-src/`, then the "Recommandés" set made of their picks. */
+async function buildLocalSets(): Promise<ManifestSet[]> {
+  const sets = await readLocalSets();
+  const byId = new Map(sets.map((s) => [s.id, s]));
+  for (const set of sets) {
+    if (set.docs.length > 0 || set.picks.length === 0) continue;
+    for (const pick of set.picks) {
+      const [from, id] = pick.split('/') as [string, string];
+      const source = byId.get(from);
+      const doc = source?.docs.find((d) => d.id === id);
+      if (source === undefined || doc === undefined) {
+        throw new Error(`stickers: ${set.id}: unknown pick ${pick}`);
+      }
+      const key = `${from}-${id}`;
+      set.pack.icons[key] = source.pack.icons[id]!;
+      set.pack.views[key] = source.pack.views[id]!;
+      set.docs.push({ ...doc, id: key, name: key, category: source.name });
+    }
+  }
+  const out: ManifestSet[] = [];
+  for (const set of sets) {
+    if (set.docs.length === 0) continue;
+    const index = new MiniSearch<StickerDoc>(INDEX_OPTIONS);
+    index.addAll(set.docs);
+    await writeFile(join(PACKS_DIR, `${set.id}.pack.json`), JSON.stringify(set.pack));
+    await writeFile(join(PACKS_DIR, `${set.id}.index.json`), JSON.stringify(index));
+    out.push({
+      id: set.id,
+      name: set.name,
+      count: set.docs.length,
+      licence: LOCAL_LICENCE,
+      mono: false,
+      pack: `${set.id}.pack.json`,
+      index: `${set.id}.index.json`,
+    });
+  }
+  return out;
+}
+
 /** Hash of everything the packs are made from; a matching manifest means nothing to rebuild. */
 async function inputsHash(): Promise<string> {
   const hash = createHash('sha256');
@@ -424,6 +466,8 @@ async function inputsHash(): Promise<string> {
     join(import.meta.dirname, '../src/main/library/stickers/indexConfig.ts'),
     KEYWORDS_FILE,
     join(import.meta.dirname, 'posters/affiches-set.ts'),
+    join(import.meta.dirname, 'stickers/local-sets.ts'),
+    ...(await localSetFiles()),
     join(POSTERS_DIR, 'keywords.json'),
     join(POSTERS_DIR, 'destinations.json'),
     ...(await illustrationFiles()).map((name) => join(POSTERS_DIR, 'illustrations', name)),
@@ -475,6 +519,10 @@ export async function buildStickerPacks(
   const reverse = await reverseKeywords();
   const sets: ManifestSet[] = [];
   const dropped: Manifest['dropped'] = [];
+  for (const set of await buildLocalSets()) {
+    log(`stickers: ${set.id}: ${set.count} drawings (MIT)`);
+    sets.push(set);
+  }
   const affiches = await buildAffiches();
   if (affiches === null) log('stickers: affiches: no illustration, skipped');
   else {

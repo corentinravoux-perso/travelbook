@@ -1,0 +1,64 @@
+{
+ "name": "Bohème",
+ "order": 3,
+ "categories": {
+  "ligne": "Ligne et couleur",
+  "fleur": "Fleurs",
+  "brin": "Brins et feuilles",
+  "tropique": "Tropiques"
+ },
+ "keywords": {
+  "ligne-bouteille-coupe": [
+   "bouteille",
+   "vin",
+   "champagne",
+   "coupe",
+   "verre",
+   "apéro",
+   "fête"
+  ],
+  "ligne-soleil-lune": [
+   "soleil",
+   "lune",
+   "nuit",
+   "ciel",
+   "étoile",
+   "bohème"
+  ],
+  "fleur-turquoise-prune": [
+   "fleur",
+   "turquoise",
+   "bleu",
+   "violet"
+  ],
+  "fleur-corail-etoile": [
+   "fleur",
+   "corail",
+   "orange",
+   "lys"
+  ],
+  "brin-coeurs": [
+   "brin",
+   "coeur",
+   "amour",
+   "tige",
+   "fleur"
+  ],
+  "brin-feuilles-ovales": [
+   "brin",
+   "feuille",
+   "eucalyptus",
+   "branche",
+   "vert"
+  ],
+  "tropique-hibiscus-monstera": [
+   "hibiscus",
+   "monstera",
+   "tropical",
+   "île",
+   "été",
+   "fleur",
+   "feuille"
+  ]
+ }
+}
