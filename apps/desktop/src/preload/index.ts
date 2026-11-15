@@ -63,6 +63,10 @@ const tb: TbApi = {
       delete: (templateId) => ipcRenderer.invoke(CHANNEL.libraryTemplateDelete, templateId),
     },
   },
+  clipboard: {
+    writeElements: (payload) => ipcRenderer.invoke(CHANNEL.clipboardWrite, payload),
+    readElements: () => ipcRenderer.invoke(CHANNEL.clipboardRead),
+  },
   exporter: {},
   app: {
     version: () => ipcRenderer.invoke(CHANNEL.appVersion),

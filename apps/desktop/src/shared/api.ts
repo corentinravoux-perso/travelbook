@@ -1,6 +1,6 @@
 // TbApi and all IPC payload types live here. Types only: this file is compiled for the renderer,
 // the preload and the main process alike.
-import type { AssetRef, Book, Licence, Template } from '@travelbook/core';
+import type { AssetRef, Book, Element, Licence, Template } from '@travelbook/core';
 
 /** One entry of a project's `history/` folder. */
 export interface SnapshotInfo {
@@ -103,6 +103,15 @@ export interface LibraryApi {
   };
 }
 
+/** Elements on the system clipboard (`application/x-travelbook`), with what they need. */
+export interface ClipboardPayload {
+  /** Where they were copied from: pasting back there shifts them so they do not hide the originals. */
+  origin: { bookId: string; spreadId: string };
+  elements: Element[];
+  /** The assets the elements use, as the source album knows them. */
+  assets: AssetRef[];
+}
+
 /** Filled in by phase 7. */
 export type ExportApi = Record<string, never>;
 
@@ -151,6 +160,15 @@ export interface TbApi {
     palette(assetIds: string[]): Promise<string[]>;
   };
   library: LibraryApi;
+  clipboard: {
+    writeElements(payload: ClipboardPayload): Promise<void>;
+    /**
+     * The elements on the clipboard, or `null`. Files of assets this album does not hold are
+     * copied in from the album they came from before it resolves; `assets` are then all in the
+     * open project, and the caller adds the missing ones to its book through `store.apply`.
+     */
+    readElements(): Promise<ClipboardPayload | null>;
+  };
   exporter: ExportApi;
   app: {
     version(): Promise<string>;

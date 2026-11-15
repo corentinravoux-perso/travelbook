@@ -1,4 +1,12 @@
-import { app, dialog, shell, type BrowserWindow, type OpenDialogOptions } from 'electron';
+import {
+  app,
+  clipboard,
+  ClipboardItem,
+  dialog,
+  shell,
+  type BrowserWindow,
+  type OpenDialogOptions,
+} from 'electron';
 import type { CloseChoice } from './close-guard';
 import { fr } from '../renderer/strings/fr';
 import type { Host } from './ipc';
@@ -32,6 +40,16 @@ export function createElectronHost(window: () => BrowserWindow | null): Host {
     openExternal: (url) => shell.openExternal(url),
     showInFolder: (path) => shell.showItemInFolder(path),
     version: () => app.getVersion(),
+    clipboard: {
+      write: (type, data) =>
+        clipboard.write([new ClipboardItem({ [type]: new Blob([data], { type }) })]),
+      read: async (type) => {
+        const item = (await clipboard.read()).find((i) => i.types.includes(type));
+        if (!item) return null;
+        const data = await item.getType(type);
+        return data instanceof Blob ? data.text() : null;
+      },
+    },
   };
 }
 

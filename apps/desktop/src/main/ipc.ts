@@ -5,6 +5,7 @@ import { BookSchema, TemplateSchema } from '@travelbook/core';
 import { z } from 'zod';
 import type { LibraryItem } from '../shared/api';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
+import { clipboardPayload, readElements, writeElements, type ClipboardHost } from './clipboard';
 import { importAssetFiles } from './assets/import-files';
 import { dominantColours } from './assets/palette';
 import { deleteUserTemplate, listUserTemplates, saveUserTemplate } from './library/templates';
@@ -47,6 +48,8 @@ export interface Host {
   openExternal(url: string): Promise<void>;
   showInFolder(path: string): void;
   version(): string;
+  /** The system clipboard. */
+  clipboard: ClipboardHost;
 }
 
 export interface HandlerContext {
@@ -111,6 +114,7 @@ const schemas = {
   template: z.tuple([TemplateSchema]),
   templateId: z.tuple([identifier]),
   palette: z.tuple([z.array(identifier).max(500)]),
+  clipboardWrite: z.tuple([clipboardPayload]),
   externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),
 };
 
@@ -307,6 +311,17 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.libraryTemplateDelete]: async (_ctx, ...args) => {
       const [templateId] = parseArgs(CHANNEL.libraryTemplateDelete, schemas.templateId, args);
       await deleteUserTemplate(templateId);
+    },
+
+    [CHANNEL.clipboardWrite]: async (_ctx, ...args) => {
+      const [payload] = parseArgs(CHANNEL.clipboardWrite, schemas.clipboardWrite, args);
+      await writeElements(host.clipboard, requireSession(), payload);
+    },
+
+    [CHANNEL.clipboardRead]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.clipboardRead, schemas.none, args);
+      const session = requireSession();
+      return serialize(importQueue(session), () => readElements(host.clipboard, session));
     },
 
     [CHANNEL.appVersion]: async (_ctx, ...args) => {
