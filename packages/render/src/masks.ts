@@ -328,6 +328,26 @@ function shapeSvg(mask: Mask, size: { w: Mm; h: Mm }, filter: string): string {
 }
 
 /**
+ * The SVG of the feather mask (see `featherCss`), in the mm viewBox of the frame; undefined when
+ * there is no feather. Shared with the export derivative, which bakes it as an alpha channel.
+ */
+export function featherMaskSvg(
+  mask: Mask,
+  size: { w: Mm; h: Mm },
+  feather: Mm,
+): string | undefined {
+  if (!(feather > 0 && size.w > 0 && size.h > 0)) return undefined;
+  const width = Math.min(feather, Math.min(size.w, size.h) / 2);
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${round(size.w)} ${round(size.h)}" preserveAspectRatio="none">` +
+    `<filter id="f" x="0" y="0" width="1" height="1">` +
+    `<feMorphology operator="erode" radius="${round(width / 2)}"/>` +
+    `<feGaussianBlur stdDeviation="${round(width / 4)}"/>` +
+    `</filter>${shapeSvg(mask, size, 'url(#f)')}</svg>`
+  );
+}
+
+/**
  * A CSS mask that fades the outline of a frame: nothing at the edge, all of the photo `feather` mm
  * inside it. The mask is an SVG image the size of the frame (so it follows the shape of the
  * frame's own mask): the shape drawn eroded by half the feather, then blurred by a quarter of it
@@ -339,14 +359,8 @@ export function featherCss(
   size: { w: Mm; h: Mm },
   feather: Mm,
 ): FeatherCss | undefined {
-  if (!(feather > 0 && size.w > 0 && size.h > 0)) return undefined;
-  const width = Math.min(feather, Math.min(size.w, size.h) / 2);
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${round(size.w)} ${round(size.h)}" preserveAspectRatio="none">` +
-    `<filter id="f" x="0" y="0" width="1" height="1">` +
-    `<feMorphology operator="erode" radius="${round(width / 2)}"/>` +
-    `<feGaussianBlur stdDeviation="${round(width / 4)}"/>` +
-    `</filter>${shapeSvg(mask, size, 'url(#f)')}</svg>`;
+  const svg = featherMaskSvg(mask, size, feather);
+  if (svg === undefined) return undefined;
   // encodeURIComponent leaves ' ( ) alone: a data URI with none of them needs no quoting care.
   const uri = encodeURIComponent(svg).replace(
     /['()]/g,

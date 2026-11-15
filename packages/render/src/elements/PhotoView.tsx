@@ -168,7 +168,14 @@ export function PhotoView({
           {empty ? (
             <EmptySlot el={el} />
           ) : (
-            <div data-role="flip" style={{ ...FILL, transform: flipTransform(el.flipH, el.flipV) }}>
+            <div
+              data-role="flip"
+              style={{
+                ...FILL,
+                // The export derivative is mirrored already (Task 7.1).
+                transform: quality === 'export' ? undefined : flipTransform(el.flipH, el.flipV),
+              }}
+            >
               <img
                 src={assetUrl(el.assetId as string, quality, el)}
                 alt=""

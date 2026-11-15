@@ -12,8 +12,8 @@ const DEV_CSP =
 export default defineConfig(({ mode }) => ({
   main: {
     // Dependencies of this package stay external (sharp and exifr must load from node_modules),
-    // except @travelbook/core: its `main` is TypeScript source, which Node cannot load.
-    build: { externalizeDeps: { exclude: ['@travelbook/core'] } },
+    // except @travelbook/core and @travelbook/render (masks only): their `main` is TypeScript source, which Node cannot load.
+    build: { externalizeDeps: { exclude: ['@travelbook/core', '@travelbook/render'] } },
   },
   preload: {
     // Sandboxed preloads cannot be ES modules: emit CommonJS.

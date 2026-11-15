@@ -18,6 +18,7 @@ export const FIXTURE_NAMES = [
   'portrait-o6.jpg',
   'pano.jpg',
   'small.jpg',
+  'band-o6.jpg',
   'truncated.jpg',
   'alpha.png',
   'opaque.png',
@@ -111,6 +112,20 @@ const BUILDERS: Record<FixtureName, () => Promise<Buffer | string>> = {
   'portrait-o6.jpg': () => jpeg(6000, 4000, { orientation: 6 }),
   'pano.jpg': () => jpeg(12000, 3000),
   'small.jpg': () => jpeg(800, 600),
+  // Stored 800 x 600 with Orientation 6 (shown 600 x 800): a red band along the stored left edge,
+  // which is the true TOP of the upright photo; the rest is mid-grey.
+  'band-o6.jpg': () =>
+    sharp({ create: { width: 800, height: 600, channels: 3, background: '#808080' } })
+      .composite([
+        {
+          input: { create: { width: 80, height: 600, channels: 3, background: '#ff0000' } },
+          left: 0,
+          top: 0,
+        },
+      ])
+      .jpeg({ quality: 95 })
+      .withMetadata({ orientation: 6 })
+      .toBuffer(),
   'truncated.jpg': async () => {
     const whole = await readFile(fixturePath('small.jpg'));
     if (whole.length <= 4096) throw new Error('small.jpg is too small to truncate at 4 kB');
