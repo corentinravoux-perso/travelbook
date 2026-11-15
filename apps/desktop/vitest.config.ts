@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     name: 'desktop',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     // Main-process modules run in plain Node. A renderer test that needs a DOM opts in with a
     // `// @vitest-environment jsdom` docblock.
     environment: 'node',

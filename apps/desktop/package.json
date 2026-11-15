@@ -12,13 +12,16 @@
     "build": "electron-vite build",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
     "test": "vitest run --passWithNoTests",
+    "icons": "node scripts/generate-icons.ts",
     "e2e": "electron-vite build --mode e2e && playwright test",
     "dist:linux": "npm run build && electron-builder --linux deb",
     "dist:win": "npm run build && electron-builder --win nsis"
   },
   "devDependencies": {
+    "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/inter": "5.3.0",
     "@fontsource/lora": "5.3.0",
+    "@iconify-json/tabler": "1.2.43",
     "@playwright/test": "1.65.1",
     "@tiptap/core": "3.34.0",
     "@tiptap/extension-text-align": "3.34.0",
@@ -40,6 +43,7 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "sharp": "0.35.5",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "zustand": "5.0.16"
   }
 }

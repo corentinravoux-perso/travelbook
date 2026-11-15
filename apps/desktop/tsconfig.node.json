@@ -8,6 +8,7 @@
     "src/preload",
     "src/shared",
     "e2e",
+    "scripts",
     "../../tests"
   ]
 }

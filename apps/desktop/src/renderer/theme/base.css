@@ -1,0 +1,59 @@
+/* Element defaults on top of tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font: var(--w-regular) var(--t-md) / var(--lh) var(--f-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--chrome);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+/* Tabler draws at stroke 2; CSS outranks the attribute, so every icon gets the token's stroke. */
+.icon {
+  width: var(--icon);
+  height: var(--icon);
+  flex: none;
+}
+.icon * {
+  stroke-width: var(--icon-stroke);
+}
