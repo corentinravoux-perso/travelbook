@@ -1,0 +1,296 @@
+import { assetUsage, type AssetRef, type Book } from '@travelbook/core';
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { PHOTO_DRAG_TYPE, encodePhotoDrag } from '../editor/PhotoDrop';
+import { droppedPaths, photoImporter } from '../editor/photoImport';
+import { useEditor } from '../store/editor';
+import { trayStore, useTray } from '../store/tray';
+import { fr } from '../strings/fr';
+import { Icon } from '../theme/Icon';
+import { PhotoGrid } from './PhotoGrid';
+import { PhotoPicker } from './PhotoPicker';
+import { PhotoThumb } from './PhotoThumb';
+import {
+  NO_DATE,
+  dayLabel,
+  dayState,
+  trayGroups,
+  type PhotoGroup,
+  type SortKey,
+  type UsageFilter,
+} from './trayModel';
+import './Photos.css';
+
+const SORTS: [SortKey, string][] = [
+  ['date', fr.photos.sortDate],
+  ['name', fr.photos.sortName],
+];
+const FILTERS: [UsageFilter, string][] = [
+  ['all', fr.photos.all],
+  ['used', fr.photos.used],
+  ['unused', fr.photos.unused],
+];
+
+/** A segmented control: one pressed entry, the only inverted fill of its group. */
+function Segments<T extends string>({
+  label,
+  caption,
+  entries,
+  value,
+  onChange,
+}: {
+  label: string;
+  caption: string;
+  entries: [T, string][];
+  value: T;
+  onChange(value: T): void;
+}) {
+  return (
+    <div className="photos__row">
+      <span className="photos__caption">{caption}</span>
+      <div className="seg" role="group" aria-label={label}>
+        {entries.map(([key, text]) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={value === key}
+            onClick={() => onChange(key)}
+          >
+            {text}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The checkbox of a day: ticks every photo of the group; half-ticked when only some are. */
+function DayHeader({ group, selected }: { group: PhotoGroup; selected: ReadonlySet<string> }) {
+  const box = useRef<HTMLInputElement>(null);
+  const state = dayState(selected, group.photos);
+  useEffect(() => {
+    if (box.current) box.current.indeterminate = state === 'some';
+  }, [state]);
+  const label = group.key === NO_DATE ? fr.photos.noDate : dayLabel(group.key);
+  const name = group.key === NO_DATE ? fr.photos.selectNoDate : fr.photos.selectDay(label);
+  return (
+    <div className="photo-day" data-day={group.key}>
+      <label className="photo-day__check">
+        <input
+          ref={box}
+          type="checkbox"
+          checked={state === 'all'}
+          aria-label={name}
+          onChange={(e) =>
+            trayStore.getState().setMany(
+              group.photos.map((p) => p.id),
+              e.target.checked,
+            )
+          }
+        />
+        <span className="photo-day__label">{label}</span>
+      </label>
+      <span className="photo-day__count">{group.photos.length}</span>
+    </div>
+  );
+}
+
+function ImportProgress() {
+  const progress = useTray((s) => s.progress);
+  if (!progress) return null;
+  const { done, total } = progress;
+  return (
+    <div className="photos__progress">
+      <div className="photos__progress-text">
+        <span>{fr.photos.importing}</span>
+        <span>{fr.photos.importProgress(done, total)}</span>
+      </div>
+      <div
+        className="progress"
+        role="progressbar"
+        aria-label={fr.photos.importing}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={done}
+        data-indeterminate={total === 0 || undefined}
+      >
+        <div
+          className="progress__bar"
+          style={{ width: total === 0 ? '30%' : `${(done / total) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/** What the last import could not take, file by file; not modal, and dismissible. */
+function ImportFailures() {
+  const failures = useTray((s) => s.failures);
+  if (failures.length === 0) return null;
+  const whole = failures.length === 1 && failures[0]?.name === null;
+  return (
+    <aside className="photos__notice" role="alert">
+      <div className="photos__notice-body">
+        <p className="photos__notice-title">
+          {whole ? fr.photos.importFailed : fr.photos.failedTitle(failures.length)}
+        </p>
+        {!whole && (
+          <>
+            <ul className="photos__notice-list">
+              {failures.map((f, i) => (
+                <li key={i}>{fr.photos.failedLine(f.name ?? '', f.reason)}</li>
+              ))}
+            </ul>
+            <p className="photos__notice-hint">{fr.photos.failedRest}</p>
+          </>
+        )}
+      </div>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label={fr.photos.dismiss}
+        title={fr.photos.dismiss}
+        onClick={() => trayStore.getState().setFailures([])}
+      >
+        <Icon name="x" />
+      </button>
+    </aside>
+  );
+}
+
+const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
+
+/**
+ * The tray (spec §8, §9.1): the book's photos as thumbnails grouped by capture day, each marked
+ * with how many times it is placed. Photos are dragged from here onto the page; image files and
+ * folders are dropped here, or on the page, to import them.
+ */
+export function PhotosPanel() {
+  const book = useEditor((s) => s.book);
+  if (book === null) return <p className="shell-empty">{fr.shell.panelEmpty}</p>;
+  return <Tray book={book} />;
+}
+
+function Tray({ book }: { book: Book }) {
+  const sort = useTray((s) => s.sort);
+  const filter = useTray((s) => s.filter);
+  const selectedIds = useTray((s) => s.selected);
+  const pickerOpen = useEditor((s) => s.pickerId !== null);
+  const [dropping, setDropping] = useState(false);
+
+  const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const groups = useMemo(() => trayGroups(book, { sort, filter }), [book, sort, filter]);
+  const usage = useMemo(() => assetUsage(book), [book]);
+  const shown = groups.reduce((n, g) => n + g.photos.length, 0);
+  const total = Object.values(book.assets).filter((a) => a.kind === 'photo').length;
+
+  // A photo that left the book (undo of an import) cannot stay ticked.
+  useEffect(() => {
+    const gone = selectedIds.filter((id) => book.assets[id] === undefined);
+    if (gone.length > 0) trayStore.getState().setMany(gone, false);
+  }, [book, selectedIds]);
+
+  const importFiles = async () => {
+    const paths = await window.tb.photos.pick();
+    if (paths.length > 0) await photoImporter.importPaths(paths);
+  };
+
+  const dragStart = (asset: AssetRef) => (e: DragEvent) => {
+    // Dragging a ticked photo takes the whole selection, in the order of the tray.
+    const ticked = groups.flatMap((g) => g.photos).filter((p) => selected.has(p.id));
+    const ids = selected.has(asset.id) ? ticked.map((p) => p.id) : [asset.id];
+    e.dataTransfer.setData(PHOTO_DRAG_TYPE, encodePhotoDrag(ids));
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const onFileDrag = (e: DragEvent) => {
+    if (!carriesFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setDropping(true);
+  };
+  const onFileLeave = (e: DragEvent) => {
+    if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) return;
+    setDropping(false);
+  };
+  const onFileDrop = (e: DragEvent) => {
+    if (!carriesFiles(e)) return;
+    e.preventDefault();
+    setDropping(false);
+    // The file list is only readable during the event: take the paths now.
+    const paths = droppedPaths(e.dataTransfer.files, (file) => window.tb.photos.pathForFile(file));
+    if (paths.length > 0) void photoImporter.importPaths(paths);
+  };
+
+  return (
+    <div
+      className="photos"
+      onDragEnter={onFileDrag}
+      onDragOver={onFileDrag}
+      onDragLeave={onFileLeave}
+      onDrop={onFileDrop}
+    >
+      <div className="photos__controls">
+        <Segments
+          label={fr.photos.sortLabel}
+          caption={fr.photos.sort}
+          entries={SORTS}
+          value={sort}
+          onChange={(v) => trayStore.getState().setSort(v)}
+        />
+        <Segments
+          label={fr.photos.filterLabel}
+          caption={fr.photos.filter}
+          entries={FILTERS}
+          value={filter}
+          onChange={(v) => trayStore.getState().setFilter(v)}
+        />
+        <p className="photos__count" aria-live="polite">
+          {fr.photos.count(shown)}
+        </p>
+      </div>
+      <ImportProgress />
+      <ImportFailures />
+
+      {shown > 0 ? (
+        <PhotoGrid
+          groups={groups}
+          header={(group) => <DayHeader group={group} selected={selected} />}
+          thumb={(asset) => (
+            <PhotoThumb
+              asset={asset}
+              uses={usage[asset.id] ?? 0}
+              selected={selected.has(asset.id)}
+              onActivate={(e) =>
+                trayStore.getState().pick(asset.id, e.ctrlKey || e.metaKey || e.shiftKey)
+              }
+              onDragStart={dragStart(asset)}
+            />
+          )}
+        />
+      ) : (
+        <div className="photos__empty">
+          {total === 0 ? (
+            <>
+              <p className="photos__empty-title">{fr.photos.emptyTitle}</p>
+              <p>{fr.photos.emptyHint}</p>
+            </>
+          ) : (
+            <p>{filter === 'used' ? fr.photos.noMatchUsed : fr.photos.noMatchUnused}</p>
+          )}
+        </div>
+      )}
+
+      <button type="button" className="button photos__import" onClick={() => void importFiles()}>
+        <Icon name="plus" />
+        {fr.photos.import}
+      </button>
+
+      {dropping && (
+        <div className="photos__drop" aria-hidden="true">
+          {fr.photos.dropHere}
+        </div>
+      )}
+      {pickerOpen && <PhotoPicker book={book} />}
+    </div>
+  );
+}

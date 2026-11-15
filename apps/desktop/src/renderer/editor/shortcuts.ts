@@ -83,6 +83,15 @@ export function commandFor(e: KeyInfo): Command | null {
   return null;
 }
 
+/** The commands that still work in crop mode: history and the canvas zoom. */
+const CROP_KEYS: ReadonlySet<Command['kind']> = new Set([
+  'undo',
+  'redo',
+  'zoomIn',
+  'zoomOut',
+  'fit',
+]);
+
 /** Is the event aimed at something the user types in? Shortcuts must leave it alone. */
 export function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -139,6 +148,8 @@ export function useShortcuts(): void {
       if (e.target instanceof Element && e.target.closest('dialog')) return;
       const command = commandFor(e);
       if (command === null) return;
+      // While a photo is cropped the keys that edit the selection would change the wrong thing.
+      if (editorStore.getState().cropId !== null && !CROP_KEYS.has(command.kind)) return;
       e.preventDefault();
       run(command);
     };
