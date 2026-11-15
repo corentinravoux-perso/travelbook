@@ -625,3 +625,41 @@ test('text typed in a photo field is not committed to the next photo selected', 
     await app.close().catch(() => {});
   }
 });
+
+test('importing the same photo again puts a missing original back', async () => {
+  const userData = join(work, 'user data');
+  let app = await launchApp(userData);
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await openAlbum(page, 'Perdu');
+    await importPhotos(app, page, ['small.jpg']);
+    const book = await savedBook(page, 'perdu');
+    const asset = Object.values(book.assets)[0]!;
+    const original = join(albums, 'perdu.travelbook', asset.file);
+    const bytes = await readFile(original);
+
+    // The original is lost; the album is closed and opened again.
+    await rm(original);
+    const exited = app.waitForEvent('close');
+    await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close());
+    await exited;
+    app = await launchApp(userData);
+    const again = await app.firstWindow();
+    await again.getByRole('button', { name: /Perdu/ }).click();
+    const missing = again.getByRole('status', { name: 'Un fichier original est introuvable' });
+    await expect(missing).toContainText('small.jpg');
+
+    // The same file again: the original is copied back, and the warning goes away.
+    await pickFiles(app, ['small.jpg']);
+    await again.getByRole('button', { name: 'Importer des photos' }).click();
+    const restored = again.getByRole('status').filter({ hasText: 'de nouveau dans l' });
+    await expect(restored).toContainText("1 original est de nouveau dans l'album");
+    await expect(restored).toContainText('small.jpg');
+    await expect(missing).toBeHidden();
+    expect((await readFile(original)).equals(bytes)).toBe(true);
+    await expect(again.locator('.photo-thumb')).toHaveCount(1);
+  } finally {
+    await app.close().catch(() => {});
+  }
+});

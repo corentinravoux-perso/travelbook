@@ -67,20 +67,50 @@ function ImportFailures() {
   );
 }
 
+/** The originals an import put back in the album (they were missing); dismissible. */
+function ImportRestored() {
+  const restored = useTray((s) => s.restored);
+  if (restored.length === 0) return null;
+  return (
+    <aside className="import-notice import-notice--ok" role="status">
+      <div className="import-notice-body">
+        <p className="import-notice-title">{fr.photos.restoredTitle(restored.length)}</p>
+        <ul className="import-notice-list">
+          {restored.map((name, i) => (
+            <li key={i}>{name}</li>
+          ))}
+        </ul>
+        <p className="import-notice-hint">{fr.photos.restoredHint}</p>
+      </div>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label={fr.photos.dismiss}
+        title={fr.photos.dismiss}
+        onClick={() => trayStore.getState().setRestored([])}
+      >
+        <Icon name="x" />
+      </button>
+    </aside>
+  );
+}
+
 /**
  * Where an import stands, in the panel column whichever panel is open: the progress bar while it
- * runs, then the files it could not take. Imports start from the Photos panel, but also from a
+ * runs, then the files it could not take and the originals it put back. Imports start from the Photos panel, but also from a
  * drop of files on the page, and a bad file must be seen wherever the user is.
  */
 export function ImportStatus() {
   // A notice about the previous album's files does not belong to the album opened now.
   useEffect(() => {
     trayStore.getState().setFailures([]);
+    trayStore.getState().setRestored([]);
   }, []);
   return (
     <>
       <ImportProgress />
       <ImportFailures />
+      <ImportRestored />
     </>
   );
 }

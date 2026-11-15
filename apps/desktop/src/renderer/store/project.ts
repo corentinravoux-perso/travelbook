@@ -39,6 +39,8 @@ export interface ProjectState {
   /** Save the open book, then show the home screen. A failed save keeps the editor on screen. */
   goHome(): Promise<void>;
   dismissMissing(): void;
+  /** Originals that were put back: they are no longer missing. */
+  restoreMissing(ids: readonly string[]): void;
   /** Ctrl+S: save the book, then write a manual snapshot. */
   manualSnapshot(): Promise<void>;
   /** Start the 10-minute automatic snapshots; returns the function that stops them. */
@@ -139,6 +141,12 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
       },
       dismissMissing() {
         set({ missing: [] });
+      },
+      restoreMissing(ids) {
+        const { missing } = get();
+        if (missing.some((id) => ids.includes(id))) {
+          set({ missing: missing.filter((id) => !ids.includes(id)) });
+        }
       },
       async manualSnapshot() {
         if (get().view !== 'editor' || editor.getState().book === null) return;

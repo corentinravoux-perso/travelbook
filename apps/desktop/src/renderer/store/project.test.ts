@@ -75,6 +75,16 @@ describe('project store', () => {
     expect(store.getState().missing).toEqual([]);
   });
 
+  it('drops the ids of the originals that came back from the missing list', async () => {
+    const { store, api } = setup();
+    api.open.mockResolvedValue(opened(newBook({ title: 'A' }), ['p1', 'p2', 'p3']));
+    await store.getState().openProject('/albums/x.travelbook');
+    store.getState().restoreMissing(['p2', 'unknown']);
+    expect(store.getState().missing).toEqual(['p1', 'p3']);
+    store.getState().restoreMissing(['p1', 'p3']);
+    expect(store.getState().missing).toEqual([]);
+  });
+
   it('reports a failed open and leaves the previous state', async () => {
     const { store, api } = setup();
     vi.spyOn(console, 'warn').mockImplementation(() => {});

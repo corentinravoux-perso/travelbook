@@ -1,6 +1,7 @@
 import type { AssetRef, Book } from '@travelbook/core';
 import type { ImportReport } from '../../shared/api';
 import { editorStore, type EditorStore } from '../store/editor';
+import { projectStore } from '../store/project';
 import { trayStore, type ImportFailure, type TrayStore } from '../store/tray';
 import { fr } from '../strings/fr';
 
@@ -54,6 +55,8 @@ export interface ImportDeps {
   tray: TrayStore;
   import(paths: string[]): Promise<ImportReport>;
   onProgress(cb: (done: number, total: number) => void): () => void;
+  /** Called with the ids of the photos whose original an import put back (none: an empty list). */
+  onRestored?(ids: string[]): void;
 }
 
 export interface PhotoImporter {
@@ -61,7 +64,9 @@ export interface PhotoImporter {
    * Import files or folders into the open album and add the new photos to the book as one undo
    * step. Resolves to the ids of the photos the paths gave, in the order the report lists them
    * (new ones, then ones the album already had), ready to be placed; empty when nothing came in.
-   * Imports run one after the other. Files that failed are left in the tray store, in French.
+   * A photo whose original was missing and has been copied back counts among the ones the album
+   * already had. Imports run one after the other. Files that failed are left in the tray store,
+   * in French, and so are the originals that came back.
    */
   importPaths(paths: string[]): Promise<string[]>;
 }
@@ -97,16 +102,22 @@ export function createPhotoImporter(deps: ImportDeps): PhotoImporter {
       reason: describeFailure(f.reason),
     }));
     tray.getState().setFailures(failures);
+    tray.getState().setRestored(report.restored.map((r) => baseName(r.path)));
 
     // Another album may be open by now: its book has nothing to do with this import.
     const book = editor.getState().book;
     if (!book || book.id !== start.id) return [];
+    deps.onRestored?.(report.restored.map((r) => r.assetId));
 
     const known = seen.get(book.id) ?? new Map<string, AssetRef>();
     seen.set(book.id, known);
     for (const asset of report.added) known.set(asset.id, asset);
     const ids = [
-      ...new Set([...report.added.map((a) => a.id), ...report.duplicates.map((d) => d.assetId)]),
+      ...new Set([
+        ...report.added.map((a) => a.id),
+        ...report.restored.map((r) => r.assetId),
+        ...report.duplicates.map((d) => d.assetId),
+      ]),
     ];
     const records = ids.flatMap((id) => {
       const asset = known.get(id);
@@ -133,4 +144,5 @@ export const photoImporter = createPhotoImporter({
   tray: trayStore,
   import: (paths) => window.tb.photos.import(paths),
   onProgress: (cb) => window.tb.photos.onProgress(cb),
+  onRestored: (ids) => projectStore.getState().restoreMissing(ids),
 });
