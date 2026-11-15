@@ -1,0 +1,199 @@
+/* Templates panel, direction A: hairlines, tiles that are page drawings, inverted pressed state. */
+.tpl {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ---------- tabs: the selected one is ink with a 2 px underline ---------- */
+.tpl-tabs {
+  display: flex;
+  gap: var(--s5);
+  padding: 0 var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+.tpl-tab {
+  height: 30px;
+  margin-bottom: -1px;
+  padding: 0 var(--s1);
+  border-bottom: 2px solid transparent;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition: color var(--fast);
+}
+.tpl-tab:hover {
+  color: var(--ink);
+}
+.tpl-tab[aria-selected='true'] {
+  border-bottom-color: var(--ink);
+  font-weight: var(--w-medium);
+  color: var(--ink);
+}
+
+/* ---------- filters and spacing ---------- */
+.tpl-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+.tpl-target {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.tpl-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.tpl-caption {
+  flex: none;
+  width: 52px;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.tpl-select {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 24px;
+  font-size: var(--t-xs);
+}
+.tpl-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* ---------- the list ---------- */
+.tpl-list {
+  flex: 1;
+  min-height: 0;
+  padding: var(--s4) var(--s5) var(--s5);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.tpl-section + .tpl-section {
+  margin-top: var(--s5);
+}
+.tpl-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--s3);
+  font-size: var(--t-sm);
+  font-weight: var(--w-semibold);
+}
+.tpl-heading__count {
+  font-size: var(--t-xs);
+  font-weight: var(--w-regular);
+  color: var(--ink-3);
+}
+.tpl-empty {
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  max-width: 40ch;
+}
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: var(--s4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tpl-grid > li {
+  min-width: 0;
+}
+
+/* A tile is the page the template makes: hairline edge, ink outline when it is the one applied. */
+.tpl-tile {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--paper);
+  overflow: hidden;
+  transition: border-color var(--fast);
+}
+.tpl-tile:hover {
+  border-color: var(--ink-2);
+}
+.tpl-tile[aria-pressed='true'] {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.tpl-box {
+  display: block;
+  width: 100%;
+}
+.tpl-thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tpl-thumb__paper {
+  fill: var(--paper);
+}
+.tpl-thumb__photo {
+  fill: var(--ink-3);
+  fill-opacity: 0.55;
+}
+.tpl-thumb__text line {
+  stroke: var(--ink-2);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.tpl-thumb__text[data-thick] line {
+  stroke-width: 2px;
+}
+
+/* ---------- Mes modèles ---------- */
+.tpl-mine-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tpl-mine {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s4);
+}
+.tpl-mine__label {
+  display: block;
+  font-size: var(--t-sm);
+  overflow-wrap: anywhere;
+}
+.tpl-mine__actions {
+  display: flex;
+}
+.tpl-mine__actions .icon,
+.tpl-foot .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.tpl-remove[data-confirming] {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+
+/* ---------- save ---------- */
+.tpl-foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4) var(--s5);
+  border-top: 1px solid var(--line);
+}
+.tpl-saved {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}

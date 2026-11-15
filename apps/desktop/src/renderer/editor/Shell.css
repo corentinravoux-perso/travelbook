@@ -229,6 +229,65 @@
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* The strip under each page: its name and "Mise en page aléatoire", in the bottom margin of the stage. */
+.page-bar {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: var(--control-h);
+  margin-top: var(--s2);
+}
+.page-bar__cell {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s3);
+  container-type: inline-size;
+}
+.page-bar__label,
+.page-bar__random {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  height: 22px;
+  padding: 0 var(--s3);
+  border-radius: var(--r1);
+  font-size: var(--t-xs);
+  color: var(--ink);
+  white-space: nowrap;
+  transition:
+    background var(--fast),
+    color var(--fast);
+}
+button.page-bar__label:hover,
+.page-bar__random:hover:not(:disabled) {
+  background: var(--chrome);
+}
+.page-bar__label[aria-pressed='true'] {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+.page-bar__random:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.page-bar__random .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+/* The words only when the page is wide enough to hold them beside its name. */
+.page-bar__random-text {
+  display: none;
+}
+@container (min-width: 230px) {
+  .page-bar__random-text {
+    display: inline;
+  }
+}
+
 /* Print guides: white, difference-blended, 1 px (visual-direction.md). */
 .guides {
   overflow: visible;

@@ -33,10 +33,19 @@ describe('editor store', () => {
     expect(s.zoom).toBe(1);
     expect(s.tool).toBe('select');
     expect(s.panel).toBe('photos');
+    expect(s.activePage).toBe('left');
     expect(s.guides).toEqual({ bleed: true, trim: true, safe: true, gutter: true });
     expect(s.history).toEqual({ canUndo: false, canRedo: false, labels: [] });
     expect(s.saveStatus).toBe('saved');
     expect(s.opening).toBe(false);
+  });
+
+  it('setActivePage points at a page of the spread in view', async () => {
+    const { store } = await setup();
+    store.getState().setActivePage('right');
+    expect(store.getState().activePage).toBe('right');
+    store.getState().setActivePage('left');
+    expect(store.getState().activePage).toBe('left');
   });
 
   it('openWith shows the first spread of the new book and starts a fresh history', async () => {

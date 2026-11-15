@@ -193,7 +193,7 @@ test('user templates are saved, listed and deleted through the typed API', async
   const result = await page.evaluate(async () => {
     const tb = (window as unknown as Win).tb;
     const template: Template = {
-      id: 'deux-photos',
+      id: 'user-deux-photos',
       name: 'Deux photos',
       category: 'photos',
       scope: 'page',
@@ -211,6 +211,17 @@ test('user templates are saved, listed and deleted through the typed API', async
   });
   expect(result.saved).toEqual([result.template]);
   expect(result.left).toEqual([]);
+});
+
+test('the bundled templates and themes come through the typed API', async () => {
+  const bundled = await page.evaluate(() =>
+    (window as unknown as Win).tb.library.bundledTemplates(),
+  );
+  expect(bundled.templates.length).toBeGreaterThanOrEqual(129);
+  expect(bundled.templates.every((t) => t.origin === 'bundled' && t.id.startsWith('b-'))).toBe(
+    true,
+  );
+  expect(bundled.themes.length).toBeGreaterThanOrEqual(3);
 });
 
 test('the library is read again after a restart, before anything lists it', async () => {

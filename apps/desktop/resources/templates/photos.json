@@ -5997,6 +5997,35 @@
     }
   },
   {
+    "id": "b-p16-coeur",
+    "name": "Cœur de seize photos",
+    "category": "photos",
+    "scope": "page",
+    "photoCount": 16,
+    "origin": "bundled",
+    "free": {
+      "slots": [
+        { "kind": "photo", "x": 0.2375, "y": 0.185, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.5975, "y": 0.185, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.0575, "y": 0.3123, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.2375, "y": 0.3123, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.4175, "y": 0.3123, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.5975, "y": 0.3123, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.7775, "y": 0.3123, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.0575, "y": 0.4395, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.2375, "y": 0.4395, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.4175, "y": 0.4395, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.5975, "y": 0.4395, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.7775, "y": 0.4395, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.2375, "y": 0.5668, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.4175, "y": 0.5668, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.5975, "y": 0.5668, "w": 0.165, "h": 0.1167, "rotation": 0 },
+        { "kind": "photo", "x": 0.4175, "y": 0.6941, "w": 0.165, "h": 0.1167, "rotation": 0 }
+      ],
+      "decorations": []
+    }
+  },
+  {
     "id": "b-plage-p1",
     "name": "Plage, une photo",
     "category": "photos",
