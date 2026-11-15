@@ -3,6 +3,7 @@ import { PANELS, useEditor, editorStore, type PanelId } from '../store/editor';
 import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
+import { TemplatesPanel } from '../panels/TemplatesPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
@@ -197,7 +198,13 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
     <section id="shell-panel" className="shell-panel" aria-label={fr.shell.panel(name)}>
       <h2 className="shell-panel__title">{name}</h2>
       <ImportStatus />
-      {panel === 'photos' ? <PhotosPanel /> : <p className="shell-empty">{fr.shell.panelEmpty}</p>}
+      {panel === 'photos' ? (
+        <PhotosPanel />
+      ) : panel === 'templates' ? (
+        <TemplatesPanel />
+      ) : (
+        <p className="shell-empty">{fr.shell.panelEmpty}</p>
+      )}
       <ResizeHandle
         side="panel"
         width={width}

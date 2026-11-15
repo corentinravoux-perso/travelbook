@@ -17,6 +17,7 @@ import { CoverTools, SpineZone } from './CoverEditor';
 import { CropBar, CropOverlay, useCrop } from './CropMode';
 import { DpiBadges } from './DpiBadge';
 import { Guides } from './Guides';
+import { PageBar } from './PageBar';
 import { usePhotoDrop, usePhotoSwap } from './PhotoDrop';
 import { spreadName } from './pages';
 import { Selection } from './Selection';
@@ -140,6 +141,10 @@ export function Canvas() {
       return;
     }
     editorStore.getState().closePicker();
+    // Pointing at a page of an inner spread points the templates at it.
+    if (spread.kind === 'inner' && size) {
+      editorStore.getState().setActivePage(at.x < size.w / 2 ? 'left' : 'right');
+    }
     const hit = elementAt(spread, at);
     if (!hit) {
       startMarquee(e, e.shiftKey);
@@ -262,6 +267,7 @@ export function Canvas() {
                 snap={transform.guides}
               />
               <DpiBadges book={book} spread={spread} scale={scale} />
+              <PageBar book={book} spread={spread} scale={scale} />
               {crop.element && (
                 <CropOverlay element={crop.element} asset={crop.asset} scale={scale} />
               )}

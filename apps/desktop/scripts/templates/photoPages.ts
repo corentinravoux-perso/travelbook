@@ -550,7 +550,27 @@ function collages(): Template[] {
     [],
   );
 
-  return [rosette, scatter, board, stagger];
+  // Sixteen small photos laid out in the outline of a heart on a 5 x 5 pattern.
+  const heart = ['.X.X.', 'XXXXX', 'XXXXX', '.XXX.', '..X..'];
+  const pitch = 0.18;
+  const cell = { w: 0.165, h: 0.165 * (210 / 297) };
+  const heartSlots = heart.flatMap((line, r) =>
+    [...line].flatMap((mark, c) =>
+      mark === 'X'
+        ? [
+            photoSlot(
+              0.5 - (5 * pitch) / 2 + c * pitch + (pitch - cell.w) / 2,
+              0.18 + r * pitch * (210 / 297) + 0.005,
+              cell.w,
+              cell.h,
+            ),
+          ]
+        : [],
+    ),
+  );
+  const heartCollage = freeTemplate({ id: 'p16-coeur', name: 'Cœur de seize photos' }, heartSlots);
+
+  return [rosette, scatter, board, stagger, heartCollage];
 }
 
 export function photoPages(): Template[] {

@@ -1,4 +1,4 @@
-import { createHistory, type Book, type History, type Spread } from '@travelbook/core';
+import { createHistory, type Book, type History, type Side, type Spread } from '@travelbook/core';
 import { createStore, useStore, type StoreApi } from 'zustand';
 
 /** Every document change is saved this long after the last one. */
@@ -50,6 +50,11 @@ export interface EditorState {
   fit: boolean;
   tool: Tool;
   panel: PanelId;
+  /**
+   * The page of an inner spread that page templates go on: the one the user last pointed at.
+   * The cover, the first spread and the last have one page each and ignore it.
+   */
+  activePage: Side;
   guides: Guides;
   /** True while the full-screen overview of the spreads is open. */
   overview: boolean;
@@ -88,6 +93,8 @@ export interface EditorState {
   undo(): void;
   redo(): void;
   setPanel(panel: PanelId): void;
+  /** Point at a page of the spread in view (see `activePage`). */
+  setActivePage(page: Side): void;
   /** Edit the spread `id` (the cover or an inner spread); the selection is emptied. */
   goToSpread(id: string): void;
   /** Open or close the overview of the spreads. */
@@ -252,6 +259,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       fit: true,
       tool: 'select',
       panel: 'photos',
+      activePage: 'left',
       guides: { bleed: true, trim: true, safe: true, gutter: true },
       overview: false,
       notice: null,
@@ -289,6 +297,9 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       },
       setPanel(panel) {
         set({ panel });
+      },
+      setActivePage(page) {
+        if (get().activePage !== page) set({ activePage: page });
       },
       goToSpread(id) {
         const { book, currentSpreadId } = get();
