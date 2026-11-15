@@ -272,8 +272,8 @@ export interface PageLoop {
   /** Paint the stencil of the pattern backgrounds of each page into a tile (the PDF route). */
   bakePatterns?: boolean;
   /**
-   * Called after the last page, to write what the pages added up to: files into `staging`, their
-   * names into `outputs`.
+   * Called after the last page, with the hidden windows closed, to write what the pages added up
+   * to: files into `staging`, their names into `outputs`.
    */
   finish?(outputs: string[], staging: string): Promise<void>;
 }
@@ -390,6 +390,9 @@ export async function runPages(
       await loop.page({ target, job, renderer, photos, label, progress, staging, outputs });
       await rm(dir, { recursive: true, force: true });
     }
+    // The windows are not needed any more: free their memory before the route merges its pages.
+    renderer.close();
+    renderer = null;
     await loop.finish?.(outputs, staging);
     // A cancel that came in during the last page changes nothing: the export is complete.
     const files = await publishStaged(staging, o.outDir, outputs);

@@ -1,7 +1,14 @@
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { PDFDocument, PDFName, PDFRawStream, decodePDFRawStream } from 'pdf-lib';
+import {
+  PDFDict,
+  PDFDocument,
+  PDFName,
+  PDFRawStream,
+  PDFStream,
+  decodePDFRawStream,
+} from 'pdf-lib';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newBook, type Book } from '@travelbook/core';
@@ -9,6 +16,7 @@ import type { ExportOptions } from '../../shared/api';
 import type { ExportRenderer } from './images';
 import { ExportCancelledError, cancelExport } from './images';
 import { RASTER_FALLBACK_DPI, assemblePdf, runPdfExport, type PdfPageInput } from './pdf';
+import { STAGING_PREFIX } from './staging';
 
 const PT = 72 / 25.4;
 const OPTIONS: ExportOptions = {
@@ -56,6 +64,16 @@ async function contentOf(bytes: Uint8Array, index = 0): Promise<string> {
     .map((ref) => page.doc.context.lookup(ref as never))
     .map((s) => Buffer.from(decodePDFRawStream(s as PDFRawStream).decode()).toString('latin1'))
     .join('\n');
+}
+
+/** Subtype (Form for a printed page, Image for a raster one) of what a page draws. */
+async function drawnKinds(bytes: Uint8Array, index: number): Promise<string[]> {
+  const page = (await PDFDocument.load(bytes)).getPage(index);
+  const xobjects = page.node.Resources()?.lookup(PDFName.of('XObject'), PDFDict);
+  return (xobjects?.keys() ?? []).map((key) => {
+    const object = xobjects?.lookup(key, PDFStream);
+    return String(object?.dict.get(PDFName.of('Subtype'))).slice(1);
+  });
 }
 
 describe('assemblePdf', () => {
@@ -159,6 +177,17 @@ describe('assemblePdf', () => {
     expect(doc.getPageCount()).toBe(2);
     const [, , w, h] = await boxMm(bytes, 'MediaBox');
     expect([w, h]).toEqual([expect.closeTo(210, 6), expect.closeTo(297, 6)]);
+  });
+
+  it('takes the pages one at a time from an async source', async () => {
+    const source = (async function* () {
+      yield await pageOf();
+      yield await pageOf({ bleed: 0, trim: { x: 0, y: 0, w: 100, h: 150 } });
+    })();
+    const bytes = await assemblePdf(source, false);
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
+    const [, , w] = await boxMm(bytes, 'MediaBox', 1);
+    expect(w).toBeCloseTo(100, 6);
   });
 
   it('refuses a page with neither PDF nor image', async () => {
@@ -312,6 +341,43 @@ describe('runPdfExport', () => {
       }),
     ).rejects.toThrow(/Impression/);
     expect(await readdir(join(work, 'out'))).toEqual([]);
+  });
+
+  it('keeps the pages in order when a raster page sits between printed ones', async () => {
+    const report = await runPdfExport(
+      book(),
+      work,
+      options(),
+      deps([], (t) => t.name === 'page-002'),
+    );
+    const bytes = new Uint8Array(await readFile(report.files[0]!));
+    expect(await Promise.all([0, 1, 2].map((i) => drawnKinds(bytes, i)))).toEqual([
+      ['Form'],
+      ['Image'],
+      ['Form'],
+    ]);
+  });
+
+  it('spills each page to the staging folder instead of holding it, and leaves no trace', async () => {
+    const out = join(work, 'out');
+    const spilled: string[][] = [];
+    const watching: ExportRenderer = {
+      ...renderer(),
+      print: async (job) => {
+        const staging = (await readdir(out)).find((n) => n.startsWith(STAGING_PREFIX));
+        spilled.push(
+          staging === undefined ? [] : await readdir(join(out, staging, 'pages')).catch(() => []),
+        );
+        return renderer().print(job);
+      },
+    };
+    await runPdfExport(book(), work, options(), {
+      openRenderer: async () => watching,
+      onProgress: () => undefined,
+    });
+    // Before page 1, 2 and 3 is printed, 0, 1 and 2 pages are on disk.
+    expect(spilled.map((pages) => pages.length)).toEqual([0, 1, 2]);
+    expect(await readdir(out)).toEqual(['mon-album-interieur.pdf']);
   });
 
   describe('into a folder that holds an earlier export', () => {

@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PDFDocument, cmyk, type PDFPage } from 'pdf-lib';
 import sharp from 'sharp';
@@ -90,44 +90,51 @@ function drawCropMarks(
 
 const isJpeg = (bytes: Buffer): boolean => bytes[0] === 0xff && bytes[1] === 0xd8;
 
+/** Add `input` to `doc` as its last page, with its boxes and, with `cropMarks`, its marks. */
+async function addPage(doc: PDFDocument, input: PdfPageInput, cropMarks: boolean): Promise<void> {
+  const markOffset = input.markOffset ?? input.bleed;
+  const slug = cropMarks ? mmToPt(slugMm(markOffset)) : 0;
+  const bleed = mmToPt(input.bleed);
+  const trimW = mmToPt(input.trim.w);
+  const trimH = mmToPt(input.trim.h);
+  const bleedW = trimW + 2 * bleed;
+  const bleedH = trimH + 2 * bleed;
+  const page = doc.addPage([bleedW + 2 * slug, bleedH + 2 * slug]);
+  page.setMediaBox(0, 0, bleedW + 2 * slug, bleedH + 2 * slug);
+  page.setBleedBox(slug, slug, bleedW, bleedH);
+  page.setTrimBox(slug + bleed, slug + bleed, trimW, trimH);
+  if (input.pdf) {
+    const [printed] = await doc.embedPdf(input.pdf, [0]);
+    if (!printed) throw new Error('Le PDF de la page est vide.');
+    // PDF y goes up: the top of the printed page is flush with the top of the bleed box.
+    page.drawPage(printed, { x: slug, y: slug + bleedH - printed.height });
+  } else if (input.png) {
+    const image = isJpeg(input.png) ? await doc.embedJpg(input.png) : await doc.embedPng(input.png);
+    page.drawImage(image, { x: slug, y: slug, width: bleedW, height: bleedH });
+  } else {
+    throw new Error('Une page du PDF n’a ni PDF ni image.');
+  }
+  if (cropMarks) {
+    drawCropMarks(page, { x: slug + bleed, y: slug + bleed, w: trimW, h: trimH }, markOffset);
+  }
+}
+
 /**
  * Merge the pages into one PDF. Every page gets its MediaBox, TrimBox and BleedBox from the
  * millimetres, exactly: Chromium rounds a page to whole points, so a printed page is a little short
  * (up to 0.18 mm, inside the bleed) and is drawn at the top left of a page of the right size.
  * With `cropMarks` the MediaBox grows by a slug on each side (`slugMm`) and the marks are drawn
  * there, outside the bleed so that they never overlay artwork.
+ *
+ * `pages` is read one page at a time, so that a source that loads each page when asked (see
+ * `runPdfExport`) never holds more than the page in hand besides the document being built.
  */
-export async function assemblePdf(pages: PdfPageInput[], cropMarks: boolean): Promise<Uint8Array> {
+export async function assemblePdf(
+  pages: Iterable<PdfPageInput> | AsyncIterable<PdfPageInput>,
+  cropMarks: boolean,
+): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  for (const input of pages) {
-    const markOffset = input.markOffset ?? input.bleed;
-    const slug = cropMarks ? mmToPt(slugMm(markOffset)) : 0;
-    const bleed = mmToPt(input.bleed);
-    const trimW = mmToPt(input.trim.w);
-    const trimH = mmToPt(input.trim.h);
-    const bleedW = trimW + 2 * bleed;
-    const bleedH = trimH + 2 * bleed;
-    const page = doc.addPage([bleedW + 2 * slug, bleedH + 2 * slug]);
-    page.setMediaBox(0, 0, bleedW + 2 * slug, bleedH + 2 * slug);
-    page.setBleedBox(slug, slug, bleedW, bleedH);
-    page.setTrimBox(slug + bleed, slug + bleed, trimW, trimH);
-    if (input.pdf) {
-      const [printed] = await doc.embedPdf(input.pdf, [0]);
-      if (!printed) throw new Error('Le PDF de la page est vide.');
-      // PDF y goes up: the top of the printed page is flush with the top of the bleed box.
-      page.drawPage(printed, { x: slug, y: slug + bleedH - printed.height });
-    } else if (input.png) {
-      const image = isJpeg(input.png)
-        ? await doc.embedJpg(input.png)
-        : await doc.embedPng(input.png);
-      page.drawImage(image, { x: slug, y: slug, width: bleedW, height: bleedH });
-    } else {
-      throw new Error('Une page du PDF n’a ni PDF ni image.');
-    }
-    if (cropMarks) {
-      drawCropMarks(page, { x: slug + bleed, y: slug + bleed, w: trimW, h: trimH }, markOffset);
-    }
-  }
+  for await (const input of pages) await addPage(doc, input, cropMarks);
   return doc.save();
 }
 
@@ -151,12 +158,32 @@ export interface PdfExportDeps extends ImageExportDeps {
   forceRaster?: (target: PageTarget) => boolean;
 }
 
+/** A page printed or captured, as it waits on disk for the merge: its bytes are in `file`. */
+interface SpilledPage {
+  file: string;
+  /** `file` is an image (the raster fallback), not a PDF. */
+  image: boolean;
+  boxes: Pick<PdfPageInput, 'trim' | 'bleed' | 'markOffset'>;
+}
+
+/** Read the pages of `group` back one at a time, in order. */
+async function* readSpilled(group: SpilledPage[]): AsyncGenerator<PdfPageInput> {
+  for (const { file, image, boxes } of group) {
+    const bytes = await readFile(file);
+    yield image ? { png: bytes, ...boxes } : { pdf: bytes, ...boxes };
+  }
+}
+
 /**
  * Export `book` as print PDFs in `o.outDir`: `<slug>-interieur.pdf` and, with `includeCover`,
  * `<slug>-couverture.pdf` (the flat sheet). With `perSpread` (screen reading) the cover is page 1
  * of the single file. Each page is printed by Chromium one at a time, photos as the baked JPEG
  * derivatives; a page that holds an effect known to rasterise at low resolution is captured at
  * 600 dpi instead and embedded as an image.
+ *
+ * Memory: a page is written to the staging folder as soon as it is printed, and read back only
+ * when the merge reaches it. Once the windows are closed, what is held is the document pdf-lib
+ * builds (each page's bytes once) and, at the end, the bytes it saves.
  */
 export function runPdfExport(
   book: Book,
@@ -166,34 +193,39 @@ export function runPdfExport(
 ): ReturnType<typeof runPages> {
   const targets = renderPageTargets(book, { ...o, coverMode: 'flat' });
   const isCover = (t: PageTarget): boolean => t.name.startsWith('couverture');
-  const printed = new Map<PageTarget, PdfPageInput>();
+  const spilled = new Map<PageTarget, SpilledPage>();
   const slug = slugify(book.title);
   return runPages(book, projectDir, o, deps, {
     targets,
     bakePatterns: true,
     page: async (ctx: PageContext) => {
-      const { target, job, renderer, progress } = ctx;
+      const { target, job, renderer, progress, staging } = ctx;
       const boxes = pageBoxes(book, o, target);
-      const reasons = rasterReasons(job.spread, ctx.photos);
-      if (reasons.length > 0 || deps.forceRaster?.(target)) {
+      const raster =
+        rasterReasons(job.spread, ctx.photos).length > 0 || (deps.forceRaster?.(target) ?? false);
+      let bytes: Buffer;
+      if (raster) {
         progress('render');
         await renderer.show(job);
         progress('capture');
         const png = await renderer.capture(target, RASTER_FALLBACK_DPI);
         // A lossless 600 dpi A4 page is tens of megabytes: embed it as a JPEG.
-        const jpeg = await sharp(png)
+        bytes = await sharp(png)
           .removeAlpha()
           .toColourspace('srgb')
           .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
           .toBuffer();
-        printed.set(target, { png: jpeg, ...boxes });
       } else {
         progress('print');
-        printed.set(target, { pdf: await renderer.print(job), ...boxes });
+        bytes = await renderer.print(job);
       }
+      const file = join(staging, 'pages', String(spilled.size));
+      await mkdir(join(staging, 'pages'), { recursive: true });
+      await writeFile(file, bytes);
+      spilled.set(target, { file, image: raster, boxes });
     },
     finish: async (outputs, staging) => {
-      const inOrder = targets.filter((t) => printed.has(t));
+      const inOrder = targets.filter((t) => spilled.has(t));
       const groups: [string, PageTarget[]][] = o.perSpread
         ? [[`${slug}-interieur.pdf`, inOrder]]
         : [
@@ -202,11 +234,8 @@ export function runPdfExport(
           ];
       for (const [name, group] of groups) {
         if (group.length === 0) continue;
-        const bytes = await assemblePdf(
-          group.map((t) => printed.get(t) as PdfPageInput),
-          o.cropMarks,
-        );
-        await writeFile(join(staging, name), bytes);
+        const pages = readSpilled(group.map((t) => spilled.get(t) as SpilledPage));
+        await writeFile(join(staging, name), await assemblePdf(pages, o.cropMarks));
         outputs.push(name);
       }
     },
