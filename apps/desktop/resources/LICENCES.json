@@ -46,6 +46,18 @@
       "author": "Corentin Ravoux",
       "licence": "MIT",
       "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "posters/destinations.json",
+        "posters/keywords.json",
+        "posters/illustrations/.gitkeep",
+        "posters/presets/.gitkeep"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
     }
   ]
 }
