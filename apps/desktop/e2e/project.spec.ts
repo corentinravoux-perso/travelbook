@@ -112,6 +112,28 @@ test('closing the window right after an edit saves it', async () => {
   }
 });
 
+test('closing right after a cover edit answers at once: the thumbnail never delays the close', async () => {
+  const app = await launchApp(userData);
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await createFromHome(page, 'Couverture');
+    await expect(topBar(page)).toContainText('Couverture');
+
+    await page.evaluate(() => {
+      const editor = (window as unknown as { __tbEditor: EditorHandle }).__tbEditor;
+      editor.getState().apply((book) => ({ ...book, spineWidth: 12 }), 'Dos');
+    });
+    const started = Date.now();
+    await closeWindowAndWait(app);
+    // Main waits 5 s for the answer and would ask the user after that: it got it long before.
+    expect(Date.now() - started).toBeLessThan(3000);
+    expect((await readBook('couverture')).spineWidth).toBe(12);
+  } finally {
+    await app.close().catch(() => {});
+  }
+});
+
 test('Ctrl+S writes a manual snapshot', async () => {
   const app = await launchApp(userData);
   try {

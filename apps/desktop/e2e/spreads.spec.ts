@@ -193,29 +193,52 @@ test('the overview reorders spreads by drag and shows the order in book.json', a
   }
 });
 
-test('the cover thumbnail is written to the project and shown on the home screen', async () => {
+test('the cover thumbnail is built on opening, kept out of editing, and rebuilt on the way home', async () => {
   const app = await launchApp(join(work, 'user data'));
   try {
     await pickFolders(app, albums);
     const page = await app.firstWindow();
     await open(page, 'Cover');
     const file = join(albums, 'cover.travelbook', 'cache', 'cover-thumb.jpg');
-    await expect
-      .poll(
-        () =>
-          stat(file).then(
-            (s) => s.size,
-            () => 0,
-          ),
-        { timeout: 15_000 },
-      )
-      .toBeGreaterThan(300);
-    const jpeg = await readFile(file);
-    expect([...jpeg.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+    const mtime = () =>
+      stat(file).then(
+        (s) => s.mtimeMs,
+        () => 0,
+      );
+    // A new album has no thumbnail: it gets one as it opens.
+    await expect.poll(mtime, { timeout: 15_000 }).toBeGreaterThan(0);
+    const first = await readFile(file);
+    expect([...first.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+    const built = await mtime();
 
+    // Editing the cover (and importing nothing) puts nothing over the window: the stage never
+    // appears and the thumbnail is not rewritten, however long the user takes.
+    await page.evaluate(() => {
+      (window as unknown as { __stageSeen: boolean }).__stageSeen = false;
+      new MutationObserver(() => {
+        if (document.querySelector('.cover-stage')) {
+          (window as unknown as { __stageSeen: boolean }).__stageSeen = true;
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    });
+    await page.getByRole('button', { name: 'Couverture', exact: true }).click();
+    await page.getByRole('button', { name: 'Réglages du livre' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Réglages du livre' });
+    await dialog.getByLabel('Largeur du dos').fill('12');
+    await dialog.getByRole('button', { name: 'Appliquer' }).click();
+    await page.getByRole('button', { name: 'Texte sur le dos' }).click();
+    await page.waitForTimeout(3500);
+    expect(
+      await page.evaluate(() => (window as unknown as { __stageSeen: boolean }).__stageSeen),
+    ).toBe(false);
+    expect(await mtime()).toBe(built);
+
+    // Back to the home screen: the cover changed, so the thumbnail is rebuilt first.
     await page.getByRole('button', { name: 'Accueil' }).click();
     const image = page.getByRole('img', { name: 'Couverture de Cover' });
     await expect(image).toBeVisible();
+    expect(await mtime()).toBeGreaterThan(built);
+    expect((await readFile(file)).equals(first)).toBe(false);
     const size = await image.evaluate((img: HTMLImageElement) => [
       img.naturalWidth,
       img.naturalHeight,
