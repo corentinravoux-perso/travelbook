@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 380">
+<path d="M260 110a40 40 0 1 0 80 0a40 40 0 1 0 -80 0Z" fill="#f3dcae"/>
+<path d="M110 110L42 310H178Z" fill="#2a6b4c"/>
+<path d="M110 110L178 310H110Z" fill="#1f5139"/>
+<path d="M105 310h10v14h-10z" fill="#b9705a"/>
+<path d="M190 80L108.4 320H271.6Z" fill="#3f8f63"/>
+<path d="M190 80L271.6 320H190Z" fill="#2a6b4c"/>
+<path d="M185 320h10v14h-10z" fill="#b9705a"/>
+<path d="M260 140L202.2 310H317.8Z" fill="#3e9a96"/>
+<path d="M260 140L317.8 310H260Z" fill="#2f6f7a"/>
+<path d="M255 310h10v14h-10z" fill="#b9705a"/>
+<path d="M320 110L248.6 320H391.4Z" fill="#2a6b4c"/>
+<path d="M320 110L391.4 320H320Z" fill="#1f5139"/>
+<path d="M315 320h10v14h-10z" fill="#b9705a"/>
+<path d="M60 200L15.8 330H104.2Z" fill="#7cbf7a"/>
+<path d="M60 200L104.2 330H60Z" fill="#3f8f63"/>
+<path d="M55 330h10v14h-10z" fill="#b9705a"/>
+<path d="M370 210L329.2 330H410.8Z" fill="#7cbf7a"/>
+<path d="M370 210L410.8 330H370Z" fill="#3f8f63"/>
+<path d="M365 330h10v14h-10z" fill="#b9705a"/>
+<path d="M20 330Q210 310 400 330V350H20Z" fill="#a9c3b4"/>
+<path d="M60 69Q62.4 77.6 71 80Q62.4 82.4 60 91Q57.6 82.4 49 80Q57.6 77.6 60 69Z" fill="#1d1b1a"/>
+<path d="M370 52Q371.8 58.2 378 60Q371.8 61.8 370 68Q368.2 61.8 362 60Q368.2 58.2 370 52Z" fill="#1d1b1a"/>
+</svg>
