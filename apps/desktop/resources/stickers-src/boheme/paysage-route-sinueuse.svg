@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440">
+<path d="M335 261C333.5 302.7 340.7 358.3 322 378C303.3 397.7 260.3 376.7 223 379C185.7 381.3 130.3 407.7 98 392C65.7 376.3 37.8 325.7 29 285C20.2 244.3 26 188.7 45 148C64 107.3 104.2 56.7 143 41C181.8 25.3 246.7 39.5 278 54C309.3 68.5 321.5 93.5 331 128C340.5 162.5 336.5 219.3 335 261Z" fill="#f7c85c"/>
+<path d="M40 180 C56.2 165, 73.4 150.4, 120 110 M120 110 C139.7 125.1, 159.1 141.7, 170 150 M170 150 C184.1 137, 199.4 126, 240 90 M240 90 C283 122.1, 326 154.9, 360 180" fill="none" stroke="#1d1b1a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M40 240 C106 213.7, 167.2 210.6, 220 230 M220 230 C273.9 249.3, 320.6 246.4, 360 220" fill="none" stroke="#1d1b1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M180 420 C139.4 380.5, 146.7 346.8, 200 320 M200 320 C253.6 299.9, 263.6 276.9, 230 250 M230 250 C210 237.2, 205.2 223.2, 214 210" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M260 420 C212.7 380.6, 204.8 349.8, 236 330 M236 330 C291.9 303.8, 297.3 276, 252 250 M252 250 C234.8 238.9, 224.7 226, 222 210" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M218 400 C185.4 372.7, 185.6 350, 216 332 M246 300 C256.2 286.4, 253.7 271.8, 238 256" fill="none" stroke="#1d1b1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M80 380 C83.3 370.1, 86.1 358.6, 94 330 M94 330 C99.2 347.7, 103.8 364.8, 108 380 M108 380 C97.8 380.3, 86.1 380.6, 80 380 M320 380 C323.5 365.9, 327.4 351.2, 336 320 M336 320 C339.3 332.4, 343.1 345.8, 352 380 M352 380 C339.9 380.7, 328.4 380.2, 320 380" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M350 58Q352.6 67.4 362 70Q352.6 72.6 350 82Q347.4 72.6 338 70Q347.4 67.4 350 58Z" fill="#1d1b1a"/>
+<path d="M50 82Q51.8 88.2 58 90Q51.8 91.8 50 98Q48.2 91.8 42 90Q48.2 88.2 50 82Z" fill="#1d1b1a"/>
+<path d="M356.5 300a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0Z" fill="#1d1b1a"/>
+</svg>

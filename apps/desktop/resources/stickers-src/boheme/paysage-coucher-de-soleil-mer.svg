@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<defs><clipPath id="c-coucher"><path d="M50 200a150 150 0 1 0 300 0a150 150 0 1 0 -300 0Z"/></clipPath></defs>
+<g clip-path="url(#c-coucher)"><path d="M0 0H400V400H0Z" fill="#fbd2b2"/><path d="M0 0H400V120H0Z" fill="#f9b896"/><path d="M120 220a80 80 0 1 0 160 0a80 80 0 1 0 -160 0Z" fill="#f26d5b"/><path d="M0 220H400V400H0Z" fill="#3e9a96"/><path d="M120 240H280V250H120ZM150 266H250V274H150ZM176 290H224V296H176Z" fill="#f79a7d"/><path d="M0 330Q100 300 200 330T400 330V400H0Z" fill="#f3dcae"/></g>
+<path d="M50 200 C50.6 315.9, 174.5 387, 275 329.9 M275 329.9 C321.2 302.4, 349.3 253.7, 350 200 M350 200 C350.7 85.1, 224.9 11.9, 125 70.1 M125 70.1 C78.3 97.5, 50.6 145.9, 50 200 M50 200 C50 200, 50 200, 50 200" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M130 120 C135.3 115.8, 139.6 115.7, 144 120 M144 120 C148.1 115.2, 153.7 116, 158 120" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M160 100 C164 97.3, 166.4 96.6, 170 100 M170 100 C173.8 97.1, 176.8 96.4, 180 100" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M360 38Q362.6 47.4 372 50Q362.6 52.6 360 62Q357.4 52.6 348 50Q357.4 47.4 360 38Z" fill="#1d1b1a"/>
+</svg>
