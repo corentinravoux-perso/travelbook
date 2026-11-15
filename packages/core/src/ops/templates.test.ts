@@ -544,3 +544,111 @@ describe('cover spine zone and page membership', () => {
     expect((els(out, s.id) as PhotoElement[]).map((e) => e.assetId)).toEqual(['M', 'L']);
   });
 });
+
+describe('applyTemplate: background', () => {
+  const sand = { kind: 'color', color: '#f6ecd9' } as const;
+  const sea = { kind: 'color', color: '#dbe7ef' } as const;
+  const themed = grid(photoSlot, 1, { themeId: 'plage', background: sand });
+
+  it('sets the template background on the target page only', () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.background = { right: sea };
+    const out = applyTemplate(book, s.id, 'left', themed, P);
+    const after = inner(out).background;
+    expect(after.left).toEqual(sand);
+    expect(after.right).toEqual(sea);
+    expect(after.spread).toBeUndefined();
+  });
+
+  it('replaces the background of the target side and leaves the other side untouched', () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.background = { left: sea, right: sea };
+    const out = applyTemplate(book, s.id, 'right', themed, P);
+    expect(inner(out).background).toEqual({ left: sea, right: sand });
+  });
+
+  it('on a spread target sets the spread background and drops the page ones', () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.background = { left: sea };
+    const out = applyTemplate(book, s.id, 'spread', { ...themed, scope: 'spread' }, P);
+    expect(inner(out).background).toEqual({ spread: sand });
+  });
+
+  it('works on the front of the cover', () => {
+    const book = freshBook(1);
+    const out = applyTemplate(book, book.cover.id, 'right', themed, P);
+    expect(out.cover.background).toEqual({ right: sand });
+  });
+
+  it('copies the background instead of sharing it with the template', () => {
+    const book = freshBook(1);
+    const out = applyTemplate(book, inner(book).id, 'left', themed, P);
+    expect(inner(out).background.left).not.toBe(sand);
+    expect(Object.isFrozen(sand)).toBe(false);
+  });
+
+  it('leaves the existing background alone when the template has none', () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.background = { left: sea, spread: sand };
+    const out = applyTemplate(book, s.id, 'left', row2, P);
+    expect(inner(out).background).toEqual({ left: sea, spread: sand });
+  });
+});
+
+describe('applyTemplate: text defaults by role', () => {
+  const roles = grid(
+    {
+      split: 'col',
+      weights: [1, 1, 1],
+      children: [
+        { slot: 'text', textRole: 'title' },
+        { slot: 'text', textRole: 'body' },
+        { slot: 'text', textRole: 'caption' },
+      ],
+    },
+    0,
+    { category: 'texte' },
+  );
+
+  it('sizes an empty title bigger than a body, and a body bigger than a caption', () => {
+    const book = freshBook(1);
+    const out = applyTemplate(book, inner(book).id, 'left', roles, P);
+    const size = (role: string) =>
+      (els(out, inner(book).id).find((e) => (e as TextElement).textRole === role) as TextElement)
+        .style.fontSizePt;
+    expect(size('title')).toBeGreaterThan(size('body'));
+    expect(size('body')).toBeGreaterThan(size('caption'));
+    const title = els(out, inner(book).id).find(
+      (e) => (e as TextElement).textRole === 'title',
+    ) as TextElement;
+    expect(title.align).toBe('center');
+  });
+
+  it('keeps the style of a text that moves into the slot', () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.elements.push(text('tt', 20, 20, 'title', 'Hello'));
+    const out = applyTemplate(book, s.id, 'left', roles, P);
+    const moved = els(out, s.id).find(
+      (e) => e.type === 'text' && JSON.stringify(e.doc).includes('Hello'),
+    ) as TextElement;
+    expect(moved.style.fontSizePt).toBe(30);
+    expect(moved.align).toBe('left');
+  });
+});
+
+describe('captureTemplate: id', () => {
+  it("gives a user template an id that starts with 'user-', so it never shadows a bundled one", () => {
+    const book = freshBook(1);
+    const s = inner(book);
+    s.elements.push(photo('pA', 10, 10, 50, 50, 'A'));
+    const t = captureTemplate(book, s.id, 'left', 'Mien');
+    expect(t.id.startsWith('user-')).toBe(true);
+    expect(t.origin).toBe('user');
+    expect(TemplateSchema.safeParse(t).success).toBe(true);
+  });
+});

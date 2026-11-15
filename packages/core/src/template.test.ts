@@ -2,12 +2,15 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { z } from 'zod';
 import { newElement } from './factory';
 import {
+  MAX_TEMPLATE_PHOTOS,
   TemplateSchema,
+  ThemeSchema,
   layoutTemplate,
   readingOrder,
   type FreeSlot,
   type LayoutNode,
   type Template,
+  type Theme,
 } from './template';
 
 const box = { x: 0, y: 0, w: 210, h: 297 };
@@ -200,5 +203,74 @@ describe('TemplateSchema', () => {
   });
   it('schema output equals the hand-written type (compile-time)', () => {
     expectTypeOf<z.output<typeof TemplateSchema>>().toEqualTypeOf<Template>();
+  });
+
+  describe('theme, background and photo count', () => {
+    it('accepts a theme id and a background', () => {
+      const t = grid(photo, 1, false);
+      const themed = {
+        ...t,
+        themeId: 'plage',
+        background: { kind: 'color', color: '#f6ecd9' },
+      };
+      const parsed = TemplateSchema.safeParse(themed);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).toMatchObject({ themeId: 'plage', background: { kind: 'color' } });
+    });
+    it('accepts a gradient background and keeps templates without one valid', () => {
+      const gradient = {
+        ...grid(photo, 1),
+        background: {
+          kind: 'gradient',
+          type: 'linear',
+          angle: 90,
+          stops: [
+            { offset: 0, color: '#ffffff' },
+            { offset: 1, color: '#eeeeee' },
+          ],
+        },
+      };
+      expect(TemplateSchema.safeParse(gradient).success).toBe(true);
+      expect(TemplateSchema.safeParse(grid(photo, 1)).success).toBe(true);
+    });
+    it('rejects an empty theme id and a background that is not one', () => {
+      expect(TemplateSchema.safeParse({ ...grid(photo, 1), themeId: '' }).success).toBe(false);
+      const bad = { ...grid(photo, 1), background: { kind: 'color' } };
+      expect(TemplateSchema.safeParse(bad).success).toBe(false);
+    });
+    it('accepts 0 to 16 photos and rejects 17, a negative or a fractional count', () => {
+      expect(MAX_TEMPLATE_PHOTOS).toBe(16);
+      for (const n of [0, 1, 16]) {
+        expect(TemplateSchema.safeParse(grid(photo, n)).success).toBe(true);
+      }
+      for (const n of [17, -1, 2.5]) {
+        expect(TemplateSchema.safeParse(grid(photo, n)).success).toBe(false);
+      }
+    });
+  });
+});
+
+describe('ThemeSchema', () => {
+  const theme: Theme = {
+    id: 'plage',
+    name: 'Plage',
+    coverTemplateId: 'b-couv-plage',
+    fonts: ['Lora', 'Inter'],
+  };
+  it('accepts a theme', () => {
+    expect(ThemeSchema.safeParse(theme).success).toBe(true);
+  });
+  it('rejects a theme without an id, a name, a cover or a font list', () => {
+    for (const key of ['id', 'name', 'coverTemplateId', 'fonts'] as const) {
+      const rest: Partial<Theme> = { ...theme };
+      delete rest[key];
+      expect(ThemeSchema.safeParse(rest).success).toBe(false);
+    }
+    expect(ThemeSchema.safeParse({ ...theme, id: '' }).success).toBe(false);
+    expect(ThemeSchema.safeParse({ ...theme, fonts: [''] }).success).toBe(false);
+    expect(ThemeSchema.safeParse({ ...theme, fonts: 'Lora' }).success).toBe(false);
+  });
+  it('schema output equals the hand-written type (compile-time)', () => {
+    expectTypeOf<z.output<typeof ThemeSchema>>().toEqualTypeOf<Theme>();
   });
 });

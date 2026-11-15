@@ -1,6 +1,15 @@
 import { produce } from 'immer';
 import { newElement, newId } from '../factory';
-import type { Book, Element, PhotoElement, Rect, Side, Spread, TextElement } from '../schema';
+import type {
+  Book,
+  Element,
+  PhotoElement,
+  Rect,
+  Side,
+  Spread,
+  TextElement,
+  TextRole,
+} from '../schema';
 import {
   layoutTemplate,
   readingOrder,
@@ -9,6 +18,7 @@ import {
   type SlotRect,
   type Template,
 } from '../template';
+import { setBackground } from './backgrounds';
 import { clone, copyElements, isPhoto, isText, spreadOf, targetBox } from './util';
 
 type Target = Side | 'spread';
@@ -60,10 +70,27 @@ function photoFor(slot: SlotRect, source: PhotoElement | undefined): PhotoElemen
   return el;
 }
 
+/**
+ * How an empty text frame looks until the user types in it: a title is big and centred, a caption
+ * small and centred, a body text is set like a paragraph. A frame without a role keeps the
+ * defaults of a new text element.
+ */
+const ROLE_LOOK: Record<TextRole, { fontSizePt: number; align: TextElement['align'] }> = {
+  title: { fontSizePt: 28, align: 'center' },
+  caption: { fontSizePt: 10, align: 'center' },
+  body: { fontSizePt: 11, align: 'left' },
+};
+
 function textFor(slot: SlotRect, source: TextElement | undefined): TextElement {
   const el = newElement('text', { x: slot.x, y: slot.y, w: slot.w, h: slot.h });
   el.rotation = slot.rotation;
-  if (slot.textRole) el.textRole = slot.textRole;
+  if (slot.textRole) {
+    el.textRole = slot.textRole;
+    if (!source) {
+      el.style.fontSizePt = ROLE_LOOK[slot.textRole].fontSizePt;
+      el.align = ROLE_LOOK[slot.textRole].align;
+    }
+  }
   if (source) {
     el.doc = clone(source.doc);
     el.style = clone(source.style);
@@ -85,7 +112,9 @@ function textFor(slot: SlotRect, source: TextElement | undefined): TextElement {
  * they were, on top of everything. The text of an existing text element moves into a text slot
  * of the same role, when there is one. Other elements are untouched. The new elements take
  * the place in the stack of the first element they replace, so stickers and text lying over a
- * photo stay over it. A free template's decorations are added just before them.
+ * photo stay over it. A free template's decorations are added just before them. A template that
+ * has a `background` sets it on the target (the page, or the spread's own); the other side keeps
+ * its background, and a template without one leaves the background as it is.
  */
 export function applyTemplate(
   book: Book,
@@ -135,9 +164,10 @@ export function applyTemplate(
   const onTop = spread.elements.filter((el) => excess.has(el));
   const elements = [...head, ...decorations, ...created, ...tail, ...onTop];
 
-  return produce(book, (draft) => {
+  const laidOut = produce(book, (draft) => {
     spreadOf(draft, spreadId).elements = elements;
   });
+  return t.background ? setBackground(laidOut, spreadId, target, t.background) : laidOut;
 }
 
 /**
@@ -180,7 +210,7 @@ export function captureTemplate(
   }
   const photoCount = slots.filter((s) => s.kind === 'photo').length;
   return {
-    id: newId(),
+    id: `user-${newId()}`,
     name,
     category: photoCount === 0 && slots.length > 0 ? 'texte' : 'photos',
     scope: target === 'spread' ? 'spread' : 'page',
