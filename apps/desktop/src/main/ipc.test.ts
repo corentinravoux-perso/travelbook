@@ -444,6 +444,29 @@ describe('photos', () => {
     expect((await next).added).toHaveLength(1);
   });
 
+  it('saves the book while photos are being imported, and neither damages the other', async () => {
+    const created = await create();
+    const photos = ['landscape.jpg', 'pano.jpg', 'small.jpg'].map((name) => fixturePath(name));
+    const importing = call<ImportReport>(CHANNEL.photosImport, photos);
+    const saves: Promise<unknown>[] = [];
+    for (let i = 1; i <= 8; i++) {
+      saves.push(call(CHANNEL.projectSave, { ...created.book, title: `Version ${i}` }));
+    }
+    const report = await importing;
+    await Promise.all(saves);
+
+    expect(report.added).toHaveLength(3);
+    // Every original is whole, and it is the file that was given.
+    for (const [i, asset] of report.added.entries()) {
+      const copy = await readFile(join(created.dir, asset.file));
+      expect(copy.equals(await readFile(photos[i] ?? ''))).toBe(true);
+    }
+    // book.json is a complete document: the last save won.
+    const onDisk = JSON.parse(await readFile(join(created.dir, 'book.json'), 'utf8')) as Book;
+    expect(onDisk.title).toBe('Version 8');
+    expect(await readdir(created.dir)).not.toContain('book.json.tmp');
+  });
+
   it('indexes into the project the import started on, even if another is opened meanwhile', async () => {
     const first = await create('Premier');
     const importing = call<ImportReport>(CHANNEL.photosImport, [fixturePath('landscape.jpg')]);
