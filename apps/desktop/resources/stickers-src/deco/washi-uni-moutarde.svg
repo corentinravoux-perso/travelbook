@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-uni-moutarde"><path d="M7 0L5 7L5 14L8 21L3 28L4 35L5 42L2 49L3 56L1 63L9 70L8 77L2 84L412 84L414 77L417 70L417 63L414 56L412 49L413 42L414 35L412 28L419 21L415 14L417 7L414 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-uni-moutarde)" opacity="0.92">
+<path d="M7 0L5 7L5 14L8 21L3 28L4 35L5 42L2 49L3 56L1 63L9 70L8 77L2 84L412 84L414 77L417 70L417 63L414 56L412 49L413 42L414 35L412 28L419 21L415 14L417 7L414 0Z" fill="#f7d98b"/>
+<path d="M0 10H420M0 74H420" stroke="#fcefc8" stroke-width="3" stroke-dasharray="10 7"/>
+</g>
+</svg>

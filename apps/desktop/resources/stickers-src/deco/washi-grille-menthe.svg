@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-grille-menthe"><path d="M7 0L9 7L8 14L2 21L9 28L1 35L4 42L5 49L0 56L1 63L8 70L3 77L5 84L412 84L418 77L419 70L419 63L417 56L415 49L416 42L416 35L417 28L418 21L416 14L412 7L412 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-grille-menthe)" opacity="0.92">
+<path d="M7 0L9 7L8 14L2 21L9 28L1 35L4 42L5 49L0 56L1 63L8 70L3 77L5 84L412 84L418 77L419 70L419 63L417 56L415 49L416 42L416 35L417 28L418 21L416 14L412 7L412 0Z" fill="#bfe3d6"/>
+<path d="M10 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M30 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M50 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M70 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M90 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M110 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M130 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M150 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M170 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M190 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M210 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M230 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M250 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M270 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M290 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M310 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M330 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M350 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M370 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M390 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M410 0V84" stroke="#2f8f84" stroke-width="2"/>
+<path d="M0 10H420" stroke="#2f8f84" stroke-width="2"/>
+<path d="M0 30H420" stroke="#2f8f84" stroke-width="2"/>
+<path d="M0 50H420" stroke="#2f8f84" stroke-width="2"/>
+<path d="M0 70H420" stroke="#2f8f84" stroke-width="2"/>
+</g>
+</svg>
