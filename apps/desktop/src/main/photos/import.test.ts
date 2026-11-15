@@ -276,6 +276,118 @@ describe('importPhotos: duplicates', () => {
   });
 });
 
+describe('importPhotos: a photo of the book whose original is gone', () => {
+  /** The book of an album that imported `name`, whose original was then lost from `originals/`. */
+  async function lostOriginal(name: FixtureName) {
+    const first = await importPhotos(dir, book, fx(name));
+    const asset = first.added[0] as AssetRef;
+    await rm(join(dir, asset.file));
+    return { asset, lost: withAssets(book, first.added) };
+  }
+
+  it('puts the original back from the same file, checked by its hash, and reports it as restored', async () => {
+    const { asset, lost } = await lostOriginal('small.jpg');
+    const source = fixturePath('small.jpg');
+    const report = await importPhotos(dir, lost, [source]);
+    expect(report).toEqual({
+      added: [],
+      duplicates: [],
+      restored: [{ path: source, assetId: asset.id }],
+      failed: [],
+    } satisfies ImportReport);
+    expect(await sha256(join(dir, asset.file))).toBe(asset.sha256);
+    expect(await listing('originals')).toEqual([`${asset.id}.jpg`]);
+  });
+
+  it('puts the file where the book says, whatever the new name and extension', async () => {
+    const { asset, lost } = await lostOriginal('small.jpg');
+    const renamed = join(root, 'copie de small.JPEG');
+    await copyFile(fixturePath('small.jpg'), renamed);
+    const report = await importPhotos(dir, lost, [renamed]);
+    expect(report.restored).toEqual([{ path: renamed, assetId: asset.id }]);
+    expect(await listing('originals')).toEqual([`${asset.id}.jpg`]);
+  });
+
+  it('renders the proxies again when the cache is gone too', async () => {
+    const { asset, lost } = await lostOriginal('small.jpg');
+    await rm(join(dir, 'cache'), { recursive: true });
+    await importPhotos(dir, lost, fx('small.jpg'));
+    expect(await listing('cache')).toEqual([`${asset.id}.preview.jpg`, `${asset.id}.thumb.jpg`]);
+  });
+
+  it('restores once when the same file comes twice in a batch', async () => {
+    const { asset, lost } = await lostOriginal('small.jpg');
+    const twin = join(root, 'jumeau.jpg');
+    await copyFile(fixturePath('small.jpg'), twin);
+    const report = await importPhotos(dir, lost, [fixturePath('small.jpg'), twin]);
+    expect(report.restored).toEqual([{ path: fixturePath('small.jpg'), assetId: asset.id }]);
+    expect(report.duplicates).toEqual([{ path: twin, assetId: asset.id }]);
+    expect(await listing('originals')).toEqual([`${asset.id}.jpg`]);
+  });
+
+  it('leaves a present original alone: a plain duplicate, nothing written', async () => {
+    const first = await importPhotos(dir, book, fx('small.jpg', 'opaque.png'));
+    const [small, opaque] = first.added as [AssetRef, AssetRef];
+    await rm(join(dir, opaque.file));
+    const before = await readFile(join(dir, small.file));
+    const report = await importPhotos(
+      dir,
+      withAssets(book, first.added),
+      fx('small.jpg', 'opaque.png'),
+    );
+    expect(report.duplicates).toEqual([{ path: fixturePath('small.jpg'), assetId: small.id }]);
+    expect(report.restored).toEqual([{ path: fixturePath('opaque.png'), assetId: opaque.id }]);
+    expect((await readFile(join(dir, small.file))).equals(before)).toBe(true);
+  });
+
+  it('never overwrites a file that is there, even a damaged one', async () => {
+    const first = await importPhotos(dir, book, fx('small.jpg'));
+    const asset = first.added[0] as AssetRef;
+    await writeFile(join(dir, asset.file), 'damaged');
+    const report = await importPhotos(dir, withAssets(book, first.added), fx('small.jpg'));
+    expect(report.duplicates).toHaveLength(1);
+    expect(report.restored).toEqual([]);
+    expect(await readFile(join(dir, asset.file), 'utf8')).toBe('damaged');
+  });
+
+  it('refuses a restore that does not match the source, and leaves nothing behind', async () => {
+    const { lost } = await lostOriginal('small.jpg');
+    const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
+    vi.mocked(copyFile).mockImplementation(async (src, dst, mode) => {
+      await actual.copyFile(src, dst, mode);
+      await actual.appendFile(dst, 'x');
+    });
+    try {
+      const report = await importPhotos(dir, lost, fx('small.jpg'));
+      expect(report.restored).toEqual([]);
+      expect(report.failed.map((f) => f.path)).toEqual([fixturePath('small.jpg')]);
+      expect(report.failed[0]?.reason).toMatch(/changed|differ|match/i);
+      expect(await listing('originals')).toEqual([]);
+    } finally {
+      vi.mocked(copyFile).mockImplementation(actual.copyFile);
+    }
+  });
+
+  it('does not write outside originals/ for a book that names another place', async () => {
+    const { asset, lost } = await lostOriginal('small.jpg');
+    const hostile = withAssets(lost, [{ ...asset, file: '../escaped.jpg' }]);
+    const report = await importPhotos(dir, hostile, fx('small.jpg'));
+    expect(report.restored).toEqual([]);
+    expect(report.duplicates).toHaveLength(1);
+    expect(await readdir(root)).not.toContain('escaped.jpg');
+    expect(await listing('originals')).toEqual([]);
+  });
+
+  it('does not trust the id a record gives itself for a place either', async () => {
+    const { asset, lost } = await lostOriginal('small.jpg');
+    const record: AssetRef = { ...asset, id: '../escaped', file: 'originals/../escaped.jpg' };
+    const tricked: Book = { ...lost, assets: { [asset.id]: record } };
+    const report = await importPhotos(dir, tricked, fx('small.jpg'));
+    expect(report.restored).toEqual([]);
+    expect(await readdir(root)).not.toContain('escaped.jpg');
+  });
+});
+
 describe('importPhotos: failures', () => {
   it('Review Focus 4: truncated.jpg fails alone, pano.jpg imports, nothing partial is left', async () => {
     const report = await importPhotos(dir, book, fx('truncated.jpg', 'pano.jpg'));
@@ -478,7 +590,12 @@ describe('importPhotos: progress', () => {
     const onProgress = vi.fn();
     const empty = await folder(['empty'], { 'notes.txt': 'text' });
     const report = await importPhotos(dir, book, [empty], onProgress);
-    expect(report).toEqual({ added: [], duplicates: [], failed: [] } satisfies ImportReport);
+    expect(report).toEqual({
+      added: [],
+      duplicates: [],
+      restored: [],
+      failed: [],
+    } satisfies ImportReport);
     expect(onProgress).not.toHaveBeenCalled();
   });
 

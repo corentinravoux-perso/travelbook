@@ -23,6 +23,7 @@ const asset = (id: string): AssetRef => ({
 const report = (parts: Partial<ImportReport>): ImportReport => ({
   added: [],
   duplicates: [],
+  restored: [],
   failed: [],
   ...parts,
 });
@@ -34,10 +35,12 @@ async function setup(reports: ImportReport[] | (() => Promise<ImportReport>)) {
   const tray = createTrayStore();
   const queue = Array.isArray(reports) ? [...reports] : null;
   const calls: string[][] = [];
+  const restoredCalls: string[][] = [];
   const progressListeners: ((done: number, total: number) => void)[] = [];
   const importer = createPhotoImporter({
     editor,
     tray,
+    onRestored: (ids) => restoredCalls.push(ids),
     import: (paths) => {
       calls.push(paths);
       if (queue) return Promise.resolve(queue.shift() as ImportReport);
@@ -48,7 +51,7 @@ async function setup(reports: ImportReport[] | (() => Promise<ImportReport>)) {
       return () => progressListeners.splice(progressListeners.indexOf(cb), 1);
     },
   });
-  return { editor, tray, importer, calls, progressListeners };
+  return { editor, tray, importer, calls, restoredCalls, progressListeners };
 }
 
 describe('describeFailure', () => {
@@ -131,6 +134,38 @@ describe('photo importer', () => {
       { name: 'broken.jpg', reason: 'fichier illisible ou abîmé' },
     ]);
     expect(Object.keys(editor.getState().book!.assets)).toEqual(['a']);
+  });
+
+  it('tells which originals came back, and hands their photos on to be placed', async () => {
+    const { editor, tray, importer, restoredCalls } = await setup([
+      report({ added: [asset('a')] }),
+      report({
+        added: [asset('b')],
+        restored: [{ path: '/p/Été/a.jpg', assetId: 'a' }],
+        duplicates: [{ path: '/p/c.jpg', assetId: 'a' }],
+      }),
+    ]);
+    await importer.importPaths(['/p/a.jpg']);
+    expect(restoredCalls).toEqual([[]]);
+    const ids = await importer.importPaths(['/p/b.jpg', '/p/Été/a.jpg', '/p/c.jpg']);
+    expect(ids).toEqual(['b', 'a']);
+    expect(restoredCalls.at(-1)).toEqual(['a']);
+    expect(tray.getState().restored).toEqual(['a.jpg']);
+    // Nothing was added to the book twice, and the restore is not an undo step of its own.
+    expect(Object.keys(editor.getState().book!.assets)).toEqual(['a', 'b']);
+  });
+
+  it('forgets the restored files of the previous import', async () => {
+    const { tray, importer } = await setup([
+      report({ added: [asset('a')] }),
+      report({ restored: [{ path: '/p/a.jpg', assetId: 'a' }] }),
+      report({ duplicates: [{ path: '/p/a.jpg', assetId: 'a' }] }),
+    ]);
+    await importer.importPaths(['/p/a.jpg']);
+    await importer.importPaths(['/p/a.jpg']);
+    expect(tray.getState().restored).toEqual(['a.jpg']);
+    await importer.importPaths(['/p/a.jpg']);
+    expect(tray.getState().restored).toEqual([]);
   });
 
   it('clears the failures of the previous import', async () => {

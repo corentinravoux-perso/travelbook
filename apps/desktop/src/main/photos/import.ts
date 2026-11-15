@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { constants, createReadStream, type Dirent } from 'node:fs';
-import { copyFile, mkdir, readdir, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import { basename, extname, join } from 'node:path';
 import type { AssetRef, Book } from '@travelbook/core';
 import type { ImportReport } from '../../shared/api';
@@ -102,10 +102,49 @@ export async function sha256File(path: string): Promise<string> {
   return hash.digest('hex');
 }
 
+/**
+ * Copy `src` to `dest` under a temporary name, check that the copy has the hash the caller
+ * measured on the source, and only then rename it into place: `dest` never holds a partial file,
+ * and a source that changed while it was being copied is refused. Nothing is left on failure.
+ */
+export async function copyFileVerified(src: string, dest: string, sha256: string): Promise<void> {
+  const tmp = `${dest}.${randomUUID()}.tmp`;
+  try {
+    await copyFile(src, tmp, constants.COPYFILE_FICLONE);
+    if ((await sha256File(tmp)) !== sha256) {
+      throw new Error('The copy does not match the source: the file changed during the import');
+    }
+    await rename(tmp, dest);
+  } catch (error) {
+    await rm(tmp, { force: true }).catch(() => undefined);
+    throw error;
+  }
+}
+
 type Outcome =
   | { kind: 'added'; asset: AssetRef }
+  | { kind: 'restored'; assetId: string }
   | { kind: 'duplicate'; assetId: string }
   | { kind: 'failed'; reason: string };
+
+/**
+ * Where the album keeps the original of a photo: `originals/<id>.<ext>` of the project. The book
+ * is edited by hand and received from others, so any other place gives `null`.
+ */
+function originalPathOf(dir: string, id: string, asset: AssetRef): string | null {
+  const prefix = `originals/${id}.`;
+  const ext = asset.file.slice(prefix.length);
+  if (asset.kind !== 'photo' || !asset.file.startsWith(prefix) || !/^[A-Za-z0-9]{1,8}$/.test(ext)) {
+    return null;
+  }
+  return join(dir, asset.file);
+}
+
+const isPresent = (path: string): Promise<boolean> =>
+  stat(path).then(
+    () => true,
+    () => false,
+  );
 
 /**
  * Import files into a project. Folders are expanded (one level, or all levels with
@@ -114,8 +153,11 @@ type Outcome =
  * digits of its SHA-256, then checked by reading it back and rendering its proxies. A file that
  * fails any step is reported in `failed` and leaves nothing behind; it never stops the others.
  * A file whose id is already in `book.assets`, or was met earlier in this batch, goes to
- * `duplicates`. `book` is only read: the caller adds `added` to it. All three lists follow the
- * order of the given paths. `onProgress` is called once per file as it completes.
+ * `duplicates`, unless the album's original of that photo is missing from `originals/`: then the
+ * file is copied back where the book says it is (checked by its hash, never over a file that is
+ * there) and goes to `restored`. `book` is only read: the caller adds `added` to it. All four
+ * lists follow the order of the given paths. `onProgress` is called once per file as it
+ * completes.
  */
 export async function importPhotos(
   dir: string,
@@ -130,8 +172,8 @@ export async function importPhotos(
 
   /** Ids being imported right now, each settling when its import is over, whatever the result. */
   const inFlight = new Map<string, Promise<void>>();
-  /** Ids this batch added. */
-  const addedIds = new Set<string>();
+  /** Ids this batch has dealt with (added, restored, or found in place): a twin is a duplicate. */
+  const settledIds = new Set<string>();
 
   /**
    * Files take their turn to claim an id in the order they were given, however long each one
@@ -163,18 +205,22 @@ export async function importPhotos(
     // fails, this file (the same bytes) gets its own try and reports its own failure. Nothing
     // is awaited between the last check and `inFlight.set` below, so the claim is atomic.
     for (;;) {
-      if (book.assets[id] !== undefined || addedIds.has(id))
-        return { kind: 'duplicate', assetId: id };
+      if (settledIds.has(id)) return { kind: 'duplicate', assetId: id };
       const twin = inFlight.get(id);
       if (twin === undefined) break;
       await twin;
     }
 
-    const work = store(path, id, sha256).then((asset) => {
-      addedIds.add(id);
-      return asset;
+    const known = book.assets[id];
+    const work = (
+      known === undefined
+        ? store(path, id, sha256).then((asset): Outcome => ({ kind: 'added', asset }))
+        : reinstate(path, id, known, sha256)
+    ).then((outcome) => {
+      settledIds.add(id);
+      return outcome;
     });
-    // Waiters wake up only once this id is out of `inFlight`, and `addedIds` is already set.
+    // Waiters wake up only once this id is out of `inFlight`, and `settledIds` is already set.
     inFlight.set(
       id,
       work
@@ -186,7 +232,31 @@ export async function importPhotos(
           inFlight.delete(id);
         }),
     );
-    return { kind: 'added', asset: await work };
+    return work;
+  }
+
+  /**
+   * The album already holds this photo. When its original is gone from `originals/`, copy the
+   * file back to the place the book names (only when nothing is there: a file in place is never
+   * touched, whatever its content) and render the proxies again, which proves it is whole.
+   */
+  async function reinstate(
+    path: string,
+    id: string,
+    known: AssetRef,
+    sha256: string,
+  ): Promise<Outcome> {
+    // `id` is what the file hashes to: the book's own record of itself is not trusted for a path.
+    const stored = originalPathOf(dir, id, known);
+    if (stored === null || (await isPresent(stored))) return { kind: 'duplicate', assetId: id };
+    await copyFileVerified(path, stored, sha256);
+    try {
+      await ensureProxies(dir, { ...known, id });
+    } catch (error) {
+      await rm(stored, { force: true }).catch(() => undefined);
+      throw error;
+    }
+    return { kind: 'restored', assetId: id };
   }
 
   /** Copy, verify and describe one new photo; on any failure remove what was written. */
@@ -250,12 +320,13 @@ export async function importPhotos(
     ),
   );
 
-  const report: ImportReport = { added: [], duplicates: [], failed: [] };
+  const report: ImportReport = { added: [], duplicates: [], restored: [], failed: [] };
   outcomes.forEach((outcome, i) => {
     const path = (candidates[i] as Candidate).path;
     if (outcome.kind === 'added') report.added.push(outcome.asset);
     else if (outcome.kind === 'duplicate')
       report.duplicates.push({ path, assetId: outcome.assetId });
+    else if (outcome.kind === 'restored') report.restored.push({ path, assetId: outcome.assetId });
     else report.failed.push({ path, reason: outcome.reason });
   });
   return report;

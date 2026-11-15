@@ -1,13 +1,11 @@
-import { randomUUID } from 'node:crypto';
-import { constants } from 'node:fs';
-import { copyFile, mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, extname, join } from 'node:path';
 import sharp from 'sharp';
 import type { AssetRef } from '@travelbook/core';
 import type { ImportedAssetKind } from '../../shared/api';
 import { sanitizeSvg } from '../library/stickers/sanitizeSvg';
-import { describeError, ID_LENGTH, sha256File } from '../photos/import';
+import { copyFileVerified, describeError, ID_LENGTH, sha256File } from '../photos/import';
 
 const RASTER_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
 const RASTER_FORMATS = new Set(['png', 'jpeg', 'webp']);
@@ -45,25 +43,6 @@ export async function inspectImage(
   if (!(w > 0 && h > 0)) throw new Error('The image has no readable size');
   await sharp(input).resize({ width: CHECK_EDGE, height: CHECK_EDGE, fit: 'inside' }).toBuffer();
   return { w, h };
-}
-
-/**
- * Copy `src` to `dest` under a temporary name, check that the copy has the hash the caller
- * measured on the source, and only then rename it into place: `dest` never holds a partial file,
- * and a source that changed while it was being copied is refused. Nothing is left on failure.
- */
-export async function copyFileVerified(src: string, dest: string, sha256: string): Promise<void> {
-  const tmp = `${dest}.${randomUUID()}.tmp`;
-  try {
-    await copyFile(src, tmp, constants.COPYFILE_FICLONE);
-    if ((await sha256File(tmp)) !== sha256) {
-      throw new Error('The copy does not match the source: the file changed during the import');
-    }
-    await rename(tmp, dest);
-  } catch (error) {
-    await rm(tmp, { force: true }).catch(() => undefined);
-    throw error;
-  }
 }
 
 const exists = (path: string): Promise<boolean> =>

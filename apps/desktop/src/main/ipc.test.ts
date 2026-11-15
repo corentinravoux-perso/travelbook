@@ -493,6 +493,7 @@ describe('photos', () => {
     expect(await call<ImportReport>(CHANNEL.photosImport, [])).toEqual({
       added: [],
       duplicates: [],
+      restored: [],
       failed: [],
     });
     expect(progress).toEqual([]);

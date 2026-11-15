@@ -3,7 +3,7 @@ import { dirname, isAbsolute } from 'node:path';
 import { AssetRefSchema, ElementSchema } from '@travelbook/core';
 import { z } from 'zod';
 import type { ClipboardPayload } from '../shared/api';
-import { copyFileVerified } from './assets/import-files';
+import { copyFileVerified } from './photos/import';
 import { projectFilePath } from './protocol';
 import { recordAssets, type Session } from './session';
 

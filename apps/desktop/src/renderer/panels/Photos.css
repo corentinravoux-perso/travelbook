@@ -65,6 +65,9 @@
   background: var(--surface);
   font-size: var(--t-sm);
 }
+.import-notice--ok {
+  border-left-color: var(--good);
+}
 .import-notice-body {
   flex: 1;
   min-width: 0;

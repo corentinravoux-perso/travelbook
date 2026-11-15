@@ -281,6 +281,11 @@ export const fr = {
       n === 1 ? "1 fichier n'a pas pu être importé" : `${n} fichiers n'ont pas pu être importés`,
     failedLine: (name: string, why: string) => `${name} : ${why}`,
     failedRest: 'Les autres photos ont été importées.',
+    restoredTitle: (n: number) =>
+      n === 1
+        ? "1 original est de nouveau dans l'album"
+        : `${n} originaux sont de nouveau dans l'album`,
+    restoredHint: "Les photos concernées s'affichent et s'exportent de nouveau.",
     dismiss: 'Fermer ce message',
     failure: {
       notFound: 'fichier introuvable',

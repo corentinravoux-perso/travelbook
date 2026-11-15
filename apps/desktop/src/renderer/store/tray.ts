@@ -17,6 +17,8 @@ export interface TrayState {
   progress: { done: number; total: number } | null;
   /** What the last import left behind; empty when it went through. */
   failures: ImportFailure[];
+  /** Names of the files whose original the last import put back in the album. */
+  restored: string[];
 
   setSort(sort: SortKey): void;
   setFilter(filter: UsageFilter): void;
@@ -27,6 +29,7 @@ export interface TrayState {
   clearSelection(): void;
   setProgress(progress: TrayState['progress']): void;
   setFailures(failures: ImportFailure[]): void;
+  setRestored(names: string[]): void;
 }
 
 export type TrayStore = StoreApi<TrayState>;
@@ -38,6 +41,7 @@ export function createTrayStore(): TrayStore {
     selected: [],
     progress: null,
     failures: [],
+    restored: [],
 
     setSort(sort) {
       set({ sort });
@@ -67,6 +71,9 @@ export function createTrayStore(): TrayStore {
     },
     setFailures(failures) {
       set({ failures });
+    },
+    setRestored(restored) {
+      set({ restored });
     },
   }));
 }

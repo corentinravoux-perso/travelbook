@@ -4,13 +4,8 @@ import { extname, join } from 'node:path';
 import { z } from 'zod';
 import { LicenceSchema, type AssetRef, type Book, type Licence } from '@travelbook/core';
 import type { LibraryItem, LibraryItemKind, LibraryQuery } from '../../shared/api';
-import {
-  ASSET_EXTENSIONS,
-  copyFileVerified,
-  importAssetFiles,
-  inspectImage,
-} from '../assets/import-files';
-import { describeError, ID_LENGTH, sha256File } from '../photos/import';
+import { ASSET_EXTENSIONS, importAssetFiles, inspectImage } from '../assets/import-files';
+import { copyFileVerified, describeError, ID_LENGTH, sha256File } from '../photos/import';
 import { serialize, writeFileAtomic } from '../project/atomic-write';
 import { projectFilePath } from '../protocol';
 import { userDataDir } from '../user-data';

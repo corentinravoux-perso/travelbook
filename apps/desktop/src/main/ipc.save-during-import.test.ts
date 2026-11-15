@@ -29,7 +29,7 @@ vi.mock('./photos/import', async (importOriginal) => ({
     await new Promise<void>((resolve) => {
       slow.release = resolve;
     });
-    return { added: [], duplicates: [], failed: [] };
+    return { added: [], duplicates: [], restored: [], failed: [] };
   }),
 }));
 

@@ -41,7 +41,13 @@ export interface CaptureRect {
 /** The outcome of `photos.import`. The renderer adds `added` to its book and then saves. */
 export interface ImportReport {
   added: AssetRef[];
+  /** Files the album already holds, with their original in place. */
   duplicates: { path: string; assetId: string }[];
+  /**
+   * Files the album already held whose original was missing from `originals/`: the file was
+   * copied back (and checked by its hash), so the photo shows again.
+   */
+  restored: { path: string; assetId: string }[];
   failed: { path: string; reason: string }[];
 }
 

@@ -10,6 +10,7 @@ describe('ImportStatus', () => {
   beforeEach(() => {
     tray().setProgress(null);
     tray().setFailures([]);
+    tray().setRestored([]);
   });
   afterEach(cleanup);
 
@@ -30,6 +31,20 @@ describe('ImportStatus', () => {
     expect(screen.getByText('3 sur 10')).toBeTruthy();
     act(() => tray().setProgress(null));
     expect(screen.queryByRole('progressbar')).toBeNull();
+  });
+
+  it('names the originals that came back, in French, and can be dismissed', () => {
+    render(<ImportStatus />);
+    act(() => tray().setRestored(['IMG_0001.jpg']));
+    const note = screen.getByRole('status');
+    expect(note.textContent).toContain("1 original est de nouveau dans l'album");
+    expect(note.textContent).toContain('IMG_0001.jpg');
+    act(() => tray().setRestored(['IMG_0001.jpg', 'IMG_0002.jpg']));
+    expect(screen.getByRole('status').textContent).toContain(
+      "2 originaux sont de nouveau dans l'album",
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer ce message' }));
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('names every file that failed, in French, and can be dismissed', () => {
