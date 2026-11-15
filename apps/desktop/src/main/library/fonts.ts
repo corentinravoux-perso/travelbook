@@ -408,6 +408,12 @@ export async function addFromCatalogue(id: string, version: () => string): Promi
 // Fonts in an album.
 // ---------------------------------------------------------------------------------------------
 
+/** The families of `families` that do not ship with the app: the only ones an album must carry. */
+export function unbundledFamilies(families: readonly string[]): string[] {
+  const bundledNames = new Set(bundledFonts().map((f) => f.family.toLowerCase()));
+  return families.filter((name) => !bundledNames.has(name.toLowerCase()));
+}
+
 /**
  * Copy every face of the named user-library families into the album's `assets/` (once, whatever
  * the number of calls) and give the asset records. Families the library does not hold, and the
@@ -419,10 +425,7 @@ export async function fontAssetsFor(
   families: readonly string[],
 ): Promise<AssetRef[]> {
   // The bundled families are always there: only the others need the library.
-  const bundledNames = new Set(bundledFonts().map((f) => f.family.toLowerCase()));
-  const wanted = new Set(
-    families.map((f) => f.toLowerCase()).filter((name) => !bundledNames.has(name)),
-  );
+  const wanted = new Set(unbundledFamilies(families).map((f) => f.toLowerCase()));
   if (wanted.size === 0) return [];
   const refs: AssetRef[] = [];
   let known = book;

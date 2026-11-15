@@ -17,6 +17,11 @@ export function serialize<T>(key: string, task: () => Promise<T>): Promise<T> {
   return run;
 }
 
+/** True while a task queued under `key` has not settled. */
+export function isBusy(key: string): boolean {
+  return queues.has(key);
+}
+
 /**
  * Replace `path` with `data` so that a crash or a failure at any point leaves either the old
  * content or the new one, never a mix: write `<path>.tmp`, fsync it, close it, rename it over

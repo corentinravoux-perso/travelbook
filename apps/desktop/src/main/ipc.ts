@@ -1,7 +1,7 @@
 import { basename, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
-import { BookSchema, TemplateSchema } from '@travelbook/core';
+import { BookSchema, TemplateSchema, fontFamiliesUsed, type Book } from '@travelbook/core';
 import { z } from 'zod';
 import type { CaptureRect, ExportOptions, ExportProgress, LibraryItem } from '../shared/api';
 import {
@@ -45,11 +45,12 @@ import {
   importFontFile,
   listFonts,
   searchCatalogue,
+  unbundledFamilies,
 } from './library/fonts';
 import { getStickerService } from './library/stickers/service';
 import { SourceError } from './library/stickers/source';
 import { projectFilePath } from './protocol';
-import { serialize } from './project/atomic-write';
+import { isBusy, serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
 import { ensureProxies } from './photos/proxies';
 import { COVER_THUMB_EDGE, coverThumbUrl, writeCoverThumb } from './project/cover-thumb';
@@ -226,6 +227,19 @@ function parseArgs<S extends z.ZodType>(channel: InvokeChannel, schema: S, args:
 /** Imports into a project run one at a time: two of them could remove each other's files. */
 const importQueue = (session: Session): string => `import:${resolve(session.dir)}`;
 
+/**
+ * Whether the text of `book` draws with a family the app does not bundle, so that saving it may
+ * have faces to copy. When that cannot be told (the font list is unreadable) the copy runs and
+ * reports why it cannot.
+ */
+function carriesLibraryFonts(book: Book): boolean {
+  try {
+    return unbundledFamilies(fontFamiliesUsed(book)).length > 0;
+  } catch {
+    return true;
+  }
+}
+
 /** The files the palette is counted on: thumbnails of photos, the files of the other assets. */
 async function paletteFiles(session: Session, ids: readonly string[]): Promise<string[]> {
   const files: string[] = [];
@@ -252,6 +266,26 @@ async function paletteFiles(session: Session, ids: readonly string[]): Promise<s
 export function createHandlers(host: Host): IpcHandlers {
   /** The files of the last export that finished: what `exportReveal` shows. */
   let lastExportFiles: string[] = [];
+  /** The book of the font copy waiting in a project's import queue, by queue key. */
+  const waitingFontCopies = new Map<string, Book>();
+
+  /**
+   * Copy the faces `book` uses into the album once the queue is free. Saves that come while the
+   * copy still waits only hand it their newer book: it runs once, on the latest. A font that
+   * cannot be copied must not stop the save, so this never rejects.
+   */
+  function queueFontCopy(session: Session, book: Book): Promise<void> {
+    const queue = importQueue(session);
+    const waiting = waitingFontCopies.has(queue);
+    waitingFontCopies.set(queue, book);
+    if (waiting) return Promise.resolve();
+    return serialize(queue, async () => {
+      const latest = waitingFontCopies.get(queue) ?? book;
+      waitingFontCopies.delete(queue);
+      await ensureFontsInProject(session.dir, latest);
+    }).catch((error: unknown) => console.warn('Could not copy the fonts into the album:', error));
+  }
+
   return {
     [CHANNEL.projectCreate]: async (_ctx, ...args) => {
       const [options] = parseArgs(CHANNEL.projectCreate, schemas.create, args);
@@ -283,11 +317,14 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.projectSave]: async (_ctx, ...args) => {
       const [book] = parseArgs(CHANNEL.projectSave, schemas.save, args);
       const session = requireSession();
-      // The album carries the fonts its text uses: copied before the book that names them is
-      // written. A font that cannot be copied must not stop the save.
-      await serialize(importQueue(session), () => ensureFontsInProject(session.dir, book)).catch(
-        (error: unknown) => console.warn('Could not copy the fonts into the album:', error),
-      );
+      // The album carries the fonts its text uses. When no import is running the faces are copied
+      // before the book that names them is written. During an import the save does not wait for
+      // it: the book is written now and the copy follows the import (a save waiting behind 400
+      // photos would never show "Enregistré", and the close-time save would time out).
+      const queue = importQueue(session);
+      const importing = isBusy(queue);
+      const fonts = carriesLibraryFonts(book) ? queueFontCopy(session, book) : undefined;
+      if (!importing) await fonts;
       await saveBook(session.dir, book);
       recordBook(session, book);
     },
