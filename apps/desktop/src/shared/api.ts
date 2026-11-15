@@ -160,6 +160,12 @@ export interface TbApi {
     import(paths: string[]): Promise<ImportReport>;
     /** `cb(done, total)` runs once per file during an import; returns the unsubscribe function. */
     onProgress(cb: (done: number, total: number) => void): () => void;
+    /**
+     * The absolute path of a file or folder dropped from the system (the sandboxed renderer
+     * cannot read `File.path`). Empty when the `File` is not backed by a file on disk. The result
+     * goes to `import`; the renderer never reads the file itself.
+     */
+    pathForFile(file: File): string;
   };
   assets: {
     /**
