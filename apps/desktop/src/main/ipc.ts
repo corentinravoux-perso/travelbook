@@ -18,11 +18,14 @@ import {
 import {
   addToLibrary,
   copyIntoProject,
+  expandLibraryPaths,
   listLibrary,
   removeFromLibrary,
   setFavourite,
   touchUsed,
 } from './library/userLibrary';
+import { getStickerService } from './library/stickers/service';
+import { SourceError } from './library/stickers/source';
 import { projectFilePath } from './protocol';
 import { serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
@@ -104,6 +107,35 @@ const libraryQuery = z.strictObject({
   recent: z.number().int().min(0).max(1000).optional(),
 });
 
+const stickerRef = z.strictObject({
+  source: z.string().min(1).max(64),
+  id: z.string().min(1).max(256),
+});
+const stickerSearch = z.strictObject({
+  source: z.string().min(1).max(64),
+  q: z.string().max(200),
+  page: z.number().int().min(1).max(10_000),
+  set: z
+    .string()
+    .regex(/^[a-z0-9-]{1,64}$/)
+    .optional(),
+  category: z.string().max(200).optional(),
+  mono: z.boolean().optional(),
+  noAttribution: z.boolean().optional(),
+});
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+
+/** A failed online call reaches the renderer as `SourceError:<kind>`, which it maps to French. */
+async function viaSource<T>(task: () => Promise<T>): Promise<T> {
+  try {
+    return await task();
+  } catch (error) {
+    if (error instanceof SourceError)
+      throw new Error(`SourceError:${error.kind}`, { cause: error });
+    throw error;
+  }
+}
+
 const isHttps = (value: string): boolean => {
   try {
     return new URL(value).protocol === 'https:';
@@ -132,6 +164,14 @@ const schemas = {
   libraryList: z.tuple([libraryKind, libraryQuery.optional()]),
   libraryAdd: z.tuple([libraryFileKind, pathList]),
   libraryFavourite: z.tuple([identifier, z.boolean()]),
+  setId: z.tuple([z.string().regex(/^[a-z0-9-]{1,64}$/)]),
+  stickerSearch: z.tuple([stickerSearch]),
+  stickerRef: z.tuple([stickerRef]),
+  stickerBytes: z.tuple([
+    z.string().max(255),
+    z.instanceof(Uint8Array).refine((b) => b.byteLength <= MAX_IMAGE_BYTES, 'over 20 MB'),
+  ]),
+  sourceKey: z.tuple([z.string().min(1).max(64), z.string().max(500)]),
   template: z.tuple([TemplateSchema]),
   templateId: z.tuple([identifier]),
   bundledFile: z.tuple([
@@ -328,7 +368,10 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.libraryAdd]: async (_ctx, ...args) => {
       const [kind, paths] = parseArgs(CHANNEL.libraryAdd, schemas.libraryAdd, args);
       const added = new Map<string, LibraryItem>();
-      for (const path of paths) {
+      const files = await expandLibraryPaths(kind, paths).catch((error: unknown) => {
+        throw new Error(describeError(error), { cause: error });
+      });
+      for (const path of files) {
         try {
           const ext = extname(path);
           const item = await addToLibrary(kind, { path, ext }, { title: basename(path, ext) });
@@ -368,6 +411,49 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.libraryTemplateDelete]: async (_ctx, ...args) => {
       const [templateId] = parseArgs(CHANNEL.libraryTemplateDelete, schemas.templateId, args);
       await deleteUserTemplate(templateId);
+    },
+
+    [CHANNEL.stickersSets]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.stickersSets, schemas.none, args);
+      return (await getStickerService(() => host.version())).sets();
+    },
+
+    [CHANNEL.stickersCategories]: async (_ctx, ...args) => {
+      const [setId] = parseArgs(CHANNEL.stickersCategories, schemas.setId, args);
+      return (await getStickerService(() => host.version())).categories(setId);
+    },
+
+    [CHANNEL.stickersSources]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.stickersSources, schemas.none, args);
+      return (await getStickerService(() => host.version())).sources();
+    },
+
+    [CHANNEL.stickersSearch]: async (_ctx, ...args) => {
+      const [query] = parseArgs(CHANNEL.stickersSearch, schemas.stickerSearch, args);
+      const service = await getStickerService(() => host.version());
+      return viaSource(() => service.search(query));
+    },
+
+    [CHANNEL.stickersAdd]: async (_ctx, ...args) => {
+      const [ref] = parseArgs(CHANNEL.stickersAdd, schemas.stickerRef, args);
+      const service = await getStickerService(() => host.version());
+      return viaSource(() => service.add(ref));
+    },
+
+    [CHANNEL.stickersAddBytes]: async (_ctx, ...args) => {
+      const [name, bytes] = parseArgs(CHANNEL.stickersAddBytes, schemas.stickerBytes, args);
+      const service = await getStickerService(() => host.version());
+      return viaSource(() => service.addBytes(name, bytes));
+    },
+
+    [CHANNEL.stickersIsOpaque]: async (_ctx, ...args) => {
+      const [ref] = parseArgs(CHANNEL.stickersIsOpaque, schemas.stickerRef, args);
+      return (await getStickerService(() => host.version())).isOpaque(ref);
+    },
+
+    [CHANNEL.stickersSetKey]: async (_ctx, ...args) => {
+      const [sourceId, key] = parseArgs(CHANNEL.stickersSetKey, schemas.sourceKey, args);
+      await (await getStickerService(() => host.version())).setKey(sourceId, key);
     },
 
     [CHANNEL.clipboardWrite]: async (_ctx, ...args) => {

@@ -20,7 +20,13 @@ const FITS = [
 const BLUR_MAX_MM = 20;
 
 /** Fit, opacity, blur and tint of the image the target has. */
-function ImageSettings({ image, apply }: { image: ImageBackground; apply: TabProps['apply'] }) {
+export function ImageSettings({
+  image,
+  apply,
+}: {
+  image: ImageBackground;
+  apply: TabProps['apply'];
+}) {
   const edit = (patch: Partial<ImageBackground>, gesture?: string) =>
     apply(
       { ...image, ...patch },
@@ -83,7 +89,7 @@ function ImageSettings({ image, apply }: { image: ImageBackground; apply: TabPro
 }
 
 /** A square image button of a grid. */
-function Thumb({
+export function Thumb({
   src,
   label,
   pressed,

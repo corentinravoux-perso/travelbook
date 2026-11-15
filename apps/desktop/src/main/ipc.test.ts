@@ -25,6 +25,8 @@ import {
 } from './ipc';
 import { setBundledResourcesDir, type BundledTemplates } from './library/templates';
 import { addToLibrary, listLibrary } from './library/userLibrary';
+import { setStickerService, type StickerService } from './library/stickers/service';
+import { SourceError } from './library/stickers/source';
 import { recentProjects } from './project/recent';
 import { setUserDataDir } from './user-data';
 import { resolveTbUrl } from './protocol';
@@ -980,6 +982,64 @@ describe('library', () => {
     it('fails when the resources are not set', async () => {
       await expect(call(CHANNEL.libraryBundledTemplates)).rejects.toThrow(/not set/);
     });
+  });
+});
+
+describe('stickers', () => {
+  let service: { [K in keyof StickerService]: Mock<StickerService[K]> };
+  beforeEach(() => {
+    service = {
+      sets: vi.fn(() => []),
+      categories: vi.fn(() => []),
+      sources: vi.fn(async () => []),
+      search: vi.fn(async () => ({ items: [], hasMore: false })),
+      add: vi.fn(),
+      addBytes: vi.fn(),
+      isOpaque: vi.fn(async () => undefined),
+      setKey: vi.fn(async () => undefined),
+      thumb: vi.fn(),
+      svg: vi.fn(),
+    } as typeof service;
+    setStickerService(service as unknown as StickerService);
+  });
+  afterEach(() => setStickerService(null));
+
+  it('passes a checked search on to the service', async () => {
+    const query = { source: 'offline', q: 'avion', page: 1, mono: true };
+    await call(CHANNEL.stickersSearch, query);
+    expect(service.search).toHaveBeenCalledWith(query);
+  });
+
+  it('rejects a malformed search, a bad set id, and unknown fields', async () => {
+    await expect(
+      call(CHANNEL.stickersSearch, { source: 'offline', q: 'a', page: 0 }),
+    ).rejects.toThrow(/stickers:search/);
+    await expect(
+      call(CHANNEL.stickersSearch, { source: 'offline', q: 'a', page: 1, url: 'https://x' }),
+    ).rejects.toThrow(/stickers:search/);
+    await expect(call(CHANNEL.stickersCategories, '../x')).rejects.toThrow(/stickers:categories/);
+    expect(service.search).not.toHaveBeenCalled();
+  });
+
+  it('gives the renderer the kind of a source failure, nothing else', async () => {
+    service.search.mockRejectedValue(new SourceError('rateLimited', 'api.openverse.org said 429'));
+    const error = await call(CHANNEL.stickersSearch, {
+      source: 'openverse',
+      q: 'a',
+      page: 1,
+    }).catch((e: Error) => e);
+    expect((error as Error).message).toBe('SourceError:rateLimited');
+  });
+
+  it('takes image bytes only up to 20 MB, and only as bytes', async () => {
+    await call(CHANNEL.stickersAddBytes, 'a.png', new Uint8Array([1]));
+    expect(service.addBytes).toHaveBeenCalled();
+    await expect(call(CHANNEL.stickersAddBytes, 'a.png', 'text')).rejects.toThrow(
+      /stickers:addBytes/,
+    );
+    await expect(
+      call(CHANNEL.stickersAddBytes, 'a.png', new Uint8Array(20 * 1024 * 1024 + 1)),
+    ).rejects.toThrow(/20 MB/);
   });
 });
 

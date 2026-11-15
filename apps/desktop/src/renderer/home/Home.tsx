@@ -5,6 +5,7 @@ import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import { ThemeToggle } from '../editor/ThemeToggle';
 import { NewProjectDialog } from './NewProjectDialog';
+import { SettingsDialog } from './SettingsDialog';
 import './Home.css';
 
 const DATE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -34,6 +35,7 @@ export function Home() {
   const busy = useProject((s) => s.busy);
   const error = useProject((s) => s.error);
   const [creating, setCreating] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { refreshRecent, openProject, createProject } = projectStore.getState();
 
   useEffect(() => {
@@ -45,8 +47,18 @@ export function Home() {
       <header className="home__bar">
         <h1 className="shell-top__mark">{fr.app.name}</h1>
         <span className="shell-top__grow" />
+        <button
+          type="button"
+          className="icon-button"
+          aria-label={fr.settings.open}
+          title={fr.settings.open}
+          onClick={() => setSettingsOpen(true)}
+        >
+          <Icon name="settings" />
+        </button>
         <ThemeToggle />
       </header>
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       <main className="home__main">
         <div className="home__head">
           <h2 className="home__heading">{fr.home.heading}</h2>

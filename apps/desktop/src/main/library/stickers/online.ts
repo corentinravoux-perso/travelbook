@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { DiskCache } from './cache';
 import { createCommonsSource } from './commons';
 import { createIconifySource } from './iconify';
-import { createOpenverseSource } from './openverse';
+import { createOpenversePhotosSource, createOpenverseSource } from './openverse';
 import { SourceHttp, userAgent, type StickerSource } from './source';
 
 /**
@@ -26,5 +26,6 @@ export function createOnlineSources(options: {
     createIconifySource(http('iconify')),
     createOpenverseSource(http('openverse')),
     createCommonsSource(http('commons')),
+    createOpenversePhotosSource(http('openverse-photos')),
   ];
 }

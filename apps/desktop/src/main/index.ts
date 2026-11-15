@@ -6,7 +6,8 @@ import { askCloseChoice, createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { setBundledResourcesDir } from './library/templates';
 import { setBackgroundsResourcesDir } from './library/backgrounds';
-import { setStickersResourcesDir } from './library/stickers/offline';
+import { setStickersResourcesDir, stickerSvg } from './library/stickers/offline';
+import { getStickerService } from './library/stickers/service';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { ensureProxies } from './photos/proxies';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
@@ -85,6 +86,8 @@ void app.whenReady().then(async () => {
       await ensureProxies(session.dir, asset);
     },
     fetchFile: (path) => net.fetch(pathToFileURL(path).toString()),
+    stickerSvg: (set, id) => stickerSvg(set, id),
+    remoteThumb: async (key) => (await getStickerService(() => app.getVersion())).thumb(key),
   });
   registerIpc(
     ipcMain,

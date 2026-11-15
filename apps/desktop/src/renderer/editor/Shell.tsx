@@ -5,6 +5,7 @@ import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
 import { BackgroundsPanel } from '../panels/BackgroundsPanel';
+import { StickersPanel } from '../panels/StickersPanel';
 import { TemplatesPanel } from '../panels/TemplatesPanel';
 import { ShapesPanel } from '../panels/ShapesPanel';
 import { TextPanel } from '../panels/TextPanel';
@@ -14,6 +15,7 @@ import type { IconName } from '../theme/icons';
 import { readWidths, writeWidths, type PanelSide, type PanelWidths } from './layout';
 import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
+import { CreditsDialog, CreditsEntry } from './CreditsDialog';
 import { CoverStage } from './CoverStage';
 import { Overview } from './Overview';
 import { Preview } from '../preview/Preview';
@@ -75,6 +77,7 @@ export function Shell() {
         <SpreadStrip />
         <CoverStage />
       </div>
+      <CreditsDialog />
       {overview && <Overview />}
       {preview && <Preview />}
     </>
@@ -166,6 +169,7 @@ function TopBar() {
       {title !== undefined && (
         <>
           <ViewMenu />
+          <CreditsEntry />
           <ZoomControls />
           <span className="shell-sep" />
           <button
@@ -227,6 +231,8 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
         <ShapesPanel />
       ) : panel === 'backgrounds' ? (
         <BackgroundsPanel />
+      ) : panel === 'stickers' ? (
+        <StickersPanel />
       ) : (
         <p className="shell-empty">{fr.shell.panelEmpty}</p>
       )}

@@ -64,6 +64,16 @@ const tb: TbApi = {
     remove: (itemId) => ipcRenderer.invoke(CHANNEL.libraryRemove, itemId),
     bundledBackgrounds: () => ipcRenderer.invoke(CHANNEL.libraryBundledBackgrounds),
     bundledTemplates: () => ipcRenderer.invoke(CHANNEL.libraryBundledTemplates),
+    stickers: {
+      sets: () => ipcRenderer.invoke(CHANNEL.stickersSets),
+      categories: (setId) => ipcRenderer.invoke(CHANNEL.stickersCategories, setId),
+      sources: () => ipcRenderer.invoke(CHANNEL.stickersSources),
+      search: (query) => ipcRenderer.invoke(CHANNEL.stickersSearch, query),
+      add: (hit) => ipcRenderer.invoke(CHANNEL.stickersAdd, hit),
+      addBytes: (name, bytes) => ipcRenderer.invoke(CHANNEL.stickersAddBytes, name, bytes),
+      isOpaque: (hit) => ipcRenderer.invoke(CHANNEL.stickersIsOpaque, hit),
+      setKey: (sourceId, key) => ipcRenderer.invoke(CHANNEL.stickersSetKey, sourceId, key),
+    },
     userTemplates: {
       save: (template) => ipcRenderer.invoke(CHANNEL.libraryTemplateSave, template),
       list: () => ipcRenderer.invoke(CHANNEL.libraryTemplateList),

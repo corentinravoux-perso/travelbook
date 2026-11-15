@@ -261,3 +261,16 @@
   color: var(--ink-3);
   pointer-events: none;
 }
+
+/* ---------- settings dialog ---------- */
+.settings-key {
+  display: flex;
+  gap: var(--s4);
+}
+.settings-key .input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-empty {
+  margin: 0;
+}

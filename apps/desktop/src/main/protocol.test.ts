@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import {
   handleTbRequest,
+  parseSyntheticTb,
   projectFilePath,
   resolveTbUrl,
   type PathFlavour,
@@ -563,4 +564,101 @@ describe('handleTbRequest', () => {
       );
     },
   );
+});
+
+describe('parseSyntheticTb', () => {
+  it('reads sticker and remote-thumb addresses', () => {
+    expect(parseSyntheticTb('tb://sticker/noto/airplane.svg')).toEqual({
+      kind: 'sticker',
+      set: 'noto',
+      id: 'airplane',
+    });
+    const key = 'a'.repeat(32);
+    expect(parseSyntheticTb(`tb://remote-thumb/${key}`)).toEqual({ kind: 'remote-thumb', key });
+  });
+
+  it('leaves other addresses to the file routes', () => {
+    expect(parseSyntheticTb('tb://asset/abc?v=thumb')).toBeNull();
+    expect(parseSyntheticTb('https://example.com/a.png')).toBeNull();
+  });
+
+  it.each([
+    'tb://sticker/noto/..%2Fx.svg',
+    'tb://sticker/noto/%2e%2e.svg',
+    'tb://sticker/NOTO/a.svg',
+    'tb://sticker/noto/a.png',
+    'tb://sticker/noto/.svg',
+    'tb://sticker/noto',
+    'tb://sticker/noto/a/b.svg',
+    'tb://remote-thumb/short',
+    'tb://remote-thumb/../../etc',
+    `tb://remote-thumb/${'a'.repeat(32)}/x`,
+    `tb://remote-thumb/${'A'.repeat(32)}`,
+  ])('refuses %s', (url) => {
+    expect(parseSyntheticTb(url)).toBe('bad');
+  });
+});
+
+describe('handleTbRequest, online stickers', () => {
+  const base = {
+    roots: () => ({
+      projectDir: null,
+      libraryDir: '/l',
+      resourcesDir: '/r',
+      asset: () => undefined,
+      libraryFile: () => undefined,
+      coverDir: () => undefined,
+    }),
+    ensureProxy: async () => undefined,
+    fetchFile: async () => new Response('no', { status: 500 }),
+  } satisfies TbHandlerDeps;
+
+  it('serves an offline sticker as an inert SVG', async () => {
+    const res = await handleTbRequest(
+      { url: 'tb://sticker/noto/plane.svg', method: 'GET' },
+      {
+        ...base,
+        stickerSvg: (set, id) => (set === 'noto' && id === 'plane' ? '<svg/>' : undefined),
+      },
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('image/svg+xml');
+    expect(res.headers.get('content-security-policy')).toContain('sandbox');
+    expect(await res.text()).toBe('<svg/>');
+  });
+
+  it('answers 404 for an unknown sticker and 400 for a hostile one', async () => {
+    const deps = { ...base, stickerSvg: () => undefined };
+    expect(
+      (await handleTbRequest({ url: 'tb://sticker/noto/x.svg', method: 'GET' }, deps)).status,
+    ).toBe(404);
+    expect(
+      (await handleTbRequest({ url: 'tb://sticker/noto/%2e%2e.svg', method: 'GET' }, deps)).status,
+    ).toBe(400);
+  });
+
+  it('serves a thumbnail main knows and refuses a key it never handed out', async () => {
+    const key = 'b'.repeat(32);
+    const deps = {
+      ...base,
+      remoteThumb: async (k: string) => (k === key ? new Uint8Array([1, 2, 3]) : undefined),
+    };
+    const ok = await handleTbRequest({ url: `tb://remote-thumb/${key}`, method: 'GET' }, deps);
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get('content-type')).toBe('image/webp');
+    expect([...new Uint8Array(await ok.arrayBuffer())]).toEqual([1, 2, 3]);
+    const other = await handleTbRequest(
+      { url: `tb://remote-thumb/${'c'.repeat(32)}`, method: 'GET' },
+      deps,
+    );
+    expect(other.status).toBe(404);
+  });
+
+  it('answers 502 when the thumbnail cannot be fetched', async () => {
+    const res = await handleTbRequest(
+      { url: `tb://remote-thumb/${'d'.repeat(32)}`, method: 'GET' },
+      { ...base, remoteThumb: async () => Promise.reject(new Error('offline')) },
+    );
+    expect(res.status).toBe(502);
+  });
 });

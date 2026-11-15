@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newBook } from '@travelbook/core';
 import { fixturePath } from '../../../../../tests/fixtures/make-fixtures';
+import { sanitizeSvg } from '../library/stickers/sanitizeSvg';
 import { importPhotos } from '../photos/import';
 import { importAssetFiles } from './import-files';
 
@@ -103,13 +104,12 @@ describe('importAssetFiles', () => {
     expect(asset?.originalName).toBe('STICKER.PNG');
   });
 
-  it('copies an SVG as it is, with no size and no sanitising', async () => {
-    const src = fixturePath('script.svg');
-    const [asset] = await importAssetFiles(project, 'sticker', [src]);
+  it('stores an SVG sanitised and with no pixel size', async () => {
+    const [asset] = await importAssetFiles(project, 'sticker', [fixturePath('script.svg')]);
     expect(asset).not.toHaveProperty('pixel');
-    expect(await readFile(join(project, asset?.file ?? ''), 'utf8')).toBe(
-      await readFile(src, 'utf8'),
-    );
+    const stored = await readFile(join(project, asset?.file ?? ''), 'utf8');
+    expect(stored).not.toMatch(/script|onload|onclick/i);
+    expect(stored).toContain('<circle');
   });
 
   it('takes a font file without looking inside', async () => {
@@ -218,6 +218,40 @@ describe('importAssetFiles', () => {
         ]),
       ).rejects.toThrow(/truncated\.jpg/);
       expect(await listAssets()).toEqual([before?.file.replace('assets/', '')]);
+    });
+
+    describe('SVG files', () => {
+      const dirty =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" onload="alert(1)">' +
+        '<script>alert(1)</script><rect width="10" height="10"/></svg>';
+      // The sanitiser's own output: sanitising it again changes nothing.
+      const clean = sanitizeSvg(dirty);
+
+      it('stores a sanitised copy and hashes what it stores', async () => {
+        const src = join(work, 'dirty.svg');
+        await writeFile(src, dirty);
+        const [asset] = await importAssetFiles(project, 'sticker', [src]);
+        const stored = await readFile(join(project, asset!.file), 'utf8');
+        expect(stored).not.toMatch(/script|onload/i);
+        expect(stored).toContain('<rect');
+        expect(asset?.sha256).toBe(await sha256(join(project, asset!.file)));
+        expect(asset?.originalName).toBe('dirty.svg');
+        expect(await readFile(src, 'utf8')).toBe(dirty);
+      });
+
+      it('copies a clean SVG as it is', async () => {
+        const src = join(work, 'clean.svg');
+        await writeFile(src, clean);
+        const [asset] = await importAssetFiles(project, 'background', [src]);
+        expect(asset?.sha256).toBe(await sha256(src));
+      });
+
+      it('refuses a file that is not an SVG and leaves nothing behind', async () => {
+        const src = join(work, 'fake.svg');
+        await writeFile(src, '<html><body>no</body></html>');
+        await expect(importAssetFiles(project, 'sticker', [src])).rejects.toThrow(/fake\.svg/);
+        expect(await listAssets()).toEqual([]);
+      });
     });
   });
 });

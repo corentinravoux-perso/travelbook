@@ -9,6 +9,8 @@ import type { Protocol } from 'electron';
  *   tb://cover/<coverId>                            the cover thumbnail of a listed project
  *   tb://library/<itemId>                           a file of the user library
  *   tb://resource/<path>                            a bundled resource
+ *   tb://sticker/<set>/<name>.svg                   a sticker of the offline packs (not a file)
+ *   tb://remote-thumb/<key>                         a cached thumbnail of an online sticker
  *
  * Nothing else reads files for the renderer, so everything here is about refusing paths that
  * leave the three roots. `resolveTbUrl` is pure (no file system, no Electron): it only maps a
@@ -248,8 +250,43 @@ export function resolveTbUrl(
   return resolveResource(segments, roots, flavour);
 }
 
+/** A `tb:` address that is answered from memory or a cache, not from a file. */
+export type SyntheticTb =
+  { kind: 'sticker'; set: string; id: string } | { kind: 'remote-thumb'; key: string };
+
+const SET_PATTERN = /^[a-z0-9-]{1,64}$/;
+const THUMB_KEY_PATTERN = /^[0-9a-f]{32}$/;
+
+/**
+ * `tb://sticker/<set>/<id>.svg` and `tb://remote-thumb/<key>`. `null` when the URL is neither (it
+ * goes on to `resolveTbUrl`); `'bad'` when it names one of them but is malformed.
+ */
+export function parseSyntheticTb(url: string): SyntheticTb | 'bad' | null {
+  const match = URL_PATTERN.exec(url);
+  if (match === null) return null;
+  const host = (match[1] ?? '').toLowerCase();
+  if (host !== 'sticker' && host !== 'remote-thumb') return null;
+  const segments = pathSegments(match[2] ?? '');
+  if (segments === null) return 'bad';
+  if (host === 'remote-thumb') {
+    const key = segments[0];
+    return segments.length === 1 && key !== undefined && THUMB_KEY_PATTERN.test(key)
+      ? { kind: 'remote-thumb', key }
+      : 'bad';
+  }
+  const [set, file] = segments;
+  if (segments.length !== 2 || set === undefined || file === undefined) return 'bad';
+  if (!SET_PATTERN.test(set) || !file.endsWith('.svg') || file.length === 4) return 'bad';
+  const id = file.slice(0, -4);
+  return isPlainName(id) ? { kind: 'sticker', set, id } : 'bad';
+}
+
 export interface TbHandlerDeps {
   roots(): TbRoots;
+  /** The SVG of an offline sticker (`tb://sticker`). */
+  stickerSvg?(set: string, id: string): string | undefined;
+  /** The WebP thumbnail of an online sticker (`tb://remote-thumb`); undefined when unknown. */
+  remoteThumb?(key: string): Promise<Uint8Array | undefined>;
   /** Render the thumbnail and the preview of an asset of the open project when they are missing. */
   ensureProxy(assetId: string): Promise<void>;
   /** The content of a file as a response (Electron's `net.fetch` of a `file:` URL). */
@@ -299,6 +336,29 @@ function inert(response: Response): Response {
   });
 }
 
+async function answerSynthetic(target: SyntheticTb, deps: TbHandlerDeps): Promise<Response> {
+  if (target.kind === 'sticker') {
+    const svg = deps.stickerSvg?.(target.set, target.id);
+    if (svg === undefined) return fail(404, 'Unknown sticker');
+    return inert(
+      new Response(svg, {
+        status: 200,
+        headers: { 'content-type': 'image/svg+xml; charset=utf-8' },
+      }),
+    );
+  }
+  let bytes: Uint8Array | undefined;
+  try {
+    bytes = await deps.remoteThumb?.(target.key);
+  } catch (error) {
+    return fail(502, `No thumbnail: ${messageOf(error)}`);
+  }
+  if (bytes === undefined) return fail(404, 'Unknown thumbnail');
+  return inert(
+    new Response(Buffer.from(bytes), { status: 200, headers: { 'content-type': 'image/webp' } }),
+  );
+}
+
 /** Answer one `tb:` request. Never rejects. */
 export async function handleTbRequest(
   request: { url: string; method: string },
@@ -308,6 +368,9 @@ export async function handleTbRequest(
     return fail(405, 'Only GET and HEAD are allowed');
   }
   try {
+    const synthetic = parseSyntheticTb(request.url);
+    if (synthetic === 'bad') return fail(400, 'Malformed sticker URL');
+    if (synthetic !== null) return await answerSynthetic(synthetic, deps);
     const target = resolveTbUrl(request.url, deps.roots(), deps.flavour);
     if (!target.ok) return fail(target.status, target.reason);
     if (target.proxyOf !== undefined && !(await isFile(target.path))) {
