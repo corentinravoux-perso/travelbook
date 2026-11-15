@@ -54,7 +54,11 @@ export function PhotoGrid({ groups, header, thumb }: Props) {
     <div
       ref={scroller}
       className="photo-grid"
-      onScroll={(e) => setView((v) => ({ ...v, scrollTop: e.currentTarget.scrollTop }))}
+      onScroll={(e) => {
+        // Read now: React may run the updater after the event, when currentTarget is null.
+        const scrollTop = e.currentTarget.scrollTop;
+        setView((v) => ({ ...v, scrollTop }));
+      }}
     >
       <div className="photo-grid__content" style={{ height: layout.height }}>
         {view.width > 0 &&
