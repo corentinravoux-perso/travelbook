@@ -121,3 +121,14 @@
     0 0 0 2px var(--sel-outer),
     inset 0 0 0 2px var(--sel-outer);
 }
+
+/* The box being drawn with the text or shape tool. */
+.canvas-draft {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed var(--sel-inner);
+  outline: 1px dashed var(--sel-outer);
+}
+.canvas-scroller[data-tool] {
+  cursor: crosshair;
+}

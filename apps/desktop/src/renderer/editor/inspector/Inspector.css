@@ -288,3 +288,10 @@
   font-weight: var(--w-medium);
   color: var(--ink);
 }
+
+/* A drop-down in a field row: as wide as a number field, a little wider for font names. */
+.insp-select {
+  flex: none;
+  width: 150px;
+  height: 26px;
+}

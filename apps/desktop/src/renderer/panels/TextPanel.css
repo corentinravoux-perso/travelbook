@@ -1,0 +1,44 @@
+/* "Texte" panel: styles listed as hairline rows, each in its own face. */
+.text-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s5);
+  min-height: 0;
+  padding: 0 var(--s5) var(--s5);
+  overflow-y: auto;
+}
+.text-panel__hint {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.text-panel__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+}
+.text-panel__list li + li {
+  border-top: 1px solid var(--line);
+}
+.text-preset {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: var(--s4) var(--s5);
+  text-align: left;
+  color: var(--ink);
+  transition: background var(--fast);
+}
+.text-preset:hover {
+  background: var(--surface);
+}
+.text-preset__sample {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
