@@ -9,6 +9,9 @@
     "highlands",
     "forteresse"
   ],
+  "japon-fuji": ["japon", "fuji", "mont", "montagne", "volcan", "pagode"],
+  "japon-maneki-neko": ["japon", "chat", "maneki", "neko", "porte-bonheur"],
+  "japon-ramen": ["japon", "ramen", "bol", "nouilles", "baguettes", "cuisine"],
   "japon-torii": ["japon", "torii", "portail", "sanctuaire", "shinto"],
-  "kenya-acacia": ["kenya", "acacia", "arbre", "girafe", "savane", "safari", "afrique", "tisserin"]
+  "kenya-safari": ["kenya", "safari", "4x4", "voiture", "jeep", "savane", "afrique"]
 }

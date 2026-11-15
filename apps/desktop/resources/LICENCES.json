@@ -62,8 +62,11 @@
     {
       "files": [
         "posters/illustrations/ecosse-chateau.svg",
+        "posters/illustrations/japon-fuji.svg",
+        "posters/illustrations/japon-maneki-neko.svg",
+        "posters/illustrations/japon-ramen.svg",
         "posters/illustrations/japon-torii.svg",
-        "posters/illustrations/kenya-acacia.svg"
+        "posters/illustrations/kenya-safari.svg"
       ],
       "source": "travelbook",
       "author": "Corentin Ravoux",

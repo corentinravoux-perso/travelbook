@@ -7,6 +7,16 @@ owner's bar: as worked as the torii, never an enlarged icon.
 The checker `scripts/posters/lint-illustration.ts` and `presets.test.ts` enforce the hard rules;
 the rest is judged on the contact sheet (`render-sheet.ts`).
 
+## Two families
+
+- **Découpé** (default): the rules below; recolourable through `tb-main` / `tb-shade`; at most
+  five colours. Torii, Fuji, château.
+- **Pixory** (`<svg data-tb-style="pixory">`): the subject in its natural colours, up to eight,
+  more detail, a darker tone per colour allowed; no colour role required (not recoloured).
+  Maneki-neko, ramen, safari 4×4. Inspired by the level of craft and the palettes of the
+  Pixory covers, never by their drawings.
+- Each destination gets several drawings, one or two of them in the pixory family.
+
 ## File
 
 - `<destination>-<object>.svg`, ASCII kebab case. One subject per file: an object, a building,
