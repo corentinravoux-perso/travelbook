@@ -446,7 +446,9 @@ describe('photos', () => {
 
   it('saves the book while photos are being imported, and neither damages the other', async () => {
     const created = await create();
-    const photos = ['landscape.jpg', 'pano.jpg', 'small.jpg'].map((name) => fixturePath(name));
+    const photos = (['landscape.jpg', 'pano.jpg', 'small.jpg'] as const).map((name) =>
+      fixturePath(name),
+    );
     const importing = call<ImportReport>(CHANNEL.photosImport, photos);
     const saves: Promise<unknown>[] = [];
     for (let i = 1; i <= 8; i++) {
