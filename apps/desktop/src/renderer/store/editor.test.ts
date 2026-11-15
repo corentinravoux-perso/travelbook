@@ -6,10 +6,13 @@ const retitle =
   (title: string) =>
   (book: Book): Book => ({ ...book, title });
 
-function setup() {
+/** What `tb.project.open` / `create` give back, reduced to what the store reads. */
+const opened = (book: Book) => () => Promise.resolve({ dir: '/albums/x.travelbook', book });
+
+async function setup() {
   const save = vi.fn<(book: Book) => Promise<void>>(() => Promise.resolve());
   const store = createEditorStore({ save });
-  store.getState().load(newBook({ title: 'Islande 2026', innerSpreads: 2 }));
+  await store.getState().openWith(opened(newBook({ title: 'Islande 2026', innerSpreads: 2 })));
   return { store, save };
 }
 
@@ -33,29 +36,31 @@ describe('editor store', () => {
     expect(s.guides).toEqual({ bleed: true, trim: true, safe: true, gutter: true });
     expect(s.history).toEqual({ canUndo: false, canRedo: false, labels: [] });
     expect(s.saveStatus).toBe('saved');
+    expect(s.opening).toBe(false);
   });
 
-  it('load shows the first spread and starts a fresh history', () => {
-    const { store } = setup();
+  it('openWith shows the first spread of the new book and starts a fresh history', async () => {
+    const { store } = await setup();
     store.getState().apply(retitle('A'), 'Renommer');
     const other = newBook({ title: 'Autre' });
-    store.getState().load(other);
+    const result = await store.getState().openWith(opened(other));
+    expect(result?.book).toBe(other);
     const s = store.getState();
     expect(s.book).toBe(other);
     expect(s.currentSpreadId).toBe(other.spreads[0]?.id);
     expect(s.history.canUndo).toBe(false);
   });
 
-  it('apply runs the op and records an undo step with its label', () => {
-    const { store } = setup();
+  it('apply runs the op and records an undo step with its label', async () => {
+    const { store } = await setup();
     store.getState().apply(retitle('Islande'), 'Renommer le livre');
     const s = store.getState();
     expect(s.book?.title).toBe('Islande');
     expect(s.history).toEqual({ canUndo: true, canRedo: false, labels: ['Renommer le livre'] });
   });
 
-  it('undo and redo move through the history', () => {
-    const { store } = setup();
+  it('undo and redo move through the history', async () => {
+    const { store } = await setup();
     store.getState().apply(retitle('A'), 'Un');
     store.getState().apply(retitle('B'), 'Deux');
     store.getState().undo();
@@ -70,8 +75,8 @@ describe('editor store', () => {
     expect(store.getState().history.canRedo).toBe(false);
   });
 
-  it('applies with the same mergeKey form one undo step', () => {
-    const { store } = setup();
+  it('applies with the same mergeKey form one undo step', async () => {
+    const { store } = await setup();
     store.getState().apply(retitle('I'), 'Taper le titre', 'title');
     store.getState().apply(retitle('Is'), 'Taper le titre', 'title');
     store.getState().apply(retitle('Isl'), 'Taper le titre', 'title');
@@ -81,7 +86,7 @@ describe('editor store', () => {
   });
 
   it('saves once, 1 s after the last change, with the latest book', async () => {
-    const { store, save } = setup();
+    const { store, save } = await setup();
     store.getState().apply(retitle('A'), 'Un');
     await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS - 1);
     store.getState().apply(retitle('B'), 'Deux');
@@ -95,7 +100,7 @@ describe('editor store', () => {
   });
 
   it('undo and redo are saved too', async () => {
-    const { store, save } = setup();
+    const { store, save } = await setup();
     store.getState().apply(retitle('A'), 'Un');
     await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
     store.getState().undo();
@@ -105,7 +110,7 @@ describe('editor store', () => {
   });
 
   it('an op that changes nothing records no step and schedules no save', async () => {
-    const { store, save } = setup();
+    const { store, save } = await setup();
     store.getState().apply((b) => b, 'Rien');
     expect(store.getState().history.canUndo).toBe(false);
     expect(store.getState().saveStatus).toBe('saved');
@@ -113,16 +118,98 @@ describe('editor store', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  it('load cancels a pending save of the previous book', async () => {
-    const { store, save } = setup();
+  it('flush saves a waiting change at once, and only once', async () => {
+    const { store, save } = await setup();
     store.getState().apply(retitle('A'), 'Un');
-    store.getState().load(newBook({ title: 'Autre' }));
+    await store.getState().flush();
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(save.mock.calls[0]?.[0].title).toBe('A');
+    expect(store.getState().saveStatus).toBe('saved');
     await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it('openWith saves the old book with its latest change before the project switches', async () => {
+    const { store, save } = await setup();
+    const calls: string[] = [];
+    save.mockImplementation((book) => {
+      calls.push(`save ${book.title}`);
+      return Promise.resolve();
+    });
+    store.getState().apply(retitle('A'), 'Un');
+    store.getState().apply(retitle('B'), 'Deux');
+    await store.getState().openWith(() => {
+      calls.push('open');
+      return opened(newBook({ title: 'Autre' }))();
+    });
+    expect(calls).toEqual(['save B', 'open']);
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(store.getState().book?.title).toBe('Autre');
+  });
+
+  it('openWith waits for a save still running before the project switches', async () => {
+    const { store, save } = await setup();
+    let finish = () => {};
+    save.mockImplementationOnce(() => new Promise<void>((resolve) => (finish = resolve)));
+    store.getState().apply(retitle('A'), 'Un');
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    const open = vi.fn(opened(newBook({ title: 'Autre' })));
+    const switching = store.getState().openWith(open);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(open).not.toHaveBeenCalled();
+    finish();
+    await switching;
+    expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  it('openWith with nothing waiting saves nothing', async () => {
+    const { store, save } = await setup();
+    await store.getState().openWith(opened(newBook({ title: 'Autre' })));
     expect(save).not.toHaveBeenCalled();
   });
 
+  it('openWith does not switch when the old book cannot be saved', async () => {
+    const { store, save } = await setup();
+    save.mockRejectedValueOnce(new Error('disk full'));
+    store.getState().apply(retitle('A'), 'Un');
+    const open = vi.fn(opened(newBook({ title: 'Autre' })));
+    await expect(store.getState().openWith(open)).rejects.toThrow('disk full');
+    expect(open).not.toHaveBeenCalled();
+    expect(store.getState().book?.title).toBe('A');
+    expect(store.getState().saveStatus).toBe('error');
+  });
+
+  it('a cancelled open keeps the book being edited', async () => {
+    const { store } = await setup();
+    store.getState().apply(retitle('A'), 'Un');
+    expect(await store.getState().openWith(() => Promise.resolve(null))).toBeNull();
+    expect(store.getState().book?.title).toBe('A');
+    expect(store.getState().history.canUndo).toBe(true);
+    expect(store.getState().opening).toBe(false);
+  });
+
+  it('changes are refused while another album opens, so none is saved into it', async () => {
+    const { store, save } = await setup();
+    type Opened = { dir: string; book: Book };
+    let answer: (opened: Opened) => void = () => {};
+    const switching = store
+      .getState()
+      .openWith(() => new Promise<Opened>((resolve) => (answer = resolve)));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.getState().opening).toBe(true);
+    store.getState().apply(retitle('A'), 'Un');
+    store.getState().undo();
+    expect(store.getState().book?.title).toBe('Islande 2026');
+    answer({ dir: '/albums/y.travelbook', book: newBook({ title: 'Autre' }) });
+    await switching;
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(save).not.toHaveBeenCalled();
+    expect(store.getState().opening).toBe(false);
+  });
+
   it('a failed save is reported, and the next change saves again', async () => {
-    const { store, save } = setup();
+    const { store, save } = await setup();
     save.mockRejectedValueOnce(new Error('disk full'));
     store.getState().apply(retitle('A'), 'Un');
     await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
@@ -134,7 +221,7 @@ describe('editor store', () => {
   });
 
   it('a save waits for the one still running, so the last book is written last', async () => {
-    const { store, save } = setup();
+    const { store, save } = await setup();
     let finishFirst = () => {};
     save.mockImplementationOnce(() => new Promise<void>((resolve) => (finishFirst = resolve)));
     store.getState().apply(retitle('A'), 'Un');
