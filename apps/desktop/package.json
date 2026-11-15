@@ -1,5 +1,6 @@
 {
   "name": "@travelbook/desktop",
+  "productName": "travelbook",
   "version": "0.1.0",
   "private": true,
   "description": "Desktop app for composing printed travel photo albums.",
