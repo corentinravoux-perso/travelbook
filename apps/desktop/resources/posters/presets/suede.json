@@ -1,0 +1,83 @@
+[
+  {
+    "id": "suede-dala",
+    "destination": "suede",
+    "name": "Suède, cheval de Dalécarlie",
+    "spec": {
+      "layout": "classique",
+      "title": "SUÈDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#cfe3f5",
+        "title": "#d0372b",
+        "accent": "#2f6fb0",
+        "decor": "#ffffff",
+        "illustration": {
+          "main": "#d0372b",
+          "shade": "#d0372b"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "suede-dala"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "suede-maison",
+    "destination": "suede",
+    "name": "Suède, maison rouge",
+    "spec": {
+      "layout": "horizon",
+      "title": "SUÈDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fdf1d0",
+        "title": "#2f5d8a",
+        "accent": "#a8342a",
+        "decor": "#b9cf9a",
+        "illustration": {
+          "main": "#a8342a",
+          "shade": "#6f1f18"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "suede-maison"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "suede-elan",
+    "destination": "suede",
+    "name": "Suède, élan",
+    "spec": {
+      "layout": "soleil",
+      "title": "SUÈDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#e6eef2",
+        "title": "#4a3020",
+        "accent": "#4a3020",
+        "decor": "#f6dcb8",
+        "illustration": {
+          "main": "#4a3020",
+          "shade": "#4a3020"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "suede-elan"
+      },
+      "spine": true
+    }
+  }
+]

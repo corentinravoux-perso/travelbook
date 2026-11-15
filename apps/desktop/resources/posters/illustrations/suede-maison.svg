@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 230 1080 570">
+  <!-- Birches and spruces behind -->
+  <path fill="#2b2723" d="M140 612l108 72h-216zM140 566l94 72h-187zM140 519l79 72h-158zM140 472l65 72h-130zM140 425l50 72h-101zM140 378l36 72h-72zM134 700h12v60h-12z"/>
+  <path fill="#2b2723" d="M1080 629l96 64h-192zM1080 587l83 64h-166zM1080 546l70 64h-141zM1080 504l58 64h-115zM1080 462l45 64h-90zM1080 421l32 64h-64zM1074 700h12v60h-12z"/>
+  <path fill="#2b2723" d="M190 653l78 52h-156zM190 620l68 52h-135zM190 586l57 52h-114zM190 552l47 52h-94zM190 518l36 52h-73zM190 484l26 52h-52zM184 700h12v60h-12z"/>
+  <path fill="#2b2723" d="M1030 658l75 50h-150zM1030 625l65 50h-130zM1030 592l55 50h-110zM1030 560l45 50h-90zM1030 528l35 50h-70zM1030 495l25 50h-50zM1024 700h12v60h-12z"/>
+  <!-- Meadow -->
+  <path fill="#6f7f3e" d="M60 800C220 740 980 740 1140 800z"/>
+  <!-- House: walls, white corner boards and trims -->
+  <path class="tb-main" fill="#a8342a" d="M330 470h540v300h-540z"/>
+  <path class="tb-shade" fill="#6f1f18" d="M780 470h90v300h-90z"/>
+  <path class="tb-shade" fill="#6f1f18" d="M368 470h3v300h-3zM406 470h3v300h-3zM444 470h3v300h-3zM482 470h3v300h-3zM520 470h3v300h-3zM558 470h3v300h-3zM596 470h3v300h-3zM634 470h3v300h-3zM672 470h3v300h-3zM710 470h3v300h-3zM748 470h3v300h-3zM786 470h3v300h-3zM824 470h3v300h-3zM862 470h3v300h-3z"/>
+  <path fill="#f3ece0" d="M318 470h22v300h-22zM860 470h22v300h-22z"/>
+  <!-- Roof and chimney -->
+  <path fill="#2b2723" d="M290 476L600 250 910 476z"/>
+  <path fill="#f3ece0" d="M720 270h46v110h-46z"/>
+  <path fill="#2b2723" d="M714 262h58v16h-58z"/>
+  <path class="tb-shade" fill="#6f1f18" d="M330 476L600 280 870 476z"/>
+  <path fill="#f3ece0" d="M300 470H900V488H300z"/>
+  <!-- Windows with white frames and crossbars -->
+  <path fill="#f3ece0" d="M384 540h92v112h-92z"/>
+  <path fill="#2b2723" d="M394 550h72v92h-72z"/>
+  <path fill="#f3ece0" d="M427 550h6v92h-6zM394 593h72v6h-72z"/>
+  <path fill="#f3ece0" d="M514 540h92v112h-92z"/>
+  <path fill="#2b2723" d="M524 550h72v92h-72z"/>
+  <path fill="#f3ece0" d="M557 550h6v92h-6zM524 593h72v6h-72z"/>
+  <path fill="#f3ece0" d="M714 540h92v112h-92z"/>
+  <path fill="#2b2723" d="M724 550h72v92h-72z"/>
+  <path fill="#f3ece0" d="M757 550h6v92h-6zM724 593h72v6h-72z"/>
+  <!-- Attic window -->
+  <path fill="#f3ece0" d="M566 360h68v76h-68z"/>
+  <path fill="#2b2723" d="M574 368h52v60h-52z"/>
+  <path fill="#f3ece0" d="M597 368h6v60h-6z"/>
+  <!-- Door and porch -->
+  <path fill="#f3ece0" d="M618 600h76v170h-76z"/>
+  <path class="tb-shade" fill="#6f1f18" d="M628 610h56v160h-56z"/>
+  <path fill="#f3ece0" d="M600 590h112v14h-112z"/>
+  <path fill="#f3ece0" d="M590 770h132l10 20H580z"/>
+  <!-- Flag pole with a pennant -->
+  <path fill="#f3ece0" d="M960 380h8v400h-8z"/>
+  <path class="tb-main" fill="#a8342a" d="M968 386l90 14-90 14z"/>
+  <!-- Fence -->
+  <path fill="#f3ece0" d="M120 740h10v50h-10zM142 740h10v50h-10zM164 740h10v50h-10zM186 740h10v50h-10zM208 740h10v50h-10zM230 740h10v50h-10zM252 740h10v50h-10zM274 740h10v50h-10zM296 740h10v50h-10zM890 740h10v50h-10zM912 740h10v50h-10zM934 740h10v50h-10zM956 740h10v50h-10zM978 740h10v50h-10zM1000 740h10v50h-10zM1022 740h10v50h-10zM1044 740h10v50h-10zM1066 740h10v50h-10zM120 756h200v8h-200zM890 756h200v8h-200z"/>
+</svg>
+
