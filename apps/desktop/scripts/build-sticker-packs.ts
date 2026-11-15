@@ -72,6 +72,9 @@ const FLAG_SETS = new Set(['flag', 'circle-flags']);
  * rule like the others.
  */
 const MONO_SETS = [
+  'doodle-icons',
+  'streamline-freehand',
+  'pepicons-pencil',
   'tabler',
   'maki',
   'gis',
@@ -425,14 +428,16 @@ async function buildLocalSets(): Promise<ManifestSet[]> {
   const byId = new Map(sets.map((s) => [s.id, s]));
   for (const set of sets) {
     if (set.docs.length > 0 || set.picks.length === 0) continue;
-    for (const pick of set.picks) {
+    // The key starts with the pick's rank: an empty search lists a set by id, so the picks keep
+    // the order of meta.json (croquis, bohème and déco interleaved).
+    for (const [rank, pick] of set.picks.entries()) {
       const [from, id] = pick.split('/') as [string, string];
       const source = byId.get(from);
       const doc = source?.docs.find((d) => d.id === id);
       if (source === undefined || doc === undefined) {
         throw new Error(`stickers: ${set.id}: unknown pick ${pick}`);
       }
-      const key = `${from}-${id}`;
+      const key = `${String(rank + 1).padStart(3, '0')}-${from}-${id}`;
       set.pack.icons[key] = source.pack.icons[id]!;
       set.pack.views[key] = source.pack.views[id]!;
       set.docs.push({ ...doc, id: key, name: key, category: source.name });

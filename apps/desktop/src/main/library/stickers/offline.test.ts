@@ -14,10 +14,10 @@ beforeAll(async () => {
 afterAll(() => setStickersResourcesDir(null));
 
 describe('offline sticker packs', () => {
-  it('holds more than 20 000 stickers, 10 of them monochrome sets, each with a full licence', () => {
+  it('holds more than 20 000 stickers, 13 of them monochrome sets, each with a full licence', () => {
     const sets = listOfflineSets();
     expect(sets.reduce((sum, s) => sum + s.count, 0)).toBeGreaterThan(20_000);
-    expect(sets.filter((s) => s.mono)).toHaveLength(10);
+    expect(sets.filter((s) => s.mono)).toHaveLength(13);
     for (const set of sets) {
       expect(set.licence.source).not.toBe('');
       expect(set.licence.author).toBeTruthy();
@@ -135,5 +135,29 @@ describe('licence rule of the build', () => {
   it('dropped nothing from the chosen sets', async () => {
     const manifest = await buildStickerPacks({ log: () => undefined });
     expect(manifest.dropped).toEqual([]);
+  });
+});
+
+describe('the drawn sets', () => {
+  it('come first: Recommandés, then Croquis, Bohème and Déco, our own work under MIT', () => {
+    const ids = listOfflineSets().map((s) => s.id);
+    expect(ids.slice(0, 4)).toEqual(['recommandes', 'croquis', 'boheme', 'deco']);
+    for (const set of listOfflineSets().slice(0, 4)) {
+      expect(set.licence).toMatchObject({ source: 'travelbook', licence: 'MIT', requiresAttribution: false });
+    }
+  });
+
+  it('open an empty search with the picks of Recommandés, in their order', () => {
+    const first = searchOffline('', { ...ALL, set: 'recommandes' }).items.slice(0, 3);
+    expect(first.map((i) => i.id)).toEqual([
+      '001-croquis-objet-tasse-coeur',
+      '002-boheme-fleur-turquoise-prune',
+      '003-deco-washi-rayures-corail',
+    ]);
+  });
+
+  it('find a drawn sticker by a French word', () => {
+    const hits = searchOffline('tampon', { ...ALL, set: 'deco' });
+    expect(hits.total).toBeGreaterThan(5);
   });
 });
