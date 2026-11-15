@@ -295,3 +295,66 @@
   width: 150px;
   height: 26px;
 }
+
+/* Tabs of the inspector: properties, layers, history. */
+.insp-tabs {
+  flex: none;
+  display: flex;
+  border-bottom: 1px solid var(--line);
+}
+.insp-tab {
+  flex: 1;
+  height: 32px;
+  border-bottom: 2px solid transparent;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  transition: color var(--fast);
+}
+.insp-tab:hover {
+  color: var(--ink);
+}
+.insp-tab[aria-selected='true'] {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+  font-weight: var(--w-medium);
+}
+.insp-pane {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.insp-lock {
+  align-self: flex-start;
+}
+.insp-lock[aria-pressed='true'] {
+  border-color: var(--invert-bg);
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+.insp-align .insp-toggle {
+  flex: 1 1 28px;
+  width: auto;
+}
+
+/* A short list of labelled facts, as in the page inspector. */
+.insp-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  margin: 0;
+}
+.insp-summary__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s4);
+  font-size: var(--t-sm);
+}
+.insp-summary dt {
+  color: var(--ink-2);
+}
+.insp-summary dd {
+  margin: 0;
+  text-align: right;
+}

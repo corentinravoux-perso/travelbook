@@ -22,10 +22,11 @@ import { Guides } from './Guides';
 import { usePhotoDrop, usePhotoSwap } from './PhotoDrop';
 import { spreadName } from './pages';
 import { Selection, frame } from './Selection';
+import { addDrawnShape, isSegment } from './shapeActions';
 import { addDrawnText, leaveTextEdit } from './textActions';
 import { TextEditing } from './TextEditing';
 import { TextToolbar } from './TextToolbar';
-import { MIN_DRAWN_MM } from './draw';
+import { MIN_DRAWN_MM, roundRect } from './draw';
 import { useDraw } from './useDraw';
 import { useShortcuts } from './shortcuts';
 import {
@@ -63,6 +64,7 @@ export function Canvas() {
   const zoom = useEditor((s) => s.zoom);
   const notice = useEditor((s) => s.notice);
   const tool = useEditor((s) => s.tool);
+  const shapeKind = useEditor((s) => s.shapeKind);
   const editingId = useEditor((s) => s.editingId);
   const editSelectAll = useEditor((s) => s.editSelectAll);
   const [textEditor, setTextEditor] = useState<Editor | null>(null);
@@ -161,11 +163,19 @@ export function Canvas() {
       if (pointInElement(editing, at)) return;
       leaveTextEdit();
     }
+    if (tool === 'shape') {
+      draw.start(e, isSegment(shapeKind) ? 'line' : 'box', (from, to, dragged) =>
+        addDrawnShape(shapeKind, from, to, dragged),
+      );
+      return;
+    }
     if (tool === 'text') {
       draw.start(e, 'box', (from, to, dragged) => {
         const box = normalizedRect(from, to);
         const drawn = dragged && box.w >= MIN_DRAWN_MM && box.h >= MIN_DRAWN_MM;
-        addDrawnText(drawn ? box : { x: from.x, y: from.y, w: DEFAULT_TEXT_W, h: DEFAULT_TEXT_H });
+        addDrawnText(
+          roundRect(drawn ? box : { x: from.x, y: from.y, w: DEFAULT_TEXT_W, h: DEFAULT_TEXT_H }),
+        );
       });
       return;
     }
@@ -239,6 +249,7 @@ export function Canvas() {
   );
   const hover = spread?.elements.find((el) => el.id === hoverId);
   const editing = spread?.elements.find((el) => el.id === editingId);
+  const lineDraft = draw.draft?.kind === 'line' ? draw.draft : null;
 
   /** The editor draws the text being typed in, in place of the static text. */
   const renderElement = useCallback(
@@ -343,6 +354,20 @@ export function Canvas() {
               )}
               {draw.draft?.kind === 'box' && (
                 <div className="canvas-draft" style={frame(draw.draft.rect, scale)} />
+              )}
+              {lineDraft && (
+                <svg className="canvas-draft-line" aria-hidden="true">
+                  {['outer', 'inner'].map((layer) => (
+                    <line
+                      key={layer}
+                      className={`canvas-draft-line__${layer}`}
+                      x1={lineDraft.a.x * scale}
+                      y1={lineDraft.a.y * scale}
+                      x2={lineDraft.b.x * scale}
+                      y2={lineDraft.b.y * scale}
+                    />
+                  ))}
+                </svg>
               )}
               {marquee && (
                 <div

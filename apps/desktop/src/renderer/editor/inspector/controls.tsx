@@ -28,6 +28,7 @@ export function NumberField({
   value,
   min,
   max,
+  disabled,
   onCommit,
 }: {
   label: string;
@@ -35,6 +36,7 @@ export function NumberField({
   value: number;
   min: number;
   max: number;
+  disabled?: boolean;
   onCommit(value: number): void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -60,6 +62,7 @@ export function NumberField({
           inputMode="decimal"
           value={draft ?? formatNumber(value)}
           aria-invalid={invalid || undefined}
+          disabled={disabled}
           onFocus={(e) => e.currentTarget.select()}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={finish}

@@ -45,3 +45,8 @@ export function lineBox(a: Pt, b: Pt, thickness: number): { rect: Rect; rotation
     rotation: round3((Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI),
   };
 }
+
+/** A drawn rectangle with its numbers kept to a micrometre, so that the book holds no float noise. */
+export function roundRect(rect: Rect): Rect {
+  return { x: round3(rect.x), y: round3(rect.y), w: round3(rect.w), h: round3(rect.h) };
+}
