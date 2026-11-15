@@ -169,7 +169,7 @@ marks that never touch printed content. The marks now start `markOffset` from th
 slug, from `coverBleed`. Covered by `pdf.test.ts` (no mark point inside the bleed box) and `export-pdf.spec.ts` (dark mark
 pixel at 5.5 mm, white slug beside it).
 
-## A run is staged, then published (Phase 7 review fix)
+## A run is staged, then published; pages are spilled to disk (Phase 7 review fixes)
 
 **Earlier exports are not touched until a run completes.** A run writes its files into a hidden folder of the output folder,
 `.travelbook-export-<uuid>/` (`export/staging.ts`), and moves them out only after the last page (`publishStaged`: an earlier
@@ -178,3 +178,16 @@ a PDF open in a viewer cannot leave half old, half new). A cancel or a failure r
 export stays as it was. The staging folders of runs that died (a crash, a kill) are removed at the start of the next run in
 that folder. A file of an earlier export whose name the new run does not produce (page 4 of a 10-page export, re-exported as
 3 pages) is left alone.
+
+**The PDF route holds no page while it prints.** Each printed page, or each 600 dpi JPEG of the raster fallback, is written to
+`<staging>/pages/` as soon as it exists; the merge (`assemblePdf` takes the pages from an async source) reads one back,
+embeds it in the pdf-lib document, and drops it. The export windows are closed before the merge starts. pdf-lib keeps the
+whole document and `save()` allocates the whole output, so the merge itself still needs about twice the size of the PDF in
+memory (the document, then the saved bytes); a streaming writer would remove the second copy and is the next lever if Task
+8.2 shows it matters.
+
+Measured with a fake renderer in the main process (no Chromium: its windows come on top), 30 pages A4 + bleed with crop
+marks, 28 vector pages of a 4.1 MB photo and 2 raster-fallback pages of a 23.3 MB JPEG (600 dpi, q95), a 161 MB PDF; peak RSS
+(`VmHWM`), process at 279 MB before the run: whole run 910 MB before the fix, 814 MB after (the raster capture and its JPEG
+encode account for most of the peak, about 535 MB for one page, and nothing is held while the next page prints any more);
+merge phase 607-614 MB before, 585-587 MB after; 28 vector pages only (122 MB PDF): 511-515 MB before, 510 MB after.
