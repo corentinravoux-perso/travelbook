@@ -1,0 +1,47 @@
+{
+ "name": "Croquis",
+ "order": 2,
+ "categories": {
+  "objet": "Objets",
+  "meteo": "Météo",
+  "signe": "Signes",
+  "fleche": "Flèches",
+  "voyage": "Voyage",
+  "gourmand": "Gourmandises"
+ },
+ "keywords": {
+  "objet-tasse-coeur": [
+   "tasse",
+   "café",
+   "thé",
+   "mug",
+   "coeur",
+   "petit déjeuner"
+  ],
+  "meteo-eclair": [
+   "éclair",
+   "orage",
+   "foudre",
+   "énergie",
+   "flash"
+  ],
+  "objet-lunettes-soleil": [
+   "lunettes",
+   "soleil",
+   "été",
+   "plage",
+   "vacances",
+   "cool"
+  ],
+  "fleche-courbe-haut": [
+   "flèche",
+   "courbe",
+   "haut",
+   "direction"
+  ],
+  "signe-cible": [
+   "cible",
+   "rond"
+  ]
+ }
+}

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<path d="M350 180C344.2 202.7 337.7 215.2 320 230C302.3 244.8 266.7 267.8 244 269C221.3 270.2 202.7 250.2 184 237C165.3 223.8 136.8 209.2 132 190C127.2 170.8 141.3 144.3 155 122C168.7 99.7 189.2 68.5 214 56C238.8 43.5 280.5 40.7 304 47C327.5 53.3 347.3 71.8 355 94C362.7 116.2 355.8 157.3 350 180Z" fill="#f7c85c"/>
+<path d="M170 180 C169 127.8, 160.2 82.1, 141 43" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C200.6 132.4, 223 90.4, 236 56" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C222 156.2, 266.5 139.2, 300 128" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C223.1 188.2, 268.1 202.3, 303 223" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C203.4 213.5, 228.2 252.4, 244 299" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C172.2 218.9, 166.8 265.3, 151 319" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C144 204, 109.7 236.3, 66 274" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C132 174.5, 86.6 176.7, 30 185" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M170 180 C141.9 144.3, 105.9 115.6, 60 94" fill="none" stroke="#1d1b1a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M118 250C88 286 104 346 156 360C120 372 74 346 72 300C70 272 90 252 118 250Z" fill="#1d1b1a"/>
+<path d="M320 284Q323.5 296.5 336 300Q323.5 303.5 320 316Q316.5 303.5 304 300Q316.5 296.5 320 284Z" fill="#1d1b1a"/>
+<path d="M80 109Q82.4 117.6 91 120Q82.4 122.4 80 131Q77.6 122.4 69 120Q77.6 117.6 80 109Z" fill="#1d1b1a"/>
+<path d="M340 61Q342 68 349 70Q342 72 340 79Q338 72 331 70Q338 68 340 61Z" fill="#1d1b1a"/>
+<path d="M220 342Q221.8 348.2 228 350Q221.8 351.8 220 358Q218.2 351.8 212 350Q218.2 348.2 220 342Z" fill="#1d1b1a"/>
+<path d="M286.5 340a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0Z" fill="#1d1b1a"/>
+<path d="M117 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z" fill="#1d1b1a"/>
+</svg>
