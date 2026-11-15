@@ -54,6 +54,7 @@ const tb: TbApi = {
   assets: {
     importFiles: (kind, paths) => ipcRenderer.invoke(CHANNEL.assetsImportFiles, kind, paths),
     fromLibrary: (itemId) => ipcRenderer.invoke(CHANNEL.assetsFromLibrary, itemId),
+    fromBundled: (file) => ipcRenderer.invoke(CHANNEL.assetsFromBundled, file),
     palette: (assetIds) => ipcRenderer.invoke(CHANNEL.assetsPalette, assetIds),
   },
   library: {
@@ -61,6 +62,7 @@ const tb: TbApi = {
     add: (kind, paths) => ipcRenderer.invoke(CHANNEL.libraryAdd, kind, paths),
     setFavourite: (itemId, on) => ipcRenderer.invoke(CHANNEL.librarySetFavourite, itemId, on),
     remove: (itemId) => ipcRenderer.invoke(CHANNEL.libraryRemove, itemId),
+    bundledBackgrounds: () => ipcRenderer.invoke(CHANNEL.libraryBundledBackgrounds),
     bundledTemplates: () => ipcRenderer.invoke(CHANNEL.libraryBundledTemplates),
     userTemplates: {
       save: (template) => ipcRenderer.invoke(CHANNEL.libraryTemplateSave, template),

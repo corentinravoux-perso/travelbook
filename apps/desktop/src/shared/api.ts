@@ -105,6 +105,8 @@ export interface LibraryApi {
   remove(itemId: string): Promise<void>;
   /** The templates and themes the app ships with (`origin: 'bundled'`, ids start with `b-`). */
   bundledTemplates(): Promise<{ templates: Template[]; themes: Theme[] }>;
+  /** The patterns and textures the app ships with, each with its licence. */
+  bundledBackgrounds(): Promise<BundledBackground[]>;
   /** The user's own templates (`origin: 'user'`, ids start with `user-`), one JSON file each. */
   userTemplates: {
     /** Replaces the template with the same id. */
@@ -112,6 +114,16 @@ export interface LibraryApi {
     list(): Promise<Template[]>;
     delete(templateId: string): Promise<void>;
   };
+}
+
+/** A pattern tile or a paper texture the app ships with, from `resources/backgrounds.json`. */
+export interface BundledBackground {
+  /** `patterns/<name>.svg` or `textures/<name>.webp`: relative to the bundled resources, and the `tb://resource/` path. */
+  file: string;
+  kind: 'pattern' | 'texture';
+  /** French name. */
+  title: string;
+  licence: Licence;
 }
 
 /** Elements on the system clipboard (`application/x-travelbook`), with what they need. */
@@ -180,6 +192,11 @@ export interface TbApi {
      * and mark the item as used. Same asset shape and id as `importFiles`, plus the item's licence.
      */
     fromLibrary(itemId: string): Promise<AssetRef>;
+    /**
+     * Copy a bundled pattern (an asset of kind `pattern`) or texture (kind `background`) into the
+     * open project's `assets/`, with its licence. `file` is a `BundledBackground.file`.
+     */
+    fromBundled(file: string): Promise<AssetRef>;
     /** Up to 6 dominant colours of the given assets, as `#rrggbb`, most present first. */
     palette(assetIds: string[]): Promise<string[]>;
   };

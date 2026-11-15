@@ -4,6 +4,7 @@ import { installBookFonts } from '../fonts/bookFonts';
 import { projectStore } from '../store/project';
 import { ImportStatus } from '../panels/ImportStatus';
 import { PhotosPanel } from '../panels/PhotosPanel';
+import { BackgroundsPanel } from '../panels/BackgroundsPanel';
 import { TemplatesPanel } from '../panels/TemplatesPanel';
 import { ShapesPanel } from '../panels/ShapesPanel';
 import { TextPanel } from '../panels/TextPanel';
@@ -211,6 +212,8 @@ function Panel({ width, onResize }: { width: number; onResize(width: number): vo
         <TextPanel />
       ) : panel === 'shapes' ? (
         <ShapesPanel />
+      ) : panel === 'backgrounds' ? (
+        <BackgroundsPanel />
       ) : (
         <p className="shell-empty">{fr.shell.panelEmpty}</p>
       )}
