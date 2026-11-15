@@ -1,7 +1,9 @@
 # Drawn stickers: style guide
 
 The sets of `apps/desktop/resources/stickers-src/` are drawn for travelbook (MIT, no
-attribution). They are listed first in the "Bibliothèque" tab of the Stickers panel. The look
+attribution). With the `affiches` set they make the "travelbook" tab, the first tab of the
+Stickers panel (manifest group `travelbook`). The `affiches` set id and its drawing ids must
+not change: the poster presets load the drawings by URL (`tb://sticker/affiches/<id>.svg`). The look
 follows the kinds of stickers a photo-book editor offers (reference: the owner's screenshot of
 2026-11-15). Every drawing is ours, drawn from scratch: nothing is traced or copied
 (`CLEANROOM.md`).
@@ -16,8 +18,10 @@ follows the kinds of stickers a photo-book editor offers (reference: the owner's
 - The hand-drawn wobble comes from `roughjs`, seeded per drawing from its id, so a run gives
   the same files. The test `local-sets.test.ts` fails when a committed file differs from its
   generator.
-- `npm run stickers` packs these sets before the Iconify sets. `recommandes/meta.json` lists
-  picks (`<set>/<id>`) that are copied into the "Recommandés" set, listed first.
+- `npm run stickers` packs these sets before the Iconify sets.
+- The "Bibliothèque" tab opens on "Recommandés": the open-pack stickers listed in
+  `resources/stickers/recommended.json` (`<set>/<id>`, in order, checked at build time). Each
+  keeps the licence of its own set.
 - Review: `node apps/desktop/scripts/stickers/render-sheet.ts <set> <outDir> [filter]` writes a
   contact sheet. Each sticker is shown at 220 px and at 70 px (about 18 mm printed) on a
   coloured tile.
