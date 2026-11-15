@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 360">
+<path d="M352 194C341.7 215.7 296.2 231.7 272 245C247.8 258.3 232.8 268.7 207 274C181.2 279.3 142.7 292.3 117 277C91.3 261.7 61.8 208.3 53 182C44.2 155.7 47.3 137.8 64 119C80.7 100.2 122.7 75 153 69C183.3 63 215.8 75.3 246 83C276.2 90.7 316.3 96.5 334 115C351.7 133.5 362.3 172.3 352 194Z" fill="#a9c3b4"/>
+<path d="M200 70 C224.7 117.2, 225.3 170.9, 200 232 M200 232 C174.9 170.5, 175.3 117.2, 200 70 M200 70 C200 70, 200 70, 200 70" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 232 C151.4 214, 123.4 175.8, 116 120 M116 120 C151.9 137.8, 180.4 174.3, 200 232" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 232 C247.4 212.7, 276.3 175.4, 284 120 M284 120 C247.5 137, 220.1 174.8, 200 232" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 234 C138.1 237.5, 93 222.4, 64 186 M64 186 C115.2 179.6, 159.8 196, 200 234" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 234 C260.7 237.6, 307.2 222, 336 186 M336 186 C285.5 178.8, 239.5 195.1, 200 234" fill="none" stroke="#1d1b1a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 110 C199.6 129.3, 200 149.5, 200 200" fill="none" stroke="#1d1b1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M110 270 C169.4 259.2, 229.4 259.9, 290 270" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M146 296 C181.4 289.3, 218.3 289.5, 254 296" fill="none" stroke="#1d1b1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M178 318 C192.1 314.1, 207 313.8, 222 318" fill="none" stroke="#1d1b1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 19Q202.4 27.6 211 30Q202.4 32.4 200 41Q197.6 32.4 189 30Q197.6 27.6 200 19Z" fill="#1d1b1a"/>
+<path d="M326 83Q328 90 335 92Q328 94 326 101Q324 94 317 92Q324 90 326 83Z" fill="#1d1b1a"/>
+<path d="M74 96Q75.8 102.2 82 104Q75.8 105.8 74 112Q72.2 105.8 66 104Q72.2 102.2 74 96Z" fill="#1d1b1a"/>
+<path d="M147 48a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z" fill="#1d1b1a"/>
+<path d="M247 46a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z" fill="#1d1b1a"/>
+</svg>
