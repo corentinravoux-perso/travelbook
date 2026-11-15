@@ -9,13 +9,18 @@ import {
 } from 'electron';
 import type { CloseChoice } from './close-guard';
 import { fr } from '../renderer/strings/fr';
+import { createExportWindow } from './export/exportWindow';
 import type { Host } from './ipc';
 
 /** Extensions the photo import takes (see `PHOTO_EXTENSIONS` in `photos/import.ts`). */
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
 /** The real desktop: native dialogs over `window`, the system shell and the app. */
-export function createElectronHost(window: () => BrowserWindow | null): Host {
+export function createElectronHost(
+  window: () => BrowserWindow | null,
+  /** Load the app's page at `#export` in a window (see `export/exportWindow.ts`). */
+  loadExportPage: (win: BrowserWindow) => Promise<void>,
+): Host {
   async function pick(options: OpenDialogOptions): Promise<string[]> {
     const parent = window();
     const result = parent
@@ -57,6 +62,7 @@ export function createElectronHost(window: () => BrowserWindow | null): Host {
           : image;
       return scaled.toJPEG(88);
     },
+    openExportRenderer: () => createExportWindow(loadExportPage),
     clipboard: {
       write: (type, data) =>
         clipboard.write([new ClipboardItem({ [type]: new Blob([data], { type }) })]),

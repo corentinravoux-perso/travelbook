@@ -71,6 +71,14 @@ function rootsFor(layout: Layout, projectOpen = true): TbRoots {
     asset: (id) => (Object.hasOwn(ASSETS, id) ? ASSETS[id] : undefined),
     libraryFile: (id) => (id === 'lib1' ? 'files/lib1.png' : undefined),
     coverDir: (id) => (id === 'cov1' ? layout.projectDir : undefined),
+    exportJob: (token) =>
+      token === 'tok1'
+        ? {
+            dir: at(layout, layout.projectDir, 'tmp'),
+            projectDir: layout.projectDir,
+            assetFile: (id) => (Object.hasOwn(ASSETS, id) ? ASSETS[id]?.file : undefined),
+          }
+        : undefined,
   };
 }
 
@@ -89,6 +97,45 @@ describe.each([
   ['POSIX (decomposed accents)', NFD],
 ])('resolveTbUrl, %s paths', (_name, layout) => {
   const resolve = sut(layout);
+
+  describe('tb://export', () => {
+    it('maps a derivative onto the folder of the export', () => {
+      expect(resolve('tb://export/tok1/0123abcd.jpg')).toEqual({
+        ok: true,
+        path: at(layout, layout.projectDir, 'tmp', '0123abcd.jpg'),
+        root: at(layout, layout.projectDir, 'tmp'),
+      });
+    });
+
+    it('maps an original onto the project, through the album of the export', () => {
+      expect(resolve('tb://export/tok1/original/abc')).toEqual({
+        ok: true,
+        path: at(layout, layout.projectDir, 'originals', 'abc.jpg'),
+        root: layout.projectDir,
+      });
+      expect(resolve('tb://export/tok1/original/up')).toMatchObject({ ok: false, status: 404 });
+      expect(resolve('tb://export/tok1/original/nope')).toMatchObject({ ok: false, status: 404 });
+    });
+
+    it('answers 404 for a token no export runs under', () => {
+      expect(resolve('tb://export/other/a.jpg')).toMatchObject({ ok: false, status: 404 });
+    });
+
+    it('refuses what leaves the folder or is not a plain name', () => {
+      for (const url of [
+        'tb://export/tok1/..%2Fbook.json',
+        'tb://export/tok1/%2e%2e/x.jpg',
+        'tb://export/tok1/a%2Fb.jpg',
+        'tb://export/tok1/original/..%2Fx',
+        'tb://export/tok1/other/abc',
+        'tb://export/tok1/original/abc/more',
+        'tb://export/tok1',
+        'tb://export/',
+      ]) {
+        expect(resolve(url), url).toMatchObject({ ok: false });
+      }
+    });
+  });
 
   describe('tb://cover', () => {
     it('maps a cover id main handed out to the thumbnail in cache/', () => {

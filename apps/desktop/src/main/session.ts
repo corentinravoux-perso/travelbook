@@ -1,6 +1,6 @@
 import type { AssetRef, Book } from '@travelbook/core';
 import { coverDirOf } from './project/cover-thumb';
-import type { TbRoots } from './protocol';
+import type { TbExportJob, TbRoots } from './protocol';
 
 /**
  * The project the window has open. Main keeps it so that the renderer never has to name a
@@ -72,7 +72,11 @@ export function setLibraryFileLookup(
 /** The roots of the `tb:` scheme for `session` (or for no project at all). */
 export function tbRoots(
   session: Session | null,
-  fixed: { libraryDir: string; resourcesDir: string },
+  fixed: {
+    libraryDir: string;
+    resourcesDir: string;
+    exportJob?: (token: string) => TbExportJob | undefined;
+  },
 ): TbRoots {
   return {
     projectDir: session?.dir ?? null,
@@ -86,5 +90,6 @@ export function tbRoots(
     },
     libraryFile: (id) => libraryFileLookup(id),
     coverDir: (id) => coverDirOf(id),
+    ...(fixed.exportJob ? { exportJob: fixed.exportJob } : {}),
   };
 }

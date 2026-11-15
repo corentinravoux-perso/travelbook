@@ -63,10 +63,16 @@ beforeEach(async () => {
     showInFolder: vi.fn<Host['showInFolder']>(),
     version: vi.fn<Host['version']>(() => '1.2.3'),
     captureJpeg: vi.fn<Host['captureJpeg']>(async () => new Uint8Array([0xff, 0xd8, 0xff, 0xd9])),
+    openExportRenderer: vi.fn<Host['openExportRenderer']>(async () => {
+      throw new Error('no export window in this test');
+    }),
     clipboard: { write: async () => undefined, read: async () => null },
   };
   progress = [];
-  ctx = { progress: (done, total) => progress.push([done, total]) };
+  ctx = {
+    progress: (done, total) => progress.push([done, total]),
+    exportProgress: () => undefined,
+  };
   h = createHandlers(host);
 });
 

@@ -1,6 +1,14 @@
 // TbApi and all IPC payload types live here. Types only: this file is compiled for the renderer,
 // the preload and the main process alike.
-import type { AssetRef, Book, Element, Licence, Template, Theme } from '@travelbook/core';
+import type {
+  AssetRef,
+  Book,
+  Element,
+  Licence,
+  PreflightIssue,
+  Template,
+  Theme,
+} from '@travelbook/core';
 
 /** One entry of a project's `history/` folder. */
 export interface SnapshotInfo {
@@ -135,8 +143,64 @@ export interface ClipboardPayload {
   assets: AssetRef[];
 }
 
-/** Filled in by phase 7. */
-export type ExportApi = Record<string, never>;
+/** What the export dialog asks for (Task 7.4 fills it in; Tasks 7.2 and 7.3 carry it out). */
+export interface ExportOptions {
+  route: 'pdf' | 'images';
+  /** Pages by number (the cover is not numbered); the cover follows `includeCover`. */
+  pages: 'all' | { from: number; to: number };
+  includeCover: boolean;
+  dpi: number;
+  /** Keep every photo at the pixel size of its visible window instead of the frame at `dpi`. */
+  nativeResolution: boolean;
+  bleed: boolean;
+  cropMarks: boolean;
+  imageFormat: 'jpeg' | 'png';
+  /** 95 to 100 in the dialog; 98 by default. */
+  jpegQuality: number;
+  /** Images route: one file per double page instead of one per page. */
+  perSpread: boolean;
+  /** The cover as three files (front, back, spine) or as one flat sheet. */
+  coverMode: 'flat' | 'panels';
+  /** Absolute path of the folder the files go to. */
+  outDir: string;
+}
+
+export interface ExportReport {
+  /** Absolute paths, in export order. */
+  files: string[];
+  pages: number;
+  seconds: number;
+  warnings: PreflightIssue[];
+}
+
+/** `step` is `derivatives`, `render`, `capture` or `write`; `page` counts from 1. */
+export interface ExportProgress {
+  page: number;
+  total: number;
+  step: string;
+}
+
+export interface ExportPreset {
+  name: string;
+  options: ExportOptions;
+}
+
+export interface ExportApi {
+  /**
+   * Export the album main has open, as it was last saved. Rejects when a photo is missing, when
+   * another export is running, or after `cancel` (with partial files removed).
+   */
+  run(options: ExportOptions): Promise<ExportReport>;
+  /** Stop after the page being captured and remove the files written so far. */
+  cancel(): Promise<void>;
+  onProgress(cb: (progress: ExportProgress) => void): () => void;
+  preflight(): Promise<PreflightIssue[]>;
+  presets: {
+    list(): Promise<ExportPreset[]>;
+    save(name: string, options: ExportOptions): Promise<void>;
+    delete(name: string): Promise<void>;
+  };
+}
 
 /**
  * `window.tb`. Every method talks to the main process, which validates what it receives. Methods
