@@ -13,11 +13,14 @@
  * joined through the set's code-point table (`chars.json`); for every set, the hand-written
  * `resources/stickers/fr-keywords.json` (French word to English icon words), used backwards: an
  * icon whose name contains `suitcase` gets `valise`.
+ *
+ * One local set comes first: `affiches`, the poster illustrations of `resources/posters/` (our own
+ * drawings, see `scripts/posters/affiches-set.ts`). It is skipped while that folder is empty.
  */
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import MiniSearch from 'minisearch';
 import {
   ALLOWED_LICENCE,
@@ -25,6 +28,13 @@ import {
   requiresAttribution,
 } from '../src/main/library/stickers/licences.ts';
 import { INDEX_OPTIONS, fold, type StickerDoc } from '../src/main/library/stickers/indexConfig.ts';
+import {
+  AFFICHES_LICENCE,
+  AFFICHES_SET,
+  POSTERS_DIR,
+  illustrationFiles,
+  readAffichesSet,
+} from './posters/affiches-set.ts';
 
 const require = createRequire(import.meta.url);
 
@@ -386,6 +396,26 @@ async function buildSet(
   };
 }
 
+/** The local `affiches` set, or null while it has no illustration. */
+async function buildAffiches(): Promise<ManifestSet | null> {
+  const set = await readAffichesSet();
+  if (set === null) return null;
+  const { id, name } = AFFICHES_SET;
+  const index = new MiniSearch<StickerDoc>(INDEX_OPTIONS);
+  index.addAll(set.docs);
+  await writeFile(join(PACKS_DIR, `${id}.pack.json`), JSON.stringify(set.pack));
+  await writeFile(join(PACKS_DIR, `${id}.index.json`), JSON.stringify(index));
+  return {
+    id,
+    name,
+    count: set.docs.length,
+    licence: AFFICHES_LICENCE,
+    mono: false,
+    pack: `${id}.pack.json`,
+    index: `${id}.index.json`,
+  };
+}
+
 /** Hash of everything the packs are made from; a matching manifest means nothing to rebuild. */
 async function inputsHash(): Promise<string> {
   const hash = createHash('sha256');
@@ -393,7 +423,12 @@ async function inputsHash(): Promise<string> {
     import.meta.filename,
     join(import.meta.dirname, '../src/main/library/stickers/indexConfig.ts'),
     KEYWORDS_FILE,
+    join(import.meta.dirname, 'posters/affiches-set.ts'),
+    join(POSTERS_DIR, 'keywords.json'),
+    join(POSTERS_DIR, 'destinations.json'),
+    ...(await illustrationFiles()).map((name) => join(POSTERS_DIR, 'illustrations', name)),
   ]) {
+    hash.update(relative(import.meta.dirname, file));
     hash.update(await readFile(file));
   }
   for (const id of [...COLOUR_SETS, ...MONO_SETS]) {
@@ -440,6 +475,12 @@ export async function buildStickerPacks(
   const reverse = await reverseKeywords();
   const sets: ManifestSet[] = [];
   const dropped: Manifest['dropped'] = [];
+  const affiches = await buildAffiches();
+  if (affiches === null) log('stickers: affiches: no illustration, skipped');
+  else {
+    log(`stickers: affiches: ${affiches.count} illustrations (MIT)`);
+    sets.push(affiches);
+  }
   const candidates = [
     ...COLOUR_SETS.map((id) => ({ id, mono: false })),
     ...MONO_SETS.map((id) => ({ id, mono: true })),
