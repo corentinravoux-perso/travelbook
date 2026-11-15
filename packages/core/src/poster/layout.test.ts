@@ -129,6 +129,37 @@ describe.each(Object.entries(FORMATS))('posterLayout on %s', (_name, format) => 
     }
   });
 
+  it.each(POSTER_LAYOUTS)('%s puts the title on top and the year under it, right', (layout) => {
+    const { elements } = posterLayout(
+      b,
+      input(spec({ layout, subtitle: 'Sous-titre', year: '2026' })),
+    );
+    const title = titleOf(elements);
+    const year = named(elements, 'Affiche · année')[0] as TextElement;
+    const sticker = stickerOf(elements);
+    expect(title.y).toBeLessThan(0.2 * front.h);
+    expect(year.align).toBe('right');
+    expect(year.y).toBeGreaterThanOrEqual(title.y + title.h - EPS);
+    expect(year.x + year.w).toBeCloseTo(title.x + title.w, 6);
+    expect(sticker.y).toBeGreaterThanOrEqual(year.y + year.h - EPS);
+  });
+
+  it.each(POSTER_LAYOUTS)(
+    '%s keeps decor shapes under the header and behind the illustration',
+    (layout) => {
+      const { elements } = posterLayout(b, input(spec({ layout, year: '2026' })));
+      const title = titleOf(elements);
+      const year = named(elements, 'Affiche · année')[0]!;
+      const sticker = elements.indexOf(stickerOf(elements));
+      elements.forEach((el, i) => {
+        if (el.name !== 'Affiche · décor') return;
+        expect(i).toBeLessThan(sticker);
+        expect(el.y).toBeGreaterThanOrEqual(year.y + year.h - EPS);
+        expect(overlap(boundingBox(el), boundingBox(title))).toBe(false);
+      });
+    },
+  );
+
   it.each(POSTER_LAYOUTS)('%s keeps the illustration ratio', (layout) => {
     for (const ratio of [0.4, 1, 2.5]) {
       const sticker = stickerOf(posterLayout(b, input(spec({ layout }), ratio)).elements);
@@ -203,7 +234,7 @@ describe('posterLayout details', () => {
     expect(sticker.y + sticker.h).toBeCloseTo(front.h + b.coverBleed, 6);
   });
 
-  it('frames encadre with an accent rect and centres the title', () => {
+  it('frames encadre with an accent rect around the header and the illustration', () => {
     const { elements } = posterLayout(b, input(spec({ layout: 'encadre' })));
     const [frame] = named(elements, 'Affiche · cadre');
     expect(frame?.type).toBe('shape');
@@ -212,9 +243,51 @@ describe('posterLayout details', () => {
     expect(frame.fill).toBeNull();
     expect(frame.stroke).toEqual({ width: 0.8, color: validSpec.colors.accent });
     const title = titleOf(elements);
-    expect(title.align).toBe('center');
+    expect(title.align).toBe('left');
     expect(inside(boundingBox(title), frame)).toBe(true);
     expect(inside(boundingBox(stickerOf(elements)), frame)).toBe(true);
+  });
+
+  it('draws a disc in the decor colour behind a soleil illustration', () => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'soleil' })));
+    const decor = named(elements, 'Affiche · décor');
+    expect(decor).toHaveLength(1);
+    const disc = decor[0]!;
+    expect(disc.type === 'shape' && disc.shape).toBe('ellipse');
+    expect(disc.type === 'shape' && disc.fill).toBe(validSpec.colors.decor);
+    expect(disc.w).toBeCloseTo(disc.h, 6);
+  });
+
+  it('opens an arched window to the foot for arche', () => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'arche' })));
+    const decor = named(elements, 'Affiche · décor');
+    expect(decor.map((d) => d.type === 'shape' && d.shape).sort()).toEqual(['ellipse', 'rect']);
+    const rect = decor.find((d) => d.type === 'shape' && d.shape === 'rect')!;
+    expect(rect.y + rect.h).toBeCloseTo(front.h + b.coverBleed, 6);
+    const sticker = stickerOf(elements);
+    expect(sticker.x).toBeGreaterThanOrEqual(rect.x - EPS);
+    expect(sticker.x + sticker.w).toBeLessThanOrEqual(rect.x + rect.w + EPS);
+  });
+
+  it('stands a horizon illustration on a band across the front foot', () => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'horizon' })));
+    const [band] = named(elements, 'Affiche · décor');
+    expect(band?.type === 'shape' && band.shape).toBe('rect');
+    expect(band!.x).toBeCloseTo(front.x, 6);
+    expect(band!.x + band!.w).toBeCloseTo(front.x + front.w + b.coverBleed, 6);
+    expect(band!.y + band!.h).toBeCloseTo(front.h + b.coverBleed, 6);
+    const sticker = stickerOf(elements);
+    expect(sticker.y + sticker.h).toBeGreaterThan(band!.y);
+    expect(sticker.y + sticker.h).toBeLessThan(band!.y + band!.h);
+  });
+
+  it('keeps the year right under a stacked empile title', () => {
+    const { elements } = posterLayout(
+      b,
+      input(spec({ layout: 'empile', title: 'Costa Rica', year: '2026' })),
+    );
+    const year = named(elements, 'Affiche · année')[0] as TextElement;
+    expect(year.align).toBe('right');
   });
 
   it('writes one rotated text on a spine of 10 mm', () => {
@@ -280,7 +353,7 @@ describe('applyPoster', () => {
     expect(bk.cover.elements).toHaveLength(2);
   });
 
-  it.each(['classique', 'bas'] as PosterLayout[])('%s leaves the other spreads alone', (l) => {
+  it.each(['classique', 'horizon'] as PosterLayout[])('%s leaves the other spreads alone', (l) => {
     const bk = book();
     const out = applyPoster(bk, posterLayout(bk, input(spec({ layout: l }))));
     expect(out.spreads).toBe(bk.spreads);

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-export type PosterLayout = 'classique' | 'empile' | 'bas' | 'encadre';
+/**
+ * Every layout has the same header (title on top, the year under it on the right); the layout is
+ * the composition around the illustration.
+ */
+export type PosterLayout = 'classique' | 'empile' | 'encadre' | 'arche' | 'soleil' | 'horizon';
 export type PosterFont = 'Anton' | 'Bebas Neue' | 'Oswald';
 
 /** A sticker of a bundled set, or an item of the user's sticker library. */
@@ -9,7 +13,10 @@ export type PosterIllustration = { set: string; id: string } | { itemId: string 
 export interface PosterColors {
   background: string;
   title: string;
+  /** Subtitle, year and the encadre frame. */
   accent: string;
+  /** The large shapes of a composition: the arch, the disc, the band. */
+  decor: string;
   illustration: { main: string; shade: string };
 }
 
@@ -35,7 +42,14 @@ export interface PosterPreset {
   spec: PosterSpec;
 }
 
-export const POSTER_LAYOUTS = ['classique', 'empile', 'bas', 'encadre'] as const;
+export const POSTER_LAYOUTS = [
+  'classique',
+  'empile',
+  'encadre',
+  'arche',
+  'soleil',
+  'horizon',
+] as const;
 export const POSTER_FONTS = ['Anton', 'Bebas Neue', 'Oswald'] as const;
 
 const hex = z.string().regex(/^#[0-9a-f]{6}$/i, 'colour must be #rrggbb');
@@ -57,6 +71,7 @@ export const PosterSpecSchema = z
         background: hex,
         title: hex,
         accent: hex,
+        decor: hex,
         illustration: z.object({ main: hex, shade: hex }).strict(),
       })
       .strict(),

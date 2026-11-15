@@ -31,6 +31,7 @@ export const POSTER_NAMES = {
   year: 'Affiche · année',
   illustration: 'Affiche · illustration',
   frame: 'Affiche · cadre',
+  decor: 'Affiche · décor',
   spine: 'Affiche · dos',
 } as const;
 
@@ -174,58 +175,34 @@ function textElement(
 const linesHeight = (lines: Line[], lh: number): Mm =>
   lines.reduce((s, l) => s + l.pt * PT_MM * lh, 0);
 
-/** `ratio` (w / h) fitted in `box`, centred across, set on the box bottom or centred. */
-function fitRatio(box: Rect, ratio: number, base: 'bottom' | 'middle'): Rect {
+/** `ratio` (w / h) fitted in `box`, centred across, set on the box bottom. */
+function fitRatio(box: Rect, ratio: number): Rect {
   const w = Math.min(box.w, Math.max(box.h, 0) * ratio);
   const h = w / ratio;
   const x = box.x + (box.w - w) / 2;
-  const y = base === 'bottom' ? box.y + box.h - h : box.y + (box.h - h) / 2;
-  return { x, y, w, h };
+  return { x, y: box.y + box.h - h, w, h };
 }
 
-/**
- * The small line under or over the title: subtitle and year side by side (`split`), or
- * stacked and centred (`center`). Returns the elements and the height used.
- */
+/** The line under the title: the subtitle on the left, the year on the right. */
 function smallLines(
   input: PosterInput,
   box: { x: Mm; y: Mm; w: Mm },
-  arrangement: 'year-right' | 'year-left' | 'center',
   gap: Mm,
 ): { elements: TextElement[]; h: Mm } {
   const { spec, measure } = input;
   const subtitle = spec.subtitle.trim();
   const year = spec.year.trim();
-  const accent = spec.colors.accent;
+  if (subtitle === '' && year === '') return { elements: [], h: 0 };
   const opts = (name: string, align: TextElement['align']) => ({
     name,
     font: POSTER_SMALL_FONT,
-    color: accent,
+    color: spec.colors.accent,
     lineHeight: SMALL_LINE_HEIGHT,
     align,
     vAlign: 'bottom' as const,
     role: 'caption' as const,
   });
   const lineH = (pt: number) => pt * PT_MM * SMALL_LINE_HEIGHT;
-  if (arrangement === 'center') {
-    const out: TextElement[] = [];
-    let y = box.y;
-    for (const [text, pt, name] of [
-      [subtitle, SUBTITLE_PT, POSTER_NAMES.subtitle],
-      [year, YEAR_PT, POSTER_NAMES.year],
-    ] as const) {
-      if (text === '') continue;
-      const size = fitPt(measure, text, POSTER_SMALL_FONT, box.w, pt);
-      out.push(
-        textElement({ x: box.x, y, w: box.w, h: lineH(size) }, [{ text, pt: size }], {
-          ...opts(name, 'center'),
-        }),
-      );
-      y += lineH(size);
-    }
-    return { elements: out, h: y - box.y };
-  }
-  if (subtitle === '' && year === '') return { elements: [], h: 0 };
   const yearPt = year === '' ? 0 : fitPt(measure, year, POSTER_SMALL_FONT, box.w / 3, YEAR_PT);
   const yearW =
     year === '' ? 0 : Math.min(measure(year, POSTER_SMALL_FONT, yearPt) / FIT_SLACK + 1, box.w / 3);
@@ -233,22 +210,23 @@ function smallLines(
   const subPt =
     subtitle === '' ? 0 : fitPt(measure, subtitle, POSTER_SMALL_FONT, subW, SUBTITLE_PT);
   const h = Math.max(year === '' ? 0 : lineH(yearPt), subtitle === '' ? 0 : lineH(subPt));
-  const yearLeft = arrangement === 'year-left';
   const out: TextElement[] = [];
   if (year !== '') {
-    const x = yearLeft ? box.x : box.x + box.w - yearW;
     out.push(
-      textElement({ x, y: box.y, w: yearW, h }, [{ text: year, pt: yearPt }], {
-        ...opts(POSTER_NAMES.year, yearLeft ? 'left' : 'right'),
-      }),
+      textElement(
+        { x: box.x + box.w - yearW, y: box.y, w: yearW, h },
+        [{ text: year, pt: yearPt }],
+        opts(POSTER_NAMES.year, 'right'),
+      ),
     );
   }
   if (subtitle !== '') {
-    const x = yearLeft && year !== '' ? box.x + yearW + gap : box.x;
     out.push(
-      textElement({ x, y: box.y, w: subW, h }, [{ text: subtitle, pt: subPt }], {
-        ...opts(POSTER_NAMES.subtitle, yearLeft ? 'right' : 'left'),
-      }),
+      textElement(
+        { x: box.x, y: box.y, w: subW, h },
+        [{ text: subtitle, pt: subPt }],
+        opts(POSTER_NAMES.subtitle, 'left'),
+      ),
     );
   }
   return { elements: out, h };
@@ -280,87 +258,114 @@ function spineText(book: Book, input: PosterInput): TextElement | null {
   return { ...el, rotation: 90 };
 }
 
+function decorShape(rect: Rect, shape: 'rect' | 'ellipse', color: string): ShapeElement {
+  return {
+    ...newElement('shape', rect),
+    name: POSTER_NAMES.decor,
+    shape,
+    fill: color,
+    stroke: null,
+  };
+}
+
 /**
  * The poster for the cover of `book`: a background for the whole cover spread, the elements
- * to place (title, small lines, illustration, frame, spine text) in spread millimetres, and
- * the ids of the elements it replaces (those whose centre is on the front or the spine).
+ * to place (title, small lines, illustration, decor shapes, spine text) in spread millimetres,
+ * and the ids of the elements it replaces (those whose centre is on the front or the spine).
+ * Every layout shares the header: the title on top, the year under it on the right. The layout
+ * is the composition of the illustration below it.
  */
 export function posterLayout(book: Book, input: PosterInput): PosterResult {
   const { spec } = input;
   const front = pageBox(book, book.cover, 'right')!;
   const { x: fx, w: fw, h: fh } = front;
+  const bleed = book.coverBleed;
   const m = 0.07 * Math.min(fw, fh);
   const gap = 0.2 * m;
   const layout = spec.layout;
-  const elements: Element[] = [];
-
   const framed = layout === 'encadre';
   const inset = framed ? 1.5 * m : m;
-  const titleW = fw - 2 * inset;
-  const lines = titleLines(input.measure, spec, titleW, fh, layout === 'empile');
+  const innerW = fw - 2 * inset;
+
+  // Header.
+  const lines = titleLines(input.measure, spec, innerW, fh, layout === 'empile');
   const titleH = linesHeight(lines, TITLE_LINE_HEIGHT);
-  const titleOpts = {
+  const title = textElement({ x: fx + inset, y: inset, w: innerW, h: titleH }, lines, {
     name: POSTER_NAMES.title,
     font: spec.font,
     color: spec.colors.title,
     lineHeight: TITLE_LINE_HEIGHT,
-    align: (framed ? 'center' : 'left') as TextElement['align'],
-    role: 'title' as const,
-  };
-  const smallBox = (y: Mm) => ({ x: fx + inset, y, w: titleW });
-  let illustrationBox: Rect;
-  let base: 'bottom' | 'middle' = 'bottom';
+    align: 'left',
+    role: 'title',
+  });
+  const small = smallLines(input, { x: fx + inset, y: inset + titleH + gap, w: innerW }, m / 2);
+  const headerBottom = inset + titleH + (small.h > 0 ? gap + small.h : 0);
 
-  if (layout === 'bas') {
-    const titleY = fh - m - titleH;
-    const small = smallLines(input, smallBox(0), 'year-right', m / 2);
-    const smallY = titleY - (small.h > 0 ? gap + small.h : 0);
-    for (const el of small.elements) el.y = smallY;
-    elements.push(textElement({ x: fx + m, y: titleY, w: titleW, h: titleH }, lines, titleOpts));
-    elements.push(...small.elements);
-    const bottom = Math.min(0.66 * fh, smallY - m / 2);
-    illustrationBox = { x: fx + m, y: m, w: titleW, h: bottom - m };
-  } else {
-    const titleY = inset;
-    elements.push(
-      textElement({ x: fx + inset, y: titleY, w: titleW, h: titleH }, lines, titleOpts),
-    );
-    const small = smallLines(
-      input,
-      smallBox(titleY + titleH + gap),
-      layout === 'classique' ? 'year-right' : layout === 'empile' ? 'year-left' : 'center',
-      m / 2,
-    );
-    elements.push(...small.elements);
-    const textBottom = titleY + titleH + (small.h > 0 ? gap + small.h : 0);
-    if (layout === 'classique') {
-      const top = Math.max(0.48 * fh, textBottom + m / 2);
-      illustrationBox = { x: fx + m, y: top, w: titleW, h: fh + book.coverBleed - top };
-    } else if (layout === 'empile') {
-      const top = textBottom + m / 2;
-      illustrationBox = { x: fx + m, y: top, w: titleW, h: fh - m - top };
-      base = 'middle';
-    } else {
-      const top = textBottom + m / 2;
-      illustrationBox = { x: fx + inset, y: top, w: titleW, h: fh - inset - top };
-      const frame: ShapeElement = {
+  // Composition.
+  const decor: ShapeElement[] = [];
+  const foot = fh + bleed;
+  const cx = fx + fw / 2;
+  let box: Rect;
+  switch (layout) {
+    case 'encadre': {
+      decor.push({
         ...newElement('shape', { x: fx + m / 2, y: m / 2, w: fw - m, h: fh - m }),
         name: POSTER_NAMES.frame,
         shape: 'rect',
         fill: null,
         stroke: { width: FRAME_STROKE, color: spec.colors.accent },
-      };
-      elements.unshift(frame);
+      });
+      const top = headerBottom + m / 2;
+      box = { x: fx + inset, y: top, w: innerW, h: fh - inset - top };
+      break;
+    }
+    case 'arche': {
+      const top = headerBottom + m;
+      const aw = Math.min(0.72 * fw, (foot - top) * 0.8);
+      decor.push(
+        decorShape({ x: cx - aw / 2, y: top, w: aw, h: aw }, 'ellipse', spec.colors.decor),
+      );
+      decor.push(
+        decorShape(
+          { x: cx - aw / 2, y: top + aw / 2, w: aw, h: foot - top - aw / 2 },
+          'rect',
+          spec.colors.decor,
+        ),
+      );
+      box = { x: cx - 0.42 * aw, y: top + 0.18 * aw, w: 0.84 * aw, h: foot - top - 0.18 * aw };
+      break;
+    }
+    case 'soleil': {
+      const top = Math.max(0.42 * fh, headerBottom + m / 2);
+      const d = Math.min(0.78 * fw, (foot - top) * 0.85);
+      decor.push(decorShape({ x: cx - d / 2, y: top, w: d, h: d }, 'ellipse', spec.colors.decor));
+      const illTop = top + 0.12 * d;
+      box = { x: fx + m, y: illTop, w: innerW, h: foot - illTop };
+      break;
+    }
+    case 'horizon': {
+      const bandH = 0.14 * fh;
+      const bandY = fh - bandH;
+      decor.push(
+        decorShape({ x: fx, y: bandY, w: fw + bleed, h: bandH + bleed }, 'rect', spec.colors.decor),
+      );
+      const top = Math.max(0.4 * fh, headerBottom + m / 2);
+      box = { x: fx + m, y: top, w: innerW, h: bandY + 0.3 * bandH - top };
+      break;
+    }
+    default: {
+      // classique, empile: the illustration runs to the foot, into the bleed.
+      const top = Math.max(0.46 * fh, headerBottom + m / 2);
+      box = { x: fx + m, y: top, w: innerW, h: foot - top };
     }
   }
 
   const sticker = {
-    ...newElement('sticker', fitRatio(illustrationBox, input.illustration.ratio, base)),
+    ...newElement('sticker', fitRatio(box, input.illustration.ratio)),
     name: POSTER_NAMES.illustration,
     assetId: input.illustration.assetId,
   };
-  elements.splice(framed ? 1 : 0, 0, sticker);
-
+  const elements: Element[] = [...decor, sticker, title, ...small.elements];
   const spine = spineText(book, input);
   if (spine) elements.push(spine);
 

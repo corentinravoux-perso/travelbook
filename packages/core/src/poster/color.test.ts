@@ -31,8 +31,13 @@ describe('shadeOf', () => {
   it('keeps black black', () => {
     expect(shadeOf('#000000')).toBe('#000000');
   });
-  it('lowers HSL lightness by 18 points', () => {
-    // #808080 is lightness 50.2 %; 32.2 % grey is #525252.
-    expect(shadeOf('#808080')).toBe('#525252');
+  it('lowers HSL lightness by 35 %', () => {
+    // #808080 is lightness 50.2 %; 65 % of it, 32.6 %, is #535353.
+    expect(shadeOf('#808080')).toBe('#535353');
+  });
+  it('keeps a dark colour distinct from black', () => {
+    // #24615b is lightness 26 %: a fixed 18-point step gave #0b1e1c, near black.
+    const s = shadeOf('#24615b');
+    expect(s).toBe('#173f3b');
   });
 });

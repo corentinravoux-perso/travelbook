@@ -27,10 +27,13 @@ export function contrastRatio(a: string, b: string): number {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-/** The step, in HSL lightness points, between a colour and its shade. */
-export const SHADE_STEP = 18;
+/** A shade keeps this share of its colour's HSL lightness (35 % darker). */
+export const SHADE_FACTOR = 0.65;
 
-/** The same hue, `SHADE_STEP` points darker in HSL lightness (clamped at 0), lower-case. */
+/**
+ * The same hue and saturation, its HSL lightness times `SHADE_FACTOR`, lower-case. Proportional,
+ * so a colour that is already dark keeps a shade distinct from black.
+ */
 export function shadeOf(hex: string): string {
   const [r, g, b] = rgb(hex).map((c) => c / 255) as [number, number, number];
   const max = Math.max(r, g, b);
@@ -46,7 +49,7 @@ export function shadeOf(hex: string): string {
     else h = (r - g) / d + 4;
     h *= 60;
   }
-  const l2 = Math.max(l - SHADE_STEP / 100, 0);
+  const l2 = l * SHADE_FACTOR;
   const c = (1 - Math.abs(2 * l2 - 1)) * s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = l2 - c / 2;
