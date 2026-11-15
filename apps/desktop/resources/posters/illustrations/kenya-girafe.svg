@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1000">
+  <!-- Ground -->
+  <path fill="#6f7f3e" d="M150 1000c30-44 120-62 250-62s220 18 250 62z"/>
+  <!-- Far legs, in shadow -->
+  <path class="tb-shade" fill="#8c5220" d="M352 600h32l-6 336h-22z"/>
+  <path class="tb-shade" fill="#8c5220" d="M566 588h34l-4 348h-24z"/>
+  <!-- Tail -->
+  <path class="tb-shade" fill="#8c5220" d="M592 548q30 80 30 170h-10q-2-84-30-164z"/>
+  <path fill="#2b2723" d="M610 704h22l6 70-17 14-17-14z"/>
+  <!-- Body -->
+  <path class="tb-main" fill="#d38b2c" d="M268 576c-6-74 40-122 116-124l162 40c52 12 72 50 66 96-6 40-36 62-80 62H344c-44 0-74-28-76-74z"/>
+  <!-- Near legs -->
+  <path class="tb-main" fill="#d38b2c" d="M294 600h44l-8 336h-26z"/>
+  <path class="tb-main" fill="#d38b2c" d="M512 596h50l-10 340h-28z"/>
+  <!-- Hooves -->
+  <path fill="#2b2723" d="M304 930h26l3 22h-32zM356 930h22l3 22h-28zM524 930h28l3 22h-34zM572 930h24l3 22h-30z"/>
+  <!-- Neck -->
+  <path class="tb-main" fill="#d38b2c" d="M272 560C252 430 212 310 168 206l58-40c34 96 92 210 172 292z"/>
+  <!-- Mane along the back of the neck -->
+  <path class="tb-shade" fill="#8c5220" d="M226 166c34 96 92 210 172 292l-16 4C306 382 250 270 214 176z"/>
+  <!-- Head -->
+  <path class="tb-main" fill="#d38b2c" d="M232 150c-18-30-58-40-90-24l-58 60c-14 20 0 44 24 42l68-12c32-6 62-32 56-66z"/>
+  <path class="tb-main" fill="#d38b2c" d="M226 136l52-24-12 34z"/>
+  <!-- Horns (ossicones) -->
+  <path class="tb-main" fill="#d38b2c" d="M186 128l-6-50h18l4 48zM210 132l2-48h18l-4 50z"/>
+  <circle fill="#2b2723" cx="189" cy="74" r="14"/>
+  <circle fill="#2b2723" cx="221" cy="80" r="14"/>
+  <!-- Eye and nostril -->
+  <circle fill="#2b2723" cx="160" cy="160" r="10"/>
+  <circle fill="#2b2723" cx="100" cy="200" r="6"/>
+  <!-- Patches -->
+  <path class="tb-shade" fill="#8c5220" d="M300 520l40-36 36 14-6 44-42 14z"/>
+  <path class="tb-shade" fill="#8c5220" d="M396 482l52 10 6 44-40 18-30-30z"/>
+  <path class="tb-shade" fill="#8c5220" d="M474 506l52 14 10 42-46 16-26-34z"/>
+  <path class="tb-shade" fill="#8c5220" d="M554 534l32 10 6 44-30 14-20-30z"/>
+  <path class="tb-shade" fill="#8c5220" d="M300 596l46-14 34 32-26 24h-44z"/>
+  <path class="tb-shade" fill="#8c5220" d="M400 576l50-8 22 40-20 26h-46z"/>
+  <path class="tb-shade" fill="#8c5220" d="M494 592l46-6 18 40-22 22h-40z"/>
+  <path class="tb-shade" fill="#8c5220" d="M262 460l30-14 26 26-14 34-36-6z"/>
+  <path class="tb-shade" fill="#8c5220" d="M236 380l28-10 22 26-12 30-30-6z"/>
+  <path class="tb-shade" fill="#8c5220" d="M206 300l26-8 18 24-12 26-26-6z"/>
+  <path class="tb-shade" fill="#8c5220" d="M186 226l20-6 14 18-10 20-18-4z"/>
+</svg>

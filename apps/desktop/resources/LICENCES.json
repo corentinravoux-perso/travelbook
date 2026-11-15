@@ -58,6 +58,17 @@
       "author": "Corentin Ravoux",
       "licence": "MIT",
       "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "posters/illustrations/ecosse-vache-highland.svg",
+        "posters/illustrations/japon-torii.svg",
+        "posters/illustrations/kenya-girafe.svg"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
     }
   ]
 }
