@@ -171,16 +171,18 @@ test('the panel and the inspector fold away and open again, and stay so after a 
     await panel.getByRole('button', { name: 'Réduire le panneau' }).click();
     await expect(panel).toBeHidden();
     await expect.poll(async () => (await canvas.boundingBox())!.width).toBeGreaterThan(before);
-    // A click on the open tool unfolds it; another click folds it again.
+    // A click on the tool unfolds it; a second click leaves it open (only the button folds).
     const rail = page.getByRole('navigation', { name: 'Outils' });
     await rail.getByRole('button', { name: 'Photos' }).click();
     await expect(panel).toBeVisible();
     await rail.getByRole('button', { name: 'Photos' }).click();
-    await expect(panel).toBeHidden();
-    // Another tool opens its panel.
+    await expect(panel).toBeVisible();
+    // Another tool opens its panel; folded, it stays folded across a restart.
     await rail.getByRole('button', { name: 'Texte' }).click();
-    await expect(page.getByRole('region', { name: 'Panneau Texte' })).toBeVisible();
-    await rail.getByRole('button', { name: 'Texte' }).click();
+    const text = page.getByRole('region', { name: 'Panneau Texte' });
+    await expect(text).toBeVisible();
+    await text.getByRole('button', { name: 'Réduire le panneau' }).click();
+    await expect(text).toBeHidden();
 
     // The inspector folds to a strip with the button that opens it.
     await inspector.getByRole('button', { name: "Réduire l'inspecteur" }).click();
