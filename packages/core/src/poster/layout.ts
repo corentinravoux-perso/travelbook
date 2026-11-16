@@ -55,6 +55,12 @@ const YEAR_LINE_HEIGHT = 1.1;
 const SUBTITLE_PT = 9;
 /** Texts are fitted to this share of their box, so a browser's rounding never wraps them. */
 const FIT_SLACK = 0.98;
+/**
+ * A capital's accent (É, È, Ê, À, Ô, Ï…) rises about this much of the font size above the top
+ * of the title's line box; the title moves down so the accent keeps half the margin to the trim.
+ */
+const ACCENT_RISE_EM = 0.13;
+const ACCENTED_CAPS = /[ÀÂÄÁÃÅÈÉÊËÌÍÎÏÒÓÔÖÕÙÚÛÜÝŸÑ]/;
 /** Spine texts only on a spine at least this wide. */
 export const SPINE_TEXT_MIN: Mm = 6;
 
@@ -308,7 +314,14 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
     geant ? TITLE_HEIGHT_CAP_GEANT : TITLE_HEIGHT_CAP,
   );
   const titleH = linesHeight(lines, TITLE_LINE_HEIGHT);
-  const title = textElement({ x: fx + inset, y: inset, w: innerW, h: titleH }, lines, {
+  // A large accented first line (PÉROU in Géant) would push its accent past the trim.
+  const first = lines[0];
+  const accentRoom =
+    first && ACCENTED_CAPS.test(first.text)
+      ? Math.max(0, ACCENT_RISE_EM * first.pt * PT_MM - (inset - book.safeMargin))
+      : 0;
+  const titleY = inset + accentRoom;
+  const title = textElement({ x: fx + inset, y: titleY, w: innerW, h: titleH }, lines, {
     name: POSTER_NAMES.title,
     font: spec.font,
     color: spec.colors.title,
@@ -318,11 +331,11 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
   });
   const small = smallLines(
     input,
-    { x: fx + inset, y: inset + titleH + gap, w: innerW },
+    { x: fx + inset, y: titleY + titleH + gap, w: innerW },
     m / 2,
     YEAR_PT_PER_MM * Math.min(fw, fh) * (geant ? GEANT_YEAR : 1),
   );
-  const headerBottom = inset + titleH + (small.h > 0 ? gap + small.h : 0);
+  const headerBottom = titleY + titleH + (small.h > 0 ? gap + small.h : 0);
 
   // Composition.
   const decor: ShapeElement[] = [];
