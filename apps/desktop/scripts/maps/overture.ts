@@ -159,12 +159,22 @@ export function fetchDivisions(
 }
 
 /**
+ * The version of the mapping from `division` rows to perspective entries (`perspectiveEntries`).
+ * Bump it whenever that mapping changes: the cache file is named after it, so a cache written by
+ * older code (`perspectives.json`, then `perspectives-v1.json`...) is never read, and the query
+ * runs again.
+ */
+export const PERSPECTIVES_VERSION = 2;
+export const perspectivesCacheFile = (version = PERSPECTIVES_VERSION): string =>
+  `perspectives-v${version}.json`;
+
+/**
  * The land areas whose division carries `perspectives` (`division_area` has no such column: it is
  * read from `division`, joined on `division_id`), as `perspectiveEntries` makes them. Empty in
  * 2026-10-21.0, where no division has any (see `perspectives.ts`).
  */
 export function fetchPerspectives(): Promise<DivisionPerspective[]> {
-  return cached('perspectives.json', async () => {
+  return cached(perspectivesCacheFile(), async () => {
     const rows = await query(`
       SELECT a.id AS id, a.region AS region, a.country AS country, a.subtype AS subtype,
              d.perspectives."mode" AS mode, d.perspectives.countries AS countries
