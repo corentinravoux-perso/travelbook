@@ -1,4 +1,4 @@
-import type { Book, Element, Rect, Spread } from '@travelbook/core';
+import type { Book, Element, MapGeometry, Rect, Spread } from '@travelbook/core';
 import type { ReactNode } from 'react';
 
 /**
@@ -31,4 +31,9 @@ export interface SpreadViewProps {
    * mask a pattern is otherwise made of is rasterised at 300 dpi by `printToPDF`.
    */
   patternTile?(layer: 'spread' | 'left' | 'right'): string | undefined;
+  /**
+   * The baked geometry of a map asset: `null` while it loads (the map is an empty frame),
+   * `'missing'` when the asset cannot be read (a hatched frame). Without it every map is empty.
+   */
+  mapGeometry?(assetId: string): MapGeometry | null | 'missing';
 }
