@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { centralLongitude, nearRings, pickZoomWindow } from './render-sheet.ts';
+import type { MapIndex } from './build-geodata.ts';
+import {
+  cellOf,
+  centralLongitude,
+  loadSubject,
+  nearRings,
+  pickZoomWindow,
+  renderSheet,
+} from './render-sheet.ts';
 
 type Ring = [number, number][];
 
@@ -37,5 +45,55 @@ describe('the contact sheet', () => {
   it('cuts the longitudes at the widest empty band, across the antimeridian', () => {
     expect(centralLongitude([172, 179, -178, -176])).toBeCloseTo(178, 6);
     expect(centralLongitude([10, 20, 30])).toBeCloseTo(20, 6);
+  });
+
+  const entry = (extra: Partial<MapIndex['subjects'][number]> = {}) =>
+    ({
+      id: 'XX',
+      name: 'Land',
+      landSource: 'region',
+      regions: [],
+      ...extra,
+    }) as MapIndex['subjects'][number];
+  const topology = (landArcs: number[]) => ({
+    arcs: [
+      [
+        [0, 0],
+        [4, 0],
+        [4, 4],
+        [0, 4],
+        [0, 0],
+      ] as [number, number][],
+    ],
+    objects: { land: { geometries: [{ type: 'Polygon', arcs: [landArcs] }] } },
+  });
+
+  it('draws a ring from its arcs, forward or reversed', () => {
+    expect(loadSubject(entry(), topology([0])).land).toHaveLength(1);
+    expect(loadSubject(entry(), topology([~0])).land).toHaveLength(1);
+  });
+
+  it('throws on an arc index that is not in the topology, instead of drawing an open ring', () => {
+    expect(() => loadSubject(entry(), topology([7]))).toThrow(/arc 7 is not in the topology/);
+    expect(() => loadSubject(entry(), topology([~7]))).toThrow(/arc -8 is not in the topology/);
+  });
+
+  it('cuts the name and the land source to the width of the info column', () => {
+    const long = loadSubject(
+      entry({
+        name: 'République démocratique du Congo',
+        landSource: 'locality-of-a-very-long-name' as never,
+      }),
+      topology([0]),
+    );
+    const { svg } = cellOf(long, 0, 0);
+    expect(svg).toContain('République démocratiq…');
+    expect(svg).toContain('land: locality-of-a-v…');
+    expect(svg).not.toContain('Congo');
+    expect(svg).not.toContain('very-long-name');
+  });
+
+  it('refuses an empty list of subjects', async () => {
+    await expect(renderSheet([], '/nonexistent/sheet')).rejects.toThrow(/no subject ids/);
   });
 });

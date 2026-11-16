@@ -1,29 +1,43 @@
 /**
  * Build the map geodata that the app bundles, from Overture Maps divisions:
  *
+ *   npm run maps -w @travelbook/desktop -- all [--only=TH,PE] [--mode=finest|per-region]
+ *
+ * `all` runs `boundaries`, then `places`, then `packs` (in that order: `boundaries` deletes the
+ * packs of the subjects it rebuilds), prints a progress line per subject (`[hh:mm:ss] step i/n`),
+ * a size report at the end, and exits non-zero if a step failed or the budget is exceeded. Run it
+ * with `nohup ... > run.log 2>&1 &` and watch the log.
+ *
  *   npm run maps -w @travelbook/desktop -- boundaries [--only=TH,PE]
  *
  * `boundaries` writes `resources/maps/subjects/<id>.topo.json` for every subject and merges it into
  * `resources/maps/index.json`. Without `--only` it rebuilds every subject and the index from
- * scratch.
+ * scratch. It builds everything into `scripts/maps/out/staging/` first and swaps the files in when
+ * all subjects are built, so a crash or a failing subject leaves the previous outputs untouched;
+ * the subject and pack files that the new index does not list are removed afterwards.
  *
  *   npm run maps -w @travelbook/desktop -- places [--only=TH,PE]
  *
  * `places` writes `resources/maps/places/<iso>.json` (cities from Natural Earth, sights from
- * Wikidata) for every ISO of `index.json`, so run `boundaries` first.
+ * Wikidata) for every ISO of `index.json`, so run `boundaries` first. A country for which a
+ * Wikidata query keeps timing out gets no file (an old one stays), is listed at the end, and the
+ * command exits non-zero: run it again, the answered queries are cached.
  *
  *   npm run maps -w @travelbook/desktop -- packs [--only=TH,PE] [--mode=finest|per-region]
  *
  * `packs` writes the fine region pack of every subject that has regions, named after the subject
  * (`<id>.topo.json`): into `resources/maps/packs/` for the bundled ones (`BUNDLED_PACKS`), else
  * into `scripts/maps/out/packs/` (git-ignored, uploaded to the release by hand), and records it in
- * `index.json`. Run `boundaries` first, and `packs` again after a subject is rebuilt.
+ * `index.json` with its mode. Both modes are built and `finest` is kept unless it is more than 3 x
+ * the size of `per-region`; `--mode=` forces one. Run `boundaries` first, and `packs` again after
+ * a subject is rebuilt. Nothing is wiped upfront: the index is rewritten after each pack, and the
+ * pack files it does not list are removed at the end.
  *
  * Raw downloads are cached in `scripts/maps/.cache/` (git-ignored); nothing raw is committed. Needs
  * network access to Overture's public S3 bucket, GitHub (Natural Earth) and Wikidata.
  */
 import { createHash } from 'node:crypto';
-import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
   OVERTURE_RELEASE,
@@ -34,38 +48,52 @@ import {
   type DivisionLevel,
   type CatalogEntry,
 } from './overture.ts';
-import { appFileUrl } from './paths.ts';
-import { buildPlaces } from './places.ts';
+import { clock, progressLine } from './log.ts';
 import {
+  budgetProblems,
+  mapDirs,
+  measureSizes,
+  pruneUnlisted,
+  rebuildPacks,
+  rebuildSubjects,
+  sizeReport,
+  writeFileAtomic,
+} from './outputs.ts';
+import { appFileUrl } from './paths.ts';
+import { buildPlaces, skippedLines, type SkippedPlaces } from './places.ts';
+import {
+  OVERLAP_TOLERANCE,
   bboxOf,
   bboxesOverlap,
-  buildPack,
+  buildBestPack,
   buildTopology,
+  dropCoveredRegions,
   extentKm,
   mainBbox,
   mergeGeometry,
   pickLandLevel,
   scaleBbox,
-  toleranceMetres,
   type Bbox,
   type Feature,
   type PackMode,
 } from './simplify.ts';
-import { selectSubjects, subjectDefs, type SubjectDef, type SubjectKind } from './subjects.ts';
+import {
+  isosOf,
+  selectSubjects,
+  subjectDefs,
+  type SubjectDef,
+  type SubjectKind,
+} from './subjects.ts';
 
 export const MAPS_DIR = appFileUrl('resources/maps');
-const SUBJECTS_DIR = join(MAPS_DIR, 'subjects');
+/** Where the build writes: `resources/maps/` and, git-ignored, `scripts/maps/out/`. */
+const DIRS = mapDirs(MAPS_DIR, appFileUrl('scripts/maps/out'));
 const INDEX_FILE = join(MAPS_DIR, 'index.json');
-const PACKS_DIR = join(MAPS_DIR, 'packs');
-/** Packs that are not bundled: built here, then uploaded to the GitHub release (git-ignored). */
-const OUT_PACKS_DIR = appFileUrl('scripts/maps/out/packs');
 /**
  * The subjects whose fine pack ships in the installer: the countries of the Affiches' region
  * destinations (California, Scotland, Sicily, Crete). Every other pack is downloaded on demand.
  */
 const BUNDLED_PACKS = ['GB', 'GR', 'IT', 'US'];
-/** Together the bundled packs stay under this (design section 7.4); above it, ship fewer regions. */
-const BUNDLED_PACKS_MAX_BYTES = 25_000_000;
 /** The neighbours are drawn inside a frame 1.3 x the subject's bbox. */
 const FRAME_FACTOR = 1.3;
 
@@ -85,7 +113,7 @@ export interface MapSubjectEntry {
    * The fine region pack, `null` until `packs` has run. `file` is `packs/<id>.topo.json`: under
    * `resources/maps/` when `bundled`, else the name of the release asset (and of the cached copy).
    */
-  pack: { file: string; sha256: string; bytes: number; bundled: boolean } | null;
+  pack: { file: string; sha256: string; bytes: number; bundled: boolean; mode: PackMode } | null;
 }
 export interface MapIndex {
   overture: string;
@@ -121,15 +149,33 @@ const regionsLevel = (def: SubjectDef): DivisionLevel => (def.part ? 'county' : 
 const loadLevel = (def: SubjectDef, level: DivisionLevel): Promise<Feature[]> =>
   fetchDivisions(def.country, level, def.part?.region);
 
-async function loadRegions(def: SubjectDef): Promise<Feature[]> {
-  const rows = await loadLevel(def, regionsLevel(def));
+/**
+ * The regions of a subject: `all` as Overture lists them, and `kept`, without the regions that
+ * overlap another (see `dropCoveredRegions`). The base file and the pack both draw `kept`, so
+ * their region ids stay the same; the land is still the union of `all`.
+ */
+async function loadRegions(def: SubjectDef): Promise<{ all: Feature[]; kept: Feature[] }> {
+  const all = await loadLevel(def, regionsLevel(def));
   const ids = new Set<string>();
-  for (const row of rows) {
+  for (const row of all) {
     const id = String(row.properties.id);
     if (ids.has(id)) throw new Error(`${def.id}: duplicate region id ${id}`);
     ids.add(id);
   }
-  return rows;
+  const { kept, dropped, ratio, ratioAfter } = await dropCoveredRegions(all);
+  if (dropped.length > 0) {
+    console.log(
+      `  ${def.id}: overlapping regions, summed area ${ratio.toFixed(4)} x their union; dropped ${dropped.length}: ` +
+        `${dropped.map((d) => `${d.name} (${d.id}, ${(d.covered * 100).toFixed(0)} % covered, ${Math.round(d.areaKm2)} km2)`).join(', ')}; now ${ratioAfter.toFixed(4)}`,
+    );
+  }
+  if (ratioAfter > 1 + OVERLAP_TOLERANCE) {
+    console.warn(
+      `  ${def.id}: WARNING the regions still overlap (summed area ${ratioAfter.toFixed(4)} x their union), ` +
+        'and none is a parent to drop',
+    );
+  }
+  return { all, kept };
 }
 
 export async function buildSubject(
@@ -140,7 +186,7 @@ export async function buildSubject(
   const catalogEntry = all.find((e) => e.country === def.country);
   const country = await loadLand(def);
   const name = def.nameFr ?? String(country.properties.name);
-  const regions = await loadRegions(def);
+  const { all: everyRegion, kept: regions } = await loadRegions(def);
   // Overture's country polygon can be far coarser than its divisions: the land is the union of the
   // finest level that covers the country (>= 98 %), else the country polygon itself.
   const levels: DivisionLevel[] = def.part
@@ -150,7 +196,8 @@ export async function buildSubject(
     country,
     levels.map((name) => ({
       name,
-      load: () => (name === regionsLevel(def) ? Promise.resolve(regions) : loadLevel(def, name)),
+      load: () =>
+        name === regionsLevel(def) ? Promise.resolve(everyRegion) : loadLevel(def, name),
     })),
   );
   const shape = level ? mergeGeometry(level.features) : country;
@@ -174,7 +221,8 @@ export async function buildSubject(
   const topology = await buildTopology({
     land: level ? level.features : country,
     dissolve: level !== null,
-    landIsRegions: level?.name === regionsLevel(def),
+    // the land is the regions layer itself, unless a region was dropped: its area stays in the land
+    landIsRegions: level?.name === regionsLevel(def) && regions.length === everyRegion.length,
     landProperties: { id: def.id, name },
     regions: regions.map((r) => ({
       ...r,
@@ -219,53 +267,53 @@ async function readIndex(): Promise<MapIndex | undefined> {
   }
 }
 
-async function writeIndex(index: MapIndex): Promise<void> {
-  await writeFile(INDEX_FILE, `${JSON.stringify(index, null, 1)}\n`);
-}
-
-/** Delete the pack files of a subject, wherever they were written. */
-async function removePacks(id: string): Promise<void> {
-  const name = `${id}.topo.json`;
-  await rm(join(PACKS_DIR, name), { force: true });
-  await rm(join(OUT_PACKS_DIR, name), { force: true });
-}
+/** The file names of the removed files, as a log line (the first few). */
+const removedLine = (removed: string[]): string =>
+  removed.length === 0
+    ? ''
+    : `removed ${removed.length} file(s) the index does not list: ${removed.slice(0, 6).join(', ')}${removed.length > 6 ? ', ...' : ''}`;
 
 export async function boundaries(only: string[] | undefined): Promise<void> {
   const all = await catalog();
   const defs = selectSubjects(subjectDefs(all), only);
   const lakes = await fetchLakes();
-  await mkdir(SUBJECTS_DIR, { recursive: true });
   const previous = await readIndex();
   const kept =
     only !== undefined && previous?.overture === OVERTURE_RELEASE ? previous.subjects : [];
-  const built = new Map(kept.map((s) => [s.id, s]));
-  if (only === undefined) {
-    await rm(SUBJECTS_DIR, { recursive: true, force: true });
-    await rm(PACKS_DIR, { recursive: true, force: true });
-    await rm(OUT_PACKS_DIR, { recursive: true, force: true });
-  }
-  await mkdir(SUBJECTS_DIR, { recursive: true });
-  for (const def of defs) {
-    const started = Date.now();
-    const { entry, json, extent } = await buildSubject(def, all, lakes);
-    await writeFile(join(MAPS_DIR, entry.file), json);
-    // the entry restarts without a pack: its old file would not match the new regions
-    await removePacks(entry.id);
-    built.set(entry.id, entry);
-    console.log(
-      `${def.id.padEnd(8)} ${entry.landSource.padEnd(8)} ${String(Math.round(json.length / 1024)).padStart(6)} KB  ` +
-        `${entry.regions.length} regions  tol ${toleranceMetres(extent).toFixed(1)} m  ` +
-        `${((Date.now() - started) / 1000).toFixed(1)} s`,
-    );
-  }
-  const index: MapIndex = {
-    overture: OVERTURE_RELEASE,
-    built: new Date().toISOString().slice(0, 10),
-    subjects: [...built.values()].sort((a, b) => a.id.localeCompare(b.id)),
-  };
-  await writeIndex(index);
+  console.log(progressLine('boundaries', 0, defs.length, `${defs.length} subject(s) to build`));
+  const { index, removed } = await rebuildSubjects({
+    defs,
+    build: async (def) => {
+      const { entry, json } = await buildSubject(def, all, lakes);
+      return { entry, json };
+    },
+    kept,
+    dirs: DIRS,
+    release: OVERTURE_RELEASE,
+    date: new Date().toISOString().slice(0, 10),
+    log: ({ done, total, subject, seconds }) => {
+      const { entry, json } = subject;
+      console.log(
+        progressLine(
+          'boundaries',
+          done,
+          total,
+          `${entry.id.padEnd(8)} ${entry.landSource.padEnd(8)} ${String(Math.round(json.length / 1024)).padStart(6)} KB  ` +
+            `${entry.regions.length} regions  ${seconds.toFixed(1)} s`,
+        ),
+      );
+    },
+  });
   await writeLicences(index);
-  console.log(`index.json: ${index.subjects.length} subjects, Overture ${OVERTURE_RELEASE}`);
+  if (removed.length > 0) console.log(removedLine(removed));
+  console.log(
+    progressLine(
+      'boundaries',
+      defs.length,
+      defs.length,
+      `index.json: ${index.subjects.length} subjects, Overture ${OVERTURE_RELEASE}`,
+    ),
+  );
 }
 
 /** Keep the `maps/` entry of `resources/LICENCES.json` in step with the files the index lists. */
@@ -291,7 +339,7 @@ export async function writeLicences(index: MapIndex): Promise<void> {
     requiresAttribution: true,
     note: 'Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector). The places files (maps/places/) combine Natural Earth populated places, public domain, with Wikidata, CC0 (sights, https://www.wikidata.org/wiki/Wikidata:Licensing), and, for countries where Natural Earth lists fewer than 8 cities, GeoNames, CC BY 4.0 (https://www.geonames.org/, attribution required). The packs (maps/packs/) are the regions of the same Overture divisions, simplified more finely.',
   } as (typeof licences.entries)[number]);
-  await writeFile(file, `${JSON.stringify(licences, null, 2)}\n`);
+  await writeFileAtomic(file, `${JSON.stringify(licences, null, 2)}\n`);
 }
 
 function parseOnly(args: string[]): string[] | undefined {
@@ -299,95 +347,149 @@ function parseOnly(args: string[]): string[] | undefined {
   return flag ? flag.slice('--only='.length).split(',') : undefined;
 }
 
-export async function places(only: string[] | undefined): Promise<void> {
-  const index = await readIndex();
-  if (!index) throw new Error('no resources/maps/index.json: run `boundaries` first');
-  await buildPlaces(index.subjects, only);
-  await writeLicences(index);
-}
-
-function parseMode(args: string[]): PackMode {
+function parseMode(args: string[]): PackMode | undefined {
   const flag = args.find((a) => a.startsWith('--mode='))?.slice('--mode='.length);
-  if (flag === undefined) return 'finest';
+  if (flag === undefined) return undefined;
   if (flag !== 'finest' && flag !== 'per-region') throw new Error(`unknown --mode=${flag}`);
   return flag;
 }
 
 /**
- * The fine pack of every subject with regions (or of `only`). Entries and files of the other
- * subjects are left as they are, so a partial run can be repeated and completed.
+ * Cities and sights of every ISO of the index (or of the subjects `only` selects). Returns the
+ * countries that were skipped because Wikidata timed out, and then exits non-zero: an incomplete
+ * places file is never written.
  */
-export async function packs(only: string[] | undefined, mode: PackMode = 'finest'): Promise<void> {
+export async function places(only: string[] | undefined): Promise<SkippedPlaces[]> {
+  const index = await readIndex();
+  if (!index) throw new Error('no resources/maps/index.json: run `boundaries` first');
+  const isos =
+    only === undefined ? undefined : isosOf(selectSubjects(subjectDefs(await catalog()), only));
+  const { skipped } = await buildPlaces(index.subjects, isos);
+  // a places file for an ISO that the index does not hold any more is a leftover
+  const known = new Set(isosOf(index.subjects).map((iso) => `${iso}.json`));
+  const removed = await pruneUnlisted(join(MAPS_DIR, 'places'), known);
+  if (removed.length > 0) console.log(removedLine(removed.map((f) => `places/${f}`)));
+  await writeLicences(index);
+  if (skipped.length > 0) {
+    console.error(`places: ${skipped.length} country(ies) incomplete, run \`places\` again:`);
+    for (const line of skippedLines(skipped)) console.error(line);
+    process.exitCode = 1;
+  }
+  return skipped;
+}
+
+/** Print the sizes, and fail (exit code 1) when the base or the bundled packs are over budget. */
+export async function reportSizes(): Promise<void> {
+  const sizes = await measureSizes(DIRS);
+  for (const line of sizeReport(sizes)) console.log(line);
+  for (const problem of budgetProblems(sizes)) {
+    console.error(`OVER BUDGET: ${problem}. Stop: spec section 7.4 applies.`);
+    process.exitCode = 1;
+  }
+}
+
+/**
+ * The fine pack of every subject with regions (or of `only`). Entries and files of the other
+ * subjects are left as they are, so a partial run can be repeated and completed. `mode` forces
+ * one pack mode; without it both are built and `pickPackMode` chooses.
+ */
+export async function packs(only: string[] | undefined, mode?: PackMode): Promise<void> {
   const index = await readIndex();
   if (!index) throw new Error('no resources/maps/index.json: run `boundaries` first');
   if (index.overture !== OVERTURE_RELEASE) {
     throw new Error(`index.json is from Overture ${index.overture}: run \`boundaries\` first`);
   }
   const defs = selectSubjects(subjectDefs(await catalog()), only);
-  if (only === undefined) {
-    await rm(PACKS_DIR, { recursive: true, force: true });
-    await rm(OUT_PACKS_DIR, { recursive: true, force: true });
-  }
-  await mkdir(PACKS_DIR, { recursive: true });
-  await mkdir(OUT_PACKS_DIR, { recursive: true });
-  for (const def of defs) {
-    const started = Date.now();
-    const entry = index.subjects.find((s) => s.id === def.id);
-    if (!entry) throw new Error(`${def.id} is not in index.json: run \`boundaries\` first`);
-    if (entry.regions.length === 0) {
-      await removePacks(def.id);
-      entry.pack = null;
-      continue;
-    }
-    const rows = await loadRegions(def);
-    const ids = rows.map((r) => String(r.properties.id)).sort((a, b) => a.localeCompare(b));
-    if (ids.join() !== entry.regions.map((r) => r.id).join()) {
-      throw new Error(`${def.id}: the regions differ from index.json: run \`boundaries\` again`);
-    }
-    const topology = await buildPack(
-      rows.map((r) => ({ ...r, properties: { id: r.properties.id, name: r.properties.name } })),
-      mode,
-    );
-    const json = JSON.stringify(topology);
-    const bundled = BUNDLED_PACKS.includes(def.id);
-    const file = `${def.id}.topo.json`;
-    await removePacks(def.id); // a pack that was bundled and no longer is, or the reverse
-    await writeFile(join(bundled ? PACKS_DIR : OUT_PACKS_DIR, file), json);
-    entry.pack = {
-      file: `packs/${file}`,
-      sha256: createHash('sha256').update(json).digest('hex'),
-      bytes: Buffer.byteLength(json),
-      bundled,
-    };
-    console.log(
-      `${def.id.padEnd(8)} ${bundled ? 'bundled' : 'release'}  ` +
-        `${String(Math.round(entry.pack.bytes / 1024)).padStart(6)} KB  ${entry.regions.length} regions  ` +
-        `${mode}  ${((Date.now() - started) / 1000).toFixed(1)} s`,
-    );
-    await writeIndex(index); // a long run that stops keeps what it has built
-  }
-  await writeIndex(index);
+  const { failures, removed } = await rebuildPacks({
+    index,
+    defs,
+    bundled: BUNDLED_PACKS,
+    dirs: DIRS,
+    make: async (def, entry) => {
+      const { kept } = await loadRegions(def);
+      const ids = kept.map((r) => String(r.properties.id)).sort((a, b) => a.localeCompare(b));
+      if (ids.join() !== entry.regions.map((r) => r.id).join()) {
+        throw new Error('the regions differ from index.json: run `boundaries` again');
+      }
+      const best = await buildBestPack(
+        kept.map((r) => ({ ...r, properties: { id: r.properties.id, name: r.properties.name } })),
+        mode,
+      );
+      const note =
+        best.ratio === null
+          ? `${best.mode} (forced)`
+          : `${best.mode} (finest is ${best.ratio.toFixed(2)} x per-region)`;
+      return { json: best.json, mode: best.mode, note };
+    },
+    log: ({ done, total, def, build, entry, seconds }) => {
+      console.log(
+        progressLine(
+          'packs',
+          done,
+          total,
+          `${def.id.padEnd(8)} ${entry.pack?.bundled ? 'bundled' : 'release'}  ` +
+            `${String(Math.round((entry.pack?.bytes ?? 0) / 1024)).padStart(6)} KB  ${entry.regions.length} regions  ` +
+            `${build.note}  ${seconds.toFixed(1)} s`,
+        ),
+      );
+    },
+  });
   await writeLicences(index);
-  const total = index.subjects.reduce((sum, s) => sum + (s.pack?.bundled ? s.pack.bytes : 0), 0);
-  console.log(`bundled packs: ${(total / 1e6).toFixed(2)} MB`);
-  if (total > BUNDLED_PACKS_MAX_BYTES) {
-    console.error(
-      `the bundled packs exceed ${BUNDLED_PACKS_MAX_BYTES / 1e6} MB (design section 7.4)`,
-    );
+  if (removed.length > 0) console.log(removedLine(removed));
+  await reportSizes();
+  if (failures.length > 0) {
+    console.error(`packs: ${failures.length} subject(s) failed, run \`packs\` again for them:`);
+    for (const failure of failures) console.error(`  ${failure}`);
     process.exitCode = 1;
+  }
+}
+
+/**
+ * The whole build: `boundaries`, `places`, `packs`, in that order (`boundaries` deletes the packs
+ * of the subjects it rebuilds, so they come last). A failing `boundaries` stops here and leaves
+ * the previous outputs as they were; incomplete places and failing packs are listed at the end,
+ * with a non-zero exit, after the rest was built.
+ */
+export async function all(only: string[] | undefined, mode?: PackMode): Promise<void> {
+  const defs = selectSubjects(subjectDefs(await catalog()), only);
+  console.log(
+    `[${clock()}] all: ${defs.length} subject(s), ${isosOf(defs).length} ISO code(s), ` +
+      `Overture ${OVERTURE_RELEASE}${only ? `, only ${only.join(',')}` : ''}`,
+  );
+  console.log(`[${clock()}] step 1/3: boundaries`);
+  await boundaries(only);
+  console.log(`[${clock()}] step 2/3: places`);
+  const skipped = await places(only);
+  console.log(`[${clock()}] step 3/3: packs`);
+  await packs(only, mode);
+  console.log(`[${clock()}] all: done${process.exitCode ? ' WITH ERRORS (exit code 1)' : ''}`);
+  if (skipped.length > 0) {
+    console.error('places not written (Wikidata timed out):');
+    for (const line of skippedLines(skipped)) console.error(line);
   }
 }
 
 const [command, ...args] = process.argv.slice(2);
 if (process.argv[1]?.endsWith('build-geodata.ts')) {
-  if (command === 'boundaries') {
-    await boundaries(parseOnly(args));
-  } else if (command === 'places') {
-    await places(parseOnly(args));
-  } else if (command === 'packs') {
-    await packs(parseOnly(args), parseMode(args));
-  } else {
-    console.error('usage: npm run maps -- boundaries|places|packs [--only=TH,PE]');
+  try {
+    if (command === 'all') {
+      await all(parseOnly(args), parseMode(args));
+    } else if (command === 'boundaries') {
+      await boundaries(parseOnly(args));
+    } else if (command === 'places') {
+      await places(parseOnly(args));
+    } else if (command === 'packs') {
+      await packs(parseOnly(args), parseMode(args));
+    } else {
+      console.error(
+        'usage: npm run maps -- all|boundaries|places|packs [--only=TH,PE] [--mode=finest|per-region]',
+      );
+      process.exitCode = 1;
+    }
+  } catch (error) {
+    console.error(
+      `[${clock()}] FAILED: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
+    );
     process.exitCode = 1;
   }
 }

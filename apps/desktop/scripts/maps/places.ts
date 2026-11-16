@@ -16,7 +16,10 @@ import { CACHE_DIR, NATURAL_EARTH_COMMIT, naturalEarthUrl } from './overture.ts'
 import { appFileUrl } from './paths.ts';
 import type { Bbox } from './simplify.ts';
 import { placesIso } from './subjects.ts';
+import { progressLine } from './log.ts';
+import { writeFileAtomic } from './outputs.ts';
 import {
+  IncompleteSightsError,
   categoryOf,
   fetchSights,
   isUrban,
@@ -390,10 +393,43 @@ export interface PlacesSubject {
   bbox: Bbox;
 }
 
+/** A country whose places file was not written because Wikidata did not answer for some classes. */
+export interface SkippedPlaces {
+  iso: string;
+  classes: string[];
+}
+
+/** What a `places` run could not write, as lines for the end of a log. */
+export const skippedLines = (skipped: SkippedPlaces[]): string[] =>
+  skipped.map(
+    (s) =>
+      `  ${s.iso}: no Wikidata answer for ${s.classes.join(', ')}; places/${s.iso}.json not written`,
+  );
+
+/** The sights of a country, or what Wikidata failed to answer (never a partial list). */
+export async function sightsOf(
+  iso: string,
+  fetchSightsImpl: typeof fetchSights = fetchSights,
+): Promise<{ sights: RawSight[] } | { skipped: SkippedPlaces }> {
+  try {
+    return { sights: parseSights(await fetchSightsImpl(iso)) };
+  } catch (error) {
+    if (error instanceof IncompleteSightsError) {
+      return { skipped: { iso: error.iso, classes: error.classes } };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Write `places/<iso>.json` for every ISO of `subjects` (or of `only`). A country whose Wikidata
+ * queries did not all answer gets no file written (an old one stays as it is) and is returned in
+ * `skipped`: the caller must make the run fail.
+ */
 export async function buildPlaces(
   subjects: PlacesSubject[],
   only: string[] | undefined,
-): Promise<MapPlacesFile[]> {
+): Promise<{ files: MapPlacesFile[]; skipped: SkippedPlaces[] }> {
   const isos = [...new Set(subjects.map((s) => s.id.split('-')[0]!))].sort();
   const wanted = only === undefined ? isos : isos.filter((iso) => only.includes(iso));
   const unknown = (only ?? []).filter((iso) => !isos.includes(iso));
@@ -402,20 +438,40 @@ export async function buildPlaces(
   const overrides = JSON.parse(await readFile(OVERRIDES_FILE, 'utf8')) as PlacesOverrides;
   await mkdir(PLACES_DIR, { recursive: true });
   const files: MapPlacesFile[] = [];
-  for (const iso of wanted) {
+  const skipped: SkippedPlaces[] = [];
+  for (const [i, iso] of wanted.entries()) {
+    const started = Date.now();
     const boxes = subjects.filter((s) => s.id.split('-')[0] === iso).map((s) => s.bbox);
     let cities = neCities(features, iso);
     const fallback = cities.length < MIN_NE_CITIES;
     if (fallback) cities = [...cities, ...newCities(cities, await geonamesCities(iso))];
-    const sights = parseSights(await fetchSights(iso));
-    const file = applyOverrides(assemble(iso, cities, sights, boxes), overrides);
-    await writeFile(join(PLACES_DIR, `${iso}.json`), `${JSON.stringify(file)}\n`);
+    const found = await sightsOf(iso);
+    if ('skipped' in found) {
+      skipped.push(found.skipped);
+      console.error(
+        progressLine(
+          'places',
+          i + 1,
+          wanted.length,
+          `${iso}: NOT WRITTEN, Wikidata gave no answer for ${found.skipped.classes.join(', ')}`,
+        ),
+      );
+      continue;
+    }
+    const file = applyOverrides(assemble(iso, cities, found.sights, boxes), overrides);
+    await writeFileAtomic(join(PLACES_DIR, `${iso}.json`), `${JSON.stringify(file)}\n`);
     const n = (kind: string) => file.places.filter((p) => p.kind === kind).length;
     console.log(
-      `${iso.padEnd(4)} ${String(n('capital') + n('city')).padStart(3)} cities, ` +
-        `${String(n('sight')).padStart(3)} sights${fallback ? '  (GeoNames fallback)' : ''}`,
+      progressLine(
+        'places',
+        i + 1,
+        wanted.length,
+        `${iso.padEnd(4)} ${String(n('capital') + n('city')).padStart(3)} cities, ` +
+          `${String(n('sight')).padStart(3)} sights${fallback ? '  (GeoNames fallback)' : ''}  ` +
+          `${((Date.now() - started) / 1000).toFixed(1)} s`,
+      ),
     );
     files.push(file);
   }
-  return files;
+  return { files, skipped };
 }

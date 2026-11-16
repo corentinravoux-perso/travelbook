@@ -31,6 +31,11 @@ const FRENCH_OVERSEAS = ['GF', 'GP', 'MQ', 'RE', 'YT'];
  */
 export const placesIso = (code: string): string => (FRENCH_OVERSEAS.includes(code) ? 'FR' : code);
 
+/** The ISO codes, one each, of the subjects (the places files they share): `FR-MQ` is `FR`. */
+export const isosOf = (subjects: { id: string }[]): string[] => [
+  ...new Set(subjects.map((s) => s.id.split('-')[0] ?? s.id)),
+];
+
 /** Parts of a country that are subjects too, besides the country itself. */
 const PARTS: SubjectDef[] = [
   {

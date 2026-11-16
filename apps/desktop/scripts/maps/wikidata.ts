@@ -131,13 +131,34 @@ export function sightsQuery(iso: string, cls: SightClass, seed?: string): string
 
 type Sleep = (ms: number) => Promise<void>;
 const realSleep: Sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Attempts at a query on HTTP 429, 502, 503 or a network error. */
 const MAX_ATTEMPTS = 5;
+/**
+ * Attempts at a query that timed out (HTTP 500 or 504 after Wikidata's 60 s limit). Each attempt
+ * can take that long, and a query that timed out twice rarely succeeds a third time: three is a
+ * bounded try, not a hope.
+ */
+export const TIMEOUT_ATTEMPTS = 3;
+/** Wait before the second attempt at a timed-out query (20 s), doubled each time. */
+const TIMEOUT_BACKOFF_MS = 20_000;
+const isTimeout = (status: number): boolean => status === 500 || status === 504;
 
 export class SparqlError extends Error {
   readonly status: number;
   constructor(status: number) {
     super(`wikidata: HTTP ${status}`);
     this.status = status;
+  }
+}
+
+/** The classes of a country that Wikidata could not answer: its places file would be incomplete. */
+export class IncompleteSightsError extends Error {
+  readonly iso: string;
+  readonly classes: string[];
+  constructor(iso: string, classes: string[]) {
+    super(`${iso}: Wikidata gave no answer for ${classes.join(', ')}`);
+    this.iso = iso;
+    this.classes = classes;
   }
 }
 
@@ -152,7 +173,9 @@ export function retryAfterMs(header: string | null, now = Date.now()): number {
 
 /**
  * One SPARQL query: generic User-Agent, waits for `Retry-After` on HTTP 429, retries a busy server
- * (502, 503). Any other failure, 500 and 504 (the 60 s limit) included, throws a `SparqlError`.
+ * (502, 503) or a dropped connection with a growing wait, and asks a query that timed out (500,
+ * 504) again `TIMEOUT_ATTEMPTS` times in all. Past those attempts, and for any other failure, it
+ * throws: a `SparqlError`, or the network error.
  */
 export async function runSparql(
   query: string,
@@ -160,12 +183,24 @@ export async function runSparql(
   sleep: Sleep = realSleep,
 ): Promise<string> {
   for (let attempt = 1; ; attempt++) {
-    const response = await fetchImpl(`${SPARQL_ENDPOINT}?${new URLSearchParams({ query })}`, {
-      headers: { 'User-Agent': USER_AGENT, Accept: 'application/sparql-results+json' },
-    });
+    let response: Response;
+    try {
+      response = await fetchImpl(`${SPARQL_ENDPOINT}?${new URLSearchParams({ query })}`, {
+        headers: { 'User-Agent': USER_AGENT, Accept: 'application/sparql-results+json' },
+      });
+    } catch (error) {
+      if (attempt >= MAX_ATTEMPTS) throw error;
+      await sleep(5_000 * 2 ** (attempt - 1));
+      continue;
+    }
     if (response.ok) return response.text();
+    if (isTimeout(response.status)) {
+      if (attempt >= TIMEOUT_ATTEMPTS) throw new SparqlError(response.status);
+      await sleep(TIMEOUT_BACKOFF_MS * 2 ** (attempt - 1));
+      continue;
+    }
     const retryable = [429, 502, 503].includes(response.status);
-    if (!retryable || attempt === MAX_ATTEMPTS) throw new SparqlError(response.status);
+    if (!retryable || attempt >= MAX_ATTEMPTS) throw new SparqlError(response.status);
     await sleep(
       response.status === 429
         ? retryAfterMs(response.headers.get('Retry-After'))
@@ -176,8 +211,11 @@ export async function runSparql(
 
 /**
  * Raw SPARQL JSON of every class for one country. Each query (class, seed) has its own cache file
- * (`<iso>-<class>[-<seed>].json`), so a result is only ever reused for the query that produced it. A query
- * that times out (HTTP 500/504) is skipped with a warning and not cached; the rest is kept.
+ * (`<iso>-<class>[-<seed>].json`), so a result is only ever reused for the query that produced it.
+ * A query that still times out after its retries is not cached; the others go on (and stay
+ * cached, so the next run asks only for the missing ones), then an `IncompleteSightsError` names
+ * the classes that failed: the caller must not write a places file from the rest. Any other
+ * failure (rate limit, ban, outage) throws at once.
  */
 export async function fetchSights(
   iso: string,
@@ -186,6 +224,7 @@ export async function fetchSights(
   cacheDir: string = join(CACHE_DIR, 'wikidata'),
 ): Promise<string[]> {
   const raws: string[] = [];
+  const failed: string[] = [];
   const queries = SIGHT_CLASSES.flatMap((cls): { cls: SightClass; seed?: string; key: string }[] =>
     cls.seeds.length === 0
       ? [{ cls, key: cls.id }]
@@ -205,10 +244,12 @@ export async function fetchSights(
       await writeFile(path, raw);
       raws.push(raw);
     } catch (error) {
-      if (!(error instanceof SparqlError) || ![500, 504].includes(error.status)) throw error;
-      console.warn(`${iso}: Wikidata timed out on "${key}", skipped`);
+      if (!(error instanceof SparqlError) || !isTimeout(error.status)) throw error;
+      console.warn(`${iso}: Wikidata timed out on "${key}" ${TIMEOUT_ATTEMPTS} times`);
+      failed.push(key);
     }
   }
+  if (failed.length > 0) throw new IncompleteSightsError(iso, failed);
   return raws;
 }
 
