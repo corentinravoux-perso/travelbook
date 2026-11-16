@@ -2,17 +2,21 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
-import type { MapIndex } from './build-geodata.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { reportSizes, runSteps, type MapIndex } from './build-geodata.ts';
 import { LAKES_URL, NATURAL_EARTH_COMMIT, OVERTURE_RELEASE } from './overture.ts';
 import {
+  mkdir,
   mkdtemp,
   readFile as readText,
   readdir as listDir,
+  rm,
+  truncate,
   writeFile as saveText,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { crc32 } from 'node:zlib';
+import { BASE_BUDGET_BYTES, indexFile, mapDirs } from './outputs.ts';
 import { PERSPECTIVE_OVERRIDES, acceptedBy, keepOwnPerspective } from './perspectives.ts';
 import {
   HERITAGE_BOOST,
@@ -250,6 +254,14 @@ describe('the subject list', () => {
     expect(selectSubjects(defs, ['FR']).map((d) => d.id)).toEqual(['FR-MET', 'FR-MQ', 'FR-RE']);
     expect(selectSubjects(defs, ['us-hi']).map((d) => d.id)).toEqual(['US-HI']);
     expect(() => selectSubjects(defs, ['ZZ'])).toThrow(/unknown/);
+  });
+
+  it('throws on an empty selection, which would prune every other subject', () => {
+    const defs = subjectDefs(catalog);
+    expect(() => selectSubjects(defs, [''])).toThrow(/--only=.* selects no subject/);
+    expect(() => selectSubjects(defs, [' ', ''])).toThrow(/selects no subject/);
+    expect(() => selectSubjects(defs, [])).toThrow(/selects no subject/);
+    expect(() => selectSubjects([], undefined)).toThrow(/holds no subject/);
   });
 });
 
@@ -545,10 +557,9 @@ describe('the fine region packs', () => {
     expect(checked).toBeGreaterThanOrEqual(2);
   });
 
-  it('keeps the four bundled packs under the 25 MB that gates the installer size', () => {
+  it('has bundled packs (their size is reported by the build, never gated: the limit is lifted)', () => {
     const total = index.subjects.reduce((sum, s) => sum + (s.pack?.bundled ? s.pack.bytes : 0), 0);
     expect(total).toBeGreaterThan(0);
-    expect(total).toBeLessThan(25_000_000);
   });
 
   it('lists the bundled packs, and only them, in LICENCES.json', () => {
@@ -1587,6 +1598,79 @@ describe('the perspectives of the divisions', () => {
     const covered = (list: Feature[]): number =>
       list.reduce((sum, f) => sum + featureAreaKm2(f), 0);
     expect(covered(result.regions)).toBeCloseTo(featureAreaKm2(parent), 0);
+  });
+});
+
+describe('the steps of `all`', () => {
+  afterEach(() => {
+    process.exitCode = undefined;
+    vi.restoreAllMocks();
+  });
+  const quiet = (): void => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  };
+  const steps = (calls: string[], failing: string[] = []) => ({
+    boundaries: async () => {
+      calls.push('boundaries');
+      if (failing.includes('boundaries')) throw new Error('boundaries broke');
+    },
+    places: async () => {
+      calls.push('places');
+      if (failing.includes('places')) throw new Error('wikidata down');
+      return [];
+    },
+    packs: async () => {
+      calls.push('packs');
+    },
+  });
+
+  it('runs boundaries, places, packs, in that order', async () => {
+    quiet();
+    const calls: string[] = [];
+    await runSteps(steps(calls));
+    expect(calls).toEqual(['boundaries', 'places', 'packs']);
+    expect(process.exitCode).toBeFalsy();
+  });
+
+  it('still runs packs when places throws, and exits non-zero', async () => {
+    quiet();
+    const calls: string[] = [];
+    await runSteps(steps(calls, ['places']));
+    expect(calls).toEqual(['boundaries', 'places', 'packs']);
+    expect(process.exitCode).toBe(1);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringMatching(/places FAILED: .*wikidata down/s),
+    );
+  });
+
+  it('stops at once when boundaries fails: no places, no packs', async () => {
+    quiet();
+    const calls: string[] = [];
+    await expect(runSteps(steps(calls, ['boundaries']))).rejects.toThrow('boundaries broke');
+    expect(calls).toEqual(['boundaries']);
+  });
+});
+
+describe('the size report', () => {
+  it('warns when the base is over 25 MB, and does not fail the run (the limit is lifted)', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'sizes-'));
+    const dirs = mapDirs(join(root, 'maps'), join(root, 'out'));
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await mkdir(dirs.subjects, { recursive: true });
+      await saveText(join(dirs.subjects, 'BIG.topo.json'), '');
+      await truncate(join(dirs.subjects, 'BIG.topo.json'), BASE_BUDGET_BYTES + 1); // sparse
+      await saveText(indexFile(dirs), '{}');
+      await reportSizes(dirs);
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^WARNING: the base files are/));
+      expect(log).toHaveBeenCalledWith(expect.stringMatching(/^base \(subjects/));
+      expect(process.exitCode).toBeFalsy();
+    } finally {
+      vi.restoreAllMocks();
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });
 

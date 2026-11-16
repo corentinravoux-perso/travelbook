@@ -5,15 +5,16 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MapIndex, MapSubjectEntry } from './build-geodata.ts';
 import {
-  BASE_MAX_BYTES,
-  BUNDLED_PACKS_MAX_BYTES,
-  budgetProblems,
+  BASE_BUDGET_BYTES,
+  BUNDLED_PACKS_BUDGET_BYTES,
+  budgetWarnings,
   dirBytes,
   indexFile,
   listedFiles,
   mapDirs,
   measureSizes,
   pruneUnlisted,
+  readIndexFile,
   rebuildPacks,
   rebuildSubjects,
   type MapDirs,
@@ -131,6 +132,22 @@ describe('listedFiles and pruneUnlisted', () => {
   });
 });
 
+describe('readIndexFile', () => {
+  it('is undefined for a missing index (a first run), and reads a good one', async () => {
+    expect(await readIndexFile(dirs)).toBeUndefined();
+    const index = await seed();
+    expect(await readIndexFile(dirs)).toEqual(index);
+  });
+
+  it('throws on an index that is unreadable or not JSON, so that nothing is pruned', async () => {
+    await write(indexFile(dirs), '{"overture": "old", "subjects": [');
+    await expect(readIndexFile(dirs)).rejects.toThrow(/index\.json is not valid JSON/);
+    await rm(indexFile(dirs));
+    await mkdir(indexFile(dirs)); // a directory: EISDIR, not ENOENT
+    await expect(readIndexFile(dirs)).rejects.toThrow(/cannot read .*index\.json/);
+  });
+});
+
 describe('rebuildSubjects (boundaries)', () => {
   const build =
     (failing: string[] = []) =>
@@ -191,6 +208,7 @@ describe('rebuildSubjects (boundaries)', () => {
     expect([...removed].sort()).toEqual([
       'out/packs/B.topo.json',
       'out/packs/GONE.topo.json',
+      'packs/A.topo.json', // the old pack of a rebuilt subject: the one prune removes it
       'packs/GONE.topo.json',
       'subjects/B.topo.json',
       'subjects/GONE.topo.json',
@@ -256,6 +274,27 @@ describe('rebuildPacks (packs)', () => {
     expect(await names(dirs.outPacks)).toEqual(['B.topo.json']);
   });
 
+  it('keeps the pack file and entry of a subject a partial run does not touch', async () => {
+    const index = await seed();
+    const result = await rebuildPacks({
+      index,
+      defs: [def('A')], // only A
+      make: make(),
+      bundled: ['A'],
+      dirs,
+    });
+    expect(result.failures).toEqual([]);
+    expect([...result.removed].sort()).toEqual([
+      'out/packs/GONE.topo.json',
+      'packs/GONE.topo.json',
+      'subjects/GONE.topo.json',
+    ]);
+    expect(await readFile(join(dirs.packs, 'A.topo.json'), 'utf8')).toBe('new pack A');
+    expect(await readFile(join(dirs.outPacks, 'B.topo.json'), 'utf8')).toBe('old pack B');
+    const written = JSON.parse(await readFile(indexFile(dirs), 'utf8')) as MapIndex;
+    expect(written.subjects[1]?.pack).toEqual(packEntry('B', 'old pack B', false));
+  });
+
   it('moves a pack to the other directory when it is bundled or not bundled any more', async () => {
     const index = await seed();
     await rebuildPacks({
@@ -294,13 +333,17 @@ describe('the size report', () => {
     expect(await dirBytes(join(root, 'absent'))).toBe(0);
   });
 
-  it('is within budget up to 25 MB, base and bundled packs each, and says which one is not', () => {
-    const fits = { base: BASE_MAX_BYTES, bundledPacks: BUNDLED_PACKS_MAX_BYTES, outPacks: 9e9 };
-    expect(budgetProblems(fits)).toEqual([]);
-    expect(budgetProblems({ ...fits, base: BASE_MAX_BYTES + 1 })).toEqual([
-      expect.stringMatching(/base files are .* over 25\.00 MB/),
+  it('warns above 25 MB, base and bundled packs each, and says which one is over', () => {
+    const fits = {
+      base: BASE_BUDGET_BYTES,
+      bundledPacks: BUNDLED_PACKS_BUDGET_BYTES,
+      outPacks: 9e9,
+    };
+    expect(budgetWarnings(fits)).toEqual([]);
+    expect(budgetWarnings({ ...fits, base: BASE_BUDGET_BYTES + 1 })).toEqual([
+      expect.stringMatching(/base files are .* over the 25\.00 MB budget/),
     ]);
-    const both = budgetProblems({ ...fits, base: 3e7, bundledPacks: 3e7 });
+    const both = budgetWarnings({ ...fits, base: 3e7, bundledPacks: 3e7 });
     expect(both).toHaveLength(2);
     expect(both[1]).toMatch(/bundled packs/);
   });

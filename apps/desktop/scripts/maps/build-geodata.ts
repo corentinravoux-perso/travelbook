@@ -5,8 +5,9 @@
  *
  * `all` runs `boundaries`, then `places`, then `packs` (in that order: `boundaries` deletes the
  * packs of the subjects it rebuilds), prints a progress line per subject (`[hh:mm:ss] step i/n`),
- * a size report at the end, and exits non-zero if a step failed or the budget is exceeded. Run it
- * with `nohup ... > run.log 2>&1 &` and watch the log.
+ * a size report at the end (a warning if a size passes the 25 MB budget, which the owner lifted:
+ * it does not fail the run), and exits non-zero if a step failed. Run it with
+ * `nohup ... > run.log 2>&1 &` and watch the log.
  *
  *   npm run maps -w @travelbook/desktop -- boundaries [--only=TH,PE]
  *
@@ -54,14 +55,16 @@ import {
 } from './overture.ts';
 import { clock, progressLine } from './log.ts';
 import {
-  budgetProblems,
+  budgetWarnings,
   mapDirs,
   measureSizes,
   pruneUnlisted,
+  readIndexFile,
   rebuildPacks,
   rebuildSubjects,
   sizeReport,
   writeFileAtomic,
+  type MapDirs,
 } from './outputs.ts';
 import { appFileUrl } from './paths.ts';
 import { buildPlaces, skippedLines, type SkippedPlaces } from './places.ts';
@@ -97,7 +100,6 @@ import {
 export const MAPS_DIR = appFileUrl('resources/maps');
 /** Where the build writes: `resources/maps/` and, git-ignored, `scripts/maps/out/`. */
 const DIRS = mapDirs(MAPS_DIR, appFileUrl('scripts/maps/out'));
-const INDEX_FILE = join(MAPS_DIR, 'index.json');
 /**
  * The subjects whose fine pack ships in the installer: the countries of the Affiches' region
  * destinations (California, Scotland, Sicily, Crete). Every other pack is downloaded on demand.
@@ -298,13 +300,7 @@ export async function buildSubject(
   return { entry, json, extent };
 }
 
-async function readIndex(): Promise<MapIndex | undefined> {
-  try {
-    return JSON.parse(await readFile(INDEX_FILE, 'utf8')) as MapIndex;
-  } catch {
-    return undefined;
-  }
-}
+const readIndex = (): Promise<MapIndex | undefined> => readIndexFile(DIRS);
 
 /** The file names of the removed files, as a log line (the first few). */
 const removedLine = (removed: string[]): string =>
@@ -417,14 +413,11 @@ export async function places(only: string[] | undefined): Promise<SkippedPlaces[
   return skipped;
 }
 
-/** Print the sizes, and fail (exit code 1) when the base or the bundled packs are over budget. */
-export async function reportSizes(): Promise<void> {
-  const sizes = await measureSizes(DIRS);
+/** Print the sizes, and warn when the base or the bundled packs pass the budget (never fails). */
+export async function reportSizes(dirs: MapDirs = DIRS): Promise<void> {
+  const sizes = await measureSizes(dirs);
   for (const line of sizeReport(sizes)) console.log(line);
-  for (const problem of budgetProblems(sizes)) {
-    console.error(`OVER BUDGET: ${problem}. Stop: spec section 7.4 applies.`);
-    process.exitCode = 1;
-  }
+  for (const warning of budgetWarnings(sizes)) console.warn(`WARNING: ${warning}`);
 }
 
 /**
@@ -483,29 +476,57 @@ export async function packs(only: string[] | undefined, mode?: PackMode): Promis
   }
 }
 
+/** An error as the log shows it: the stack when there is one. */
+const describeError = (error: unknown): string =>
+  error instanceof Error ? (error.stack ?? error.message) : String(error);
+
+/** The three steps of `all`, so that their order and failure handling can be tested. */
+export interface AllSteps {
+  boundaries: () => Promise<void>;
+  places: () => Promise<SkippedPlaces[]>;
+  packs: () => Promise<void>;
+}
+
 /**
- * The whole build: `boundaries`, `places`, `packs`, in that order (`boundaries` deletes the packs
- * of the subjects it rebuilds, so they come last). A failing `boundaries` stops here and leaves
- * the previous outputs as they were; incomplete places and failing packs are listed at the end,
- * with a non-zero exit, after the rest was built.
+ * `boundaries`, then `places`, then `packs`. A failing `boundaries` stops here (it throws, and the
+ * previous outputs are as they were). A `places` that throws or reports incomplete countries does
+ * not stop `packs`, which does not depend on it: the error is logged, `packs` runs (and writes the
+ * licences), and the exit code is 1 at the end. Returns the countries Wikidata did not answer.
  */
+export async function runSteps(steps: AllSteps): Promise<SkippedPlaces[]> {
+  console.log(`[${clock()}] step 1/3: boundaries`);
+  await steps.boundaries();
+  console.log(`[${clock()}] step 2/3: places`);
+  let skipped: SkippedPlaces[] = [];
+  try {
+    skipped = await steps.places();
+  } catch (error) {
+    console.error(`[${clock()}] places FAILED: ${describeError(error)}`);
+    console.error('packs still runs; run `places` again afterwards');
+    process.exitCode = 1;
+  }
+  console.log(`[${clock()}] step 3/3: packs`);
+  await steps.packs();
+  console.log(`[${clock()}] all: done${process.exitCode ? ' WITH ERRORS (exit code 1)' : ''}`);
+  if (skipped.length > 0) {
+    console.error('places not written (Wikidata timed out):');
+    for (const line of skippedLines(skipped)) console.error(line);
+  }
+  return skipped;
+}
+
+/** The whole build: `boundaries`, `places`, `packs`, in that order (see `runSteps`). */
 export async function all(only: string[] | undefined, mode?: PackMode): Promise<void> {
   const defs = selectSubjects(subjectDefs(await catalog()), only);
   console.log(
     `[${clock()}] all: ${defs.length} subject(s), ${isosOf(defs).length} ISO code(s), ` +
       `Overture ${OVERTURE_RELEASE}${only ? `, only ${only.join(',')}` : ''}`,
   );
-  console.log(`[${clock()}] step 1/3: boundaries`);
-  await boundaries(only);
-  console.log(`[${clock()}] step 2/3: places`);
-  const skipped = await places(only);
-  console.log(`[${clock()}] step 3/3: packs`);
-  await packs(only, mode);
-  console.log(`[${clock()}] all: done${process.exitCode ? ' WITH ERRORS (exit code 1)' : ''}`);
-  if (skipped.length > 0) {
-    console.error('places not written (Wikidata timed out):');
-    for (const line of skippedLines(skipped)) console.error(line);
-  }
+  await runSteps({
+    boundaries: () => boundaries(only),
+    places: () => places(only),
+    packs: () => packs(only, mode),
+  });
 }
 
 const [command, ...args] = process.argv.slice(2);
@@ -526,9 +547,7 @@ if (process.argv[1]?.endsWith('build-geodata.ts')) {
       process.exitCode = 1;
     }
   } catch (error) {
-    console.error(
-      `[${clock()}] FAILED: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
-    );
+    console.error(`[${clock()}] FAILED: ${describeError(error)}`);
     process.exitCode = 1;
   }
 }
