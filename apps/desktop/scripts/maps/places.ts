@@ -354,9 +354,14 @@ export function geonamesCandidates(rows: string[][], french: Map<number, string>
   }));
 }
 
-/** `cities5000` of one ISO, French names from `alternateNamesV2`. */
-export async function geonamesCities(iso: string): Promise<CityCandidate[]> {
-  const dir = join(CACHE_DIR, 'geonames');
+/**
+ * `cities5000` of one ISO, French names from `alternateNamesV2`. The zips are downloaded into `dir`
+ * unless already there.
+ */
+export async function geonamesCities(
+  iso: string,
+  dir: string = join(CACHE_DIR, 'geonames'),
+): Promise<CityCandidate[]> {
   await download(`${GEONAMES}/cities5000.zip`, join(dir, 'cities5000.zip'));
   const rows = await geonamesRows(unzipLines(join(dir, 'cities5000.zip'), 'cities5000.txt'), iso);
   if (rows.length === 0) return [];
