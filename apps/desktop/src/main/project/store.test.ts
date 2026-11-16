@@ -12,7 +12,15 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BookFormatError, newBook, setIdSource, type AssetRef, type Book } from '@travelbook/core';
+import {
+  BookFormatError,
+  newBook,
+  removeElements,
+  setIdSource,
+  type AssetRef,
+  type Book,
+} from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { setUserDataDir } from '../user-data';
 import { recentProjects } from './recent';
 import { listSnapshots, readSnapshot, writeSnapshot } from './snapshots';
@@ -128,7 +136,7 @@ describe('createProject / openProject', () => {
 
   it('rejects a book written by a newer schema version', async () => {
     const { dir, book } = await createProject({ name: 'Futur', parentDir });
-    await writeFile(join(dir, 'book.json'), JSON.stringify({ ...book, schemaVersion: 2 }));
+    await writeFile(join(dir, 'book.json'), JSON.stringify({ ...book, schemaVersion: 3 }));
     await expect(openProject(dir)).rejects.toThrow(/version plus récente/);
   });
 
@@ -278,6 +286,58 @@ describe('saveBook', () => {
       'history',
       'originals',
     ]);
+  });
+
+  describe('album format version', () => {
+    const versionOnDisk = async (dir: string): Promise<unknown> =>
+      (JSON.parse(await readFile(join(dir, 'book.json'), 'utf8')) as { schemaVersion: unknown })
+        .schemaVersion;
+
+    it('writes 1 for an album without a map', async () => {
+      const { dir, book } = await createProject({ name: 'Sans carte', parentDir });
+      await saveBook(dir, book);
+      expect(await versionOnDisk(dir)).toBe(1);
+    });
+
+    it('writes 2 when a map is on the cover, though the book in memory says 1', async () => {
+      const { dir, book } = await createProject({ name: 'Carte', parentDir });
+      book.cover.elements.push(mapElement());
+      expect(book.schemaVersion).toBe(1);
+      await saveBook(dir, book);
+      expect(await versionOnDisk(dir)).toBe(2);
+      const reopened = await openProject(dir);
+      expect(reopened.book).toEqual({ ...book, schemaVersion: 2 });
+    });
+
+    it('writes 2 when a map is on an inner spread', async () => {
+      const { dir, book } = await createProject({ name: 'Carte au milieu', parentDir });
+      book.spreads[3]!.elements.push(mapElement());
+      await saveBook(dir, book);
+      expect(await versionOnDisk(dir)).toBe(2);
+    });
+
+    it('writes 1 again once the last map is deleted, so the previous release opens it', async () => {
+      const { dir, book } = await createProject({ name: 'Carte retirée', parentDir });
+      book.cover.elements.push(mapElement());
+      await saveBook(dir, book);
+      expect(await versionOnDisk(dir)).toBe(2);
+
+      const opened = (await openProject(dir)).book;
+      const without = removeElements(opened, opened.cover.id, [opened.cover.elements[0]!.id]);
+      expect(without.schemaVersion).toBe(2);
+      await saveBook(dir, without);
+
+      expect(await versionOnDisk(dir)).toBe(1);
+      expect(await readFile(join(dir, 'book.json'), 'utf8')).not.toContain('"map"');
+      expect((await openProject(dir)).book).toEqual({ ...without, schemaVersion: 1 });
+    });
+
+    it('does not change the book it is given', async () => {
+      const { dir, book } = await createProject({ name: 'Intact', parentDir });
+      book.cover.elements.push(mapElement());
+      await saveBook(dir, book);
+      expect(book.schemaVersion).toBe(1);
+    });
   });
 
   it('writes a book the core can read back identically', async () => {

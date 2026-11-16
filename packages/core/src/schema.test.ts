@@ -13,13 +13,16 @@ import {
   type Spread,
   BookFormatError,
   BookSchema,
+  bookSchemaVersion,
   migrate,
   newBook,
   newElement,
   newSpread,
   pageCount,
+  removeElements,
   setIdSource,
 } from './index';
+import { mapElement } from './map/test-helpers';
 
 const rect = { x: 1, y: 2, w: 30, h: 40 };
 
@@ -218,13 +221,64 @@ describe('migrate', () => {
     const b = newBook({ title: 'T' });
     expect(migrate(b)).toEqual(b);
   });
-  it('rejects a newer version', () => {
-    const b = { ...newBook({ title: 'T' }), schemaVersion: 2 };
-    expect(() => migrate(b)).toThrow(/version plus récente/);
+  it('accepts a version 2 book and keeps its version', () => {
+    const b = { ...newBook({ title: 'T' }), schemaVersion: 2 as const };
+    b.cover.elements.push(mapElement());
+    expect(migrate(b)).toEqual(b);
+    expect(migrate(b).schemaVersion).toBe(2);
+  });
+  it('rejects a newer version with the update message', () => {
+    const b = { ...newBook({ title: 'T' }), schemaVersion: 3 };
+    expect(() => migrate(b)).toThrow(BookFormatError);
+    expect(() => migrate(b)).toThrow(/Cet album a été créé avec une version plus récente/);
+    expect(() => migrate(b)).toThrow(/format 3/);
+  });
+  it('rejects a version that never existed', () => {
+    expect(() => migrate({ ...newBook({ title: 'T' }), schemaVersion: 0 })).toThrow(
+      /Version de format inconnue : 0/,
+    );
   });
   it('reports invalid v1 content as BookFormatError', () => {
     const b = { ...newBook({ title: 'T' }), bleed: -1 };
     expect(() => migrate(b)).toThrow(BookFormatError);
+  });
+});
+
+describe('bookSchemaVersion', () => {
+  const withMap = (book: Book, where: 'cover' | 'inner'): Book => {
+    const copy = JSON.parse(JSON.stringify(book)) as Book;
+    (where === 'cover' ? copy.cover : copy.spreads[1]!).elements.push(mapElement());
+    return copy;
+  };
+  const fresh = (): Book => newBook({ title: 'T', innerSpreads: 2 });
+
+  it('is 1 for an album without a map, whatever version it carries', () => {
+    expect(bookSchemaVersion(fresh())).toBe(1);
+    expect(bookSchemaVersion({ ...fresh(), schemaVersion: 2 })).toBe(1);
+  });
+
+  it('is 2 with a map on the cover', () => {
+    expect(bookSchemaVersion(withMap(fresh(), 'cover'))).toBe(2);
+  });
+
+  it('is 2 with a map on an inner spread', () => {
+    expect(bookSchemaVersion(withMap(fresh(), 'inner'))).toBe(2);
+  });
+
+  it('is 1 again after the only map is removed', () => {
+    const book = withMap(fresh(), 'cover');
+    const gone = removeElements(book, book.cover.id, [book.cover.elements[0]!.id]);
+    expect(bookSchemaVersion(gone)).toBe(1);
+  });
+
+  it('stays 2 while another map is left', () => {
+    const book = withMap(withMap(fresh(), 'cover'), 'inner');
+    const gone = removeElements(book, book.cover.id, [book.cover.elements[0]!.id]);
+    expect(bookSchemaVersion(gone)).toBe(2);
+  });
+
+  it('is not changed by the factory: a new book is version 1', () => {
+    expect(fresh().schemaVersion).toBe(1);
   });
 });
 

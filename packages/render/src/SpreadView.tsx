@@ -47,6 +47,9 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
       return <ShapeView key={el.id} el={el} />;
     case 'text':
       return <TextView key={el.id} el={el} quality={p.quality} />;
+    case 'map':
+      // Drawn by MapView, which comes after the model: no album holds a map until then.
+      return null;
   }
 }
 

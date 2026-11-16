@@ -14,6 +14,7 @@ const TYPE_ICON: Record<Element['type'], IconName> = {
   text: 'letter-t',
   shape: 'triangle-square-circle',
   sticker: 'sticker',
+  map: 'layout-grid',
 };
 
 /** Where a dragged layer would land: on a row, in its upper or lower half. */
