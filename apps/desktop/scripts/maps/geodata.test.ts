@@ -4,7 +4,15 @@ import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { reportSizes, runSteps, type MapIndex } from './build-geodata.ts';
-import { LAKES_URL, NATURAL_EARTH_COMMIT, OVERTURE_RELEASE } from './overture.ts';
+import {
+  CACHE_DIR,
+  LAKES_URL,
+  NATURAL_EARTH_COMMIT,
+  OVERTURE_RELEASE,
+  PERSPECTIVES_VERSION,
+  perspectivesCacheFile,
+  type CatalogEntry,
+} from './overture.ts';
 import {
   mkdir,
   mkdtemp,
@@ -78,7 +86,15 @@ import {
   type PackMode,
   type Topology,
 } from './simplify.ts';
-import { isosOf, placesIso, selectSubjects, subjectDefs, viewersOf } from './subjects.ts';
+import {
+  SOVEREIGN_OF,
+  isosOf,
+  placesIso,
+  selectSubjects,
+  subjectDefs,
+  viewersOf,
+  type SubjectDef,
+} from './subjects.ts';
 
 const MAPS_DIR = join(import.meta.dirname, '../../resources/maps');
 const index = JSON.parse(readFileSync(join(MAPS_DIR, 'index.json'), 'utf8')) as MapIndex;
@@ -1498,6 +1514,14 @@ describe('overlapping regions', () => {
   });
 });
 
+describe('the perspectives cache', () => {
+  it('is named after the mapping version, never the file an older mapping wrote', () => {
+    expect(perspectivesCacheFile()).toBe(`perspectives-v${PERSPECTIVES_VERSION}.json`);
+    expect(perspectivesCacheFile()).not.toBe('perspectives.json');
+    expect(perspectivesCacheFile(PERSPECTIVES_VERSION + 1)).not.toBe(perspectivesCacheFile());
+  });
+});
+
 describe('the perspectives of the divisions', () => {
   const ids = (features: Feature[]): string[] => features.map((f) => String(f.properties.id));
   const persp = (mode: 'accepted_by' | 'disputed_by', ...countries: string[]) => ({
@@ -1585,10 +1609,72 @@ describe('the perspectives of the divisions', () => {
       'FR-MET': ['FR'],
       'FR-MQ': ['MQ', 'FR'],
       'FR-RE': ['RE', 'FR'],
-      HK: ['HK'],
+      HK: ['HK', 'CN'],
       US: ['US'],
       'US-AK': ['US'],
     });
+  });
+
+  it('gives every dependency of the catalogue a sovereign, and views through it', () => {
+    let entries: CatalogEntry[];
+    try {
+      entries = JSON.parse(
+        readFileSync(join(CACHE_DIR, `overture-${OVERTURE_RELEASE}`, 'catalog.json'), 'utf8'),
+      ) as CatalogEntry[];
+    } catch {
+      entries = Object.keys(SOVEREIGN_OF).map((country) => ({
+        id: country,
+        country,
+        subtype: 'dependency' as const,
+        nameFr: null,
+        namePrimary: country,
+        nameEn: null,
+        bbox: [0, 0, 1, 1] as [number, number, number, number],
+      }));
+    }
+    const dependencies = subjectDefs(entries.filter((e) => e.subtype === 'dependency'));
+    expect(dependencies.length).toBeGreaterThan(0);
+    expect(dependencies.filter((d) => !SOVEREIGN_OF[d.country]).map((d) => d.id)).toEqual([]);
+    for (const def of dependencies) {
+      expect(viewersOf(def)).toEqual([def.country, SOVEREIGN_OF[def.country]]);
+    }
+    const byId = Object.fromEntries(dependencies.map((d) => [d.id, viewersOf(d)]));
+    for (const [id, viewers] of Object.entries({
+      MO: ['MO', 'CN'],
+      GI: ['GI', 'GB'],
+      PF: ['PF', 'FR'],
+      NC: ['NC', 'FR'],
+      AW: ['AW', 'NL'],
+      GL: ['GL', 'DK'],
+      PR: ['PR', 'US'],
+    })) {
+      if (byId[id]) expect(byId[id]).toEqual(viewers);
+    }
+  });
+
+  it('keeps a Hong Kong division accepted by China', () => {
+    const [hk] = subjectDefs([
+      {
+        id: 'HK',
+        country: 'HK',
+        subtype: 'dependency',
+        nameFr: null,
+        namePrimary: 'HK',
+        nameEn: null,
+        bbox: [0, 0, 1, 1],
+      },
+    ]);
+    const hkKnown = [
+      { country: 'HK', id: 'by-cn', subtype: 'region', perspectives: persp('accepted_by', 'CN') },
+    ];
+    const { kept } = keepOwnPerspective(
+      [feature('by-cn'), feature('plain')],
+      'HK',
+      hkKnown,
+      viewersOf(hk as SubjectDef),
+    );
+    expect(kept.map((f) => f.properties.id)).toEqual(['by-cn', 'plain']);
+    expect(keepOwnPerspective([feature('by-cn')], 'HK', hkKnown).kept).toEqual([]);
   });
 
   it('keeps an overseas department whose division is accepted by France, leaves it out if France disputes it', () => {
