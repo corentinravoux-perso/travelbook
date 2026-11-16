@@ -1,4 +1,5 @@
 import { geoArea, geoBounds, geoPath, type GeoPermissibleObjects } from 'd3-geo';
+import { difference } from 'polygon-clipping';
 import rough from 'roughjs';
 import { feature, merge, mesh } from 'topojson-client';
 import {
@@ -48,6 +49,14 @@ const UNITS = 1000;
 const HAND_MIN_UNITS = 6;
 /** Context is drawn within this many selection extents (larger side of its bounds), centred on it. */
 const CONTEXT_EXTENTS = 8;
+
+/** The build clips each subject's neighbours to its main bbox grown by this factor. */
+const NEIGHBOURS_FRAME_FACTOR = 1.3;
+/** The edges of the erased rectangle get a vertex every so many degrees, so that they stay parallels. */
+const ERASE_STEP_DEG = 1;
+
+/** The far context is simplified this many times coarser than the subject itself (see `simplifyTopology`). */
+const FAR_FACTOR = 10;
 
 const wrapDelta = (d: number): number => Math.abs(((((d + 180) % 360) + 360) % 360) - 180);
 
@@ -154,6 +163,88 @@ function framing(parts: PolygonCoords[]): Framing {
     });
   }
   return { main, all: polygons, mainBox: boxOf(main), allBox: boxOf(polygons) };
+}
+
+/** `[west, south, east, north]` of the points of the polygons, planar and in the file's longitudes. */
+function planarBox(polygons: PolygonCoords[]): Box | null {
+  let box: Box | null = null;
+  for (const polygon of polygons) {
+    for (const [x, y] of polygon[0] ?? []) {
+      if (x === undefined || y === undefined) continue;
+      if (!box) box = [x, y, x, y];
+      else
+        box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)];
+    }
+  }
+  return box;
+}
+
+/**
+ * The rectangle the build clipped the neighbours to: the planar bbox of the subject's main land
+ * (the polygons holding at least 1 % of the area, as `mainBbox` of the build) grown 1.3 times and
+ * kept inside the globe. Recomputed here from the simplified land, so it may differ from the build's
+ * by less than the tolerance, and by the islets that the simplification dropped (under 1 %).
+ */
+function neighboursFrame(polygons: PolygonCoords[]): Box | null {
+  const areas = polygons.map((p) => geoArea({ type: 'Polygon', coordinates: [p[0] ?? []] }));
+  const total = areas.reduce((a, b) => a + b, 0);
+  const main = polygons.filter((_, i) => (areas[i] ?? 0) >= total * REMOTE_SHARE);
+  const box = planarBox(main.length > 0 ? main : polygons);
+  if (!box) return null;
+  const dx = ((box[2] - box[0]) * (NEIGHBOURS_FRAME_FACTOR - 1)) / 2;
+  const dy = ((box[3] - box[1]) * (NEIGHBOURS_FRAME_FACTOR - 1)) / 2;
+  return [
+    Math.max(-180, box[0] - dx),
+    Math.max(-90, box[1] - dy),
+    Math.min(180, box[2] + dx),
+    Math.min(90, box[3] + dy),
+  ];
+}
+
+/** A ring around the box with a vertex at least every `ERASE_STEP_DEG`. */
+function boxRing([west, south, east, north]: Box): [number, number][] {
+  const edge = (x0: number, y0: number, x1: number, y1: number): [number, number][] => {
+    const n = Math.max(
+      1,
+      Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / ERASE_STEP_DEG),
+    );
+    return Array.from({ length: n }, (_, i) => [
+      x0 + ((x1 - x0) * i) / n,
+      y0 + ((y1 - y0) * i) / n,
+    ]);
+  };
+  const ring = [
+    ...edge(west, south, east, south),
+    ...edge(east, south, east, north),
+    ...edge(east, north, west, north),
+    ...edge(west, north, west, south),
+  ] as [number, number][];
+  return [...ring, ring[0] as [number, number]];
+}
+
+/**
+ * The world land without the rectangle `erase` (planar, in lon/lat): the far context, which starts
+ * where the subject's own neighbours stop. Polygons clear of the rectangle are kept as they are.
+ * Rings come out clockwise like the topology's (d3's exterior winding).
+ */
+function farLand(world: Topology, erase: Box | null): PolygonCoords[] {
+  const polygons = polygonsOf(world, geometriesOf(world, 'land'));
+  if (!erase) return polygons;
+  const hole = boxRing(erase);
+  const out: PolygonCoords[] = [];
+  for (const polygon of polygons) {
+    const box = planarBox([polygon]);
+    const clear =
+      !box || box[2] <= erase[0] || box[0] >= erase[2] || box[3] <= erase[1] || box[1] >= erase[3];
+    if (clear) {
+      out.push(polygon);
+      continue;
+    }
+    for (const piece of difference(polygon as [number, number][][], [hole])) {
+      out.push(piece.map((ring) => ring.slice().reverse()));
+    }
+  }
+  return out;
 }
 
 interface Sources {
@@ -347,6 +438,10 @@ const EMPTY_BOUNDS: Bounds = [
  *   8 selection extents around the selection, in unit space: enough for a pan, or a zoom out to
  *   an extreme box, without carrying a whole country at pack precision. The window is built from
  *   the bounds of all the parts of the selection, so that no part of it is ever clipped.
+ * - `world` (optional, the shared coarse world land) is the far context: with `showNeighbours`, its
+ *   land beyond the rectangle the build clipped the neighbours to (1.3 x the main bbox of the
+ *   subject's own land) is drawn in front of them in `paths.neighbours`, always clean. Without it
+ *   the output is what it was before.
  * - `rough` draws the outline and the borders of the chosen regions with roughjs, seeded; the fills
  *   and the context are always clean, and so are the inner borders when no region is chosen (the
  *   outline alone is the hand-drawn line then: all of them would cost over 8 MB for the US).
@@ -358,6 +453,7 @@ export function bakeGeometry(
   projection: 'auto' | 'mercator',
   roughStyle: { seed: number; roughness: number } | null,
   detail: number,
+  world: Topology | null = null,
 ): MapGeometry {
   const wanted = new Set(subject.regions);
   const level = clampDetail(detail);
@@ -463,6 +559,15 @@ export function bakeGeometry(
     return show && object ? draw(feature(src.base, object)) : '';
   };
 
+  // the far context, first: the coarse world land beyond the frame the neighbours were clipped to
+  let far = '';
+  if (world && subject.showNeighbours) {
+    const ownLand = polygonsOf(base, geometriesOf(base, 'land'));
+    const coarse = simplifyTopology(world, extentKm(framed), FAR_FACTOR);
+    const pieces = farLand(coarse, neighboursFrame(ownLand));
+    far = pieces.length > 0 ? draw(multi(pieces)) : '';
+  }
+
   return {
     version: 1,
     projection: params,
@@ -473,7 +578,7 @@ export function bakeGeometry(
       outline,
       regions: borders,
       selected: chosenOnes.length > 0 ? draw(merge(regionsTopo, chosenOnes)) : '',
-      neighbours: layer(subject.showNeighbours, 'neighbours'),
+      neighbours: far + layer(subject.showNeighbours, 'neighbours'),
       lakes: layer(subject.showLakes, 'lakes'),
     },
   };

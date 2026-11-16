@@ -623,6 +623,15 @@
       "url": "https://docs.overturemaps.org/attribution/",
       "requiresAttribution": true,
       "note": "Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector). The places files (maps/places/) combine Natural Earth populated places, public domain, with Wikidata, CC0 (sights, https://www.wikidata.org/wiki/Wikidata:Licensing), and, for countries where Natural Earth lists fewer than 8 cities, GeoNames, CC BY 4.0 (https://www.geonames.org/, attribution required). The packs (maps/packs/) are the regions of the same Overture divisions, simplified more finely."
+    },
+    {
+      "files": ["maps/world.topo.json"],
+      "source": "Natural Earth, 10m physical vectors, land",
+      "author": "Natural Earth contributors",
+      "licence": "Public domain",
+      "url": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "requiresAttribution": false,
+      "note": "The coarse world land that fills the far context of a map, beyond the neighbours of each subject (https://github.com/nvkelso/natural-earth-vector)."
     }
   ]
 }

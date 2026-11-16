@@ -9,6 +9,7 @@ import {
   LAKES_URL,
   NATURAL_EARTH_COMMIT,
   OVERTURE_RELEASE,
+  WORLD_LAND_URL,
   PERSPECTIVES_VERSION,
   perspectivesCacheFile,
   type CatalogEntry,
@@ -67,6 +68,7 @@ import {
 } from './wikidata.ts';
 import {
   buildBestPack,
+  buildWorld,
   buildPack,
   coverage,
   cutOverlappingRegions,
@@ -373,8 +375,12 @@ describe('the licence of resources/maps', () => {
       entries: { files: string[]; licence: string; author: string; note?: string }[];
     };
     // The presets (`maps/presets/`) are our own work: MIT, checked in presets.test.ts.
+    // The world far-context land (`maps/world.topo.json`) is Natural Earth, public domain: its own entry.
     const maps = own.entries.filter((e) =>
-      e.files.some((f) => f.startsWith('maps/') && !f.startsWith('maps/presets/')),
+      e.files.some(
+        (f) =>
+          f.startsWith('maps/') && !f.startsWith('maps/presets/') && f !== 'maps/world.topo.json',
+      ),
     );
     expect(maps.length).toBeGreaterThan(0);
     for (const e of maps) {
@@ -1964,5 +1970,111 @@ describe('the places of a country that Wikidata did not fully answer', () => {
     expect(
       isosOf([{ id: 'FR-MET' }, { id: 'FR-MQ' }, { id: 'US' }, { id: 'US-AK' }, { id: 'TH' }]),
     ).toEqual(['FR', 'US', 'TH']);
+  });
+});
+
+describe('the world far context', () => {
+  const worldFile = (): {
+    arcs: number[][][];
+    transform: { scale: number[]; translate: number[] };
+    objects: Record<string, { type: string; geometries: { type: string; arcs: unknown }[] }>;
+  } => JSON.parse(read('world.topo.json').toString('utf8'));
+
+  it('builds a TopoJSON with one land object from a Natural Earth collection', async () => {
+    const land: Feature = {
+      type: 'Feature',
+      properties: { featurecla: 'Land' },
+      geometry: { type: 'Polygon', coordinates: [square(10, 10, 20)] },
+    };
+    const islet: Feature = {
+      type: 'Feature',
+      properties: { featurecla: 'Land' },
+      geometry: { type: 'Polygon', coordinates: [square(50, 50, 0.01)] },
+    };
+    const topology = await buildWorld({ type: 'FeatureCollection', features: [land, islet] });
+    expect(Object.keys(topology.objects)).toEqual(['land']);
+    expect(topology.objects.land?.geometries.length).toBeGreaterThan(0);
+    expect(topology.transform).toBeDefined();
+  });
+
+  it('pins the source to the Natural Earth commit of the lakes', () => {
+    expect(WORLD_LAND_URL).toContain(`/${NATURAL_EARTH_COMMIT}/`);
+    expect(WORLD_LAND_URL).toMatch(/ne_(10|50)m_land\.geojson$/);
+  });
+
+  it('is written: one land object, and no ring across the whole width of the world', () => {
+    const topology = worldFile();
+    expect(Object.keys(topology.objects)).toEqual(['land']);
+    const { scale, translate } = topology.transform;
+    // lon range of each arc, after delta decoding
+    const lonRange = (arc: number[][]): [number, number] => {
+      let x = 0;
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (const [dx = 0] of arc) {
+        x += dx;
+        const lon = x * (scale[0] ?? 1) + (translate[0] ?? 0);
+        lo = Math.min(lo, lon);
+        hi = Math.max(hi, lon);
+      }
+      return [lo, hi];
+    };
+    const ranges = topology.arcs.map(lonRange);
+    const rings: number[][][] = [];
+    const walk = (a: unknown, depth: number): void => {
+      if (depth === 0) rings.push(a as number[][]);
+      else (a as unknown[]).forEach((x) => walk(x, depth - 1));
+    };
+    for (const g of topology.objects.land!.geometries) {
+      if (g.type === 'Polygon') walk(g.arcs, 1);
+      else walk(g.arcs, 2);
+    }
+    expect(rings.length).toBeGreaterThan(100);
+    // a ring from -180 to 180 would be a stripe across the world: only Antarctica, which reaches the
+    // pole, runs the whole width (Eurasia reaches 180 at Chukotka, over 197 degrees, and ends there)
+    const stripes = rings.filter((ring) => {
+      const spans = ring.flat().map((i) => ranges[i < 0 ? ~i : i] as [number, number]);
+      const lo = Math.min(...spans.map(([a]) => a));
+      const hi = Math.max(...spans.map(([, b]) => b));
+      return hi - lo > 340;
+    });
+    expect(stripes.length).toBeLessThanOrEqual(1);
+  });
+
+  it('is declared in LICENCES.json as Natural Earth, public domain', () => {
+    const own = JSON.parse(readFileSync(join(MAPS_DIR, '../LICENCES.json'), 'utf8')) as {
+      entries: {
+        files: string[];
+        source: string;
+        licence: string;
+        requiresAttribution?: boolean;
+      }[];
+    };
+    const found = own.entries.find((e) => e.files.includes('maps/world.topo.json'));
+    expect(found?.source).toMatch(/Natural Earth/);
+    expect(found?.licence).toMatch(/public domain/i);
+    expect(found?.files).toEqual(['maps/world.topo.json']);
+  });
+
+  it('runs the world step first in `all` when there is one', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    const calls: string[] = [];
+    await runSteps({
+      world: async () => {
+        calls.push('world');
+      },
+      boundaries: async () => {
+        calls.push('boundaries');
+      },
+      places: async () => {
+        calls.push('places');
+        return [];
+      },
+      packs: async () => {
+        calls.push('packs');
+      },
+    });
+    expect(calls).toEqual(['world', 'boundaries', 'places', 'packs']);
+    vi.restoreAllMocks();
   });
 });
