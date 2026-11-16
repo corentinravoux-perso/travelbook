@@ -37,12 +37,6 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
       # Ubuntu 24.04 blocks the unprivileged user namespaces Chromium's sandbox needs.
       - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      # TEMPORARY: where the sticker test stalls on the runner (every Playwright call, timed).
-      - run: npm run stickers -w @travelbook/desktop && npx electron-vite build --mode e2e && xvfb-run --auto-servernum npx playwright test e2e/stickers.spec.ts:27
-        working-directory: apps/desktop
-        continue-on-error: true
-        env:
-          DEBUG: pw:api
       - run: xvfb-run --auto-servernum npm run e2e
       # What a failed test saw (its error context and page snapshot), to read without a rerun.
       - if: failure()

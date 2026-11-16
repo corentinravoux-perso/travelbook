@@ -70,6 +70,8 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Stickers: a tall drawing no longer stretches its tile over the next row of the grid.
+- The photo tray and the sticker grid no longer re-lay themselves in a loop where the scrollbar
+  takes room (classic scrollbars): the room of the scrollbar is always kept.
 
 ## [0.1.0] - 2026-11-15
 
