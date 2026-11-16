@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 310">
+<g transform="rotate(2 185 165)">
+<path d="M30 40H340A10 10 0 0 1 350 50V280A10 10 0 0 1 340 290H30A10 10 0 0 1 20 280V50A10 10 0 0 1 30 40Z" fill="#0000001c" transform="translate(5 7)"/>
+<path d="M30 40H340A10 10 0 0 1 350 50V280A10 10 0 0 1 340 290H30A10 10 0 0 1 20 280V50A10 10 0 0 1 30 40Z" fill="#bfe3d6"/>
+<path d="M42 56H328A6 6 0 0 1 334 62V268A6 6 0 0 1 328 274H42A6 6 0 0 1 36 268V62A6 6 0 0 1 42 56Z" fill="none" stroke="#2f7f74" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<path d="M78 120V30Q78 12 96 12Q114 12 114 30V104Q114 116 102 116Q90 116 90 104V40" fill="none" stroke="#5b636b" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M78 120V30Q78 12 96 12Q114 12 114 30V104Q114 116 102 116Q90 116 90 104V40" fill="none" stroke="#c6ccd2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

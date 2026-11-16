@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 170">
+<path d="M32 16H436A18 18 0 0 1 454 34V136A18 18 0 0 1 436 154H32A18 18 0 0 1 14 136V34A18 18 0 0 1 32 16Z" fill="#0000001a" transform="translate(4 6)"/>
+<path d="M32 16H436A18 18 0 0 1 454 34V136A18 18 0 0 1 436 154H32A18 18 0 0 1 14 136V34A18 18 0 0 1 32 16ZM35 85a11 11 0 1 0 22 0a11 11 0 1 0 -22 0Z" fill="#fffaf0" fill-rule="evenodd"/>
+<path d="M350 16H436Q454 16 454 34V136Q454 154 436 154H350Z" fill="#bcd5ef"/>
+<path d="M376 48V124M383 48V116M387 48V116M396 48V124M400 48V116M407 48V116M414 48V124M418 48V116M426 48V116M430 48V124M437 48V116M442 48V116" stroke="#1f4170" stroke-width="4"/>
+<path d="M84 34H330V136H84Z" fill="none" stroke="#2f5f9e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28 85a18 18 0 1 0 36 0a18 18 0 1 0 -36 0ZM35 85a11 11 0 1 0 22 0a11 11 0 1 0 -22 0Z" fill="#b9b2a6" fill-rule="evenodd"/>
+<path d="M28 85a18 18 0 1 0 36 0a18 18 0 1 0 -36 0Z" fill="none" stroke="#00000033" stroke-width="2"/>
+</svg>
