@@ -12,28 +12,44 @@ The interface is in French. Code, comments and documentation are in English.
 
 ## Install
 
-The pre-release [`latest`](https://github.com/corentinravoux/travelbook/releases/tag/latest) always
-holds the installers of the last commit on `main`: `travelbook-latest.exe` (Windows) and
-`travelbook-latest.deb` (Linux). Versioned releases carry the names below.
+### Latest build of `main`
+
+Every push to `main` rebuilds both installers and attaches them, under fixed names, to the
+pre-release [`latest`](https://github.com/corentinravoux/travelbook/releases/tag/latest):
+
+| System        | File                    | Direct link                                                                                   |
+| ------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| Windows (x64) | `travelbook-latest.exe` | <https://github.com/corentinravoux/travelbook/releases/download/latest/travelbook-latest.exe> |
+| Linux (x64)   | `travelbook-latest.deb` | <https://github.com/corentinravoux/travelbook/releases/download/latest/travelbook-latest.deb> |
+
+The repository is private: the links work only for a GitHub account with access to it, logged in.
+From a terminal, the GitHub CLI fetches both files:
+
+```sh
+gh release download latest -R corentinravoux/travelbook -D ~/Downloads/travelbook-latest
+```
+
+Versioned releases (tags `vX.Y.Z`) carry the version in the file names, as below.
 
 ### Linux (Ubuntu and other Debian systems, x64)
 
-Download `travelbook_<version>_amd64.deb` from the GitHub Releases page, then:
+Download `travelbook-latest.deb` or `travelbook_<version>_amd64.deb`, then:
 
 ```sh
-sudo apt install ./travelbook_<version>_amd64.deb
+sudo apt install ./travelbook-latest.deb
 sudo apt remove travelbook
 ```
 
-The package installs under `/opt/travelbook` and adds a "travelbook" entry (category Graphics) to
-the application menu.
+Installing a newer package replaces the old one. The package installs under `/opt/travelbook` and
+adds a "travelbook" entry (category Graphics) to the application menu.
 
 ### Windows (x64)
 
-Download `travelbook-setup-<version>-x64.exe` and run it. It installs for the current user only
-(no administrator prompt), under `%LOCALAPPDATA%\Programs\travelbook`, with a Start-menu shortcut.
-The installer is not signed, so SmartScreen asks for a confirmation: "Informations
-complémentaires", then "Exécuter quand même".
+Download `travelbook-latest.exe` or `travelbook-setup-<version>-x64.exe` and run it. It installs for
+the current user only (no administrator prompt), under `%LOCALAPPDATA%\Programs\travelbook`, with a
+Start-menu shortcut. The installer is not signed, so SmartScreen asks for a confirmation:
+"Informations complémentaires", then "Exécuter quand même". Running a newer installer updates the
+app; the albums stay where they are.
 
 Only one instance of the application runs at a time: starting it again brings the open window to
 the front.
