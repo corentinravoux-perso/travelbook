@@ -56,7 +56,7 @@ const NEIGHBOURS_FRAME_FACTOR = 1.3;
 const ERASE_STEP_DEG = 1;
 
 /** The far context is simplified this many times coarser than the subject itself (see `simplifyTopology`). */
-const FAR_FACTOR = 10;
+const FAR_FACTOR = 20;
 
 const wrapDelta = (d: number): number => Math.abs(((((d + 180) % 360) + 360) % 360) - 180);
 
@@ -199,6 +199,42 @@ function neighboursFrame(polygons: PolygonCoords[]): Box | null {
     Math.min(180, box[2] + dx),
     Math.min(90, box[3] + dy),
   ];
+}
+
+/** A frame edge is met when both ends of a segment lie on it, within this many degrees. */
+const FRAME_EDGE_EPS = 0.005;
+
+/**
+ * The lines of `mesh` without the segments that lie along a side of `frame`: the cut that the build
+ * made, which is no coast and no border. Runs of kept segments stay one line.
+ */
+function realLines(lines: number[][][], frame: Box | null): number[][][] {
+  if (!frame) return lines;
+  const on = (a: number[], b: number[], i: 0 | 1, edge: number): boolean =>
+    Math.abs((a[i] ?? NaN) - edge) < FRAME_EDGE_EPS &&
+    Math.abs((b[i] ?? NaN) - edge) < FRAME_EDGE_EPS;
+  const cut = (a: number[], b: number[]): boolean =>
+    on(a, b, 0, frame[0]) ||
+    on(a, b, 0, frame[2]) ||
+    on(a, b, 1, frame[1]) ||
+    on(a, b, 1, frame[3]);
+  const out: number[][][] = [];
+  for (const line of lines) {
+    let run: number[][] = [];
+    for (let i = 1; i < line.length; i++) {
+      const a = line[i - 1] as number[];
+      const b = line[i] as number[];
+      if (cut(a, b)) {
+        if (run.length > 1) out.push(run);
+        run = [];
+      } else {
+        if (run.length === 0) run.push(a);
+        run.push(b);
+      }
+    }
+    if (run.length > 1) out.push(run);
+  }
+  return out;
 }
 
 /** A ring around the box with a vertex at least every `ERASE_STEP_DEG`. */
@@ -438,6 +474,9 @@ const EMPTY_BOUNDS: Bounds = [
  *   8 selection extents around the selection, in unit space: enough for a pan, or a zoom out to
  *   an extreme box, without carrying a whole country at pack precision. The window is built from
  *   the bounds of all the parts of the selection, so that no part of it is ever clipped.
+ * - `paths.neighbourLines` holds the coasts and borders of the neighbours alone (the far land has
+ *   no lines), without the segments along the frame the build clipped them to: stroke these, and
+ *   fill `paths.neighbours` with no stroke.
  * - `world` (optional, the shared coarse world land) is the far context: with `showNeighbours`, its
  *   land beyond the rectangle the build clipped the neighbours to (1.3 x the main bbox of the
  *   subject's own land) is drawn in front of them in `paths.neighbours`, always clean. Without it
@@ -559,6 +598,20 @@ export function bakeGeometry(
     return show && object ? draw(feature(src.base, object)) : '';
   };
 
+  // the neighbours' coasts and borders, apart from their fill: without the build's clip rectangle
+  // (the window's own edges cut a line short, they never add a segment to it)
+  let neighbourLines = '';
+  const neighboursObject = src.base.objects.neighbours;
+  if (subject.showNeighbours && neighboursObject) {
+    const lines = (mesh(src.base, neighboursObject) as unknown as { coordinates: number[][][] })
+      .coordinates;
+    const kept = realLines(lines, neighboursFrame(polygonsOf(base, geometriesOf(base, 'land'))));
+    // a tenth of a unit is 0.04 mm on a 400 mm page: lines need no more, and they cost a second path
+    const lineString = geoPath(projected).digits(1);
+    neighbourLines =
+      kept.length > 0 ? (lineString({ type: 'MultiLineString', coordinates: kept }) ?? '') : '';
+  }
+
   // the far context, first: the coarse world land beyond the frame the neighbours were clipped to
   let far = '';
   if (world && subject.showNeighbours) {
@@ -579,6 +632,7 @@ export function bakeGeometry(
       regions: borders,
       selected: chosenOnes.length > 0 ? draw(merge(regionsTopo, chosenOnes)) : '',
       neighbours: far + layer(subject.showNeighbours, 'neighbours'),
+      neighbourLines,
       lakes: layer(subject.showLakes, 'lakes'),
     },
   };

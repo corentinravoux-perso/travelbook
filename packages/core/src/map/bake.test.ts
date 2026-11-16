@@ -215,7 +215,10 @@ describe('bakeGeometry, chosen regions', () => {
     });
 
     it('is smaller than before the window (3 949 768 characters), and under 8 M with rough', () => {
-      expect(total(clean)).toBeLessThan(3_949_768);
+      // the bound is from before `neighbourLines` (4.03 M with them): the window effect is measured without
+      const lines = clean.paths.neighbourLines?.length ?? 0;
+      expect(total(clean) - lines).toBeLessThan(3_949_768);
+      expect(total(clean)).toBeLessThan(4_100_000);
       expect(total(hand)).toBeLessThan(8_000_000);
     });
 
@@ -666,6 +669,39 @@ describe('bakeGeometry, the world far context', () => {
       if (lon < x0 - 1 || lon > x1 + 1 || lat < y0 - 1 || lat > y1 + 1) outside++;
     }
     expect(outside).toBeGreaterThan(20);
+  });
+
+  it('emits the neighbours lines apart: real borders and coasts, none on the 1.3 x clip rectangle', () => {
+    for (const withWorld of [world, null]) {
+      const g = bakeWith('TH', th, {}, withWorld);
+      const lines = g.paths.neighbourLines ?? '';
+      expect(lines.length).toBeGreaterThan(1000);
+      expect(lines).not.toMatch(/NaN|Infinity|Z/);
+      const proj = d3Projection(g.projection);
+      const [x0, y0, x1, y1] = frameOf();
+      const eps = 0.02;
+      const onEdge = (a: [number, number], b: [number, number]): boolean =>
+        [x0, x1].some((e) => Math.abs(a[0] - e) < eps && Math.abs(b[0] - e) < eps) ||
+        [y0, y1].some((e) => Math.abs(a[1] - e) < eps && Math.abs(b[1] - e) < eps);
+      let segments = 0;
+      let inside = 0;
+      for (const sub of lines.split(/(?=M)/)) {
+        const at = points(sub).map((p) => proj.invert?.(p) as [number, number]);
+        for (let i = 1; i < at.length; i++) {
+          segments++;
+          expect(onEdge(at[i - 1]!, at[i]!), `segment ${i} of ${sub.slice(0, 40)}`).toBe(false);
+        }
+        for (const [lon, lat] of at)
+          if (lon > x0 + 0.1 && lon < x1 - 0.1 && lat > y0 + 0.1 && lat < y1 - 0.1) inside++;
+      }
+      expect(segments).toBeGreaterThan(100);
+      // the borders of Myanmar, Laos, Cambodia and Malaysia, and their coasts, are inside the frame
+      expect(inside).toBeGreaterThan(50);
+    }
+  });
+
+  it('has no neighbours lines without neighbours', () => {
+    expect(bakeWith('TH', th, { showNeighbours: false }).paths.neighbourLines).toBe('');
   });
 
   it('draws the world first, and as clean lines even in rough', () => {
