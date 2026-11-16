@@ -7,12 +7,18 @@ import { DuckDBInstance, type DuckDBConnection } from '@duckdb/node-api';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { appFileUrl } from './paths.ts';
+import {
+  perspectiveEntries,
+  type DivisionPerspective,
+  type PerspectiveMode,
+} from './perspectives.ts';
 import type { Bbox, Collection, Feature } from './simplify.ts';
 
 /** The Overture release the committed data comes from (newest listed on S3 on 2026-11-16). */
 export const OVERTURE_RELEASE = '2026-10-21.0';
 
 const DIVISION_AREA = `s3://overturemaps-us-west-2/release/${OVERTURE_RELEASE}/theme=divisions/type=division_area/*`;
+const DIVISION = `s3://overturemaps-us-west-2/release/${OVERTURE_RELEASE}/theme=divisions/type=division/*`;
 /**
  * Natural Earth is pinned to a commit of its vector repository (master on 2026-11-16, after
  * v5.1.2), never to a moving branch: lakes and populated places both come from it.
@@ -149,6 +155,42 @@ export function fetchDivisions(
         ${region ? `AND region = '${region}'` : ''}
       ORDER BY region, id`);
     return toFeatures(rows, subtype === 'region');
+  });
+}
+
+/**
+ * The version of the mapping from `division` rows to perspective entries (`perspectiveEntries`).
+ * Bump it whenever that mapping changes: the cache file is named after it, so a cache written by
+ * older code (`perspectives.json`, then `perspectives-v1.json`...) is never read, and the query
+ * runs again.
+ */
+export const PERSPECTIVES_VERSION = 2;
+export const perspectivesCacheFile = (version = PERSPECTIVES_VERSION): string =>
+  `perspectives-v${version}.json`;
+
+/**
+ * The land areas whose division carries `perspectives` (`division_area` has no such column: it is
+ * read from `division`, joined on `division_id`), as `perspectiveEntries` makes them. Empty in
+ * 2026-10-21.0, where no division has any (see `perspectives.ts`).
+ */
+export function fetchPerspectives(): Promise<DivisionPerspective[]> {
+  return cached(perspectivesCacheFile(), async () => {
+    const rows = await query(`
+      SELECT a.id AS id, a.region AS region, a.country AS country, a.subtype AS subtype,
+             d.perspectives."mode" AS mode, d.perspectives.countries AS countries
+      FROM read_parquet('${DIVISION}') d
+      JOIN read_parquet('${DIVISION_AREA}') a ON a.division_id = d.id
+      WHERE d.perspectives IS NOT NULL AND a.is_land`);
+    return perspectiveEntries(
+      rows.map((r) => ({
+        id: String(r.id),
+        region: str(r.region),
+        country: String(r.country),
+        subtype: String(r.subtype),
+        mode: String(r.mode) as PerspectiveMode,
+        countries: (r.countries as unknown[]).map(String),
+      })),
+    );
   });
 }
 

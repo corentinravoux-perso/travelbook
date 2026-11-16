@@ -2,17 +2,37 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
-import type { MapIndex } from './build-geodata.ts';
-import { LAKES_URL, NATURAL_EARTH_COMMIT, OVERTURE_RELEASE } from './overture.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { reportSizes, runSteps, type MapIndex } from './build-geodata.ts';
 import {
+  CACHE_DIR,
+  LAKES_URL,
+  NATURAL_EARTH_COMMIT,
+  OVERTURE_RELEASE,
+  PERSPECTIVES_VERSION,
+  perspectivesCacheFile,
+  type CatalogEntry,
+} from './overture.ts';
+import {
+  mkdir,
   mkdtemp,
   readFile as readText,
   readdir as listDir,
+  rm,
+  truncate,
   writeFile as saveText,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { crc32 } from 'node:zlib';
+import { BASE_BUDGET_BYTES, indexFile, mapDirs } from './outputs.ts';
+import {
+  PERSPECTIVE_OVERRIDES,
+  acceptedBy,
+  filterWarning,
+  keepOwnPerspective,
+  perspectiveEntries,
+  unmatchedOverrides,
+} from './perspectives.ts';
 import {
   HERITAGE_BOOST,
   applyOverrides,
@@ -66,7 +86,15 @@ import {
   type PackMode,
   type Topology,
 } from './simplify.ts';
-import { isosOf, placesIso, selectSubjects, subjectDefs } from './subjects.ts';
+import {
+  SOVEREIGN_OF,
+  isosOf,
+  placesIso,
+  selectSubjects,
+  subjectDefs,
+  viewersOf,
+  type SubjectDef,
+} from './subjects.ts';
 
 const MAPS_DIR = join(import.meta.dirname, '../../resources/maps');
 const index = JSON.parse(readFileSync(join(MAPS_DIR, 'index.json'), 'utf8')) as MapIndex;
@@ -249,6 +277,14 @@ describe('the subject list', () => {
     expect(selectSubjects(defs, ['FR']).map((d) => d.id)).toEqual(['FR-MET', 'FR-MQ', 'FR-RE']);
     expect(selectSubjects(defs, ['us-hi']).map((d) => d.id)).toEqual(['US-HI']);
     expect(() => selectSubjects(defs, ['ZZ'])).toThrow(/unknown/);
+  });
+
+  it('throws on an empty selection, which would prune every other subject', () => {
+    const defs = subjectDefs(catalog);
+    expect(() => selectSubjects(defs, [''])).toThrow(/--only=.* selects no subject/);
+    expect(() => selectSubjects(defs, [' ', ''])).toThrow(/selects no subject/);
+    expect(() => selectSubjects(defs, [])).toThrow(/selects no subject/);
+    expect(() => selectSubjects([], undefined)).toThrow(/holds no subject/);
   });
 });
 
@@ -547,10 +583,9 @@ describe('the fine region packs', () => {
     expect(checked).toBeGreaterThanOrEqual(2);
   });
 
-  it('keeps the four bundled packs under the 25 MB that gates the installer size', () => {
+  it('has bundled packs (their size is reported by the build, never gated: the limit is lifted)', () => {
     const total = index.subjects.reduce((sum, s) => sum + (s.pack?.bundled ? s.pack.bytes : 0), 0);
     expect(total).toBeGreaterThan(0);
-    expect(total).toBeLessThan(25_000_000);
   });
 
   it('lists the bundled packs, and only them, in LICENCES.json', () => {
@@ -1440,9 +1475,425 @@ describe('overlapping regions', () => {
     expect(halves.ratioAfter).toBeGreaterThan(1.002); // reported, not "fixed"
   });
 
+  it('does not count the gap between four boxes around an empty centre as covered', async () => {
+    // a pinwheel in a 3 x 3 square: each rectangle is 2 x 1, the 1 x 1 centre belongs to none
+    const rect = (id: string, x0: number, y0: number, x1: number, y1: number): Feature => ({
+      type: 'Feature',
+      properties: { id, name: `Région ${id}` },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [x0, y0],
+            [x0, y1],
+            [x1, y1],
+            [x1, y0],
+            [x0, y0],
+          ],
+        ],
+      },
+    });
+    const pinwheel = [
+      rect('south', 0, 0, 2, 1),
+      rect('east', 2, 0, 3, 2),
+      rect('north', 1, 2, 3, 3),
+      rect('west', 0, 1, 1, 3),
+    ];
+    const clean = await cutOverlappingRegions(pinwheel);
+    expect(clean.regions).toBe(pinwheel);
+    expect(clean.ratio).toBeCloseTo(1, 3);
+    // a real overlap (3 % of the covered area) must not hide behind the hole (11 % of the square)
+    const small = rect('small', 1.2, 2.2, 1.7, 2.7); // inside "north"
+    const result = await cutOverlappingRegions([...pinwheel, small]);
+    expect(result.ratio).toBeCloseTo(8.25 / 8, 3);
+    expect(result.cuts).toHaveLength(1);
+    expect(result.cuts[0]).toMatchObject({ id: 'north', by: [{ id: 'small' }] });
+    expect(result.ratioAfter).toBeCloseTo(1, 3);
+  });
+
   it('handles zero or one region', async () => {
     expect((await cutOverlappingRegions([])).regions).toEqual([]);
     expect((await cutOverlappingRegions([box('a', 0, 0, 1)])).regions).toHaveLength(1);
+  });
+});
+
+describe('the perspectives cache', () => {
+  it('is named after the mapping version, never the file an older mapping wrote', () => {
+    expect(perspectivesCacheFile()).toBe(`perspectives-v${PERSPECTIVES_VERSION}.json`);
+    expect(perspectivesCacheFile()).not.toBe('perspectives.json');
+    expect(perspectivesCacheFile(PERSPECTIVES_VERSION + 1)).not.toBe(perspectivesCacheFile());
+  });
+});
+
+describe('the perspectives of the divisions', () => {
+  const ids = (features: Feature[]): string[] => features.map((f) => String(f.properties.id));
+  const persp = (mode: 'accepted_by' | 'disputed_by', ...countries: string[]) => ({
+    mode,
+    countries,
+  });
+
+  it('accepts a division without perspectives, one accepted by the country, one not disputed by it', () => {
+    expect(acceptedBy(null, 'IN')).toBe(true);
+    expect(acceptedBy(undefined, 'IN')).toBe(true);
+    expect(acceptedBy(persp('accepted_by', 'IN', 'BT'), 'IN')).toBe(true);
+    expect(acceptedBy(persp('disputed_by', 'CN'), 'IN')).toBe(true);
+  });
+
+  it('rejects a division accepted only by others, or disputed by the country', () => {
+    expect(acceptedBy(persp('accepted_by', 'CN'), 'IN')).toBe(false);
+    expect(acceptedBy(persp('disputed_by', 'IN', 'BT'), 'IN')).toBe(false);
+    expect(acceptedBy(persp('accepted_by'), 'IN')).toBe(false); // accepted by nobody
+  });
+
+  const known = [
+    {
+      country: 'IN',
+      id: 'south-tibet',
+      subtype: 'region',
+      perspectives: persp('accepted_by', 'CN'),
+    },
+    { country: 'IN', id: 'IN-XX', subtype: 'region', perspectives: persp('disputed_by', 'IN') },
+    { country: 'IN', id: 'by-india', subtype: 'region', perspectives: persp('accepted_by', 'IN') },
+    // the same id under another country is another division
+    {
+      country: 'CN',
+      id: 'claim-of-cn',
+      subtype: 'region',
+      perspectives: persp('accepted_by', 'CN'),
+    },
+  ];
+  const feature = (id: string): Feature => box(id, 0, 0, 1);
+
+  it('keeps the divisions of the subject country, in order, and lists those it left out', () => {
+    const rows = ['IN-AR', 'south-tibet', 'IN-XX', 'by-india', 'claim-of-cn'].map(feature);
+    const { kept, left } = keepOwnPerspective(rows, 'IN', known);
+    expect(kept.map((f) => f.properties.id)).toEqual(['IN-AR', 'by-india', 'claim-of-cn']);
+    expect(left.map((l) => [l.feature.properties.id, l.perspectives.mode])).toEqual([
+      ['south-tibet', 'accepted_by'],
+      ['IN-XX', 'disputed_by'],
+    ]);
+    // seen from CN, South Tibet is accepted
+    expect(
+      keepOwnPerspective([feature('south-tibet')], 'CN', [
+        {
+          country: 'CN',
+          id: 'south-tibet',
+          subtype: 'region',
+          perspectives: persp('accepted_by', 'CN'),
+        },
+      ]).left,
+    ).toEqual([]);
+  });
+
+  it('accepts a division when any viewer does: the department and its sovereign', () => {
+    const byFrance = persp('accepted_by', 'FR');
+    expect(acceptedBy(byFrance, 'MQ')).toBe(false);
+    expect(acceptedBy(byFrance, ['MQ', 'FR'])).toBe(true);
+    const disputedByFrance = persp('disputed_by', 'FR');
+    expect(acceptedBy(disputedByFrance, 'MQ')).toBe(true);
+    expect(acceptedBy(disputedByFrance, ['MQ', 'FR'])).toBe(false);
+  });
+
+  it('names the viewers of a subject: its own code, and France for an overseas department', () => {
+    const defs = subjectDefs(
+      ['FR', 'MQ', 'RE', 'HK', 'US'].map((country) => ({
+        id: country,
+        country,
+        subtype:
+          country === 'HK' || country === 'MQ' || country === 'RE' ? 'dependency' : 'country',
+        nameFr: null,
+        namePrimary: country,
+        nameEn: null,
+        bbox: [0, 0, 1, 1] as [number, number, number, number],
+      })),
+    );
+    const viewers = Object.fromEntries(defs.map((d) => [d.id, viewersOf(d)]));
+    expect(viewers).toMatchObject({
+      'FR-MET': ['FR'],
+      'FR-MQ': ['MQ', 'FR'],
+      'FR-RE': ['RE', 'FR'],
+      HK: ['HK', 'CN'],
+      US: ['US'],
+      'US-AK': ['US'],
+    });
+  });
+
+  it('gives every dependency of the catalogue a sovereign, and views through it', () => {
+    const fixture = JSON.parse(
+      readFileSync(new URL('./dependencies-2026-10-21.0.json', import.meta.url), 'utf8'),
+    ) as { overture: string; dependencies: string[] };
+    const catalogFile = join(CACHE_DIR, `overture-${fixture.overture}`, 'catalog.json');
+    if (existsSync(catalogFile)) {
+      const cached = JSON.parse(readFileSync(catalogFile, 'utf8')) as CatalogEntry[];
+      const codes = cached.filter((e) => e.subtype === 'dependency').map((e) => e.country);
+      expect([...codes].sort()).toEqual(fixture.dependencies);
+    }
+    const entries: CatalogEntry[] = fixture.dependencies.map((country) => ({
+      id: country,
+      country,
+      subtype: 'dependency' as const,
+      nameFr: null,
+      namePrimary: country,
+      nameEn: null,
+      bbox: [0, 0, 1, 1] as [number, number, number, number],
+    }));
+    const dependencies = subjectDefs(entries);
+    expect(dependencies.length).toBe(fixture.dependencies.length);
+    expect(dependencies.filter((d) => !SOVEREIGN_OF[d.country]).map((d) => d.id)).toEqual([]);
+    for (const def of dependencies) {
+      expect(viewersOf(def)).toEqual([def.country, SOVEREIGN_OF[def.country]]);
+    }
+    const byId = Object.fromEntries(dependencies.map((d) => [d.id, viewersOf(d)]));
+    for (const [id, viewers] of Object.entries({
+      MO: ['MO', 'CN'],
+      GI: ['GI', 'GB'],
+      PF: ['PF', 'FR'],
+      NC: ['NC', 'FR'],
+      AW: ['AW', 'NL'],
+      GL: ['GL', 'DK'],
+      PR: ['PR', 'US'],
+    })) {
+      expect(byId[id]).toEqual(viewers);
+    }
+  });
+
+  it('keeps a Hong Kong division accepted by China', () => {
+    const [hk] = subjectDefs([
+      {
+        id: 'HK',
+        country: 'HK',
+        subtype: 'dependency',
+        nameFr: null,
+        namePrimary: 'HK',
+        nameEn: null,
+        bbox: [0, 0, 1, 1],
+      },
+    ]);
+    const hkKnown = [
+      { country: 'HK', id: 'by-cn', subtype: 'region', perspectives: persp('accepted_by', 'CN') },
+    ];
+    const { kept } = keepOwnPerspective(
+      [feature('by-cn'), feature('plain')],
+      'HK',
+      hkKnown,
+      viewersOf(hk as SubjectDef),
+    );
+    expect(kept.map((f) => f.properties.id)).toEqual(['by-cn', 'plain']);
+    expect(keepOwnPerspective([feature('by-cn')], 'HK', hkKnown).kept).toEqual([]);
+  });
+
+  it('keeps an overseas department whose division is accepted by France, leaves it out if France disputes it', () => {
+    const entries = [
+      { country: 'MQ', id: 'by-fr', subtype: 'region', perspectives: persp('accepted_by', 'FR') },
+      { country: 'MQ', id: 'vs-fr', subtype: 'region', perspectives: persp('disputed_by', 'FR') },
+    ];
+    const rows = ['by-fr', 'vs-fr', 'plain'].map(feature);
+    const own = keepOwnPerspective(rows, 'MQ', entries); // its own code only: by-fr would go
+    expect(own.kept.map((f) => f.properties.id)).toEqual(['vs-fr', 'plain']);
+    const withFrance = keepOwnPerspective(rows, 'MQ', entries, ['MQ', 'FR']);
+    expect(withFrance.kept.map((f) => f.properties.id)).toEqual(['by-fr', 'plain']);
+    expect(withFrance.left.map((l) => l.feature.properties.id)).toEqual(['vs-fr']);
+  });
+
+  describe('the entries of the Overture rows', () => {
+    const row = (over: Record<string, unknown>) => ({
+      id: 'area-1',
+      region: null as string | null,
+      country: 'IN',
+      subtype: 'region',
+      mode: 'accepted_by' as const,
+      countries: ['CN'],
+      ...over,
+    });
+
+    it('registers a region by its area id and by its ISO 3166-2 code', () => {
+      const entries = perspectiveEntries([row({ region: 'IN-XX' })]);
+      expect(entries.map((e) => e.id)).toEqual(['area-1', 'IN-XX']);
+      expect(entries.every((e) => e.subtype === 'region' && e.country === 'IN')).toBe(true);
+      expect(entries[0]?.perspectives).toEqual({ mode: 'accepted_by', countries: ['CN'] });
+    });
+
+    it('registers a region without a code by its area id only', () => {
+      expect(perspectiveEntries([row({})]).map((e) => e.id)).toEqual(['area-1']);
+    });
+
+    it('never registers the region code of a county: it is the code of the region around it', () => {
+      const entries = perspectiveEntries([
+        row({ id: 'county-1', subtype: 'county', region: 'IN-AR' }),
+        row({ id: 'town-1', subtype: 'locality', region: 'IN-AR' }),
+      ]);
+      expect(entries.map((e) => e.id)).toEqual(['county-1', 'town-1']);
+      // so the real region, named by its code in the ISO-id mode, stays
+      const { kept, left } = keepOwnPerspective(
+        [feature('IN-AR'), feature('IN-AS')],
+        'IN',
+        entries,
+      );
+      expect(kept.map((f) => f.properties.id)).toEqual(['IN-AR', 'IN-AS']);
+      expect(left).toEqual([]);
+    });
+  });
+
+  it('reports an override that matches no division of its level (an area given a new id)', () => {
+    const rows = ['06a778a5'].map(feature);
+    const stale = unmatchedOverrides(rows, 'IN', 'region', PERSPECTIVE_OVERRIDES);
+    expect(stale.map((o) => o.id)).toEqual(['62e7b386-6708-4787-94d4-90c20cbbf7f8']);
+    const present = [feature('62e7b386-6708-4787-94d4-90c20cbbf7f8')];
+    expect(unmatchedOverrides(present, 'IN', 'region', PERSPECTIVE_OVERRIDES)).toEqual([]);
+    // another country, or another level, is not this override's business
+    expect(unmatchedOverrides(rows, 'CN', 'region', PERSPECTIVE_OVERRIDES)).toEqual([]);
+    expect(unmatchedOverrides(rows, 'IN', 'county', PERSPECTIVE_OVERRIDES)).toEqual([]);
+  });
+
+  it('warns when the filter removes every division of a level, or more than 20 % of them', () => {
+    expect(filterWarning(36, 0)).toBeNull();
+    expect(filterWarning(37, 1)).toBeNull(); // South Tibet among India's regions
+    expect(filterWarning(10, 2)).toBeNull(); // exactly 20 %
+    expect(filterWarning(10, 3)).toMatch(/30 % .*more than 20 %/);
+    expect(filterWarning(5, 5)).toMatch(/every one/);
+    expect(filterWarning(0, 0)).toBeNull(); // nothing there to remove
+  });
+
+  it('knows the Chinese South Tibet that the world run found among the regions of India', () => {
+    const southTibet = '62e7b386-6708-4787-94d4-90c20cbbf7f8';
+    const { kept, left } = keepOwnPerspective(
+      [feature('06a778a5-2107-4114-b086-c2f45550ddeb'), feature(southTibet)],
+      'IN',
+      PERSPECTIVE_OVERRIDES,
+    );
+    expect(kept.map((f) => f.properties.id)).toEqual(['06a778a5-2107-4114-b086-c2f45550ddeb']);
+    expect(left.map((l) => l.feature.properties.id)).toEqual([southTibet]);
+  });
+
+  it('keeps Arunachal Pradesh whole, where the Chinese claim over it used to cut it to 18 %', async () => {
+    // Arunachal Pradesh 10 x 10, "South Tibet" over 82 % of it, as in the world run
+    const arunachal = box('IN-AR', 0, 0, 10);
+    const southTibet: Feature = {
+      ...box('south-tibet', 0, 0, 10),
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [0, 10],
+            [8.2, 10],
+            [8.2, 0],
+            [0, 0],
+          ],
+        ],
+      },
+    };
+    const assam = box('IN-AS', 10, 0, 10);
+    const rows = [arunachal, southTibet, assam];
+
+    // without the filter: the larger region is cut by the one inside it
+    const before = await cutOverlappingRegions(rows);
+    expect(before.cuts[0]).toMatchObject({ id: 'IN-AR', by: [{ id: 'south-tibet' }] });
+    expect(before.cuts[0]?.left).toBeLessThan(0.2);
+
+    const { kept } = keepOwnPerspective(rows, 'IN', [
+      {
+        country: 'IN',
+        id: 'south-tibet',
+        subtype: 'region',
+        perspectives: persp('accepted_by', 'CN'),
+      },
+    ]);
+    const after = await cutOverlappingRegions(kept);
+    expect(ids(after.regions)).toEqual(['IN-AR', 'IN-AS']);
+    expect(after.cuts).toEqual([]); // nothing cut: the regions tile
+    expect(after.regions).toBe(kept);
+    expect(after.regions[0]).toBe(arunachal); // the very same polygon
+  });
+
+  /** The tiling of a parent by its districts (Azerbaijan's Nakhchivan): the parent goes, nothing is lost. */
+  it('lets the districts replace a parent they tile, and the land does not change', async () => {
+    const parent = box('AZ-NX', 0, 0, 2);
+    const districts = [
+      box('d1', 0, 0, 1),
+      box('d2', 1, 0, 1),
+      box('d3', 0, 1, 1),
+      box('d4', 1, 1, 1),
+    ];
+    const result = await cutOverlappingRegions([parent, ...districts]);
+    expect(result.dropped.map((d) => d.id)).toEqual(['AZ-NX']);
+    expect(result.dropped[0]?.left).toBeLessThan(0.0001);
+    const covered = (list: Feature[]): number =>
+      list.reduce((sum, f) => sum + featureAreaKm2(f), 0);
+    expect(covered(result.regions)).toBeCloseTo(featureAreaKm2(parent), 0);
+  });
+});
+
+describe('the steps of `all`', () => {
+  afterEach(() => {
+    process.exitCode = undefined;
+    vi.restoreAllMocks();
+  });
+  const quiet = (): void => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  };
+  const steps = (calls: string[], failing: string[] = []) => ({
+    boundaries: async () => {
+      calls.push('boundaries');
+      if (failing.includes('boundaries')) throw new Error('boundaries broke');
+    },
+    places: async () => {
+      calls.push('places');
+      if (failing.includes('places')) throw new Error('wikidata down');
+      return [];
+    },
+    packs: async () => {
+      calls.push('packs');
+    },
+  });
+
+  it('runs boundaries, places, packs, in that order', async () => {
+    quiet();
+    const calls: string[] = [];
+    await runSteps(steps(calls));
+    expect(calls).toEqual(['boundaries', 'places', 'packs']);
+    expect(process.exitCode).toBeFalsy();
+  });
+
+  it('still runs packs when places throws, and exits non-zero', async () => {
+    quiet();
+    const calls: string[] = [];
+    await runSteps(steps(calls, ['places']));
+    expect(calls).toEqual(['boundaries', 'places', 'packs']);
+    expect(process.exitCode).toBe(1);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringMatching(/places FAILED: .*wikidata down/s),
+    );
+  });
+
+  it('stops at once when boundaries fails: no places, no packs', async () => {
+    quiet();
+    const calls: string[] = [];
+    await expect(runSteps(steps(calls, ['boundaries']))).rejects.toThrow('boundaries broke');
+    expect(calls).toEqual(['boundaries']);
+  });
+});
+
+describe('the size report', () => {
+  it('warns when the base is over 25 MB, and does not fail the run (the limit is lifted)', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'sizes-'));
+    const dirs = mapDirs(join(root, 'maps'), join(root, 'out'));
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await mkdir(dirs.subjects, { recursive: true });
+      await saveText(join(dirs.subjects, 'BIG.topo.json'), '');
+      await truncate(join(dirs.subjects, 'BIG.topo.json'), BASE_BUDGET_BYTES + 1); // sparse
+      await saveText(indexFile(dirs), '{}');
+      await reportSizes(dirs);
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^WARNING: the base files are/));
+      expect(log).toHaveBeenCalledWith(expect.stringMatching(/^base \(subjects/));
+      expect(process.exitCode).toBeFalsy();
+    } finally {
+      vi.restoreAllMocks();
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });
 

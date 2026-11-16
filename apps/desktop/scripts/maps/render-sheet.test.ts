@@ -4,6 +4,7 @@ import {
   cellOf,
   centralLongitude,
   loadSubject,
+  mainExtent,
   nearRings,
   pickZoomWindow,
   renderSheet,
@@ -91,6 +92,23 @@ describe('the contact sheet', () => {
     expect(svg).toContain('land: locality-of-a-v…');
     expect(svg).not.toContain('Congo');
     expect(svg).not.toContain('very-long-name');
+  });
+
+  it('measures the main landmass of a country with 200 000 equal polygons, without overflowing the stack', () => {
+    // none holds 1 % of the area, so all of them count; `Math.min(...200 000 values)` throws
+    const polys = Array.from({ length: 200_000 }, (_, i) => {
+      const x = i % 1000;
+      const y = Math.floor(i / 1000);
+      const ring: Ring = [
+        [x, y],
+        [x + 1, y],
+        [x + 1, y + 1],
+        [x, y + 1],
+        [x, y],
+      ];
+      return { rings: [ring], bbox: [x, y, x + 1, y + 1] as [number, number, number, number] };
+    });
+    expect(mainExtent(polys)).toBe(1000);
   });
 
   it('refuses an empty list of subjects', async () => {
