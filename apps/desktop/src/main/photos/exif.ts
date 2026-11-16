@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import exifr from 'exifr';
-import sharp from 'sharp';
+import sharp from '../imaging';
 import type { AssetRef } from '@travelbook/core';
 
 type Exif = NonNullable<AssetRef['exif']>;

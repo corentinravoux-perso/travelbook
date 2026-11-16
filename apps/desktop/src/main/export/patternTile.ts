@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import sharp from 'sharp';
+import sharp from '../imaging';
 
 /** A tile is made at most at this resolution: a flat-colour motif needs no more. */
 const TILE_DPI = 600;

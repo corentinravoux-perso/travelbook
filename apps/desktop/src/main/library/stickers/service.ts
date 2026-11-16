@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
-import sharp from 'sharp';
+import sharp from '../../imaging';
 import {
   OFFLINE_SOURCE,
   type LibraryItem,
