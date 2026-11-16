@@ -119,3 +119,34 @@ export const MapElementSchema = z.object({
   medallions: z.boolean(),
   background: color.nullable(),
 });
+
+const finiteNumber = z.number().finite();
+const point = z.tuple([finiteNumber, finiteNumber]);
+const bounds = z.tuple([point, point]);
+/** A path string that was drawn from finite numbers. */
+const bakedPath = z
+  .string()
+  .refine((d) => !/NaN|Infinity/.test(d), 'a path with a NaN or an Infinity');
+
+/** A baked map geometry, as stored in an asset: Tasks that load one validate it with this. */
+export const MapGeometrySchema = z.object({
+  version: z.literal(1),
+  projection: z.object({
+    kind: z.enum(['transverseMercator', 'conicConformal', 'mercator']),
+    rotate: z.tuple([finiteNumber, finiteNumber, finiteNumber]),
+    parallels: z.tuple([finiteNumber, finiteNumber]).optional(),
+    k: finiteNumber.positive(),
+    tx: finiteNumber,
+    ty: finiteNumber,
+  }),
+  bounds,
+  remoteBounds: bounds,
+  paths: z.object({
+    land: bakedPath,
+    outline: bakedPath,
+    regions: bakedPath,
+    selected: bakedPath,
+    neighbours: bakedPath,
+    lakes: bakedPath,
+  }),
+});
