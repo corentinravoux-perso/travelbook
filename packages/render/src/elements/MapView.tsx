@@ -37,9 +37,14 @@ export interface MapViewProps {
   el: MapElement;
   /** `null`: not loaded yet (an empty frame); `'missing'`: the asset is gone or unreadable. */
   geometry: MapGeometry | null | 'missing';
-  /** Not used yet: the medallions (photos) are drawn by a later task. */
+  /** Quality and URL of the medallion photos, like the photo elements. Without `assetUrl` none is drawn. */
   quality?: Quality;
   assetUrl?: AssetUrl;
+  /**
+   * Whether the file of an asset is known (SpreadView: `book.assets` has it). A medallion whose
+   * asset is not known draws its ring only. Default: every asset is known.
+   */
+  hasAsset?(assetId: string): boolean;
   /** What a missing map says. */
   missingLabel?: string;
 }
@@ -118,9 +123,13 @@ function Frame(p: { el: MapElement; children: ReactNode }): ReactElement {
 export function MapView({
   el,
   geometry,
+  quality = 'preview',
+  assetUrl,
+  hasAsset,
   missingLabel = 'Carte introuvable',
 }: MapViewProps): ReactElement {
   const hatchId = useSafeId('map-hatch');
+  const clipBase = useSafeId('map-medallion');
   const w = Math.max(0, finite(el.w));
   const h = Math.max(0, finite(el.h));
 
@@ -196,6 +205,18 @@ export function MapView({
   };
   const at = new Map(places.map((p) => [p.id, toMm(p.lon, p.lat)]));
 
+  // Medallions, in mm: the disc is centred `photo.offset` from the point whatever the fit.
+  const medallions = el.medallions
+    ? places.flatMap((p) => {
+        const ph = p.photo;
+        if (!p.shown || !ph) return [];
+        const r = finite(ph.diameter) / 2;
+        if (!(r > 0) || !Number.isFinite(ph.offset.dx) || !Number.isFinite(ph.offset.dy)) return [];
+        const [x, y] = at.get(p.id) as [number, number];
+        return [{ p, ph, r, x, y, cx: x + ph.offset.dx, cy: y + ph.offset.dy }];
+      })
+    : [];
+
   const numbers =
     el.route && el.route.numbered ? routeNumbers(el.route) : new Map<string, number[]>();
   const badgeD = Math.max(0, finite(style.sizes.badge));
@@ -238,6 +259,10 @@ export function MapView({
       gap: size / 2 + LABEL_GAP,
     });
   });
+  // A disc is an obstacle through its bounding square.
+  for (const m of medallions) {
+    obstacles.push({ x: m.cx - m.r, y: m.cy - m.r, w: 2 * m.r, h: 2 * m.r });
+  }
   // The four sides of the box are obstacles, so a label is placed inside it when a position fits.
   const OUT = 1e4;
   const edges: LabelObstacle[] = [
@@ -350,7 +375,27 @@ export function MapView({
           ) : null}
         </g>
       </g>
-      <g data-layer="leaders" />
+      <g data-layer="leaders">
+        {medallions.map((m) => {
+          const dist = Math.hypot(m.cx - m.x, m.cy - m.y);
+          // A leader only where the point is outside the disc.
+          if (!(dist > m.r) || style.medallion.ringWidth <= 0) return null;
+          const k = m.r / dist;
+          return (
+            <line
+              key={m.p.id}
+              data-leader={m.p.id}
+              x1={f(m.cx + (m.x - m.cx) * k)}
+              y1={f(m.cy + (m.y - m.cy) * k)}
+              x2={f(m.x)}
+              y2={f(m.y)}
+              stroke={style.medallion.ringColor}
+              strokeWidth={f(style.medallion.ringWidth)}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </g>
       <g data-layer="route">
         {segments.map((seg) => {
           const a = at.get(seg.from.id) as [number, number];
@@ -490,7 +535,44 @@ export function MapView({
           );
         })}
       </g>
-      <g data-layer="medallions" />
+      <g data-layer="medallions">
+        {medallions.map((m, i) => {
+          const clipId = `${clipBase}-${i}`;
+          const side = m.r * 2 * Math.max(1, finite(m.ph.crop.scale, 1));
+          const cropX = Math.min(1, Math.max(0, finite(m.ph.crop.cx, 0.5)));
+          const cropY = Math.min(1, Math.max(0, finite(m.ph.crop.cy, 0.5)));
+          const known = assetUrl !== undefined && (hasAsset ? hasAsset(m.ph.assetId) : true);
+          return (
+            <g key={m.p.id} data-medallion={m.p.id}>
+              {known ? (
+                <>
+                  <clipPath id={clipId}>
+                    <circle cx={f(m.cx)} cy={f(m.cy)} r={f(m.r)} />
+                  </clipPath>
+                  <image
+                    href={assetUrl(m.ph.assetId, quality)}
+                    x={f(m.cx - cropX * side)}
+                    y={f(m.cy - cropY * side)}
+                    width={f(side)}
+                    height={f(side)}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath={`url(#${clipId})`}
+                  />
+                </>
+              ) : null}
+              <circle
+                data-ring
+                cx={f(m.cx)}
+                cy={f(m.cy)}
+                r={f(m.r)}
+                fill="none"
+                stroke={style.medallion.ringColor}
+                strokeWidth={f(style.medallion.ringWidth)}
+              />
+            </g>
+          );
+        })}
+      </g>
     </Frame>
   );
 }
