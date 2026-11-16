@@ -40,6 +40,12 @@ export const POSTER_SMALL_FONT = 'Work Sans';
 export const TITLE_MIN_PT = 24;
 /** The title glyphs (≈ 0.8 em) are never taller than this fraction of the page. */
 const TITLE_HEIGHT_CAP = 0.3;
+/** The same cap for `geant`, whose title is the poster's second subject. */
+const TITLE_HEIGHT_CAP_GEANT = 0.4;
+/** In `geant`, a drawing that fills less of the height than this is centred, not on the foot. */
+const GEANT_FILL = 0.75;
+/** In `geant` the year answers the large title: this many times the usual year size. */
+const GEANT_YEAR = 1.8;
 const GLYPH_EM = 0.8;
 const TITLE_LINE_HEIGHT = 1.05;
 const SMALL_LINE_HEIGHT = 1.3;
@@ -92,9 +98,10 @@ function titleLines(
   width: Mm,
   pageH: Mm,
   stack: boolean,
+  heightCap = TITLE_HEIGHT_CAP,
 ): Line[] {
   const text = upper(spec.title).replace(/\s+/g, ' ');
-  const capPt = (TITLE_HEIGHT_CAP * pageH) / PT_MM / GLYPH_EM;
+  const capPt = (heightCap * pageH) / PT_MM / GLYPH_EM;
   const fit = (t: string): Line => ({ text: t, pt: fitPt(measure, t, spec.font, width, capPt) });
   let lines: Line[];
   const words = text.split(' ');
@@ -283,28 +290,37 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
   const front = pageBox(book, book.cover, 'right')!;
   const { x: fx, w: fw, h: fh } = front;
   const bleed = book.coverBleed;
-  const m = 0.07 * Math.min(fw, fh);
-  const gap = 0.2 * m;
   const layout = spec.layout;
+  const geant = layout === 'geant';
+  // geant: tighter margins, so the title and the drawing take the whole front.
+  const m = (geant ? 0.05 : 0.07) * Math.min(fw, fh);
+  const gap = 0.2 * m;
   const inset = m;
   const innerW = fw - 2 * inset;
 
   // Header.
-  const lines = titleLines(input.measure, spec, innerW, fh, layout === 'empile');
+  const lines = titleLines(
+    input.measure,
+    spec,
+    innerW,
+    fh,
+    layout === 'empile' || geant,
+    geant ? TITLE_HEIGHT_CAP_GEANT : TITLE_HEIGHT_CAP,
+  );
   const titleH = linesHeight(lines, TITLE_LINE_HEIGHT);
   const title = textElement({ x: fx + inset, y: inset, w: innerW, h: titleH }, lines, {
     name: POSTER_NAMES.title,
     font: spec.font,
     color: spec.colors.title,
     lineHeight: TITLE_LINE_HEIGHT,
-    align: 'left',
+    align: geant ? 'center' : 'left',
     role: 'title',
   });
   const small = smallLines(
     input,
     { x: fx + inset, y: inset + titleH + gap, w: innerW },
     m / 2,
-    YEAR_PT_PER_MM * Math.min(fw, fh),
+    YEAR_PT_PER_MM * Math.min(fw, fh) * (geant ? GEANT_YEAR : 1),
   );
   const headerBottom = inset + titleH + (small.h > 0 ? gap + small.h : 0);
 
@@ -357,6 +373,19 @@ export function posterLayout(book: Book, input: PosterInput): PosterResult {
       );
       const top = Math.max(0.4 * fh, headerBottom + m / 2);
       box = { x: fx + m, y: top, w: innerW, h: bandY + 0.3 * bandH - top };
+      break;
+    }
+    case 'geant': {
+      // The drawing as large as the front allows, edge to edge, standing on the foot of the
+      // bleed so its ground runs off the page, as on a printed travel poster. A drawing too wide
+      // to fill most of that height is centred in the space under the title instead, so the
+      // page keeps no empty band between the title and a small subject at the foot.
+      const top = headerBottom + m / 3;
+      box = { x: fx, y: top, w: fw, h: foot - top };
+      if (fw / input.illustration.ratio < GEANT_FILL * box.h) {
+        box = { x: fx, y: top, w: fw, h: fh - m - top };
+        base = 'middle';
+      }
       break;
     }
     default: {
