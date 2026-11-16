@@ -12,12 +12,14 @@ import {
   writeFile as saveText,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { crc32 } from 'node:zlib';
 import {
   HERITAGE_BOOST,
   applyOverrides,
   assemble,
   frenchNames,
   geonamesCandidates,
+  geonamesCities,
   geonamesRows,
   haversineKm,
   mainWords,
@@ -850,6 +852,7 @@ describe('the places of the dev countries', () => {
 
   it('names Sukhothai in French', () => {
     expect(names('TH').some((n) => /Historic Town/.test(n))).toBe(false);
+    expect(names('TH')).toContain('Sukhothaï');
   });
 });
 
@@ -963,17 +966,63 @@ describe('the GeoNames fallback', () => {
     }).rejects.toThrow(/unzip .* failed \(exit/);
   });
 
-  it('reads a member of a real zip', async () => {
+  /** A one-member zip (stored, no compression), written without any external tool. */
+  const zipOf = (member: string, text: string): Buffer => {
+    const name = Buffer.from(member);
+    const data = Buffer.from(text);
+    const crc = crc32(data);
+    const head = (sig: number, size: number): Buffer => {
+      const b = Buffer.alloc(size);
+      b.writeUInt32LE(sig, 0);
+      return b;
+    };
+    const local = head(0x04034b50, 30);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(data.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    const central = head(0x02014b50, 46);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt32LE(crc, 16);
+    central.writeUInt32LE(data.length, 20);
+    central.writeUInt32LE(data.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    const offset = local.length + name.length + data.length;
+    const end = head(0x06054b50, 22);
+    end.writeUInt16LE(1, 8);
+    end.writeUInt16LE(1, 10);
+    end.writeUInt32LE(central.length + name.length, 12);
+    end.writeUInt32LE(offset, 16);
+    return Buffer.concat([local, name, data, central, name, end]);
+  };
+
+  it('reads a member of a zip', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gn-'));
-    await saveText(join(dir, 'a.txt'), 'one\ntwo\n');
-    const { execFileSync } = await import('node:child_process');
-    try {
-      execFileSync('zip', ['-j', '-q', join(dir, 'a.zip'), join(dir, 'a.txt')]);
-    } catch {
-      return; // no `zip` on this machine: the failing-unzip test above still covers the wrapper
-    }
+    await saveText(join(dir, 'a.zip'), zipOf('a.txt', 'one\ntwo\n'));
     const lines: string[] = [];
     for await (const line of unzipLines(join(dir, 'a.zip'), 'a.txt')) lines.push(line);
     expect(lines).toEqual(['one', 'two']);
+  });
+
+  it('geonamesCities: unzips, filters the ISO, applies French names, offline', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gn-'));
+    // The zips are already in `dir`, so nothing is downloaded.
+    await saveText(join(dir, 'cities5000.zip'), zipOf('cities5000.txt', cities.join('\n') + '\n'));
+    await saveText(
+      join(dir, 'alternateNamesV2.zip'),
+      zipOf(
+        'alternateNamesV2.txt',
+        [alt(10, 1, 'fr', 'Andorre-la-Vieille', '1'), alt(11, 3, 'fr', 'Hors liste')].join('\n') +
+          '\n',
+      ),
+    );
+    const out = await geonamesCities('AD', dir);
+    expect(out.map((c) => [c.ref, c.name, c.capital])).toEqual([
+      ['gn:1', 'Andorre-la-Vieille', true],
+      ['gn:2', 'City2', false],
+    ]);
+    expect(await geonamesCities('ZZ', dir)).toEqual([]);
   });
 });
