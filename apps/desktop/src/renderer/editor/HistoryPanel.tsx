@@ -7,6 +7,7 @@ import { useProject } from '../store/project';
 import { fr } from '../strings/fr';
 import { assetUrl } from './assetUrl';
 import { spreadName } from './pages';
+import { useMapGeometryLookup } from '../maps/geometryCache';
 import './HistoryPanel.css';
 
 const t = fr.history;
@@ -27,6 +28,7 @@ type Snapshot = { status: 'loading' } | { status: 'error' } | { status: 'ready';
 
 /** One spread of a snapshot, drawn by the single renderer at the size of the dialog. */
 function SnapshotSpread({ book, spread }: { book: Book; spread: Spread }) {
+  const mapGeometry = useMapGeometryLookup();
   const size = spreadSize(book, spread);
   const scale = PREVIEW_HEIGHT / (size.h * MM_TO_PX);
   return (
@@ -35,7 +37,13 @@ function SnapshotSpread({ book, spread }: { book: Book; spread: Spread }) {
       style={{ width: size.w * MM_TO_PX * scale, height: PREVIEW_HEIGHT }}
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0' }}>
-        <SpreadView book={book} spread={spread} quality="preview" assetUrl={assetUrl} />
+        <SpreadView
+          book={book}
+          spread={spread}
+          quality="preview"
+          assetUrl={assetUrl}
+          mapGeometry={mapGeometry}
+        />
       </div>
     </div>
   );

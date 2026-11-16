@@ -41,6 +41,7 @@ import {
 import { DRAG_SLOP_PX, useTransform } from './useTransform';
 import { useZoomPan } from './useZoomPan';
 import type { Element, PhotoElement, Rect } from '@travelbook/core';
+import { useMapGeometryLookup } from '../maps/geometryCache';
 import './PhotoEditing.css';
 
 /** How long a notice stays up, in ms. */
@@ -58,6 +59,7 @@ const DEFAULT_TEXT_H = 12;
  * screen px.
  */
 export function Canvas() {
+  const mapGeometry = useMapGeometryLookup();
   const book = useEditor((s) => s.book);
   const currentId = useEditor((s) => s.currentSpreadId);
   const selection = useEditor((s) => s.selection);
@@ -323,6 +325,7 @@ export function Canvas() {
                     spread={spread}
                     quality="preview"
                     assetUrl={assetUrl}
+                    mapGeometry={mapGeometry}
                     showEmptySlots
                     renderElement={renderElement}
                   />
