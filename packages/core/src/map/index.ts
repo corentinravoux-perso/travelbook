@@ -4,6 +4,7 @@ export {
   MAP_MARKERS,
   MAP_PLACE_KINDS,
   MapElementSchema,
+  MapGeometrySchema,
   MapStyleSchema,
 } from './schema';
 export {

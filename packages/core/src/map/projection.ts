@@ -48,6 +48,10 @@ export interface MapGeometry {
 /** Coordinates are clamped to this: a place at the far side of a transverse Mercator is infinite. */
 const FAR = 1e7;
 const MIN_SCALE = 1e-6;
+/** A user zoom is kept within this factor of the default fit, either way. */
+const ZOOM_LIMIT = 1000;
+/** Boxes are kept under this many mm (a kilometre): nothing on a page is larger. */
+const MAX_BOX = 1e6;
 /** Standard parallels when a conic has none: the middle latitudes. */
 const MID_PARALLELS: [number, number] = [30, 60];
 
@@ -114,7 +118,8 @@ export function projectPlace(p: ProjectionParams, lon: number, lat: number): [nu
  * taller or wider box shows more context and never stretches the land.
  *
  * A user `frame` is a pan and a zoom: `center` (degrees) goes to the middle of the box, and `scale`
- * multiplies the default fit (1 is the default zoom), so it still means the same after a resize.
+ * multiplies the default fit (1 is the default zoom, kept within 1/1000..1000), so it still means
+ * the same after a resize.
  * A frame that cannot be used is the default frame. The result is always finite, `scale > 0`.
  */
 export function fitFrame(
@@ -125,8 +130,8 @@ export function fitFrame(
   marginRatio = 0.06,
 ): { scale: number; dx: number; dy: number } {
   const [[x0, y0], [x1, y1]] = includeRemote ? g.remoteBounds : g.bounds;
-  const w = Math.max(0, finite(box.w));
-  const h = Math.max(0, finite(box.h));
+  const w = Math.min(MAX_BOX, Math.max(0, finite(box.w)));
+  const h = Math.min(MAX_BOX, Math.max(0, finite(box.h)));
   const margin = Math.min(0.49, Math.max(0, finite(marginRatio)));
   const bw = x1 - x0;
   const bh = y1 - y0;
@@ -145,7 +150,7 @@ export function fitFrame(
     Number.isFinite(frame.center[0]) &&
     Number.isFinite(frame.center[1])
   ) {
-    scale = base * frame.scale;
+    scale = base * Math.min(ZOOM_LIMIT, Math.max(1 / ZOOM_LIMIT, frame.scale));
     [cx, cy] = projectPlace(g.projection, frame.center[0], frame.center[1]);
   }
   return { scale, dx: w / 2 - scale * cx, dy: h / 2 - scale * cy };

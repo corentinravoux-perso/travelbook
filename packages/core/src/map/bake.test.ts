@@ -185,6 +185,47 @@ describe('bakeGeometry, chosen regions', () => {
     expect(Math.min(...points(crete.paths.land).map(([x]) => x))).toBeLessThan(-500);
   });
 
+  describe('with a pack, on California', () => {
+    const us = subjectTopology('US');
+    const pack = packTopology('US');
+    const chosen = subject('US', { regions: ['US-CA'] });
+    const clean = bakeGeometry(us, pack, chosen, 'auto', null, 1);
+    const hand = bakeGeometry(us, pack, chosen, 'auto', { seed: 1, roughness: 1 }, 1);
+    const total = (g: MapGeometry): number => Object.values(g.paths).join('').length;
+
+    it('clips the context to a window of eight selection extents around the selection', () => {
+      // California is 1000 units high: the window is 8000 units wide, centred on the bounds
+      const cx = (clean.bounds[0][0] + clean.bounds[1][0]) / 2;
+      const cy = (clean.bounds[0][1] + clean.bounds[1][1]) / 2;
+      for (const name of ['land', 'regions', 'neighbours', 'lakes'] as const) {
+        for (const [x, y] of points(clean.paths[name])) {
+          expect(Math.abs(x - cx)).toBeLessThanOrEqual(4000.01);
+          expect(Math.abs(y - cy)).toBeLessThanOrEqual(4000.01);
+        }
+      }
+      // and the window does hold context: the east coast is three extents away
+      expect(Math.max(...points(clean.paths.land).map(([x]) => x))).toBeGreaterThan(2500);
+    });
+
+    it('is smaller than before the window (3 949 768 characters), and under 8 M with rough', () => {
+      expect(total(clean)).toBeLessThan(3_949_768);
+      expect(total(hand)).toBeLessThan(8_000_000);
+    });
+
+    it('draws only the outline and the borders of the selection by hand', () => {
+      expect(hand.paths.outline).not.toBe(clean.paths.outline);
+      for (const name of ['land', 'selected', 'neighbours', 'lakes'] as const) {
+        expect(hand.paths[name]).toBe(clean.paths[name]);
+      }
+      // the borders of the context states stay straight lines, those of California are curves
+      expect(hand.paths.regions).toMatch(/L/);
+      expect(hand.paths.regions).toMatch(/C/);
+      expect(hand.paths.regions.length).toBeLessThan(clean.paths.regions.length * 2);
+      expect(hand.bounds).toEqual(clean.bounds);
+      expect(hand.projection).toEqual(clean.projection);
+    });
+  });
+
   it('treats a pack without regions as no pack', () => {
     const empty = { type: 'Topology', arcs: [], objects: {} } as Topology;
     expect(bakeGeometry(th, empty, subject('TH'), 'auto', null, 1)).toEqual(bakeTh());
@@ -237,8 +278,12 @@ describe('bakeGeometry, detail', () => {
     expect(one([krabi, phangNga])).toBeLessThan(one([krabi]) + one([phangNga]));
   });
 
-  it('keeps the bounds close to the unsimplified ones', () => {
-    expect(coarse.bounds[1][1]).toBeCloseTo(full.bounds[1][1], -1);
+  it('does not move the frame with the detail: same projection and bounds at every level', () => {
+    for (const other of [coarse, middle]) {
+      expect(other.projection).toEqual(full.projection);
+      expect(other.bounds).toEqual(full.bounds);
+      expect(other.remoteBounds).toEqual(full.remoteBounds);
+    }
   });
 
   it('detail 1 leaves the geometry as it is, and a bad detail is detail 1', () => {
@@ -251,6 +296,61 @@ describe('bakeGeometry, detail', () => {
   it('never loses a selected region to the islet filter', () => {
     const phuket = regionId('TH', 'Phuket');
     expect(bakeTh({ regions: [phuket] }, 0).paths.selected.length).toBeGreaterThan(20);
+  });
+});
+
+describe('bakeGeometry, slivers that collapse inside out', () => {
+  // A thin crescent A -> B (outer edge bulging west, three points) back through P: clockwise, with
+  // the junctions A, B and P an anticlockwise triangle. Dropping the bulge leaves that triangle,
+  // which d3 reads as the whole globe minus a speck.
+  const A = [20, 5];
+  const B = [20, 5.004];
+  const P = [19.9999, 5.002];
+  const crescent: Topology = {
+    type: 'Topology',
+    arcs: [
+      box(0, 0, 10, 10),
+      [A, [19.9998, 5.001], [19.99975, 5.002], [19.9998, 5.003], B],
+      [B, P],
+      [P, A],
+    ],
+    objects: {
+      land: {
+        type: 'GeometryCollection',
+        geometries: [{ type: 'MultiPolygon', arcs: [[[0]], [[1, 2, 3]]], properties: { id: 'X' } }],
+      },
+      regions: { type: 'GeometryCollection', geometries: [] },
+      neighbours: { type: 'GeometryCollection', geometries: [] },
+      lakes: { type: 'GeometryCollection', geometries: [] },
+    },
+  };
+
+  it.each([1, 0.5, 0])('keeps finite paths and bounds at detail %s', (detail) => {
+    const g = bakeGeometry(crescent, null, subject('X'), 'auto', null, detail);
+    expect(g.paths.land).not.toMatch(/NaN|Infinity/);
+    expect(g.bounds[1][0] - g.bounds[0][0]).toBeGreaterThan(900);
+    expect(g.bounds.flat().every(Number.isFinite)).toBe(true);
+    for (const [x, y] of points(g.paths.land)) {
+      expect(Math.abs(x)).toBeLessThan(5000);
+      expect(Math.abs(y)).toBeLessThan(5000);
+    }
+  });
+
+  it('drops the collapsed ring, and any ring of fewer than four points', () => {
+    const coarse = simplifyTopology(crescent, 1100, 8);
+    const land = coarse.objects.land as GeometryCollection;
+    expect((land.geometries[0] as { arcs: unknown[] }).arcs).toHaveLength(1);
+  });
+
+  it('frames a subject whose raw data holds an inside-out ring as if it were not there', () => {
+    const inside = JSON.parse(JSON.stringify(crescent)) as Topology;
+    // walk the crescent's ring the other way round: anticlockwise, the complement to d3
+    (inside.objects.land as GeometryCollection).geometries = [
+      { type: 'MultiPolygon', arcs: [[[0]], [[~3, ~2, ~1]]], properties: { id: 'X' } },
+    ];
+    const g = bakeGeometry(inside, null, subject('X'), 'auto', null, 1);
+    expect(g.bounds.flat().every(Number.isFinite)).toBe(true);
+    expect(g.bounds[1][0] - g.bounds[0][0]).toBeGreaterThan(900);
   });
 });
 
