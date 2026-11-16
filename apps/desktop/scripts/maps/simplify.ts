@@ -190,8 +190,11 @@ async function overlapOf(
   const tiles = (JSON.parse(String(out['tiles.json'])) as Collection).features;
   let union = 0;
   for (const tile of tiles) {
-    const area = featureAreaKm2(tile);
     const ids = ((tile.properties.ids ?? []) as number[]).slice().sort((x, y) => x - y);
+    // `-mosaic` also returns the holes of the union (an enclave, the gap between four regions):
+    // no region covers them, so they are not part of the union
+    if (ids.length === 0) continue;
+    const area = featureAreaKm2(tile);
     union += area;
     for (const [n, i] of ids.entries()) {
       for (const j of ids.slice(n + 1))

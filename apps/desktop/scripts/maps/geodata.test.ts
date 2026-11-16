@@ -13,6 +13,7 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { crc32 } from 'node:zlib';
+import { PERSPECTIVE_OVERRIDES, acceptedBy, keepOwnPerspective } from './perspectives.ts';
 import {
   HERITAGE_BOOST,
   applyOverrides,
@@ -1437,9 +1438,155 @@ describe('overlapping regions', () => {
     expect(halves.ratioAfter).toBeGreaterThan(1.002); // reported, not "fixed"
   });
 
+  it('does not count the gap between four boxes around an empty centre as covered', async () => {
+    // a pinwheel in a 3 x 3 square: each rectangle is 2 x 1, the 1 x 1 centre belongs to none
+    const rect = (id: string, x0: number, y0: number, x1: number, y1: number): Feature => ({
+      type: 'Feature',
+      properties: { id, name: `Région ${id}` },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [x0, y0],
+            [x0, y1],
+            [x1, y1],
+            [x1, y0],
+            [x0, y0],
+          ],
+        ],
+      },
+    });
+    const pinwheel = [
+      rect('south', 0, 0, 2, 1),
+      rect('east', 2, 0, 3, 2),
+      rect('north', 1, 2, 3, 3),
+      rect('west', 0, 1, 1, 3),
+    ];
+    const clean = await cutOverlappingRegions(pinwheel);
+    expect(clean.regions).toBe(pinwheel);
+    expect(clean.ratio).toBeCloseTo(1, 3);
+    // a real overlap (3 % of the covered area) must not hide behind the hole (11 % of the square)
+    const small = rect('small', 1.2, 2.2, 1.7, 2.7); // inside "north"
+    const result = await cutOverlappingRegions([...pinwheel, small]);
+    expect(result.ratio).toBeCloseTo(8.25 / 8, 3);
+    expect(result.cuts).toHaveLength(1);
+    expect(result.cuts[0]).toMatchObject({ id: 'north', by: [{ id: 'small' }] });
+    expect(result.ratioAfter).toBeCloseTo(1, 3);
+  });
+
   it('handles zero or one region', async () => {
     expect((await cutOverlappingRegions([])).regions).toEqual([]);
     expect((await cutOverlappingRegions([box('a', 0, 0, 1)])).regions).toHaveLength(1);
+  });
+});
+
+describe('the perspectives of the divisions', () => {
+  const ids = (features: Feature[]): string[] => features.map((f) => String(f.properties.id));
+  const persp = (mode: 'accepted_by' | 'disputed_by', ...countries: string[]) => ({
+    mode,
+    countries,
+  });
+
+  it('accepts a division without perspectives, one accepted by the country, one not disputed by it', () => {
+    expect(acceptedBy(null, 'IN')).toBe(true);
+    expect(acceptedBy(undefined, 'IN')).toBe(true);
+    expect(acceptedBy(persp('accepted_by', 'IN', 'BT'), 'IN')).toBe(true);
+    expect(acceptedBy(persp('disputed_by', 'CN'), 'IN')).toBe(true);
+  });
+
+  it('rejects a division accepted only by others, or disputed by the country', () => {
+    expect(acceptedBy(persp('accepted_by', 'CN'), 'IN')).toBe(false);
+    expect(acceptedBy(persp('disputed_by', 'IN', 'BT'), 'IN')).toBe(false);
+    expect(acceptedBy(persp('accepted_by'), 'IN')).toBe(false); // accepted by nobody
+  });
+
+  const known = [
+    { country: 'IN', id: 'south-tibet', perspectives: persp('accepted_by', 'CN') },
+    { country: 'IN', id: 'IN-XX', perspectives: persp('disputed_by', 'IN') },
+    { country: 'IN', id: 'by-india', perspectives: persp('accepted_by', 'IN') },
+    // the same id under another country is another division
+    { country: 'CN', id: 'claim-of-cn', perspectives: persp('accepted_by', 'CN') },
+  ];
+  const feature = (id: string): Feature => box(id, 0, 0, 1);
+
+  it('keeps the divisions of the subject country, in order, and lists those it left out', () => {
+    const rows = ['IN-AR', 'south-tibet', 'IN-XX', 'by-india', 'claim-of-cn'].map(feature);
+    const { kept, left } = keepOwnPerspective(rows, 'IN', known);
+    expect(kept.map((f) => f.properties.id)).toEqual(['IN-AR', 'by-india', 'claim-of-cn']);
+    expect(left.map((l) => [l.feature.properties.id, l.perspectives.mode])).toEqual([
+      ['south-tibet', 'accepted_by'],
+      ['IN-XX', 'disputed_by'],
+    ]);
+    // seen from CN, South Tibet is accepted
+    expect(
+      keepOwnPerspective([feature('south-tibet')], 'CN', [
+        { country: 'CN', id: 'south-tibet', perspectives: persp('accepted_by', 'CN') },
+      ]).left,
+    ).toEqual([]);
+  });
+
+  it('knows the Chinese South Tibet that the world run found among the regions of India', () => {
+    const southTibet = '62e7b386-6708-4787-94d4-90c20cbbf7f8';
+    const { kept, left } = keepOwnPerspective(
+      [feature('06a778a5-2107-4114-b086-c2f45550ddeb'), feature(southTibet)],
+      'IN',
+      PERSPECTIVE_OVERRIDES,
+    );
+    expect(kept.map((f) => f.properties.id)).toEqual(['06a778a5-2107-4114-b086-c2f45550ddeb']);
+    expect(left.map((l) => l.feature.properties.id)).toEqual([southTibet]);
+  });
+
+  it('keeps Arunachal Pradesh whole, where the Chinese claim over it used to cut it to 18 %', async () => {
+    // Arunachal Pradesh 10 x 10, "South Tibet" over 82 % of it, as in the world run
+    const arunachal = box('IN-AR', 0, 0, 10);
+    const southTibet: Feature = {
+      ...box('south-tibet', 0, 0, 10),
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [0, 10],
+            [8.2, 10],
+            [8.2, 0],
+            [0, 0],
+          ],
+        ],
+      },
+    };
+    const assam = box('IN-AS', 10, 0, 10);
+    const rows = [arunachal, southTibet, assam];
+
+    // without the filter: the larger region is cut by the one inside it
+    const before = await cutOverlappingRegions(rows);
+    expect(before.cuts[0]).toMatchObject({ id: 'IN-AR', by: [{ id: 'south-tibet' }] });
+    expect(before.cuts[0]?.left).toBeLessThan(0.2);
+
+    const { kept } = keepOwnPerspective(rows, 'IN', [
+      { country: 'IN', id: 'south-tibet', perspectives: persp('accepted_by', 'CN') },
+    ]);
+    const after = await cutOverlappingRegions(kept);
+    expect(ids(after.regions)).toEqual(['IN-AR', 'IN-AS']);
+    expect(after.cuts).toEqual([]); // nothing cut: the regions tile
+    expect(after.regions).toBe(kept);
+    expect(after.regions[0]).toBe(arunachal); // the very same polygon
+  });
+
+  /** The tiling of a parent by its districts (Azerbaijan's Nakhchivan): the parent goes, nothing is lost. */
+  it('lets the districts replace a parent they tile, and the land does not change', async () => {
+    const parent = box('AZ-NX', 0, 0, 2);
+    const districts = [
+      box('d1', 0, 0, 1),
+      box('d2', 1, 0, 1),
+      box('d3', 0, 1, 1),
+      box('d4', 1, 1, 1),
+    ];
+    const result = await cutOverlappingRegions([parent, ...districts]);
+    expect(result.dropped.map((d) => d.id)).toEqual(['AZ-NX']);
+    expect(result.dropped[0]?.left).toBeLessThan(0.0001);
+    const covered = (list: Feature[]): number =>
+      list.reduce((sum, f) => sum + featureAreaKm2(f), 0);
+    expect(covered(result.regions)).toBeCloseTo(featureAreaKm2(parent), 0);
   });
 });
 

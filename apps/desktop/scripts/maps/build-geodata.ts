@@ -14,7 +14,10 @@
  * `resources/maps/index.json`. Without `--only` it rebuilds every subject and the index from
  * scratch. It builds everything into `scripts/maps/out/staging/` first and swaps the files in when
  * all subjects are built, so a crash or a failing subject leaves the previous outputs untouched;
- * the subject and pack files that the new index does not list are removed afterwards.
+ * the subject and pack files that the new index does not list are removed afterwards. A subject
+ * draws the divisions of its own country's point of view only: one that only another country's
+ * perspective accepts (Chinese "South Tibet" among the regions of India) is left out, see
+ * `perspectives.ts`.
  *
  *   npm run maps -w @travelbook/desktop -- places [--only=TH,PE]
  *
@@ -45,6 +48,7 @@ import {
   fetchDivisions,
   fetchLakes,
   fetchLand,
+  fetchPerspectives,
   type DivisionLevel,
   type CatalogEntry,
 } from './overture.ts';
@@ -61,6 +65,11 @@ import {
 } from './outputs.ts';
 import { appFileUrl } from './paths.ts';
 import { buildPlaces, skippedLines, type SkippedPlaces } from './places.ts';
+import {
+  PERSPECTIVE_OVERRIDES,
+  keepOwnPerspective,
+  type PerspectiveFilter,
+} from './perspectives.ts';
 import {
   OVERLAP_TOLERANCE,
   bboxOf,
@@ -146,8 +155,22 @@ async function loadLand(def: SubjectDef): Promise<Feature> {
 /** The level whose divisions are the subject's regions. */
 const regionsLevel = (def: SubjectDef): DivisionLevel => (def.part ? 'county' : 'region');
 
-const loadLevel = (def: SubjectDef, level: DivisionLevel): Promise<Feature[]> =>
-  fetchDivisions(def.country, level, def.part?.region);
+/**
+ * The divisions of one level, as the subject's own country sees them: a division that only
+ * another country's perspective accepts (see `perspectives.ts`) is left out. `left` lists them.
+ */
+async function loadLevelWithLeft(
+  def: SubjectDef,
+  level: DivisionLevel,
+): Promise<{ features: Feature[]; left: PerspectiveFilter['left'] }> {
+  const rows = await fetchDivisions(def.country, level, def.part?.region);
+  const known = [...(await fetchPerspectives()), ...PERSPECTIVE_OVERRIDES];
+  const { kept, left } = keepOwnPerspective(rows, def.country, known);
+  return { features: kept, left };
+}
+
+const loadLevel = async (def: SubjectDef, level: DivisionLevel): Promise<Feature[]> =>
+  (await loadLevelWithLeft(def, level)).features;
 
 /**
  * The regions of a subject: `all` as Overture lists them, and `kept`, where a region that lies
@@ -155,7 +178,13 @@ const loadLevel = (def: SubjectDef, level: DivisionLevel): Promise<Feature[]> =>
  * draw `kept`, so their region ids stay the same; the land is still the union of `all`.
  */
 async function loadRegions(def: SubjectDef): Promise<{ all: Feature[]; kept: Feature[] }> {
-  const all = await loadLevel(def, regionsLevel(def));
+  const { features: all, left } = await loadLevelWithLeft(def, regionsLevel(def));
+  for (const { feature, perspectives } of left) {
+    console.log(
+      `  ${def.id}: ${String(feature.properties.name)} (${String(feature.properties.id)}) left out: ` +
+        `${perspectives.mode} ${perspectives.countries.join(',')}, not ${def.country}`,
+    );
+  }
   const ids = new Set<string>();
   for (const row of all) {
     const id = String(row.properties.id);
