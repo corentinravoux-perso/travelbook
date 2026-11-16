@@ -5,6 +5,23 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Affiches: Machu Picchu, a new Peru poster (Géant): Huayna Picchu over the citadel, its
+  terraces, a llama and an Inca wall, modelled in volume with ink linework.
+- Cover: "Avec tranche / Sans tranche" on the cover toolbar and in "Créer une affiche…", with
+  the spine width in mm (a first guess from the page count). The dialog previews the choice and
+  applies it with the poster, in one undo step; the volume view of a book without spine shows
+  only a thin edge.
+- Aperçu: "Zones rognées" (on by default) draws the bleed and hatches what the cut removes, the
+  folds and the spine dashed, so the part of a photo the print trims off is visible.
+
+### Fixed
+
+- Affiches: a large accented title (PÉROU, ÉCOSSE in Géant) no longer pushes its accent past
+  the trim: the title moves down until the accent is inside the safe margin.
+- Removing the spine removes the spine title, which would otherwise straddle the fold.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added
