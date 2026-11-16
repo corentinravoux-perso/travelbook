@@ -7,6 +7,7 @@ export function mapStyle(): MapStyle {
     land: { fill: '#f4e7c9', stroke: '#8b5e3c', width: 0.55 },
     regions: { stroke: '#d6c196', width: 0.15, dash: null },
     neighbours: { fill: '#ece3cf', stroke: '#d6c196', width: 0.2 },
+    lakes: { fill: '#bcd4e0', stroke: '#8b5e3c', width: 0.2 },
     outline: { color: '#8b5e3c', width: 0.55, detail: 1 },
     label: {
       font: 'Lora',
@@ -58,6 +59,7 @@ export function mapElement(): MapElement {
       regions: [],
       showRegions: true,
       showNeighbours: false,
+      showLakes: true,
       includeRemote: false,
     },
     frame: null,

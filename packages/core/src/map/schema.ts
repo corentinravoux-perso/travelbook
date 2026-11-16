@@ -72,6 +72,7 @@ export const MapStyleSchema = z.object({
   land: z.object({ fill: paint, stroke: paint, width: nonNegMm }),
   regions: z.object({ stroke: paint, width: nonNegMm, dash }),
   neighbours: z.object({ fill: paint, stroke: paint, width: nonNegMm }),
+  lakes: z.object({ fill: paint, stroke: paint, width: nonNegMm }),
   outline: z.object({ color: paint, width: nonNegMm, detail: unit }),
   label: z.object({
     font: z.string().min(1),
@@ -107,6 +108,7 @@ export const MapElementSchema = z.object({
     regions: z.array(id),
     showRegions: z.boolean(),
     showNeighbours: z.boolean(),
+    showLakes: z.boolean(),
     includeRemote: z.boolean(),
   }),
   frame: z.object({ center: z.tuple([lon, lat]), scale: z.number().positive() }).nullable(),
