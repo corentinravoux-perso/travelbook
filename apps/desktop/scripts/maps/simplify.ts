@@ -133,12 +133,103 @@ export const COVERAGE_MIN = 0.98;
 const polygonAreaKm2 = (polygon: number[][][]): number =>
   polygon.reduce((sum, ring, i) => sum + (i === 0 ? 1 : -1) * ringAreaKm2(ring), 0);
 
+/** Area of a feature in km2, holes removed. */
+export const featureAreaKm2 = (feature: Feature): number =>
+  polygonsOf(feature.geometry).reduce((sum, polygon) => sum + polygonAreaKm2(polygon), 0);
+
 /** Area of the features (holes removed) over the area of `land`; ~ the union's coverage. */
 export function coverage(land: Feature, features: Feature[]): number {
-  const area = (f: Feature): number =>
-    polygonsOf(f.geometry).reduce((s, p) => s + polygonAreaKm2(p), 0);
-  const total = area(land);
-  return total > 0 ? features.reduce((s, f) => s + area(f), 0) / total : 0;
+  const total = featureAreaKm2(land);
+  return total > 0 ? features.reduce((s, f) => s + featureAreaKm2(f), 0) / total : 0;
+}
+
+/** Summed area of the regions may exceed the area of their union by this share (border noise). */
+export const OVERLAP_TOLERANCE = 0.002;
+/** A region at least this much covered by the other regions is a parent (or a duplicate). */
+export const PARENT_COVERED_MIN = 0.9;
+
+export interface DroppedRegion {
+  id: string;
+  name: string;
+  /** Share of the region's area that lay under the other regions when it was dropped. */
+  covered: number;
+  areaKm2: number;
+}
+
+export interface OverlapResult {
+  kept: Feature[];
+  dropped: DroppedRegion[];
+  /** Summed area of the regions over the area of their union, before and after. */
+  ratio: number;
+  ratioAfter: number;
+}
+
+/** Areas of the regions, of their union, and of the part of each that lies under another one. */
+async function overlapOf(
+  regions: Feature[],
+): Promise<{ union: number; own: number[]; covered: number[] }> {
+  const own = regions.map(featureAreaKm2);
+  if (regions.length < 2) return { union: own[0] ?? 0, own, covered: own.map(() => 0) };
+  const input = collection(regions.map((r, i) => ({ ...r, properties: { i } })));
+  const out = await mapshaper.applyCommands(
+    '-i regions.json -mosaic calc="ids=collect(i)" -o format=geojson tiles.json',
+    { 'regions.json': input },
+  );
+  const tiles = (JSON.parse(String(out['tiles.json'])) as Collection).features;
+  const covered = regions.map(() => 0);
+  let union = 0;
+  for (const tile of tiles) {
+    const area = featureAreaKm2(tile);
+    const ids = (tile.properties.ids ?? []) as number[];
+    union += area;
+    if (ids.length < 2) continue;
+    for (const i of ids) covered[i] = (covered[i] ?? 0) + area;
+  }
+  return { union, own, covered };
+}
+
+/**
+ * Overlapping regions are drawn twice: Alaska's "Unorganized Borough" holds "Prince of Wales-Hyder",
+ * so the two sum to more than the land they cover. When the regions' summed area exceeds the area
+ * of their union by more than `OVERLAP_TOLERANCE`, drop the region that is at least
+ * `PARENT_COVERED_MIN` covered by the others, the largest first (a parent that its children tile
+ * goes before the children, which the parent covers too), and measure again, until the summed
+ * area is back within tolerance or no such region is left. A clean tiling is returned as it is.
+ */
+export async function dropCoveredRegions(regions: Feature[]): Promise<OverlapResult> {
+  let kept = regions;
+  const dropped: DroppedRegion[] = [];
+  let measured = await overlapOf(kept);
+  const ratioOf = (m: typeof measured): number =>
+    m.union > 0 ? m.own.reduce((a, b) => a + b, 0) / m.union : 1;
+  const ratio = ratioOf(measured);
+  while (ratioOf(measured) > 1 + OVERLAP_TOLERANCE) {
+    const m = measured;
+    const candidates = kept
+      .map((region, i) => ({
+        region,
+        i,
+        area: m.own[i] ?? 0,
+        share: (m.covered[i] ?? 0) / (m.own[i] || 1),
+      }))
+      .filter((c) => c.share >= PARENT_COVERED_MIN)
+      .sort(
+        (a, b) =>
+          b.area - a.area ||
+          String(a.region.properties.id).localeCompare(String(b.region.properties.id)),
+      );
+    const parent = candidates[0];
+    if (!parent) break;
+    dropped.push({
+      id: String(parent.region.properties.id),
+      name: String(parent.region.properties.name),
+      covered: parent.share,
+      areaKm2: parent.area,
+    });
+    kept = kept.filter((_, i) => i !== parent.i);
+    measured = await overlapOf(kept);
+  }
+  return { kept, dropped, ratio, ratioAfter: ratioOf(measured) };
 }
 
 /**
@@ -326,4 +417,31 @@ export async function buildPack(regions: Feature[], mode: PackMode = 'finest'): 
   const object = topology.objects.regions;
   if (!object) throw new Error('pack: mapshaper produced no regions object');
   return { ...topology, objects: { regions: object } };
+}
+
+/** `finest` is kept unless its file is more than this many times the `per-region` one. */
+export const FINEST_MAX_RATIO = 3;
+
+/** The mode of a pack from the sizes of both builds: `finest`, unless it is far larger. */
+export function pickPackMode(finestBytes: number, perRegionBytes: number): PackMode {
+  return finestBytes > FINEST_MAX_RATIO * perRegionBytes ? 'per-region' : 'finest';
+}
+
+/**
+ * The pack of one subject as JSON, and the mode it was built with. A forced `mode` builds that one.
+ * Otherwise both are built and `pickPackMode` chooses; `ratio` is then the size of `finest` over
+ * `per-region` (`null` when the mode is forced).
+ */
+export async function buildBestPack(
+  regions: Feature[],
+  forced?: PackMode,
+  build: typeof buildPack = buildPack,
+): Promise<{ json: string; mode: PackMode; ratio: number | null }> {
+  if (forced)
+    return { json: JSON.stringify(await build(regions, forced)), mode: forced, ratio: null };
+  const finest = JSON.stringify(await build(regions, 'finest'));
+  const perRegion = JSON.stringify(await build(regions, 'per-region'));
+  const [a, b] = [Buffer.byteLength(finest), Buffer.byteLength(perRegion)];
+  const mode = pickPackMode(a, b);
+  return { json: mode === 'finest' ? finest : perRegion, mode, ratio: a / b };
 }

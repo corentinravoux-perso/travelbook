@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MapIndex } from './build-geodata.ts';
 import { LAKES_URL, NATURAL_EARTH_COMMIT, OVERTURE_RELEASE } from './overture.ts';
 import {
@@ -24,6 +24,8 @@ import {
   haversineKm,
   mainWords,
   newCities,
+  sightsOf,
+  skippedLines,
   unzipLines,
   type BundledPlace,
   type CityCandidate,
@@ -31,7 +33,9 @@ import {
   type PlacesOverrides,
 } from './places.ts';
 import {
+  IncompleteSightsError,
   SIGHT_CLASSES,
+  TIMEOUT_ATTEMPTS,
   USER_AGENT,
   categoryOf,
   fetchSights,
@@ -42,20 +46,25 @@ import {
   type RawSight,
 } from './wikidata.ts';
 import {
+  buildBestPack,
   buildPack,
   coverage,
+  dropCoveredRegions,
   dropSmallHoles,
   extentKm,
   mainBbox,
   minAreaKm2,
   pickLandLevel,
+  pickPackMode,
   quantizationFor,
   ringAreaKm2,
   scaleBbox,
   toleranceMetres,
   type Feature,
+  type PackMode,
+  type Topology,
 } from './simplify.ts';
-import { placesIso, selectSubjects, subjectDefs } from './subjects.ts';
+import { isosOf, placesIso, selectSubjects, subjectDefs } from './subjects.ts';
 
 const MAPS_DIR = join(import.meta.dirname, '../../resources/maps');
 const index = JSON.parse(readFileSync(join(MAPS_DIR, 'index.json'), 'utf8')) as MapIndex;
@@ -679,31 +688,90 @@ describe('the Wikidata client', () => {
     expect(parseSights(raw)[0]?.worldHeritage).toBe(true);
   });
 
-  it('caches each class under its own file and skips a class that times out', async () => {
+  it('asks a query that timed out again, with a growing wait, then gives up', async () => {
+    const waits: number[] = [];
+    const sleep = async (ms: number): Promise<void> => void waits.push(ms);
+    let calls = 0;
+    const flaky = (async () => {
+      calls += 1;
+      return calls < 3 ? new Response('', { status: 504 }) : new Response('{"ok":true}');
+    }) as unknown as typeof fetch;
+    expect(await runSparql('SELECT 1', flaky, sleep)).toBe('{"ok":true}');
+    expect(calls).toBe(3);
+    expect(waits).toEqual([20_000, 40_000]);
+
+    waits.length = 0;
+    calls = 0;
+    const down = (async () => {
+      calls += 1;
+      return new Response('java.util.concurrent.TimeoutException', { status: 500 });
+    }) as unknown as typeof fetch;
+    await expect(runSparql('SELECT 1', down, sleep)).rejects.toMatchObject({ status: 500 });
+    expect(calls).toBe(TIMEOUT_ATTEMPTS);
+    expect(waits).toHaveLength(TIMEOUT_ATTEMPTS - 1);
+  });
+
+  it('retries a dropped connection, and gives up on a persistent one', async () => {
+    const waits: number[] = [];
+    let calls = 0;
+    const fake = (async () => {
+      calls += 1;
+      if (calls < 3) throw new TypeError('fetch failed');
+      return new Response('{}');
+    }) as unknown as typeof fetch;
+    await runSparql('SELECT 1', fake, async (ms) => void waits.push(ms));
+    expect(waits).toEqual([5_000, 10_000]);
+    const dead = (async () => {
+      throw new TypeError('fetch failed');
+    }) as unknown as typeof fetch;
+    await expect(runSparql('SELECT 1', dead, async () => {})).rejects.toThrow('fetch failed');
+  });
+
+  it('caches each class under its own file; a class that keeps timing out fails the country', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'wikidata-'));
     let calls = 0;
+    let islandDown = true;
     const fake = (async (url: string) => {
       calls += 1;
       const query = decodeURIComponent(new URL(url).searchParams.get('query') ?? '');
-      return query.includes('wd:Q23442')
+      return islandDown && query.includes('wd:Q23442')
         ? new Response('', { status: 504 })
         : new Response('{"results":{"bindings":[]}}');
     }) as unknown as typeof fetch;
-    const raws = await fetchSights('XX', fake, async () => {}, dir);
     const total = SIGHT_CLASSES.reduce((n, c) => n + Math.max(1, c.seeds.length), 0);
-    expect(raws).toHaveLength(total - 1);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const failure = await fetchSights('XX', fake, async () => {}, dir).catch((e: unknown) => e);
+    expect(failure).toBeInstanceOf(IncompleteSightsError);
+    warn.mockRestore();
+    expect(failure).toMatchObject({ iso: 'XX', classes: ['island-Q23442'] });
+    expect(calls).toBe(total - 1 + TIMEOUT_ATTEMPTS);
     const files = (await listDir(dir)).sort();
     expect(files).toContain('XX-heritage.json');
     expect(files).toContain('XX-lake-Q23397.json');
     expect(files).toContain('XX-temple-Q5393308.json');
     expect(files).not.toContain('XX-island-Q23442.json');
     expect(files).toHaveLength(total - 1);
-    // A second run asks again only for the class that failed.
+    // The next run asks again only for the class that failed, and now has them all.
     calls = 0;
-    await fetchSights('XX', fake, async () => {}, dir);
+    islandDown = false;
+    const raws = await fetchSights('XX', fake, async () => {}, dir);
     expect(calls).toBe(1);
+    expect(raws).toHaveLength(total);
     const lake = await readText(join(dir, 'XX-lake-Q23397.json'), 'utf8');
     expect(lake).toContain('bindings');
+  });
+
+  it('stops at once on a failure that is not a timeout (a ban, a bad query)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'wikidata-'));
+    let calls = 0;
+    const banned = (async () => {
+      calls += 1;
+      return new Response('', { status: 403 });
+    }) as unknown as typeof fetch;
+    await expect(fetchSights('XX', banned, async () => {}, dir)).rejects.toMatchObject({
+      status: 403,
+    });
+    expect(calls).toBe(1);
   });
 
   it('merges the rows of one item and drops the unlabelled ones', () => {
@@ -1233,5 +1301,143 @@ describe('the GeoNames fallback', () => {
       ['gn:2', 'City2', false],
     ]);
     expect(await geonamesCities('ZZ', dir)).toEqual([]);
+  });
+});
+
+const box = (id: string, x: number, y: number, size: number): Feature => ({
+  type: 'Feature',
+  properties: { id, name: `Région ${id}` },
+  geometry: { type: 'Polygon', coordinates: [square(x, y, size)] },
+});
+
+describe('overlapping regions', () => {
+  const ids = (features: Feature[]): string[] => features.map((f) => String(f.properties.id));
+
+  it('leaves a clean tiling as it is', async () => {
+    const tiling = [box('a', 0, 0, 1), box('b', 1, 0, 1), box('c', 0, 1, 1), box('d', 1, 1, 1)];
+    const result = await dropCoveredRegions(tiling);
+    expect(result.kept).toBe(tiling);
+    expect(result.dropped).toEqual([]);
+    expect(result.ratio).toBeCloseTo(1, 3);
+  });
+
+  it('drops a parent that its children tile, and keeps the children', async () => {
+    const parent = box('parent', 0, 0, 10);
+    const children = [
+      box('c1', 0, 0, 5),
+      box('c2', 5, 0, 5),
+      box('c3', 0, 5, 5),
+      box('c4', 5, 5, 5),
+    ];
+    const result = await dropCoveredRegions([parent, ...children]);
+    expect(ids(result.kept)).toEqual(['c1', 'c2', 'c3', 'c4']);
+    expect(result.dropped.map((d) => d.id)).toEqual(['parent']);
+    expect(result.dropped[0]?.covered).toBeGreaterThan(0.99);
+    expect(result.ratio).toBeCloseTo(2, 1);
+    expect(result.ratioAfter).toBeCloseTo(1, 3);
+  });
+
+  it('drops a region lying inside another (Alaska: Prince of Wales-Hyder in the Unorganized Borough)', async () => {
+    const regions = [box('borough', 0, 0, 10), box('inside', 2, 2, 1), box('other', 20, 0, 4)];
+    const result = await dropCoveredRegions(regions);
+    expect(ids(result.kept)).toEqual(['borough', 'other']);
+    expect(result.dropped.map((d) => d.id)).toEqual(['inside']);
+    expect(result.ratio).toBeGreaterThan(1.002);
+    expect(result.ratioAfter).toBeCloseTo(1, 3);
+  });
+
+  it('peels nested parents from the top, and never drops a duplicate twice', async () => {
+    const grand = box('grand', 0, 0, 4);
+    const mids = [box('m1', 0, 0, 2), box('m2', 2, 0, 2), box('m3', 0, 2, 2), box('m4', 2, 2, 2)];
+    const leaves = [box('l1', 0, 0, 1), box('l2', 1, 0, 1), box('l3', 0, 1, 1), box('l4', 1, 1, 1)];
+    const result = await dropCoveredRegions([grand, ...mids, ...leaves]);
+    expect(result.dropped.map((d) => d.id)).toEqual(['grand', 'm1']);
+    expect(ids(result.kept)).toEqual(['m2', 'm3', 'm4', 'l1', 'l2', 'l3', 'l4']);
+    const twins = await dropCoveredRegions([box('x', 0, 0, 2), box('y', 0, 0, 2)]);
+    expect(twins.kept).toHaveLength(1);
+    expect(twins.dropped).toHaveLength(1);
+  });
+
+  it('ignores an overlap within the 0.2 % tolerance, and one that no region is a parent of', async () => {
+    const sliver = [box('a', 0, 0, 1), box('b', 0.9995, 0, 1)];
+    expect((await dropCoveredRegions(sliver)).dropped).toEqual([]);
+    const halves = await dropCoveredRegions([box('a', 0, 0, 2), box('b', 1, 0, 2)]);
+    expect(halves.dropped).toEqual([]);
+    expect(halves.ratioAfter).toBeGreaterThan(1.002); // reported, not "fixed"
+  });
+
+  it('handles zero or one region', async () => {
+    expect((await dropCoveredRegions([])).kept).toEqual([]);
+    expect((await dropCoveredRegions([box('a', 0, 0, 1)])).kept).toHaveLength(1);
+  });
+});
+
+describe('the pack mode', () => {
+  it('keeps finest up to 3 x the per-region size, per-region above', () => {
+    expect(pickPackMode(300, 100)).toBe('finest');
+    expect(pickPackMode(301, 100)).toBe('per-region');
+    expect(pickPackMode(100, 100)).toBe('finest');
+  });
+
+  it('builds both, keeps the pick, and reports the ratio; a forced mode builds only that one', async () => {
+    const sized = (bytes: number) =>
+      ({ type: 'Topology', objects: {}, pad: 'x'.repeat(bytes) }) as unknown as Topology;
+    const calls: string[] = [];
+    const fake = (async (_regions: Feature[], mode: PackMode) => {
+      calls.push(mode);
+      return sized(mode === 'finest' ? 4000 : 1000);
+    }) as typeof buildPack;
+    const best = await buildBestPack([], undefined, fake);
+    expect(calls.sort()).toEqual(['finest', 'per-region']);
+    expect(best.mode).toBe('per-region');
+    expect(best.ratio).toBeGreaterThan(3);
+    expect(best.json.length).toBeLessThan(2000);
+    calls.length = 0;
+    const forced = await buildBestPack([], 'finest', fake);
+    expect(calls).toEqual(['finest']);
+    expect(forced).toMatchObject({ mode: 'finest', ratio: null });
+    expect(forced.json.length).toBeGreaterThan(4000);
+  });
+});
+
+describe('the places of a country that Wikidata did not fully answer', () => {
+  it('are not built from the classes that did answer: the country is skipped and named', async () => {
+    const incomplete = async (): Promise<string[]> => {
+      throw new IncompleteSightsError('FR', ['church-Q16970', 'museum-Q33506']);
+    };
+    const result = await sightsOf('FR', incomplete);
+    expect(result).toEqual({ skipped: { iso: 'FR', classes: ['church-Q16970', 'museum-Q33506'] } });
+    expect(skippedLines([{ iso: 'FR', classes: ['church-Q16970', 'museum-Q33506'] }])).toEqual([
+      '  FR: no Wikidata answer for church-Q16970, museum-Q33506; places/FR.json not written',
+    ]);
+  });
+
+  it('are built from the rows when every class answered, and any other failure still throws', async () => {
+    const answered = async (): Promise<string[]> => [
+      JSON.stringify({
+        results: {
+          bindings: [
+            {
+              item: { value: 'http://www.wikidata.org/entity/Q1' },
+              itemLabel: { value: 'Angkor' },
+              coord: { value: 'Point(103.86 13.41)' },
+              links: { value: '99' },
+            },
+          ],
+        },
+      }),
+    ];
+    const found = await sightsOf('KH', answered);
+    expect('sights' in found && found.sights.map((s) => s.name)).toEqual(['Angkor']);
+    const banned = async (): Promise<string[]> => {
+      throw new Error('wikidata: HTTP 403');
+    };
+    await expect(sightsOf('KH', banned)).rejects.toThrow('HTTP 403');
+  });
+
+  it('gives one places file per ISO: the overseas departments share FR', () => {
+    expect(
+      isosOf([{ id: 'FR-MET' }, { id: 'FR-MQ' }, { id: 'US' }, { id: 'US-AK' }, { id: 'TH' }]),
+    ).toEqual(['FR', 'US', 'TH']);
   });
 });

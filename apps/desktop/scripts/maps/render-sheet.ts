@@ -114,7 +114,10 @@ export function decodeArcs(topology: TopoJson): Pt[][] {
 function ringOf(arcs: Pt[][], indexes: number[]): Ring {
   const ring: Ring = [];
   for (const index of indexes) {
-    const arc = index < 0 ? [...(arcs[~index] ?? [])].reverse() : (arcs[index] ?? []);
+    const found = arcs[index < 0 ? ~index : index];
+    // A dangling index would draw a silently open ring: the data is broken, say so.
+    if (!found) throw new Error(`arc ${index} is not in the topology (${arcs.length} arcs)`);
+    const arc = index < 0 ? [...found].reverse() : found;
     // An arc starts where the previous one ended: that point is already in the ring.
     for (const point of ring.length > 0 ? arc.slice(1) : arc) ring.push(point);
   }
@@ -414,6 +417,10 @@ const nested = (x: number, y: number, size: number, inner: string): string =>
   `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${inner}</svg>` +
   `<rect x="${x + 0.5}" y="${y + 0.5}" width="${size - 1}" height="${size - 1}" fill="none" stroke="${FRAME}"/>`;
 
+/** The info column is 130 px wide: longer lines are cut with an ellipsis. */
+const clip = (line: string, max = 22): string =>
+  line.length > max ? `${line.slice(0, max - 1)}…` : line;
+
 const text = (x: number, y: number, size: number, body: string, weight = 400): string =>
   `<text x="${x}" y="${y}" ${FONT} font-size="${size}" font-weight="${weight}" fill="${INK}">${esc(body)}</text>`;
 
@@ -461,13 +468,12 @@ export function cellOf(subject: Subject, x: number, y: number): Cell {
     `<rect x="${(ovX + OVERVIEW_PX / 2 + (zoom.x - overview.x) * overview.scale - frame / 2).toFixed(1)}" ` +
     `y="${(ovY + OVERVIEW_PX / 2 - (zoom.y - overview.y) * overview.scale - frame / 2).toFixed(1)}" ` +
     `width="${frame.toFixed(1)}" height="${frame.toFixed(1)}" fill="none" stroke="${ARDOISE.marker}" stroke-width="1.2"/>`;
-  const name = subject.name.length > 22 ? `${subject.name.slice(0, 21)}…` : subject.name;
   const info = [
-    name,
+    clip(subject.name),
     `${subject.regions.length} regions`,
     `${subject.land.length} land polygons`,
     cover === null ? 'no regions' : `regions/land ${(cover * 100).toFixed(1)} %`,
-    `land: ${subject.landSource}`,
+    clip(`land: ${subject.landSource}`),
     `zoom ${kmWide} km wide`,
     where,
   ];
@@ -489,6 +495,7 @@ export function cellOf(subject: Subject, x: number, y: number): Cell {
 // ---------------------------------------------------------------------------------------------
 // Pages and CLI.
 export async function renderSheet(ids: string[] | 'all', outDir: string): Promise<string[]> {
+  if (ids !== 'all' && ids.length === 0) throw new Error('no subject ids: nothing to draw');
   const mapsDir = appFileUrl('resources/maps');
   const index = JSON.parse(await readFile(join(mapsDir, 'index.json'), 'utf8')) as MapIndex;
   const entries =
@@ -531,14 +538,21 @@ if (process.argv[1]?.endsWith('render-sheet.ts')) {
     console.error('usage: node scripts/maps/render-sheet.ts <ids|all> <outDir>');
     process.exit(1);
   }
-  const pages = await renderSheet(
+  const list =
     ids === 'all'
       ? 'all'
       : ids
           .split(',')
           .map((id) => id.trim())
-          .filter(Boolean),
-    outDir,
-  );
+          .filter(Boolean);
+  if (list !== 'all' && list.length === 0) {
+    console.error('no subject ids in the list: nothing to draw');
+    process.exit(1);
+  }
+  const pages = await renderSheet(list, outDir);
+  if (pages.length === 0) {
+    console.error('no page was drawn (index.json lists no subject)');
+    process.exit(1);
+  }
   for (const page of pages) console.log(page);
 }
