@@ -6,21 +6,35 @@ import { describe, expect, it } from 'vitest';
 import type { MapIndex } from './build-geodata.ts';
 import { LAKES_URL, NATURAL_EARTH_COMMIT, OVERTURE_RELEASE } from './overture.ts';
 import {
+  mkdtemp,
+  readFile as readText,
+  readdir as listDir,
+  writeFile as saveText,
+} from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import {
+  HERITAGE_BOOST,
   applyOverrides,
   assemble,
+  frenchNames,
+  geonamesCandidates,
+  geonamesRows,
   haversineKm,
+  mainWords,
+  newCities,
+  unzipLines,
   type BundledPlace,
   type CityCandidate,
   type MapPlacesFile,
   type PlacesOverrides,
 } from './places.ts';
 import {
+  SIGHT_CLASSES,
   USER_AGENT,
   categoryOf,
+  fetchSights,
   parseSights,
-  LIGHT_SEED_TYPES,
   retryAfterMs,
-  runSightsQuery,
   runSparql,
   sightsQuery,
   type RawSight,
@@ -365,12 +379,40 @@ describe('the places helpers', () => {
 
 describe('the Wikidata client', () => {
   it('asks for one country, World Heritage first, with French labels', () => {
-    const query = sightsQuery('TH');
+    const [heritage, temple] = SIGHT_CLASSES;
+    const query = sightsQuery('TH', heritage!);
     expect(query).toContain('wdt:P297 "TH"');
     expect(query).toContain('wdt:P1435 wd:Q9259');
     expect(query).toContain('wikibase:sitelinks');
     expect(query).toContain('"fr,en"');
-    expect(() => sightsQuery('TH" } ')).toThrow();
+    expect(sightsQuery('TH', temple!, 'Q5393308')).toContain('wdt:P31 wd:Q5393308');
+    expect(sightsQuery('TH', temple!)).not.toContain('VALUES');
+    expect(() => sightsQuery('TH', temple!, 'Q1')).toThrow();
+    expect(() => sightsQuery('TH" } ', heritage!)).toThrow();
+  });
+
+  it('has one small query per class: heritage, temple, palace, island, mountain, lake...', () => {
+    const ids = SIGHT_CLASSES.map((c) => c.id);
+    for (const id of [
+      'heritage',
+      'temple',
+      'palace',
+      'castle',
+      'church',
+      'island',
+      'mountain',
+      'lake',
+      'natural',
+      'beach',
+      'park',
+      'archaeological',
+      'museum',
+    ]) {
+      expect(ids).toContain(id);
+    }
+    expect(new Set(ids).size).toBe(ids.length);
+    const byId = (id: string) => SIGHT_CLASSES.find((c) => c.id === id)!;
+    expect(byId('church').minLinks).toBeGreaterThan(byId('temple').minLinks);
   });
 
   it('sends the generic User-Agent, never a personal address', async () => {
@@ -426,17 +468,31 @@ describe('the Wikidata client', () => {
     expect(parseSights(raw)[0]?.worldHeritage).toBe(true);
   });
 
-  it('falls back to the light query when the full one times out', async () => {
-    const queries: string[] = [];
+  it('caches each class under its own file and skips a class that times out', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'wikidata-'));
+    let calls = 0;
     const fake = (async (url: string) => {
-      queries.push(decodeURIComponent(new URL(url).searchParams.get('query') ?? ''));
-      return queries.length === 1 ? new Response('', { status: 504 }) : new Response('{"ok":1}');
+      calls += 1;
+      const query = decodeURIComponent(new URL(url).searchParams.get('query') ?? '');
+      return query.includes('wd:Q23442')
+        ? new Response('', { status: 504 })
+        : new Response('{"results":{"bindings":[]}}');
     }) as unknown as typeof fetch;
-    expect(await runSightsQuery('US', fake, async () => {})).toBe('{"ok":1}');
-    expect(queries).toHaveLength(2);
-    expect(queries[1]!.length).toBeLessThan(queries[0]!.length);
-    expect(queries[1]).toContain(`wd:${LIGHT_SEED_TYPES[0]}`);
-    expect(queries[1]).not.toContain('wd:Q16970');
+    const raws = await fetchSights('XX', fake, async () => {}, dir);
+    const total = SIGHT_CLASSES.reduce((n, c) => n + Math.max(1, c.seeds.length), 0);
+    expect(raws).toHaveLength(total - 1);
+    const files = (await listDir(dir)).sort();
+    expect(files).toContain('XX-heritage.json');
+    expect(files).toContain('XX-lake-Q23397.json');
+    expect(files).toContain('XX-temple-Q5393308.json');
+    expect(files).not.toContain('XX-island-Q23442.json');
+    expect(files).toHaveLength(total - 1);
+    // A second run asks again only for the class that failed.
+    calls = 0;
+    await fetchSights('XX', fake, async () => {}, dir);
+    expect(calls).toBe(1);
+    const lake = await readText(join(dir, 'XX-lake-Q23397.json'), 'utf8');
+    expect(lake).toContain('bindings');
   });
 
   it('merges the rows of one item and drops the unlabelled ones', () => {
@@ -492,6 +548,7 @@ describe('assembling a places file', () => {
     worldHeritage: false,
     parents: [],
     types: ['Q570116'],
+    french: true,
     ...extra,
   });
 
@@ -515,16 +572,48 @@ describe('assembling a places file', () => {
     expect(file.places.map((p) => p.ref)).toEqual(['ne:1', 'ne:2']);
   });
 
-  it('ranks World Heritage first, then by sitelinks', () => {
+  it('boosts World Heritage by a bounded amount of sitelinks, not unconditionally', () => {
+    expect(HERITAGE_BOOST).toBeGreaterThan(0);
     const sights = [
       sight('Q1', 1, { links: 90 }),
       sight('Q2', 3, { links: 20, worldHeritage: true }),
+      sight('Q3', 5, { links: 60, worldHeritage: true }),
+      sight('Q4', 7, { links: 80 }),
     ];
     const file = assemble('XX', [], sights, [box]);
-    expect(file.places.map((p) => [p.ref, p.kind, p.rank])).toEqual([
-      ['wd:Q2', 'sight', 0],
-      ['wd:Q1', 'sight', 1],
+    expect(file.places.map((p) => [p.ref, p.rank])).toEqual([
+      ['wd:Q1', 0],
+      ['wd:Q4', 1],
+      ['wd:Q3', 2],
+      ['wd:Q2', 3],
     ]);
+  });
+
+  it('drops an item that is part of another candidate (P361)', () => {
+    const sights = [
+      sight('Q1', 1, { name: 'Grand ensemble', links: 90 }),
+      sight('Q2', 4, { name: 'Une aile', links: 60, parents: ['Q1'] }),
+      sight('Q3', 7, { name: 'Autre', links: 30, parents: ['Q999'] }),
+    ];
+    expect(assemble('XX', [], sights, [box]).places.map((p) => p.ref)).toEqual(['wd:Q1', 'wd:Q3']);
+  });
+
+  it('keeps one of two sights within 5 km sharing a main word, the better linked', () => {
+    const sights = [
+      sight('Q1', 1, { name: 'sanctuaire historique de Machu Picchu', links: 8 }),
+      sight('Q2', 1.02, { name: 'Machu Picchu', links: 150 }),
+      sight('Q3', 1.03, { name: 'Wat Arun', links: 60 }),
+      sight('Q4', 1.04, { name: 'Wat Pho', links: 50 }),
+      sight('Q5', 6, { name: 'Machu Picchu bis', links: 5 }),
+    ];
+    const refs = assemble('XX', [], sights, [box]).places.map((p) => p.ref);
+    expect(refs).toEqual(['wd:Q2', 'wd:Q3', 'wd:Q4', 'wd:Q5']);
+  });
+
+  it('reads the main words of a name', () => {
+    expect(mainWords("chemin de l'Inca au Machu Picchu")).toEqual(['inca', 'machu', 'picchu']);
+    expect(mainWords('Wat Phra Kaeo')).toEqual(['kaeo']);
+    expect(mainWords('île de Délos')).toEqual(['delos']);
   });
 
   it('merges serial parts: one sight per parent within 2 km, but far parts stay', () => {
@@ -592,8 +681,33 @@ describe('the place overrides', () => {
     expect(applyOverrides(base, {})).toEqual(base);
   });
 
-  it('ships empty, as an object', () => {
-    expect(JSON.parse(read('places-overrides.json').toString('utf8'))).toEqual({});
+  it('renumbers the ranks of a list after a drop or an add', () => {
+    const out = applyOverrides(base, {
+      TH: {
+        drop: ['wd:Q3'],
+        add: [
+          {
+            ref: 'wd:Q4',
+            kind: 'sight',
+            category: 'plage',
+            name: 'Railay',
+            lon: 98.84,
+            lat: 8.01,
+            rank: 7,
+          },
+        ],
+      },
+    });
+    expect(out.places.filter((p) => p.kind === 'sight').map((p) => p.rank)).toEqual([0]);
+    expect(out.places.map((p) => p.rank)).toEqual([0, 1, 0]);
+  });
+
+  it('are committed as an object keyed by ISO, with only valid places', () => {
+    const overrides = JSON.parse(read('places-overrides.json').toString('utf8')) as PlacesOverrides;
+    for (const [iso, fix] of Object.entries(overrides)) {
+      expect(subjectIsos).toContain(iso);
+      for (const p of fix.add ?? []) expect(p.ref).toMatch(/^(ne:\d+|gn:\d+|wd:Q\d+)$/);
+    }
   });
 });
 
@@ -641,8 +755,8 @@ describe('resources/maps/places', () => {
     expect(within('FR-RE').length).toBeGreaterThan(0);
   });
 
-  it('has no two sights within 2 km sharing a parent, which assemble() guarantees', () => {
-    // The file carries no parent: the guarantee is that no two sights are closer than 1 km.
+  it('has no two sights closer than 300 m (assemble() keeps 1 km; hand-added ones may be closer)', () => {
+    // The file carries no parent: assemble() keeps 1 km between sights; the overrides may add closer ones.
     for (const iso of subjectIsos) {
       const sights = placesFile(iso).places.filter((p) => p.kind === 'sight');
       for (const [i, a] of sights.entries()) {
@@ -650,7 +764,7 @@ describe('resources/maps/places', () => {
           expect(
             haversineKm(a.lon, a.lat, b.lon, b.lat),
             `${iso} ${a.name} / ${b.name}`,
-          ).toBeGreaterThan(1);
+          ).toBeGreaterThan(0.3);
         }
       }
     }
@@ -699,5 +813,167 @@ describe('the licence of the places', () => {
     expect(maps!.note).toMatch(/Natural Earth populated places, public domain/);
     expect(maps!.note).toMatch(/Wikidata, CC0/);
     expect(maps!.note).toMatch(/GeoNames, CC BY 4\.0/);
+  });
+});
+
+describe('the places of the dev countries', () => {
+  const sights = (iso: string) => placesFile(iso).places.filter((p) => p.kind === 'sight');
+  const names = (iso: string) => sights(iso).map((p) => p.name);
+
+  it('lists the sights of Thailand a traveller knows', () => {
+    expect(sights('TH').length).toBeGreaterThanOrEqual(30);
+    expect(names('TH').some((n) => /Wat Arun|Grand Palais|Palais royal/i.test(n))).toBe(true);
+    expect(names('TH').some((n) => /Phi Phi/i.test(n))).toBe(true);
+  });
+
+  it('lists an island among the sights of Greece', () => {
+    expect(names('GR').some((n) => /Santorin|Mykonos|Crète/i.test(n))).toBe(true);
+  });
+
+  it('lists Machu Picchu once, and Lake Titicaca, in Peru', () => {
+    expect(names('PE').filter((n) => /Machu Picchu/i.test(n))).toHaveLength(1);
+    expect(names('PE').some((n) => /Titicaca/i.test(n))).toBe(true);
+  });
+
+  it('has no two sights within 5 km that share a main word', () => {
+    for (const iso of subjectIsos) {
+      const list = sights(iso);
+      for (const [i, a] of list.entries()) {
+        for (const b of list.slice(i + 1)) {
+          if (haversineKm(a.lon, a.lat, b.lon, b.lat) >= 5) continue;
+          const shared = mainWords(a.name).filter((w) => mainWords(b.name).includes(w));
+          expect(shared, `${iso} ${a.name} / ${b.name}`).toEqual([]);
+        }
+      }
+    }
+  });
+
+  it('names Sukhothai in French', () => {
+    expect(names('TH').some((n) => /Historic Town/.test(n))).toBe(false);
+  });
+});
+
+describe('the GeoNames fallback', () => {
+  const city = (id: number, country: string, fcode = 'PPL', pop = 6000): string =>
+    [
+      id,
+      `City${id}`,
+      `City${id}`,
+      '',
+      42.5,
+      1.5,
+      'P',
+      fcode,
+      country,
+      '',
+      '',
+      '',
+      '',
+      '',
+      pop,
+    ].join('\t');
+  const cities = [
+    city(1, 'AD', 'PPLC', 22000),
+    city(2, 'AD'),
+    city(3, 'ES'),
+    city(4, 'MQ'),
+    city(5, 'FR'),
+  ];
+  const alt = (
+    id: number,
+    geo: number,
+    lang: string,
+    name: string,
+    preferred = '',
+    colloquial = '',
+    historic = '',
+  ): string => [id, geo, lang, name, preferred, '', colloquial, historic].join('\t');
+
+  it('keeps the rows of one ISO, overseas codes under FR', async () => {
+    expect((await geonamesRows(cities, 'AD')).map((c) => c[0])).toEqual(['1', '2']);
+    expect((await geonamesRows(cities, 'FR')).map((c) => c[0])).toEqual(['4', '5']);
+    expect(await geonamesRows(['too\tshort'], 'AD')).toEqual([]);
+  });
+
+  it('takes the preferred French name, skipping historic and colloquial ones', async () => {
+    const lines = [
+      alt(10, 1, 'fr', 'Andorre-la-Vieille'),
+      alt(11, 1, 'fr', 'Andorra', '1'),
+      alt(12, 1, 'en', 'Andorra the Old', '1'),
+      alt(13, 2, 'fr', 'Vieux nom', '', '', '1'),
+      alt(14, 2, 'fr', 'Surnom', '', '1'),
+      alt(15, 3, 'fr', 'Hors liste', '1'),
+    ];
+    const names = await frenchNames(lines, new Set([1, 2]));
+    expect([...names]).toEqual([[1, 'Andorra']]);
+    const async = (async function* () {
+      yield* lines;
+    })();
+    expect((await frenchNames(async, new Set([1]))).get(1)).toBe('Andorra');
+  });
+
+  it('builds candidates: French name, capital from PPLC, rank 99', async () => {
+    const rows = await geonamesRows(cities, 'AD');
+    const out = geonamesCandidates(rows, new Map([[1, 'Andorre-la-Vieille']]));
+    expect(out[0]).toMatchObject({
+      ref: 'gn:1',
+      name: 'Andorre-la-Vieille',
+      capital: true,
+      labelRank: 99,
+      pop: 22000,
+      gnid: 1,
+    });
+    expect(out[1]).toMatchObject({ name: 'City2', capital: false });
+  });
+
+  it('adds only the cities Natural Earth does not list', () => {
+    const known = [
+      { ref: 'ne:1', name: 'A', lon: 1.5, lat: 42.5, capital: true, labelRank: 1, pop: 1, gnid: 7 },
+    ];
+    const extra = [
+      { ref: 'gn:7', name: 'A', lon: 9, lat: 9, capital: false, labelRank: 99, pop: 1, gnid: 7 },
+      {
+        ref: 'gn:8',
+        name: 'B',
+        lon: 1.51,
+        lat: 42.5,
+        capital: false,
+        labelRank: 99,
+        pop: 1,
+        gnid: 8,
+      },
+      {
+        ref: 'gn:9',
+        name: 'C',
+        lon: 2.5,
+        lat: 42.5,
+        capital: false,
+        labelRank: 99,
+        pop: 1,
+        gnid: 9,
+      },
+    ];
+    expect(newCities(known, extra).map((c) => c.ref)).toEqual(['gn:9']);
+  });
+
+  it('throws a clear error when unzip fails', async () => {
+    const lines: string[] = [];
+    await expect(async () => {
+      for await (const line of unzipLines('/nonexistent/none.zip', 'x.txt')) lines.push(line);
+    }).rejects.toThrow(/unzip .* failed \(exit/);
+  });
+
+  it('reads a member of a real zip', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gn-'));
+    await saveText(join(dir, 'a.txt'), 'one\ntwo\n');
+    const { execFileSync } = await import('node:child_process');
+    try {
+      execFileSync('zip', ['-j', '-q', join(dir, 'a.zip'), join(dir, 'a.txt')]);
+    } catch {
+      return; // no `zip` on this machine: the failing-unzip test above still covers the wrapper
+    }
+    const lines: string[] = [];
+    for await (const line of unzipLines(join(dir, 'a.zip'), 'a.txt')) lines.push(line);
+    expect(lines).toEqual(['one', 'two']);
   });
 });
