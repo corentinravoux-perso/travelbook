@@ -347,6 +347,9 @@ export const fr = {
     noDate: 'Sans date',
     selectDay: (label: string) => `Sélectionner les photos du ${label}`,
     selectNoDate: 'Sélectionner les photos sans date',
+    /** The chevron of a day header; `label` is `null` for the photos without a date. */
+    fold: (label: string | null, folded: boolean) =>
+      `${folded ? 'Déplier' : 'Replier'} les photos ${label === null ? 'sans date' : `du ${label}`}`,
     selectedCount: (n: number) => (n === 1 ? '1 photo sélectionnée' : `${n} photos sélectionnées`),
     selectionBar: 'Photos sélectionnées',
     clearSelection: 'Désélectionner',
@@ -944,7 +947,6 @@ export const fr = {
       travelbook: 'travelbook',
       library: 'Bibliothèque',
       online: 'En ligne',
-      mine: 'Mes stickers',
       favourites: 'Favoris',
       recent: 'Récents',
     },
@@ -967,10 +969,9 @@ export const fr = {
     more: 'Afficher plus',
     empty: 'Aucun sticker ne correspond à cette recherche.',
     emptyOnline: 'Saisissez un mot pour chercher en ligne.',
-    emptyMine:
-      'Déposez des images ici, collez-en une depuis le presse-papiers, ou importez des fichiers.',
     emptyFavourites: "Cliquez sur l'étoile d'un sticker pour le retrouver ici.",
-    emptyRecent: 'Les stickers que vous placez dans un album apparaissent ici.',
+    emptyRecent:
+      'Les stickers que vous placez ou importez apparaissent ici. Déposez des images, collez-en une depuis le presse-papiers, ou importez des fichiers.',
     unavailable: 'Les stickers fournis avec le logiciel sont introuvables.',
     // Online failures, by kind of SourceError.
     error: {
@@ -990,7 +991,7 @@ export const fr = {
     opaqueHelp: 'Cette image a un fond qui restera visible sur la page.',
     licenceTitle: (licence: string, author: string | undefined, source: string) =>
       `${licence}${author ? `, ${author}` : ''} (${source})`,
-    // Mes stickers.
+    // Récents : import des images de l'utilisateur.
     import: 'Importer des images',
     dropHint: 'Déposez des fichiers, un dossier ou une image du navigateur',
     importFailed: "Cette image n'a pas pu être ajoutée. Formats acceptés : PNG, JPEG, WebP et SVG.",
