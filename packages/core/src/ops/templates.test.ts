@@ -10,6 +10,7 @@ import {
   type Template,
 } from '../template';
 import { OpError } from './errors';
+import { mapElement } from '../map/test-helpers';
 import { applyTemplate, captureTemplate } from './templates';
 import { freshBook, inner, photo, shape, useCounterIds } from './test-helpers';
 
@@ -389,6 +390,14 @@ describe('captureTemplate', () => {
     const slotMask = t.free!.slots[0]!.mask;
     expect(slotMask).not.toBe((byId(book, s.id, 'p1') as PhotoElement).mask);
     expect(byId(book, s.id, 'sh').x).toBe(10);
+  });
+
+  it('leaves a map out: its baked geometry belongs to one album, a template carries no assets', () => {
+    const { book, s } = decorated();
+    s.elements.push({ ...mapElement(), x: 20, y: 160, w: 100, h: 100 });
+    const t = captureTemplate(book, s.id, 'left', 'Ma page');
+    expect(t.free!.decorations.map((d) => d.type)).toEqual(['sticker', 'shape']);
+    expect(t.free!.slots).toHaveLength(3);
   });
 
   it('layoutTemplate on the same box reproduces the frames within 0.01 mm', () => {

@@ -1,4 +1,4 @@
-import type { AssetRef, Background, Book } from '@travelbook/core';
+import { elementAssetIds, type AssetRef, type Background, type Book } from '@travelbook/core';
 import { create } from 'zustand';
 import type { EditorStore } from '../store/editor';
 
@@ -11,12 +11,13 @@ export const CAPTURE_BUDGET_MS = 1000;
 const backgroundsOf = (book: Book): Background[] =>
   Object.values(book.cover.background).filter((b): b is Background => b !== undefined);
 
-/** The assets the cover draws: photos and stickers on it, and its background images and patterns. */
+/**
+ * The assets the cover draws: photos and stickers on it, the geometry and medallion photos of its
+ * maps, and its background images and patterns.
+ */
 function coverAssets(book: Book): AssetRef[] {
   const ids = new Set<string>();
-  for (const el of book.cover.elements) {
-    if ((el.type === 'photo' || el.type === 'sticker') && el.assetId !== null) ids.add(el.assetId);
-  }
+  for (const el of book.cover.elements) for (const id of elementAssetIds(el)) ids.add(id);
   for (const b of backgroundsOf(book)) {
     if (b.kind === 'image' || b.kind === 'pattern') ids.add(b.assetId);
   }

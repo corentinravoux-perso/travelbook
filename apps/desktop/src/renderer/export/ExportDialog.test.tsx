@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { newBook } from '@travelbook/core';
+import { newBook, type PreflightIssue } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExportApi, ExportReport } from '../../shared/api';
 import { editorStore } from '../store/editor';
@@ -105,6 +106,28 @@ describe('ExportDialog start', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Exporter' }));
     expect(await screen.findByText(/Photo plage.jpg introuvable/)).toBeTruthy();
     expect(screen.queryByText(/Error invoking/)).toBeNull();
+    expect((screen.getByRole('button', { name: 'Exporter' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
+  });
+});
+
+describe('ExportDialog pre-flight', () => {
+  it('warns of a missing map, with a way to see it, and still lets the user export', async () => {
+    const map = { ...mapElement(), id: 'the-map' };
+    const spread = book.spreads[1]!;
+    const withMap = {
+      ...book,
+      spreads: book.spreads.map((s) => (s === spread ? { ...s, elements: [map] } : s)),
+    };
+    const issue: PreflightIssue = { kind: 'missingMap', spreadId: spread.id, elementId: 'the-map' };
+    (
+      window as unknown as { tb: { exporter: { preflight: ReturnType<typeof vi.fn> } } }
+    ).tb.exporter.preflight.mockResolvedValueOnce([issue]);
+    localStorage.setItem('travelbook.export.outDir', '/out');
+    render(<ExportDialog book={withMap} onClose={() => undefined} />);
+    expect(await screen.findByText('Carte introuvable, pages 2 et 3.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Voir : Carte introuvable/ })).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Exporter' }) as HTMLButtonElement).disabled).toBe(
       false,
     );

@@ -8,6 +8,7 @@ import {
   type Book,
   type PhotoElement,
 } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { MASK_PRESETS } from '@travelbook/render';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editorStore } from '../../store/editor';
@@ -280,6 +281,43 @@ describe('Inspector', () => {
       expect(screen.getByTestId('history')).toBeTruthy();
       fireEvent.click(screen.getByRole('tab', { name: 'Propriétés' }));
       expect(screen.getByTestId('photo-inspector')).toBeTruthy();
+    });
+  });
+
+  describe('map', () => {
+    const map = { ...mapElement(), id: 'the-map' };
+    beforeEach(() => {
+      const spreadId = state().currentSpreadId!;
+      act(() => {
+        state().apply((book) => addElement(book, spreadId, map), 'Carte');
+        state().select([map.id]);
+      });
+    });
+
+    it('offers the common section only: name of the type, position, size, opacity', () => {
+      render(<Inspector />);
+      expect(screen.getByRole('heading', { name: 'Carte' })).toBeTruthy();
+      expect((screen.getByLabelText(fr.inspector.x) as HTMLInputElement).value).toBe('10');
+      expect((screen.getByLabelText(fr.inspector.width) as HTMLInputElement).value).toBe('150');
+      expect(screen.getByLabelText(fr.inspector.opacity)).toBeTruthy();
+      expect(screen.queryByTestId('photo-inspector')).toBeNull();
+      expect(screen.queryByLabelText('Épaisseur')).toBeNull();
+    });
+
+    it('sets the opacity of the map', () => {
+      render(<Inspector />);
+      fireEvent.change(screen.getByLabelText(fr.inspector.opacity), { target: { value: '0.4' } });
+      const el = state().book!.spreads[1]!.elements.find((e) => e.id === map.id)!;
+      expect(el.opacity).toBe(0.4);
+    });
+
+    it('resizes the map without keeping its ratio', () => {
+      render(<Inspector />);
+      const width = screen.getByLabelText(fr.inspector.width);
+      fireEvent.change(width, { target: { value: '120' } });
+      fireEvent.blur(width);
+      const el = state().book!.spreads[1]!.elements.find((e) => e.id === map.id)!;
+      expect([el.w, el.h]).toEqual([120, 200]);
     });
   });
 });

@@ -25,13 +25,21 @@ function collectMarkFamilies(node: unknown, out: Set<string>): void {
 
 /**
  * The font families the text of the book draws with: the base family of every text element and
- * every family set by a mark inside its document, by name, sorted. Generic families
+ * every family set by a mark inside its document, plus the label and badge fonts of every map, by
+ * name, sorted. Generic families
  * (`serif`, `sans-serif`...) are names too: callers match the ones they know.
  */
 export function fontFamiliesUsed(book: Book): string[] {
   const families = new Set<string>();
   for (const spread of [book.cover, ...book.spreads]) {
     for (const el of spread.elements) {
+      if (el.type === 'map') {
+        for (const font of [el.style.label.font, el.style.badge.font]) {
+          const family = firstFontFamily(font);
+          if (family !== '') families.add(family);
+        }
+        continue;
+      }
       if (el.type !== 'text') continue;
       const base = firstFontFamily(el.style.fontFamily);
       if (base !== '') families.add(base);

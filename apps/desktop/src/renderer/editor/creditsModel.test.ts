@@ -1,4 +1,5 @@
 import { newBook, newElement, type AssetRef, type Book } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { describe, expect, it } from 'vitest';
 import {
   creditEntries,
@@ -109,5 +110,69 @@ describe('credits', () => {
     expect(rect.w).toBeGreaterThan(0);
     expect(rect.y + rect.h).toBeLessThanOrEqual(book.format.height);
     expect(rect.y).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('credits of maps', () => {
+  const ODBL = {
+    source: '© OpenStreetMap contributors, Overture Maps Foundation',
+    licence: 'ODbL 1.0',
+    url: 'https://opendatacommons.org/licenses/odbl/1-0/',
+    requiresAttribution: true,
+  };
+  const geometry = (id: string, name: string): AssetRef => ({
+    id,
+    kind: 'map',
+    file: `assets/${id}.json`,
+    originalName: name,
+    sha256: id,
+    licence: ODBL,
+  });
+
+  /** Thailand on the cover and Peru on an inner spread, each with its own geometry asset. */
+  function bookWithMaps(): Book {
+    const book = newBook({ title: 'T', innerSpreads: 2 });
+    book.assets = {
+      'map-th': geometry('map-th', 'Thaïlande.json'),
+      'map-pe': geometry('map-pe', 'Pérou.json'),
+      'photo-1': asset('photo-1', 'photo', 'Phuket.jpg', licence('Dan', 'CC0-1.0')),
+      'photo-2': asset('photo-2', 'photo', 'Mine.jpg'),
+    };
+    const th = { ...mapElement(), id: 'm-th', geometryAssetId: 'map-th' };
+    const pe = { ...mapElement(), id: 'm-pe', geometryAssetId: 'map-pe' };
+    pe.places = pe.places.map((p) => ({ ...p, photo: null }));
+    book.cover.elements = [th];
+    book.spreads[1]!.elements = [pe];
+    return book;
+  }
+
+  it('counts the geometry and the medallion photos of a map', () => {
+    expect([...usedAssetIds(bookWithMaps())].sort()).toEqual(['map-pe', 'map-th', 'photo-1']);
+  });
+
+  it('lists the ODbL entry once for two maps of different places', () => {
+    const entries = creditEntries(bookWithMaps());
+    const maps = entries.filter((e) => e.licence === 'ODbL 1.0');
+    expect(maps).toHaveLength(1);
+    expect(creditLine(maps[0]!)).toBe(
+      'Cartes, ODbL 1.0 (© OpenStreetMap contributors, Overture Maps Foundation)',
+    );
+    expect(maps[0]!.requiresAttribution).toBe(true);
+  });
+
+  it('leaves out a geometry that carries no licence data', () => {
+    const book = bookWithMaps();
+    delete book.assets['map-th']!.licence;
+    delete book.assets['map-pe']!.licence;
+    expect(creditEntries(book).map((e) => e.title)).toEqual(['Phuket']);
+  });
+
+  it('lists a medallion photo only when it carries a licence', () => {
+    const entries = creditEntries(bookWithMaps());
+    expect(entries.map((e) => e.title).sort()).toEqual(['Cartes', 'Phuket']);
+    const book = bookWithMaps();
+    book.cover.elements = [];
+    book.spreads[1]!.elements = [];
+    expect(creditEntries(book)).toEqual([]);
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { newBook, newElement } from './factory';
+import { mapElement } from './map/test-helpers';
 import {
   firstFontFamily,
   fontFaceName,
@@ -61,6 +62,17 @@ describe('fontFamiliesUsed', () => {
     t.doc = 'nope';
     book.spreads[1]!.elements = [newElement('photo', { x: 0, y: 0, w: 5, h: 5 }), t];
     expect(fontFamiliesUsed(book)).toEqual([firstFontFamily(t.style.fontFamily)].filter(Boolean));
+  });
+});
+
+describe('fontFamiliesUsed on a map', () => {
+  it('collects the label and the badge fonts of its style', () => {
+    const book = newBook({ title: 'T', innerSpreads: 2 });
+    const map = mapElement();
+    map.style.label.font = "'Lora', serif";
+    map.style.badge.font = 'Caveat';
+    book.spreads[1]!.elements = [map];
+    expect(fontFamiliesUsed(book)).toEqual(['Caveat', 'Lora']);
   });
 });
 

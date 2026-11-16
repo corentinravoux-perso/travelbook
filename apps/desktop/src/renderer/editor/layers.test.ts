@@ -6,6 +6,7 @@ import {
   type Book,
   type Spread,
 } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { describe, expect, it } from 'vitest';
 import { dropIndex, layerName, layerRows, moveToIndex, docText } from './layers';
 
@@ -108,5 +109,17 @@ describe('layerName', () => {
         ],
       }),
     ).toBe('a b');
+  });
+});
+
+describe('layerName of a map', () => {
+  it('is "Carte · " and the subject', () => {
+    const { book } = setup();
+    expect(layerName(book, mapElement())).toBe('Carte · TH');
+  });
+
+  it("is the layer's own name once it has one", () => {
+    const { book } = setup();
+    expect(layerName(book, { ...mapElement(), name: 'Itinéraire' })).toBe('Itinéraire');
   });
 });
