@@ -83,6 +83,16 @@
     "lama",
     "andes"
   ],
+  "perou-machu-picchu-simple": [
+    "pérou",
+    "perou",
+    "machu picchu",
+    "huayna picchu",
+    "inca",
+    "citadelle",
+    "ruines",
+    "andes"
+  ],
   "perou-mais": ["pérou", "perou", "maïs", "choclo", "maïs violet", "andes"],
   "perou-titicaca": ["pérou", "perou", "titicaca", "lac", "totora", "barque"],
   "perou-vinicunca": ["pérou", "perou", "vinicunca", "montagne", "arc-en-ciel", "andes"],

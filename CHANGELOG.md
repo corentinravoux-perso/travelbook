@@ -8,7 +8,8 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Affiches: Machu Picchu, a new Peru poster (Géant): Huayna Picchu over the citadel, its
-  terraces, a llama and an Inca wall, modelled in volume with ink linework.
+  terraces, a woolly llama in a woven blanket and an Inca wall, modelled in volume with ink
+  linework; and "Machu Picchu simple", the same site in flat colours and ink lines.
 - Cover: "Avec tranche / Sans tranche" on the cover toolbar and in "Créer une affiche…", with
   the spine width in mm (a first guess from the page count). The dialog previews the choice and
   applies it with the poster, in one undo step; the volume view of a book without spine shows
