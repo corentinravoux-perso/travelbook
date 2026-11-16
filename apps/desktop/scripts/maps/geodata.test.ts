@@ -1616,24 +1616,26 @@ describe('the perspectives of the divisions', () => {
   });
 
   it('gives every dependency of the catalogue a sovereign, and views through it', () => {
-    let entries: CatalogEntry[];
-    try {
-      entries = JSON.parse(
-        readFileSync(join(CACHE_DIR, `overture-${OVERTURE_RELEASE}`, 'catalog.json'), 'utf8'),
-      ) as CatalogEntry[];
-    } catch {
-      entries = Object.keys(SOVEREIGN_OF).map((country) => ({
-        id: country,
-        country,
-        subtype: 'dependency' as const,
-        nameFr: null,
-        namePrimary: country,
-        nameEn: null,
-        bbox: [0, 0, 1, 1] as [number, number, number, number],
-      }));
+    const fixture = JSON.parse(
+      readFileSync(new URL('./dependencies-2026-10-21.0.json', import.meta.url), 'utf8'),
+    ) as { overture: string; dependencies: string[] };
+    const catalogFile = join(CACHE_DIR, `overture-${fixture.overture}`, 'catalog.json');
+    if (existsSync(catalogFile)) {
+      const cached = JSON.parse(readFileSync(catalogFile, 'utf8')) as CatalogEntry[];
+      const codes = cached.filter((e) => e.subtype === 'dependency').map((e) => e.country);
+      expect([...codes].sort()).toEqual(fixture.dependencies);
     }
-    const dependencies = subjectDefs(entries.filter((e) => e.subtype === 'dependency'));
-    expect(dependencies.length).toBeGreaterThan(0);
+    const entries: CatalogEntry[] = fixture.dependencies.map((country) => ({
+      id: country,
+      country,
+      subtype: 'dependency' as const,
+      nameFr: null,
+      namePrimary: country,
+      nameEn: null,
+      bbox: [0, 0, 1, 1] as [number, number, number, number],
+    }));
+    const dependencies = subjectDefs(entries);
+    expect(dependencies.length).toBe(fixture.dependencies.length);
     expect(dependencies.filter((d) => !SOVEREIGN_OF[d.country]).map((d) => d.id)).toEqual([]);
     for (const def of dependencies) {
       expect(viewersOf(def)).toEqual([def.country, SOVEREIGN_OF[def.country]]);
@@ -1648,7 +1650,7 @@ describe('the perspectives of the divisions', () => {
       GL: ['GL', 'DK'],
       PR: ['PR', 'US'],
     })) {
-      if (byId[id]) expect(byId[id]).toEqual(viewers);
+      expect(byId[id]).toEqual(viewers);
     }
   });
 
