@@ -12,10 +12,22 @@ interface Props {
   onActivate(e: MouseEvent | KeyboardEvent): void;
   /** Present when the thumbnail can be dragged onto the page. */
   onDragStart?(e: DragEvent): void;
+  /** The photo is on the double page in view (the tray marks it). */
+  onPage?: boolean;
+  /** A double-click: the tray opens the photo large. */
+  onOpen?(): void;
 }
 
 /** One photo of the tray or the picker: its thumbnail, its usage count, and its state. */
-export function PhotoThumb({ asset, uses, selected, onActivate, onDragStart }: Props) {
+export function PhotoThumb({
+  asset,
+  uses,
+  selected,
+  onActivate,
+  onDragStart,
+  onPage,
+  onOpen,
+}: Props) {
   return (
     <div
       className="photo-thumb"
@@ -23,13 +35,15 @@ export function PhotoThumb({ asset, uses, selected, onActivate, onDragStart }: P
       tabIndex={0}
       // The tray ticks photos (a toggle button); the picker only chooses, so it has no state.
       aria-pressed={selected}
-      aria-label={fr.photos.photoLabel(asset.originalName, uses)}
+      aria-label={fr.photos.photoLabel(asset.originalName, uses, onPage)}
       title={asset.originalName}
       data-asset-id={asset.id}
       data-uses={uses}
+      data-on-page={onPage || undefined}
       draggable={onDragStart !== undefined}
       onDragStart={onDragStart}
       onClick={onActivate}
+      onDoubleClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();

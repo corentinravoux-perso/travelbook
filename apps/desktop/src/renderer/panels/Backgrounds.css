@@ -47,10 +47,12 @@
   color: var(--ink);
 }
 .bg-tab-button[aria-selected='true'] {
-  background: var(--invert-bg);
-  color: var(--invert-fg);
-  font-weight: var(--w-medium);
-  box-shadow: var(--shadow-1);
+  background: var(--surface);
+  color: var(--accent-ink);
+  font-weight: var(--w-semibold);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-1);
 }
 .bg-tab-button:focus-visible {
   outline-offset: -2px;
@@ -116,8 +118,8 @@
   border-color: var(--ink-2);
 }
 .bg-swatch[aria-pressed='true'] {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 .bg-grid {
   display: grid;

@@ -1,4 +1,4 @@
-/* Photos panel (the tray) and the photo picker, direction A: hairlines, inverted active state, no hue. */
+/* Photos panel (the tray) and the photo picker: the import action on top, days as chapters. */
 .photos {
   position: relative;
   display: flex;
@@ -29,6 +29,11 @@
   font-size: var(--t-xs);
   color: var(--ink-3);
 }
+.photos__hint {
+  font-size: var(--t-xs);
+  line-height: 1.35;
+  color: var(--ink-2);
+}
 
 /* ---------- import progress and failures (above the panel, whichever one is open) ---------- */
 .import-progress {
@@ -51,7 +56,7 @@
 }
 .progress__bar {
   height: 100%;
-  background: var(--ink);
+  background: var(--accent);
 }
 .import-notice {
   display: flex;
@@ -104,21 +109,26 @@
   left: var(--s5);
   right: var(--s5);
 }
+/* One row of cells, exactly the row's height: a tall picture is fitted, never pushes the row. */
 .photo-grid__row--photos {
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   gap: 3px; /* the grid's own GAP (gridLayout.ts) */
 }
 .photo-grid__row--photos > div {
   min-width: 0;
+  min-height: 0;
 }
+/* A day of the trip opens a chapter of the tray: its date in the ink, the count as a chip. */
 .photo-day {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   height: 100%;
-  padding-bottom: var(--s2);
-  font-size: var(--t-xs);
-  color: var(--ink-2);
+  padding-bottom: var(--s3);
+  font-size: var(--t-sm);
+  font-weight: var(--w-semibold);
+  color: var(--ink);
 }
 .photo-day__check {
   display: flex;
@@ -131,16 +141,28 @@
   width: 14px;
   height: 14px;
   margin: 0;
-  accent-color: var(--ink);
+  accent-color: var(--accent);
 }
 .photo-day__label {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.photo-day__label::first-letter {
+  text-transform: uppercase;
+}
 .photo-day__count {
   flex: none;
-  color: var(--ink-3);
+  min-width: 20px;
+  padding: 0 var(--s3);
+  border-radius: var(--pill);
+  background: var(--sunken);
+  font-size: var(--t-xs);
+  font-weight: var(--w-medium);
+  line-height: 18px;
+  text-align: center;
+  color: var(--ink-2);
 }
 
 /* ---------- a thumbnail ---------- */
@@ -148,7 +170,7 @@
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 1px;
+  border-radius: 4px;
   background: var(--line);
   cursor: grab;
 }
@@ -163,27 +185,133 @@
 .photo-thumb:hover img {
   transform: scale(1.03);
 }
+/* Ticked (Ctrl + click, a day's checkbox): an ink outline and a veil, for removing or dragging. */
 .photo-thumb[aria-pressed='true'] {
   outline: 2px solid var(--ink);
   outline-offset: 1px;
+}
+.photo-thumb[aria-pressed='true']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  pointer-events: none;
+}
+/* On the double page in view: a lagoon frame inside the thumbnail. */
+.photo-thumb[data-on-page]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 3px solid var(--accent);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .photo-thumb:not([draggable='true']) {
   cursor: pointer;
 }
 .photo-thumb__uses {
   position: absolute;
+  z-index: 2;
   top: 3px;
   right: 3px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
   border-radius: 8px;
-  background: var(--badge-bg);
-  box-shadow: 0 0 0 1px var(--badge-ring);
-  color: var(--badge-fg);
+  background: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--badge-ring);
+  color: var(--on-accent);
   font-size: var(--t-xxs);
+  font-weight: var(--w-semibold);
   line-height: 16px;
   text-align: center;
+}
+
+/* A cell of the tray: the thumbnail, and a remove shortcut that shows when pointed at. */
+.photo-cell {
+  position: relative;
+  height: 100%;
+}
+.photo-cell__remove {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--badge-bg);
+  box-shadow: 0 0 0 1.5px var(--badge-ring);
+  color: var(--badge-fg);
+  opacity: 0;
+  transition:
+    opacity var(--fast) var(--ease),
+    background var(--fast) var(--ease);
+}
+.photo-cell__remove .icon {
+  width: 13px;
+  height: 13px;
+}
+.photo-cell:hover .photo-cell__remove {
+  opacity: 1;
+}
+.photo-cell__remove:hover {
+  background: #b23d3a;
+}
+
+/* ---------- selection bar: under the tray while photos are ticked ---------- */
+.photos__selection {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3) var(--s4);
+  margin: var(--s3) var(--s5) var(--s5);
+  padding: var(--s4) var(--s4) var(--s4) var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  font-size: var(--t-sm);
+}
+.photos__selection-count {
+  font-weight: var(--w-semibold);
+}
+.photos__selection-actions {
+  display: flex;
+  gap: var(--s3);
+  margin-left: auto;
+}
+.photos__selection--asking {
+  border-color: color-mix(in srgb, var(--low) 40%, var(--line));
+}
+/* The question takes the whole width; its two answers share the row under it. */
+.photos__selection--asking .photos__selection-actions {
+  flex-wrap: wrap;
+  width: 100%;
+}
+.photos__selection--asking .photos__selection-actions .button {
+  flex: 1 1 auto;
+  padding: 0 var(--s4);
+}
+.photos__selection-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  color: var(--ink-2);
+}
+.photos__selection-text strong {
+  color: var(--ink);
+}
+.photos__selection-name {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- empty tray, import button, drop overlay ---------- */
@@ -193,21 +321,39 @@
   flex-direction: column;
   justify-content: center;
   gap: var(--s3);
-  margin: var(--s4) var(--s5);
-  padding: var(--s5);
-  border: 1px dashed var(--ink-3);
-  border-radius: var(--r1);
+  align-items: center;
+  margin: 0 var(--s5) var(--s5);
+  padding: var(--s7) var(--s6);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r2);
+  background: var(--sunken);
   font-size: var(--t-sm);
   color: var(--ink-2);
   text-align: center;
+}
+.photos__empty > .icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: var(--s3);
+  color: var(--accent);
+}
+.photos__empty p {
+  max-width: 30ch;
 }
 .photos__empty-title {
   font-weight: var(--w-medium);
   color: var(--ink);
 }
+/* The panel's one primary action, first thing under its title, as wide as the panel. */
 .photos__import {
   flex: none;
-  margin: var(--s4) var(--s5) var(--s5);
+  height: 36px;
+  margin: 0 var(--s5) var(--s5);
+  font-size: var(--t-md);
+}
+.photos__import .icon {
+  width: var(--icon);
+  height: var(--icon);
 }
 .photos__drop {
   position: absolute;
@@ -215,7 +361,7 @@
   z-index: 4;
   display: grid;
   place-items: center;
-  border: 2px dashed var(--ink);
+  border: 2px dashed var(--accent);
   border-radius: var(--r2);
   background: color-mix(in srgb, var(--chrome) 90%, transparent);
   font-weight: var(--w-medium);
@@ -247,4 +393,113 @@
   padding: var(--s3) var(--s5) var(--s2);
   font-size: var(--t-xs);
   color: var(--ink-2);
+}
+
+/* ---------- a photo large: over the whole window, on a dark surround ---------- */
+.photo-viewer {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #0f161c;
+  color: #eef3f6;
+}
+.photo-viewer[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.photo-viewer::backdrop {
+  background: transparent;
+}
+.photo-viewer__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  padding: var(--s4) var(--s5) var(--s4) var(--s7);
+}
+.photo-viewer__bar--foot {
+  justify-content: space-between;
+  padding: var(--s5) var(--s7);
+}
+.photo-viewer__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--t-lg);
+  font-weight: var(--w-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.photo-viewer__position {
+  font-size: var(--t-sm);
+  color: rgba(238, 243, 246, 0.7);
+}
+.photo-viewer__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s6);
+  font-size: var(--t-sm);
+  color: rgba(238, 243, 246, 0.78);
+}
+.photo-viewer__meta span:first-child::first-letter {
+  text-transform: uppercase;
+}
+.photo-viewer__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #eef3f6;
+  transition: background var(--fast) var(--ease);
+}
+.photo-viewer__icon:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.photo-viewer__icon .icon {
+  width: 22px;
+  height: 22px;
+}
+.photo-viewer__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 72px;
+}
+.photo-viewer__image {
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+  user-select: none;
+}
+.photo-viewer__turn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.08);
+}
+.photo-viewer__turn--prev {
+  left: var(--s6);
+}
+.photo-viewer__turn--next {
+  right: var(--s6);
+}
+.photo-viewer__toggle {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: transparent;
+  color: #eef3f6;
+}
+.photo-viewer__toggle:hover:not(:disabled) {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }

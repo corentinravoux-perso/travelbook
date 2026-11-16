@@ -9,9 +9,10 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
-import { editorStore, findSpread, useEditor } from '../store/editor';
+import { RULER_SIZES, editorStore, findSpread, useEditor } from '../store/editor';
 import { MissingNotice } from './MissingNotice';
 import { fr } from '../strings/fr';
 import { assetUrl } from './assetUrl';
@@ -20,6 +21,7 @@ import { CropBar, CropOverlay, useCrop } from './CropMode';
 import { DpiBadges } from './DpiBadge';
 import { Guides } from './Guides';
 import { PageBar } from './PageBar';
+import { RulerGuides, Rulers } from './Rulers';
 import { usePhotoDrop, usePhotoSwap } from './PhotoDrop';
 import { spreadName } from './pages';
 import { Selection, frame } from './Selection';
@@ -62,6 +64,8 @@ export function Canvas() {
   const currentId = useEditor((s) => s.currentSpreadId);
   const selection = useEditor((s) => s.selection);
   const showGuides = useEditor((s) => s.guides);
+  const showRulers = showGuides.rulers;
+  const rulerSize = useEditor((s) => s.rulerSize);
   const zoom = useEditor((s) => s.zoom);
   const notice = useEditor((s) => s.notice);
   const tool = useEditor((s) => s.tool);
@@ -275,8 +279,23 @@ export function Canvas() {
   );
 
   return (
-    <main className="shell-canvas" aria-label={fr.shell.canvas}>
+    <main
+      className="shell-canvas"
+      aria-label={fr.shell.canvas}
+      data-rulers={(showRulers && book !== null && spread !== undefined) || undefined}
+      style={{ '--ruler': `${RULER_SIZES[rulerSize]}px` } as CSSProperties}
+    >
       <MissingNotice />
+      {showRulers && book && spread && (
+        <Rulers
+          hostRef={hostRef}
+          pageRef={pageRef}
+          scale={scale}
+          book={book}
+          spread={spread}
+          selected={selected}
+        />
+      )}
       {book && spread && <CoverTools book={book} spread={spread} />}
       {crop.element && (
         <CropBar element={crop.element} onScale={crop.setScale} onDone={crop.leave} />
@@ -337,6 +356,9 @@ export function Canvas() {
                 snap={transform.guides}
               />
               <DpiBadges book={book} spread={spread} scale={scale} />
+              {showRulers && (
+                <RulerGuides book={book} spread={spread} scale={scale} hostRef={hostRef} />
+              )}
               <PageBar book={book} spread={spread} scale={scale} />
               {crop.element && (
                 <CropOverlay element={crop.element} asset={crop.asset} scale={scale} />
