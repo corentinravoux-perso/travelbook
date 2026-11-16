@@ -50,10 +50,16 @@ const HAND_MIN_UNITS = 6;
 /** Context is drawn within this many selection extents (larger side of its bounds), centred on it. */
 const CONTEXT_EXTENTS = 8;
 
-/** The edges of the erased rectangle get a vertex every so many degrees, so that they stay parallels. */
+/**
+ * The edges of the erased rectangle get a vertex every so many degrees, so that they stay
+ * parallels.
+ */
 const ERASE_STEP_DEG = 1;
 
-/** The far context is simplified this many times coarser than the subject itself (see `simplifyTopology`). */
+/**
+ * The far context is simplified this many times coarser than the subject itself (see
+ * `simplifyTopology`).
+ */
 const FAR_FACTOR = 20;
 
 const wrapDelta = (d: number): number => Math.abs(((((d + 180) % 360) + 360) % 360) - 180);
@@ -163,7 +169,7 @@ function framing(parts: PolygonCoords[]): Framing {
   return { main, all: polygons, mainBox: boxOf(main), allBox: boxOf(polygons) };
 }
 
-/** `[west, south, east, north]` of the points of the polygons, planar and in the file's longitudes. */
+/** `[west, south, east, north]` of the polygons' points, planar and in the file's longitudes. */
 function planarBox(polygons: PolygonCoords[]): Box | null {
   let box: Box | null = null;
   for (const polygon of polygons) {
@@ -186,7 +192,15 @@ function planarBox(polygons: PolygonCoords[]): Box | null {
 const neighboursFrame = (topology: Topology): Box | null =>
   planarBox(polygonsOf(topology, geometriesOf(topology, 'neighbours')));
 
-/** Slack of the frame edges: two quantization steps of the topology (its coordinates are rounded to them). */
+/**
+ * The rectangle the far land must not enter: the neighbours' bbox, else (a subject with no
+ * neighbours, such as an island) the bbox of its own land, which then holds the only land of the
+ * build's empty clip.
+ */
+const erasedBox = (topology: Topology): Box | null =>
+  neighboursFrame(topology) ?? planarBox(polygonsOf(topology, geometriesOf(topology, 'land')));
+
+/** Slack of the frame edges: two quantization steps of the topology, which rounds its points. */
 function frameEps(topology: Topology): number {
   const scale = (topology as { transform?: { scale?: number[] } }).transform?.scale;
   const step = scale ? Math.max(...scale.filter(Number.isFinite)) : NaN;
@@ -597,14 +611,16 @@ export function bakeGeometry(
   };
 
   // the neighbours' coasts and borders, apart from their fill: without the build's clip rectangle
-  // (its sides are those of the neighbours' bbox, within two quantization steps; the window's own edges cut a line short, they never add a segment to it)
+  // (its sides are those of the neighbours' bbox, within two quantization steps; the window's own
+  // edges cut a line short, they never add a segment to it)
   let neighbourLines = '';
   const neighboursObject = src.base.objects.neighbours;
   if (subject.showNeighbours && neighboursObject) {
     const lines = (mesh(src.base, neighboursObject) as unknown as { coordinates: number[][][] })
       .coordinates;
     const kept = realLines(lines, neighboursFrame(base), frameEps(base));
-    // a tenth of a unit is 0.04 mm on a 400 mm page: lines need no more, and they cost a second path
+    // a tenth of a unit is 0.04 mm on a 400 mm page: lines need no more, and they cost a second
+    // path
     const lineString = geoPath(projected).digits(1);
     neighbourLines =
       kept.length > 0 ? (lineString({ type: 'MultiLineString', coordinates: kept }) ?? '') : '';
@@ -614,7 +630,7 @@ export function bakeGeometry(
   let far = '';
   if (world && subject.showNeighbours) {
     const coarse = simplifyTopology(world, extentKm(framed), FAR_FACTOR);
-    const pieces = farLand(coarse, neighboursFrame(base));
+    const pieces = farLand(coarse, erasedBox(base));
     far = pieces.length > 0 ? draw(multi(pieces)) : '';
   }
 
