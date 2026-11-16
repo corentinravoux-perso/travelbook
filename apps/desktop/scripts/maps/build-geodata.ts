@@ -17,6 +17,7 @@ import {
   fetchDivisions,
   fetchLakes,
   fetchLand,
+  type DivisionLevel,
   type CatalogEntry,
 } from './overture.ts';
 import { appFileUrl } from './paths.ts';
@@ -26,6 +27,8 @@ import {
   buildTopology,
   extentKm,
   mainBbox,
+  mergeGeometry,
+  pickLandLevel,
   scaleBbox,
   toleranceMetres,
   type Bbox,
@@ -79,12 +82,14 @@ async function loadLand(def: SubjectDef): Promise<Feature> {
   return part;
 }
 
+/** The level whose divisions are the subject's regions. */
+const regionsLevel = (def: SubjectDef): DivisionLevel => (def.part ? 'county' : 'region');
+
+const loadLevel = (def: SubjectDef, level: DivisionLevel): Promise<Feature[]> =>
+  fetchDivisions(def.country, level, def.part?.region);
+
 async function loadRegions(def: SubjectDef): Promise<Feature[]> {
-  let rows: Feature[] = [];
-  if (def.part) rows = await fetchDivisions(def.country, def.part.subdivisions, def.part.region);
-  else if (def.kind === 'country' || def.id === 'FR-MET') {
-    rows = await fetchDivisions(def.country, 'region');
-  }
+  const rows = await loadLevel(def, regionsLevel(def));
   const ids = new Set<string>();
   for (const row of rows) {
     const id = String(row.properties.id);
@@ -100,13 +105,26 @@ export async function buildSubject(
   lakes: Feature[],
 ): Promise<{ entry: MapSubjectEntry; json: string; extent: number }> {
   const catalogEntry = all.find((e) => e.country === def.country);
-  const land = await loadLand(def);
-  const name = def.nameFr ?? String(land.properties.name);
+  const country = await loadLand(def);
+  const name = def.nameFr ?? String(country.properties.name);
   const regions = await loadRegions(def);
-  const main = mainBbox(land);
+  // Overture's country polygon can be far coarser than its divisions: the land is the union of the
+  // finest level that covers the country (>= 98 %), else the country polygon itself.
+  const levels: DivisionLevel[] = def.part
+    ? ['county', 'locality']
+    : ['region', 'county', 'locality'];
+  const level = await pickLandLevel(
+    country,
+    levels.map((name) => ({
+      name,
+      load: () => (name === regionsLevel(def) ? Promise.resolve(regions) : loadLevel(def, name)),
+    })),
+  );
+  const shape = level ? mergeGeometry(level.features) : country;
+  const main = mainBbox(shape);
   const frame = scaleBbox(main, FRAME_FACTOR);
   const extent = extentKm(main);
-  const full = bboxOf(land);
+  const full = bboxOf(shape);
 
   const neighbours: Feature[] = [];
   for (const other of all) {
@@ -121,7 +139,10 @@ export async function buildSubject(
   const nearLakes = lakes.filter((lake) => bboxesOverlap(bboxOf(lake), full));
 
   const topology = await buildTopology({
-    land: { ...land, properties: { id: def.id, name } },
+    land: level ? level.features : country,
+    dissolve: level !== null,
+    landIsRegions: level?.name === regionsLevel(def),
+    landProperties: { id: def.id, name },
     regions: regions.map((r) => ({
       ...r,
       properties: { id: r.properties.id, name: r.properties.name },
