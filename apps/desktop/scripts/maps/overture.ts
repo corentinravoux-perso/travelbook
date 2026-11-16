@@ -90,16 +90,22 @@ export function catalog(): Promise<CatalogEntry[]> {
 
 /** `iso`: the row's ISO 3166-2 `region` code identifies it (true for regions, not for counties). */
 function toFeatures(rows: Row[], iso = false): Feature[] {
+  // An ISO code shared by several rows (some dependencies) cannot identify them: use the GERS ids.
+  const codes = rows.map((r) => str(r.region));
+  const unique = iso && codes.every((c) => c !== null) && new Set(codes).size === codes.length;
   return rows.map((r) => ({
     type: 'Feature' as const,
     properties: {
-      id: String((iso ? r.region : null) ?? r.id),
+      id: String((unique ? r.region : null) ?? r.id),
       name: str(r.name_fr) ?? str(r.name_primary) ?? String(r.id),
       nameEn: str(r.name_en),
     },
     geometry: JSON.parse(String(r.geometry)) as Feature['geometry'],
   }));
 }
+
+/** The levels below a country, from coarse to fine. */
+export type DivisionLevel = 'region' | 'county' | 'locality';
 
 /** Land polygon of a country or dependency. */
 export function fetchLand(country: string): Promise<Feature> {
@@ -123,7 +129,7 @@ export function fetchLand(country: string): Promise<Feature> {
  */
 export function fetchDivisions(
   country: string,
-  subtype: 'region' | 'county',
+  subtype: DivisionLevel,
   region?: string,
 ): Promise<Feature[]> {
   if (!ISO.test(country)) throw new Error(`bad country code ${country}`);

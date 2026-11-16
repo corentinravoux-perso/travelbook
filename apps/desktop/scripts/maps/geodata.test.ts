@@ -6,10 +6,12 @@ import { describe, expect, it } from 'vitest';
 import type { MapIndex } from './build-geodata.ts';
 import { OVERTURE_RELEASE } from './overture.ts';
 import {
+  coverage,
   dropSmallHoles,
   extentKm,
   mainBbox,
   minAreaKm2,
+  pickLandLevel,
   scaleBbox,
   toleranceMetres,
   type Feature,
@@ -21,12 +23,24 @@ const index = JSON.parse(readFileSync(join(MAPS_DIR, 'index.json'), 'utf8')) as 
 const read = (file: string): Buffer => readFileSync(join(MAPS_DIR, file));
 
 interface Topo {
+  arcs: unknown[][];
   objects: Record<
     string,
     { geometries: { type: string; arcs?: unknown[]; properties?: Record<string, string> }[] }
   >;
 }
 const topo = (id: string): Topo => JSON.parse(read(`subjects/${id}.topo.json`).toString('utf8'));
+/** Points of the arcs that the land geometry uses (after simplification). */
+function landPoints(id: string): number {
+  const t = topo(id);
+  const used = new Set<number>();
+  const walk = (a: unknown): void => {
+    if (Array.isArray(a)) a.forEach(walk);
+    else if (typeof a === 'number') used.add(a < 0 ? ~a : a);
+  };
+  for (const g of t.objects.land!.geometries) walk(g.arcs);
+  return [...used].reduce((sum, i) => sum + (t.arcs[i]?.length ?? 0), 0);
+}
 const entry = (id: string) => {
   const found = index.subjects.find((s) => s.id === id);
   if (!found) throw new Error(`no subject ${id} in index.json`);
@@ -83,6 +97,62 @@ describe('the tolerance rule', () => {
     };
     const geometry = dropSmallHoles(feature, 1).geometry;
     expect(geometry.type === 'Polygon' && geometry.coordinates).toHaveLength(2);
+  });
+});
+
+describe('the land outline level', () => {
+  const box = (x: number, y: number, w: number, h: number): Feature => ({
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [x, y],
+          [x, y + h],
+          [x + w, y + h],
+          [x + w, y],
+          [x, y],
+        ],
+      ],
+    },
+  });
+  const land = box(0, 0, 10, 10);
+
+  it('measures the area the divisions cover, holes removed', () => {
+    expect(coverage(land, [box(0, 0, 10, 5), box(0, 5, 10, 5)])).toBeCloseTo(1, 2);
+    expect(coverage(land, [box(0, 0, 10, 5)])).toBeCloseTo(0.5, 1);
+  });
+
+  it('accepts a level covering at least 98 % and rejects one below', async () => {
+    const load = (features: Feature[]) => async () => features;
+    const full = [box(0, 0, 10, 9.8)]; // 98 %
+    const short = [box(0, 0, 10, 9.7)]; // 97 %
+    expect((await pickLandLevel(land, [{ name: 'region', load: load(full) }]))?.name).toBe(
+      'region',
+    );
+    expect(await pickLandLevel(land, [{ name: 'region', load: load(short) }])).toBeNull();
+  });
+
+  it('falls through to the next level, and skips empty ones', async () => {
+    const half = [box(0, 0, 10, 5)];
+    const all = [box(0, 0, 10, 10)];
+    const picked = await pickLandLevel(land, [
+      { name: 'region', load: async () => [] },
+      { name: 'county', load: async () => half },
+      { name: 'locality', load: async () => all },
+    ]);
+    expect(picked?.name).toBe('locality');
+  });
+
+  it('draws small islands from the divisions, not from the coarse country polygon', () => {
+    // tolerance ~ 9 m on a 70 km extent: Overture's own polygons had 200 and 62 vertices
+    expect(landPoints('FR-MQ')).toBeGreaterThanOrEqual(1000);
+    expect(landPoints('FR-RE')).toBeGreaterThanOrEqual(1000);
+  });
+
+  it('keeps Thailand at least as detailed as the country polygon was (3047 points)', () => {
+    expect(landPoints('TH')).toBeGreaterThanOrEqual(3047);
   });
 });
 

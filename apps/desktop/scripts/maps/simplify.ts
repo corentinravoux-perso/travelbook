@@ -120,8 +120,59 @@ export function dropSmallHoles(feature: Feature, minKm2: number): Feature {
 const collection = (features: Feature[]): string =>
   JSON.stringify({ type: 'FeatureCollection', features } satisfies Collection);
 
+/** Share of the country polygon's area that a division level must cover to replace it. */
+export const COVERAGE_MIN = 0.98;
+
+const polygonAreaKm2 = (polygon: number[][][]): number =>
+  polygon.reduce((sum, ring, i) => sum + (i === 0 ? 1 : -1) * ringAreaKm2(ring), 0);
+
+/** Area of the features (holes removed) over the area of `land`; ~ the union's coverage. */
+export function coverage(land: Feature, features: Feature[]): number {
+  const area = (f: Feature): number =>
+    polygonsOf(f.geometry).reduce((s, p) => s + polygonAreaKm2(p), 0);
+  const total = area(land);
+  return total > 0 ? features.reduce((s, f) => s + area(f), 0) / total : 0;
+}
+
+/**
+ * The finest level whose features cover at least 98 % of the country or dependency polygon,
+ * trying the levels in the order given (coarse to fine, the finest accepted wins when its data is
+ * fuller): Overture's polygon of a country is sometimes far coarser than its divisions.
+ * `null` when no level qualifies (the caller keeps the country polygon).
+ */
+export async function pickLandLevel<L extends string>(
+  land: Feature,
+  levels: { name: L; load: () => Promise<Feature[]> }[],
+): Promise<{ name: L; features: Feature[] } | null> {
+  for (const level of levels) {
+    const features = await level.load();
+    if (features.length > 0 && coverage(land, features) >= COVERAGE_MIN) {
+      return { name: level.name, features };
+    }
+  }
+  return null;
+}
+
+/** One polygon feature holding every polygon of the features, for bbox and extent maths. */
+export function mergeGeometry(features: Feature[]): Feature {
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'MultiPolygon',
+      coordinates: features.flatMap((f) => polygonsOf(f.geometry)),
+    },
+  };
+}
+
 export interface TopologyInput {
-  land: Feature;
+  /** The country polygon, or (when `dissolve`) the polygons to be dissolved into the land. */
+  land: Feature | Feature[];
+  /** `land` is a set of divisions: dissolve it into one feature before simplifying. */
+  dissolve?: boolean;
+  /** The dissolved land is the regions layer itself, so the two share their edges. */
+  landIsRegions?: boolean;
+  landProperties: { id: string; name: string };
   regions: Feature[];
   neighbours: Feature[];
   lakes: Feature[];
@@ -151,17 +202,22 @@ export async function buildTopology(input: TopologyInput): Promise<Topology> {
   const tolerance = toleranceMetres(input.extent);
   const minArea = minAreaKm2(input.extent);
   const holes = (feature: Feature): Feature => dropSmallHoles(feature, minArea);
+  const landFeatures = Array.isArray(input.land) ? input.land : [input.land];
+  const sharedLand = input.dissolve === true && input.landIsRegions === true;
   const layers: Record<string, Feature[]> = {
-    land: [holes(input.land)],
+    land: sharedLand ? [] : landFeatures.map(holes),
     regions: input.regions.map(holes),
     neighbours: input.neighbours.map(holes),
     lakes: input.lakes.map(holes),
   };
   const present = OBJECTS.filter((name) => (layers[name] ?? []).length > 0);
+  if (sharedLand && !present.includes('regions')) throw new Error('landIsRegions without regions');
   const files: Record<string, string> = {};
   for (const name of present) files[`${name}.json`] = collection(layers[name] ?? []);
   const [x0, y0, x1, y1] = input.frame;
   const commands: string[] = [`-i ${present.map((n) => `${n}.json`).join(' ')} combine-files`];
+  if (sharedLand) commands.push('-dissolve + name=land target=regions');
+  else if (input.dissolve) commands.push('-dissolve target=land');
   if (present.includes('neighbours')) {
     commands.push(
       `-clip bbox=${x0},${y0},${x1},${y1} target=neighbours`,
@@ -181,5 +237,8 @@ export async function buildTopology(input: TopologyInput): Promise<Topology> {
   for (const name of OBJECTS) {
     objects[name] = topology.objects[name] ?? { type: 'GeometryCollection', geometries: [] };
   }
+  const geometries = objects.land?.geometries as { properties?: unknown }[] | undefined;
+  const landGeometry = geometries?.[0];
+  if (landGeometry) landGeometry.properties = input.landProperties;
   return { ...topology, objects };
 }
