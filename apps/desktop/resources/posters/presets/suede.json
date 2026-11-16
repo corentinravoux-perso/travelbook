@@ -79,5 +79,32 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "suede-kanelbulle",
+    "destination": "suede",
+    "name": "Suède, kanelbulle",
+    "spec": {
+      "layout": "geant",
+      "title": "SUÈDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6e7c8",
+        "title": "#2f5d9a",
+        "accent": "#a8621f",
+        "decor": "#fbf2df",
+        "illustration": {
+          "main": "#2f5d9a",
+          "shade": "#2f5d9a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "suede-kanelbulle"
+      },
+      "spine": true
+    }
   }
 ]

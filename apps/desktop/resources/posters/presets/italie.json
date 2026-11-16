@@ -79,5 +79,59 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "italie-gelato",
+    "destination": "italie",
+    "name": "Italie, gelato",
+    "spec": {
+      "layout": "geant",
+      "title": "ITALIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#fde3ea",
+        "title": "#d94f7a",
+        "accent": "#8a5a3a",
+        "decor": "#fef0f4",
+        "illustration": {
+          "main": "#d94f7a",
+          "shade": "#d94f7a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "italie-gelato"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "italie-amalfi",
+    "destination": "italie",
+    "name": "Italie, côte amalfitaine",
+    "spec": {
+      "layout": "geant",
+      "title": "ITALIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#d8ecf5",
+        "title": "#c8553a",
+        "accent": "#3f7fbf",
+        "decor": "#eaf5fa",
+        "illustration": {
+          "main": "#c8553a",
+          "shade": "#c8553a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "italie-amalfi"
+      },
+      "spine": true
+    }
   }
 ]

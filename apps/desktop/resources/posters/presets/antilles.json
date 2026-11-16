@@ -106,5 +106,32 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "antilles-ananas",
+    "destination": "antilles",
+    "name": "Martinique, ananas",
+    "spec": {
+      "layout": "geant",
+      "title": "MARTINIQUE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#c9ead9",
+        "title": "#2a6526",
+        "accent": "#f0a92a",
+        "decor": "#e2f4ea",
+        "illustration": {
+          "main": "#2a6526",
+          "shade": "#2a6526"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "antilles-ananas"
+      },
+      "spine": true
+    }
   }
 ]
