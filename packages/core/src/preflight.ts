@@ -7,6 +7,7 @@ export type PreflightIssue =
   | { kind: 'emptySlot'; spreadId: string; elementId: string }
   | { kind: 'textOutsideSafe'; spreadId: string; elementId: string }
   | { kind: 'missingAsset'; assetId: string }
+  | { kind: 'missingMap'; spreadId: string; elementId: string }
   | { kind: 'pageRule'; pages: number; rule: Book['pageRule'] };
 
 /** Tolerance (1 nm) for a box that sits exactly on the edge of the safe area. */
@@ -56,6 +57,11 @@ function backgroundAsset(bg: Background | undefined): string | null {
  *   area of a page.
  * - `missingAsset`: an asset an element or a background uses has no entry in `book.assets`, or
  *   its `file` is not in `existingFiles`.
+ * - `missingMap`: a map whose baked geometry has no entry in `book.assets` or whose file is not in
+ *   `existingFiles`; the editor and the export draw a hatched "Carte introuvable" frame instead.
+ *   It is a warning, not a `missingAsset`: the map is drawn as that frame, never a crash. The
+ *   photos of a map's medallions are checked like any photo (`missingAsset`) while the medallions
+ *   are on.
  * - `pageRule`: the page count is under `pageRule.min` or not a multiple of `pageRule.multiple`.
  */
 export function preflight(book: Book, existingFiles: Set<string>): PreflightIssue[] {
@@ -87,6 +93,13 @@ export function preflight(book: Book, existingFiles: Set<string>): PreflightIssu
         }
       } else if (el.type === 'sticker') {
         if (el.assetId) used.add(el.assetId);
+      } else if (el.type === 'map') {
+        const geometry = book.assets[el.geometryAssetId];
+        if (!geometry || !existingFiles.has(geometry.file)) {
+          issues.push({ kind: 'missingMap', spreadId: spread.id, elementId: el.id });
+        }
+        if (el.medallions)
+          for (const place of el.places) if (place.photo) used.add(place.photo.assetId);
       } else if (el.type === 'text') {
         const box = el.rotation % 180 === 0 ? el : boundingBox(el);
         if (!safe.some((area) => isInside(box, area))) {

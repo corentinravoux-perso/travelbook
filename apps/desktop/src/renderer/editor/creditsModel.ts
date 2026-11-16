@@ -1,4 +1,5 @@
 import {
+  elementAssetIds,
   newElement,
   pageBox,
   spreadSize,
@@ -22,13 +23,14 @@ export interface CreditEntry {
   requiresAttribution: boolean;
 }
 
-/** The ids of the assets the book draws: on an element, or as a background. */
+/**
+ * The ids of the assets the book draws: on an element (a map's geometry and medallion photos
+ * included), or as a background.
+ */
 export function usedAssetIds(book: Book): Set<string> {
   const used = new Set<string>();
   for (const spread of [book.cover, ...book.spreads]) {
-    for (const el of spread.elements) {
-      if ((el.type === 'photo' || el.type === 'sticker') && el.assetId) used.add(el.assetId);
-    }
+    for (const el of spread.elements) for (const id of elementAssetIds(el)) used.add(id);
     for (const bg of Object.values(spread.background)) {
       if (bg && (bg.kind === 'image' || bg.kind === 'pattern')) used.add(bg.assetId);
     }
@@ -36,13 +38,18 @@ export function usedAssetIds(book: Book): Set<string> {
   return used;
 }
 
-const titleOf = (asset: AssetRef): string => asset.originalName.replace(/\.[A-Za-z0-9]{1,5}$/, '');
+/** A map's geometry is credited as "Cartes" whichever places the album maps: one entry for all. */
+const titleOf = (asset: AssetRef): string =>
+  asset.kind === 'map'
+    ? fr.credits.mapTitle
+    : asset.originalName.replace(/\.[A-Za-z0-9]{1,5}$/, '');
 
 /**
- * The licences of every asset the book uses. Photos are left out unless they carry licence data
- * (a photo of the user's own has none); any other asset is listed, as the user's own file when it
- * has no licence. Two assets with the same title, author, licence and source page are listed once;
- * the list is ordered by title.
+ * The licences of every asset the book uses. Photos and map geometries are left out unless they
+ * carry licence data (a photo of the user's own has none; a map geometry without one has nothing
+ * to credit); any other asset is listed, as the user's own file when it has no licence. Two
+ * assets with the same title, author, licence and source page are listed once (so the geometries
+ * of all the album's maps make one ODbL entry); the list is ordered by title.
  */
 export function creditEntries(book: Book): CreditEntry[] {
   const used = usedAssetIds(book);
@@ -52,7 +59,7 @@ export function creditEntries(book: Book): CreditEntry[] {
     const asset = book.assets[id];
     if (asset === undefined) continue;
     const licence = asset.licence;
-    if (licence === undefined && asset.kind === 'photo') continue;
+    if (licence === undefined && (asset.kind === 'photo' || asset.kind === 'map')) continue;
     const key = [
       licence?.author ?? '',
       licence?.licence ?? '',

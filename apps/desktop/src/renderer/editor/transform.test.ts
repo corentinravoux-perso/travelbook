@@ -1,8 +1,11 @@
 import { newBook, newElement, type Element, type Spread } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { describe, expect, it } from 'vitest';
 import {
   elementAt,
   enclosedBy,
+  isCorner,
+  keepsRatioOnCorners,
   resizeRect,
   rotateAbout,
   scaleWith,
@@ -82,6 +85,27 @@ describe('resizeRect', () => {
   it('never goes under the minimum size', () => {
     expect(resizeRect(r, 'w', 100, 0, false).w).toBe(2);
     expect(resizeRect(r, 'se', -100, -100, true).h).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('resizing a map', () => {
+  it('keeps no ratio on a corner: a map shows more context, it is never a picture to scale', () => {
+    expect(keepsRatioOnCorners(mapElement())).toBe(false);
+    // photos and stickers still do
+    expect(keepsRatioOnCorners(newElement('photo', { x: 0, y: 0, w: 10, h: 10 }))).toBe(true);
+    expect(keepsRatioOnCorners(newElement('sticker', { x: 0, y: 0, w: 10, h: 10 }))).toBe(true);
+  });
+
+  it('changes the width and the height independently from a corner', () => {
+    const map = mapElement();
+    const start = { x: map.x, y: map.y, w: map.w, h: map.h };
+    const keep = isCorner('se') && keepsRatioOnCorners(map);
+    expect(resizeRect(start, 'se', 40, -30, keep)).toEqual({
+      x: map.x,
+      y: map.y,
+      w: map.w + 40,
+      h: map.h - 30,
+    });
   });
 });
 
