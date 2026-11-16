@@ -7,7 +7,11 @@ import { DuckDBInstance, type DuckDBConnection } from '@duckdb/node-api';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { appFileUrl } from './paths.ts';
-import type { DivisionPerspective, PerspectiveMode } from './perspectives.ts';
+import {
+  perspectiveEntries,
+  type DivisionPerspective,
+  type PerspectiveMode,
+} from './perspectives.ts';
 import type { Bbox, Collection, Feature } from './simplify.ts';
 
 /** The Overture release the committed data comes from (newest listed on S3 on 2026-11-16). */
@@ -155,30 +159,28 @@ export function fetchDivisions(
 }
 
 /**
- * The land divisions whose division carries `perspectives` (`division_area` has no such column:
- * it is read from `division`, joined on `division_id`), as one entry per area id and per ISO
- * 3166-2 code. Empty in 2026-10-21.0, where no division has any (see `perspectives.ts`).
+ * The land areas whose division carries `perspectives` (`division_area` has no such column: it is
+ * read from `division`, joined on `division_id`), as `perspectiveEntries` makes them. Empty in
+ * 2026-10-21.0, where no division has any (see `perspectives.ts`).
  */
 export function fetchPerspectives(): Promise<DivisionPerspective[]> {
   return cached('perspectives.json', async () => {
     const rows = await query(`
-      SELECT a.id AS id, a.region AS region, a.country AS country,
+      SELECT a.id AS id, a.region AS region, a.country AS country, a.subtype AS subtype,
              d.perspectives."mode" AS mode, d.perspectives.countries AS countries
       FROM read_parquet('${DIVISION}') d
       JOIN read_parquet('${DIVISION_AREA}') a ON a.division_id = d.id
       WHERE d.perspectives IS NOT NULL AND a.is_land`);
-    return rows.flatMap((r) => {
-      const perspectives = {
+    return perspectiveEntries(
+      rows.map((r) => ({
+        id: String(r.id),
+        region: str(r.region),
+        country: String(r.country),
+        subtype: String(r.subtype),
         mode: String(r.mode) as PerspectiveMode,
         countries: (r.countries as unknown[]).map(String),
-      };
-      const country = String(r.country);
-      return [String(r.id), ...(str(r.region) ? [String(r.region)] : [])].map((id) => ({
-        country,
-        id,
-        perspectives,
-      }));
-    });
+      })),
+    );
   });
 }
 

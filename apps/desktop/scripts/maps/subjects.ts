@@ -31,6 +31,15 @@ const FRENCH_OVERSEAS = ['GF', 'GP', 'MQ', 'RE', 'YT'];
  */
 export const placesIso = (code: string): string => (FRENCH_OVERSEAS.includes(code) ? 'FR' : code);
 
+/**
+ * The countries whose point of view a subject draws (see `perspectives.ts`): its own code and, for
+ * a French overseas department, `FR`, its sovereign. The catalogue carries no sovereign for the
+ * other dependencies (`HK`, `GI`...), which stay on their own code.
+ */
+export const viewersOf = (def: SubjectDef): string[] => [
+  ...new Set([def.country, placesIso(def.country)]),
+];
+
 /** The ISO codes, one each, of the subjects (the places files they share): `FR-MQ` is `FR`. */
 export const isosOf = (subjects: { id: string }[]): string[] => [
   ...new Set(subjects.map((s) => s.id.split('-')[0] ?? s.id)),

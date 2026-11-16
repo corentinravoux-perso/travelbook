@@ -48,8 +48,8 @@ export const writeIndexFile = (dirs: MapDirs, index: MapIndex): Promise<void> =>
 
 /**
  * The committed `index.json`. `undefined` only when the file does not exist (a first run); a file
- * that cannot be read or parsed throws, because a run that took it for "no index" would treat
- * every other subject as unknown and prune their files.
+ * that cannot be read, parsed or does not look like an index throws, because a run that took it
+ * for "no index" would treat every other subject as unknown and prune their files.
  */
 export async function readIndexFile(dirs: MapDirs): Promise<MapIndex | undefined> {
   let text: string;
@@ -59,11 +59,33 @@ export async function readIndexFile(dirs: MapDirs): Promise<MapIndex | undefined
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
     throw new Error(`cannot read ${indexFile(dirs)}: ${messageOf(error)}`, { cause: error });
   }
+  let index: unknown;
   try {
-    return JSON.parse(text) as MapIndex;
+    index = JSON.parse(text);
   } catch (error) {
     throw new Error(`${indexFile(dirs)} is not valid JSON: ${messageOf(error)}`, { cause: error });
   }
+  const shaped = index as Partial<MapIndex> | null;
+  if (typeof shaped?.overture !== 'string' || !Array.isArray(shaped.subjects)) {
+    throw new Error(`${indexFile(dirs)} has no \`overture\` release and \`subjects\` list`);
+  }
+  return shaped as MapIndex;
+}
+
+/**
+ * The entries of the committed index that a `boundaries` run keeps: those of the other subjects of
+ * a partial run (`only` given) built from the same Overture release. A full run rebuilds every
+ * subject, so it does not read the index at all: a corrupt one must not block the rebuild that
+ * replaces it.
+ */
+export async function subjectsToKeep(
+  only: string[] | undefined,
+  release: string,
+  read: () => Promise<MapIndex | undefined>,
+): Promise<MapSubjectEntry[]> {
+  if (only === undefined) return [];
+  const previous = await read();
+  return previous?.overture === release ? previous.subjects : [];
 }
 
 /** File names (not paths) of every directory that the index lists. */

@@ -17,7 +17,14 @@ import {
 import { tmpdir } from 'node:os';
 import { crc32 } from 'node:zlib';
 import { BASE_BUDGET_BYTES, indexFile, mapDirs } from './outputs.ts';
-import { PERSPECTIVE_OVERRIDES, acceptedBy, keepOwnPerspective } from './perspectives.ts';
+import {
+  PERSPECTIVE_OVERRIDES,
+  acceptedBy,
+  filterWarning,
+  keepOwnPerspective,
+  perspectiveEntries,
+  unmatchedOverrides,
+} from './perspectives.ts';
 import {
   HERITAGE_BOOST,
   applyOverrides,
@@ -71,7 +78,7 @@ import {
   type PackMode,
   type Topology,
 } from './simplify.ts';
-import { isosOf, placesIso, selectSubjects, subjectDefs } from './subjects.ts';
+import { isosOf, placesIso, selectSubjects, subjectDefs, viewersOf } from './subjects.ts';
 
 const MAPS_DIR = join(import.meta.dirname, '../../resources/maps');
 const index = JSON.parse(readFileSync(join(MAPS_DIR, 'index.json'), 'utf8')) as MapIndex;
@@ -1512,11 +1519,21 @@ describe('the perspectives of the divisions', () => {
   });
 
   const known = [
-    { country: 'IN', id: 'south-tibet', perspectives: persp('accepted_by', 'CN') },
-    { country: 'IN', id: 'IN-XX', perspectives: persp('disputed_by', 'IN') },
-    { country: 'IN', id: 'by-india', perspectives: persp('accepted_by', 'IN') },
+    {
+      country: 'IN',
+      id: 'south-tibet',
+      subtype: 'region',
+      perspectives: persp('accepted_by', 'CN'),
+    },
+    { country: 'IN', id: 'IN-XX', subtype: 'region', perspectives: persp('disputed_by', 'IN') },
+    { country: 'IN', id: 'by-india', subtype: 'region', perspectives: persp('accepted_by', 'IN') },
     // the same id under another country is another division
-    { country: 'CN', id: 'claim-of-cn', perspectives: persp('accepted_by', 'CN') },
+    {
+      country: 'CN',
+      id: 'claim-of-cn',
+      subtype: 'region',
+      perspectives: persp('accepted_by', 'CN'),
+    },
   ];
   const feature = (id: string): Feature => box(id, 0, 0, 1);
 
@@ -1531,9 +1548,119 @@ describe('the perspectives of the divisions', () => {
     // seen from CN, South Tibet is accepted
     expect(
       keepOwnPerspective([feature('south-tibet')], 'CN', [
-        { country: 'CN', id: 'south-tibet', perspectives: persp('accepted_by', 'CN') },
+        {
+          country: 'CN',
+          id: 'south-tibet',
+          subtype: 'region',
+          perspectives: persp('accepted_by', 'CN'),
+        },
       ]).left,
     ).toEqual([]);
+  });
+
+  it('accepts a division when any viewer does: the department and its sovereign', () => {
+    const byFrance = persp('accepted_by', 'FR');
+    expect(acceptedBy(byFrance, 'MQ')).toBe(false);
+    expect(acceptedBy(byFrance, ['MQ', 'FR'])).toBe(true);
+    const disputedByFrance = persp('disputed_by', 'FR');
+    expect(acceptedBy(disputedByFrance, 'MQ')).toBe(true);
+    expect(acceptedBy(disputedByFrance, ['MQ', 'FR'])).toBe(false);
+  });
+
+  it('names the viewers of a subject: its own code, and France for an overseas department', () => {
+    const defs = subjectDefs(
+      ['FR', 'MQ', 'RE', 'HK', 'US'].map((country) => ({
+        id: country,
+        country,
+        subtype:
+          country === 'HK' || country === 'MQ' || country === 'RE' ? 'dependency' : 'country',
+        nameFr: null,
+        namePrimary: country,
+        nameEn: null,
+        bbox: [0, 0, 1, 1] as [number, number, number, number],
+      })),
+    );
+    const viewers = Object.fromEntries(defs.map((d) => [d.id, viewersOf(d)]));
+    expect(viewers).toMatchObject({
+      'FR-MET': ['FR'],
+      'FR-MQ': ['MQ', 'FR'],
+      'FR-RE': ['RE', 'FR'],
+      HK: ['HK'],
+      US: ['US'],
+      'US-AK': ['US'],
+    });
+  });
+
+  it('keeps an overseas department whose division is accepted by France, leaves it out if France disputes it', () => {
+    const entries = [
+      { country: 'MQ', id: 'by-fr', subtype: 'region', perspectives: persp('accepted_by', 'FR') },
+      { country: 'MQ', id: 'vs-fr', subtype: 'region', perspectives: persp('disputed_by', 'FR') },
+    ];
+    const rows = ['by-fr', 'vs-fr', 'plain'].map(feature);
+    const own = keepOwnPerspective(rows, 'MQ', entries); // its own code only: by-fr would go
+    expect(own.kept.map((f) => f.properties.id)).toEqual(['vs-fr', 'plain']);
+    const withFrance = keepOwnPerspective(rows, 'MQ', entries, ['MQ', 'FR']);
+    expect(withFrance.kept.map((f) => f.properties.id)).toEqual(['by-fr', 'plain']);
+    expect(withFrance.left.map((l) => l.feature.properties.id)).toEqual(['vs-fr']);
+  });
+
+  describe('the entries of the Overture rows', () => {
+    const row = (over: Record<string, unknown>) => ({
+      id: 'area-1',
+      region: null as string | null,
+      country: 'IN',
+      subtype: 'region',
+      mode: 'accepted_by' as const,
+      countries: ['CN'],
+      ...over,
+    });
+
+    it('registers a region by its area id and by its ISO 3166-2 code', () => {
+      const entries = perspectiveEntries([row({ region: 'IN-XX' })]);
+      expect(entries.map((e) => e.id)).toEqual(['area-1', 'IN-XX']);
+      expect(entries.every((e) => e.subtype === 'region' && e.country === 'IN')).toBe(true);
+      expect(entries[0]?.perspectives).toEqual({ mode: 'accepted_by', countries: ['CN'] });
+    });
+
+    it('registers a region without a code by its area id only', () => {
+      expect(perspectiveEntries([row({})]).map((e) => e.id)).toEqual(['area-1']);
+    });
+
+    it('never registers the region code of a county: it is the code of the region around it', () => {
+      const entries = perspectiveEntries([
+        row({ id: 'county-1', subtype: 'county', region: 'IN-AR' }),
+        row({ id: 'town-1', subtype: 'locality', region: 'IN-AR' }),
+      ]);
+      expect(entries.map((e) => e.id)).toEqual(['county-1', 'town-1']);
+      // so the real region, named by its code in the ISO-id mode, stays
+      const { kept, left } = keepOwnPerspective(
+        [feature('IN-AR'), feature('IN-AS')],
+        'IN',
+        entries,
+      );
+      expect(kept.map((f) => f.properties.id)).toEqual(['IN-AR', 'IN-AS']);
+      expect(left).toEqual([]);
+    });
+  });
+
+  it('reports an override that matches no division of its level (an area given a new id)', () => {
+    const rows = ['06a778a5'].map(feature);
+    const stale = unmatchedOverrides(rows, 'IN', 'region', PERSPECTIVE_OVERRIDES);
+    expect(stale.map((o) => o.id)).toEqual(['62e7b386-6708-4787-94d4-90c20cbbf7f8']);
+    const present = [feature('62e7b386-6708-4787-94d4-90c20cbbf7f8')];
+    expect(unmatchedOverrides(present, 'IN', 'region', PERSPECTIVE_OVERRIDES)).toEqual([]);
+    // another country, or another level, is not this override's business
+    expect(unmatchedOverrides(rows, 'CN', 'region', PERSPECTIVE_OVERRIDES)).toEqual([]);
+    expect(unmatchedOverrides(rows, 'IN', 'county', PERSPECTIVE_OVERRIDES)).toEqual([]);
+  });
+
+  it('warns when the filter removes every division of a level, or more than 20 % of them', () => {
+    expect(filterWarning(36, 0)).toBeNull();
+    expect(filterWarning(37, 1)).toBeNull(); // South Tibet among India's regions
+    expect(filterWarning(10, 2)).toBeNull(); // exactly 20 %
+    expect(filterWarning(10, 3)).toMatch(/30 % .*more than 20 %/);
+    expect(filterWarning(5, 5)).toMatch(/every one/);
+    expect(filterWarning(0, 0)).toBeNull(); // nothing there to remove
   });
 
   it('knows the Chinese South Tibet that the world run found among the regions of India', () => {
@@ -1574,7 +1701,12 @@ describe('the perspectives of the divisions', () => {
     expect(before.cuts[0]?.left).toBeLessThan(0.2);
 
     const { kept } = keepOwnPerspective(rows, 'IN', [
-      { country: 'IN', id: 'south-tibet', perspectives: persp('accepted_by', 'CN') },
+      {
+        country: 'IN',
+        id: 'south-tibet',
+        subtype: 'region',
+        perspectives: persp('accepted_by', 'CN'),
+      },
     ]);
     const after = await cutOverlappingRegions(kept);
     expect(ids(after.regions)).toEqual(['IN-AR', 'IN-AS']);
