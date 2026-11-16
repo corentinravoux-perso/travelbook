@@ -83,6 +83,30 @@ test('opens on the spread in view, turns with the keys and the mouse, and Escape
       await expect(position(page)).toHaveText(new RegExp(`${total} sur ${total}$`));
     });
 
+    await test.step('"Zones rognées", on by default, hatches the bleed the cut removes', async () => {
+      const spread = page.locator('.preview__spread');
+      const cut = page.locator('.preview .preview__cut');
+      const toggle = page.getByRole('checkbox', { name: 'Zones rognées' });
+      await expect(toggle).toBeChecked();
+      await expect(cut).toHaveCount(1);
+      const { format, bleed } = await evalEditor(
+        page,
+        (e) => ({ format: e.getState().book.format, bleed: e.getState().book.bleed }),
+        null,
+      );
+      const withBleed = (await spread.boundingBox())!;
+      // A single-page spread: the page and its three outer bleeds.
+      expect(withBleed.width / withBleed.height).toBeCloseTo(
+        (format.width + bleed) / (format.height + 2 * bleed),
+        2,
+      );
+      await toggle.uncheck();
+      await expect(cut).toHaveCount(0);
+      const trimOnly = (await spread.boundingBox())!;
+      expect(trimOnly.width / trimOnly.height).toBeCloseTo((2 * format.width) / format.height, 2);
+      await toggle.check();
+    });
+
     await test.step('a click on the left half goes back, on the right half goes on', async () => {
       const stage = (await page.locator('.preview__stage').boundingBox())!;
       const y = stage.y + stage.height / 2;

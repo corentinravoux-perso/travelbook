@@ -3,6 +3,7 @@ import {
   applyPoster,
   posterLayout,
   recolorIllustration,
+  setBookSettings,
   type Licence,
   type MeasureText,
   type PosterIllustration,
@@ -74,12 +75,14 @@ export interface IllustrationOrigin {
 /**
  * Put a poster on the cover. Loads the illustration, recolours it when it has colour roles,
  * stores it as an album asset, lays the poster out, and applies everything in ONE
- * `store.apply`, so one undo restores the cover. Resolves to `false`, with a notice over the
+ * `store.apply`, so one undo restores the cover. A `spineWidth` (mm, 0 for none) changes the
+ * book's spine in that same step. Resolves to `false`, with a notice over the
  * canvas and the book unchanged, when anything fails.
  */
 export async function applyPosterToCover(
   spec: PosterSpec,
   origin: IllustrationOrigin = { licence: AFFICHES_LICENCE },
+  spineWidth?: number,
 ): Promise<boolean> {
   if (editorStore.getState().book === null) return false;
   try {
@@ -96,7 +99,11 @@ export async function applyPosterToCover(
     const store = editorStore.getState();
     if (store.book === null) return false;
     store.apply((b) => {
-      const withAsset = withAssets(b, [asset]);
+      const spined =
+        spineWidth === undefined || spineWidth === b.spineWidth
+          ? b
+          : setBookSettings(b, { spineWidth });
+      const withAsset = withAssets(spined, [asset]);
       const result = posterLayout(withAsset, {
         spec,
         illustration: { assetId: asset.id, ratio },
