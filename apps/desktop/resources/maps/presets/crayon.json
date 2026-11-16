@@ -1,0 +1,141 @@
+{
+  "id": "crayon",
+  "name": "Crayon",
+  "style": {
+    "styleVersion": 1,
+    "land": {
+      "fill": "#b9ae97",
+      "stroke": "#3d3a36",
+      "width": 0.4
+    },
+    "regions": {
+      "stroke": "#8c8472",
+      "width": 0.18,
+      "dash": [
+        1.2,
+        0.8
+      ]
+    },
+    "neighbours": {
+      "fill": null,
+      "stroke": "#b5ad9c",
+      "width": 0.15
+    },
+    "lakes": {
+      "fill": "#a7c7d9",
+      "stroke": "#4b6b80",
+      "width": 0.2
+    },
+    "outline": {
+      "color": "#3d3a36",
+      "width": 0.45,
+      "detail": 1
+    },
+    "label": {
+      "font": "Kalam",
+      "weight": 400,
+      "italicSights": false,
+      "sizePt": 10,
+      "color": "#2f2c28",
+      "case": "none",
+      "letterSpacingEm": 0,
+      "halo": {
+        "color": "#fbf7ec",
+        "width": 0.8
+      }
+    },
+    "markers": {
+      "capital": {
+        "kind": "star",
+        "color": "#c0392b",
+        "stroke": "#fbf7ec",
+        "scale": 1.5
+      },
+      "city": {
+        "kind": "point",
+        "color": "#3d3a36",
+        "stroke": "#fbf7ec",
+        "scale": 1
+      },
+      "sight": {
+        "kind": "pin",
+        "color": "#2e6f95",
+        "stroke": "#fbf7ec",
+        "scale": 1
+      },
+      "custom": {
+        "kind": "pin",
+        "color": "#4f7942",
+        "stroke": "#fbf7ec",
+        "scale": 1
+      }
+    },
+    "route": {
+      "voiture": {
+        "color": "#c0392b",
+        "width": 0.6,
+        "dash": [
+          2,
+          1.4
+        ]
+      },
+      "bus": {
+        "color": "#c0392b",
+        "width": 0.6,
+        "dash": [
+          2,
+          1.4
+        ]
+      },
+      "train": {
+        "color": "#c0392b",
+        "width": 0.6,
+        "dash": null
+      },
+      "avion": {
+        "color": "#2e6f95",
+        "width": 0.5,
+        "dash": [
+          0.01,
+          1.6
+        ]
+      },
+      "bateau": {
+        "color": "#2e6f95",
+        "width": 0.5,
+        "dash": [
+          1,
+          1
+        ]
+      },
+      "pied": {
+        "color": "#c0392b",
+        "width": 0.45,
+        "dash": [
+          0.5,
+          1
+        ]
+      }
+    },
+    "badge": {
+      "fill": "#c0392b",
+      "text": "#fffaf0",
+      "stroke": "#fbf7ec",
+      "font": "Kalam",
+      "weight": 700
+    },
+    "medallion": {
+      "ringColor": "#fbf7ec",
+      "ringWidth": 0.7
+    },
+    "sizes": {
+      "marker": 3,
+      "badge": 5,
+      "vehicle": 6
+    },
+    "rough": {
+      "seed": 7,
+      "roughness": 1
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "id": "safran",
+  "name": "Safran",
+  "style": {
+    "styleVersion": 1,
+    "land": {
+      "fill": "#e8741e",
+      "stroke": null,
+      "width": 0
+    },
+    "regions": {
+      "stroke": null,
+      "width": 0,
+      "dash": null
+    },
+    "neighbours": {
+      "fill": "#f3cfa6",
+      "stroke": null,
+      "width": 0
+    },
+    "lakes": {
+      "fill": "#bfe3dc",
+      "stroke": null,
+      "width": 0
+    },
+    "outline": {
+      "color": null,
+      "width": 0,
+      "detail": 1
+    },
+    "label": {
+      "font": "Bebas Neue",
+      "weight": 400,
+      "italicSights": false,
+      "sizePt": 12.5,
+      "color": "#1b2a49",
+      "case": "upper",
+      "letterSpacingEm": 0.14,
+      "halo": {
+        "color": "#fff4e0",
+        "width": 0.8
+      }
+    },
+    "markers": {
+      "capital": {
+        "kind": "pin",
+        "color": "#1b2a49",
+        "stroke": "#fff4e0",
+        "scale": 1.3
+      },
+      "city": {
+        "kind": "pin",
+        "color": "#fff4e0",
+        "stroke": "#1b2a49",
+        "scale": 1
+      },
+      "sight": {
+        "kind": "pin",
+        "color": "#0f766e",
+        "stroke": "#fff4e0",
+        "scale": 0.9
+      },
+      "custom": {
+        "kind": "pin",
+        "color": "#0f766e",
+        "stroke": "#fff4e0",
+        "scale": 0.9
+      }
+    },
+    "route": {
+      "voiture": {
+        "color": "#1b2a49",
+        "width": 0.7,
+        "dash": [
+          2.2,
+          1.5
+        ]
+      },
+      "bus": {
+        "color": "#1b2a49",
+        "width": 0.7,
+        "dash": [
+          2.2,
+          1.5
+        ]
+      },
+      "train": {
+        "color": "#1b2a49",
+        "width": 0.7,
+        "dash": null
+      },
+      "avion": {
+        "color": "#1b2a49",
+        "width": 0.6,
+        "dash": [
+          0.01,
+          1.7
+        ]
+      },
+      "bateau": {
+        "color": "#1b2a49",
+        "width": 0.6,
+        "dash": [
+          1,
+          1
+        ]
+      },
+      "pied": {
+        "color": "#1b2a49",
+        "width": 0.5,
+        "dash": [
+          0.5,
+          1
+        ]
+      }
+    },
+    "badge": {
+      "fill": "#1b2a49",
+      "text": "#fff4e0",
+      "stroke": "#fff4e0",
+      "font": "Bebas Neue",
+      "weight": 400
+    },
+    "medallion": {
+      "ringColor": "#fff4e0",
+      "ringWidth": 0.6
+    },
+    "sizes": {
+      "marker": 3,
+      "badge": 5,
+      "vehicle": 6
+    },
+    "rough": null
+  }
+}

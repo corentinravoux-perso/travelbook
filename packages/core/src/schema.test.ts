@@ -9,12 +9,14 @@ import {
   type Background,
   type Book,
   type Element,
+  type MapElement,
   type PhotoElement,
   type Spread,
   BookFormatError,
   BookSchema,
   bookForSave,
   bookSchemaVersion,
+  DEFAULT_MAP_STYLE,
   migrate,
   newBook,
   newElement,
@@ -26,6 +28,10 @@ import {
 import { mapAsset, mapElement } from './map/test-helpers';
 
 const rect = { x: 1, y: 2, w: 30, h: 40 };
+
+/** A raw document edited by key, as a test saves an album the way another release would. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Raw = Record<string, any>;
 
 describe('newBook', () => {
   it('builds a valid default book', () => {
@@ -227,6 +233,76 @@ describe('migrate', () => {
     b.cover.elements.push(mapElement());
     expect(migrate(b)).toEqual(b);
     expect(migrate(b).schemaVersion).toBe(2);
+  });
+  describe('map styles (spec 7.9)', () => {
+    /** An album as an older or newer release saved it: map styles edited on the raw JSON. */
+    function saved(edit: (style: Raw) => void): Raw {
+      const b = JSON.parse(
+        JSON.stringify({ ...newBook({ title: 'T', innerSpreads: 1 }), schemaVersion: 2 }),
+      ) as Raw;
+      b['cover'].elements.push(JSON.parse(JSON.stringify(mapElement())));
+      b['spreads'][1].elements.push({ ...JSON.parse(JSON.stringify(mapElement())), id: 'map-2' });
+      for (const spread of [b['cover'], b['spreads'][1]]) {
+        edit(spread.elements.find((e: Raw) => e['type'] === 'map').style);
+      }
+      return b;
+    }
+    const mapsOf = (b: Book): MapElement[] =>
+      [b.cover, ...b.spreads]
+        .flatMap((s) => s.elements)
+        .filter((e): e is MapElement => e.type === 'map');
+
+    it('opens an album whose map style lacks lakes and has an unknown token, filled from the defaults', () => {
+      const raw = saved((style) => {
+        delete style['lakes'];
+        style['sparkle'] = { amount: 3 };
+        style['label'].shadow = true;
+      });
+      const maps = mapsOf(migrate(raw));
+      expect(maps).toHaveLength(2);
+      for (const map of maps) {
+        expect(map.style).toEqual(DEFAULT_MAP_STYLE);
+        expect(Object.keys(map.style)).not.toContain('sparkle');
+      }
+    });
+
+    it('keeps the tokens the album has', () => {
+      const raw = saved((style) => {
+        delete style['sizes'];
+        style['land'].fill = '#223344';
+      });
+      const [map] = mapsOf(migrate(raw));
+      expect(map?.style.land.fill).toBe('#223344');
+      expect(map?.style.sizes).toEqual(DEFAULT_MAP_STYLE.sizes);
+    });
+
+    it('fills a map element that has no style at all', () => {
+      const raw = saved(() => {});
+      for (const e of raw['cover'].elements) delete e['style'];
+      expect(mapsOf(migrate(raw))[0]?.style).toEqual(DEFAULT_MAP_STYLE);
+    });
+
+    it('does not edit the raw document it was given', () => {
+      const raw = saved((style) => delete style['lakes']);
+      const before = JSON.stringify(raw);
+      migrate(raw);
+      expect(JSON.stringify(raw)).toBe(before);
+    });
+
+    it('still reports a broken element outside the style as a BookFormatError', () => {
+      const raw = saved((style) => delete style['lakes']);
+      for (const e of raw['cover'].elements) e['opacity'] = 2;
+      expect(() => migrate(raw)).toThrow(BookFormatError);
+    });
+
+    it('still reports a document without spreads, or with a cover that is no spread, as a BookFormatError', () => {
+      const raw = saved(() => {});
+      delete raw['spreads'];
+      expect(() => migrate(raw)).toThrow(BookFormatError);
+      expect(() => migrate({ schemaVersion: 2, cover: 'x', spreads: [null] })).toThrow(
+        BookFormatError,
+      );
+    });
   });
   it('rejects a newer version with the update message', () => {
     const b = { ...newBook({ title: 'T' }), schemaVersion: 3 };
