@@ -89,7 +89,7 @@
       "title": "PÉROU",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#efe1f5",
         "title": "#7a3fa6",
@@ -116,7 +116,7 @@
       "title": "PÉROU",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#f8e2c8",
         "title": "#3f7fbf",
@@ -130,6 +130,33 @@
       "illustration": {
         "set": "affiches",
         "id": "perou-titicaca"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "perou-arc-en-ciel",
+    "destination": "perou",
+    "name": "Pérou, randonnée sur la montagne arc-en-ciel",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f6e8d8",
+        "title": "#c8553a",
+        "accent": "#7fae8a",
+        "decor": "#f6e8d8",
+        "illustration": {
+          "main": "#c8553a",
+          "shade": "#c8553a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-arc-en-ciel"
       },
       "spine": true
     }

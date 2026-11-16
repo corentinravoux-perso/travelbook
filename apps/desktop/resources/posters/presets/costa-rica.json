@@ -89,7 +89,7 @@
       "title": "COSTA RICA",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#d6ead2",
         "title": "#6e3e28",
@@ -116,7 +116,7 @@
       "title": "COSTA RICA",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#f9e7c2",
         "title": "#d8352a",
@@ -130,6 +130,33 @@
       "illustration": {
         "set": "affiches",
         "id": "costa-rica-ara"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "costa-rica-arenal",
+    "destination": "costa-rica",
+    "name": "Costa Rica, volcan Arenal",
+    "spec": {
+      "layout": "geant",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#dcefd8",
+        "title": "#245a2a",
+        "accent": "#e8513a",
+        "decor": "#dcefd8",
+        "illustration": {
+          "main": "#245a2a",
+          "shade": "#245a2a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-arenal"
       },
       "spine": true
     }

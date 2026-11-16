@@ -116,7 +116,7 @@
       "title": "JAPON",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#f8e6dc",
         "title": "#d8261c",
@@ -157,6 +157,33 @@
       "illustration": {
         "set": "affiches",
         "id": "japon-koi"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "japon-lac-fuji",
+    "destination": "japon",
+    "name": "Japon, Fuji au bord du lac",
+    "spec": {
+      "layout": "geant",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#fbe6e9",
+        "title": "#3f5f8f",
+        "accent": "#e07890",
+        "decor": "#fbe6e9",
+        "illustration": {
+          "main": "#3f5f8f",
+          "shade": "#3f5f8f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-lac-fuji"
       },
       "spine": true
     }
