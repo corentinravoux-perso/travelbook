@@ -173,7 +173,7 @@ export function applyTemplate(
 /**
  * Describe a page or a whole spread as a free template for the user's library: photo and text
  * frames become slots, stickers and shapes become decorations, all in 0..1 units of the target
- * box. Text content and photos are not kept.
+ * box. Text content, photos and maps are not kept.
  */
 export function captureTemplate(
   book: Book,
@@ -201,7 +201,8 @@ export function captureTemplate(
         rotation: el.rotation,
         ...(el.textRole ? { textRole: el.textRole } : {}),
       });
-    } else {
+    } else if (el.type !== 'map') {
+      // A map is left out: its baked geometry is an asset of this album, which a template cannot carry.
       const deco = clone(el);
       Object.assign(deco, unit(el));
       delete deco.groupId;

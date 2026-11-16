@@ -6,6 +6,7 @@ import {
   type Book,
   type PhotoElement,
 } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEditorStore, type EditorStore } from '../store/editor';
 import { createCoverThumbs } from './coverThumb';
@@ -111,6 +112,37 @@ describe('cover thumbnail controller', () => {
     importPhoto(store, 'p2');
     await thumbs.flush();
     expect(capture).toHaveBeenCalledTimes(2);
+  });
+
+  it('sees a change of the geometry or of a medallion photo of a map on the cover', async () => {
+    const { store, capture, thumbs } = await setup();
+    const geometry = (): AssetRef => ({
+      id: 'map-0123456789abcdef',
+      kind: 'map',
+      file: 'assets/map-0123456789abcdef.json',
+      originalName: 'TH.json',
+      sha256: 'a',
+    });
+    store
+      .getState()
+      .apply((b) => ({ ...b, assets: { ...b.assets, [geometry().id]: geometry() } }), 'Carte');
+    store.getState().apply((b) => addElement(b, b.cover.id, mapElement()), 'Carte');
+    await thumbs.flush();
+    expect(capture).toHaveBeenCalledTimes(1);
+    // The geometry arrives anew (rebuilt): same id, a new AssetRef.
+    store
+      .getState()
+      .apply((b) => ({ ...b, assets: { ...b.assets, [geometry().id]: geometry() } }), 'Recharger');
+    await thumbs.flush();
+    expect(capture).toHaveBeenCalledTimes(2);
+    // The medallion photo of a place is part of what the cover draws.
+    importPhoto(store, 'photo-1');
+    await thumbs.flush();
+    expect(capture).toHaveBeenCalledTimes(3);
+    // An asset the cover does not draw is not.
+    importPhoto(store, 'other');
+    await thumbs.flush();
+    expect(capture).toHaveBeenCalledTimes(3);
   });
 
   it('sees a change of the format, the spine or the cover bleed', async () => {

@@ -158,6 +158,11 @@ function issueText(
         text: t.issueMissing(where.file ?? issue.assetId, where.place),
         target: where.target,
       };
+    case 'missingMap':
+      return {
+        text: where.place === null ? t.issueMapAnywhere : t.issueMap(where.place),
+        target: where.target,
+      };
     case 'pageRule':
       return {
         text: t.issueRule(issue.pages, issue.rule.min, issue.rule.multiple),
