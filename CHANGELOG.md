@@ -26,6 +26,38 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   request.
 - Lilita One, the posters' title face, among the bundled fonts (42 families).
 
+- Photos: remove photos imported by mistake: the bin on a thumbnail, or tick photos and
+  "Supprimer…" in the bar under the tray. The question says how many are placed; their frames
+  become empty frames. One undo step brings everything back.
+- Rulers in millimetres along the top and the left of the canvas (as in a word processor), in
+  the inspector's coordinates: they mark the pointer with its position, the extent of the
+  selection and the safe margins. A drag from a ruler lays a guide that elements snap to; guides
+  are saved with the spread and never printed. "Règles et repères" in Affichage hides them.
+- Photos: a click on a photo of the tray puts it on the page in view (in its first empty frame,
+  or in a frame of its own) or takes it off; the photos on the double page in view are framed
+  in lagoon. A double-click shows the photo large, with its date, size and use; the arrows go
+  through the tray. Ticking photos is now Ctrl or Shift + click.
+- The panel and the inspector fold away (the button at their top, or a click on the open tool
+  of the rail) to give the page the room; they stay folded across sessions.
+- Rulers come in three sizes (Petite, Moyenne, Grande) under Affichage; numbers and marks scale
+  with them.
+- Calques: a bin at the end of each row deletes its element, and the bin of a group's row the
+  whole group, in one undo step.
+
+### Changed
+
+- Interface: new visual direction B, "Carnet de route" (`docs/design/visual-direction.md`). White
+  panels round a sky-mist desk with a notebook dot grid, navy ink, one lagoon teal for the
+  primary action and the selected choice, Nunito for the interface and Caveat for the app name
+  and the home heading, in light and dark.
+- Home: with no album yet, four Bohème drawings lie round an open blank book.
+- Photos: "Importer des photos" is the panel's first, primary action; the days of the trip read
+  as chapters; a used photo carries a lagoon count chip. Exporter gains an icon.
+
+### Fixed
+
+- Stickers: a tall drawing no longer stretches its tile over the next row of the grid.
+
 ## [0.1.0] - 2026-11-15
 
 First release. Every package of the repository (`travelbook`, `@travelbook/core`,

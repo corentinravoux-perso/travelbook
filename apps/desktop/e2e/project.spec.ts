@@ -45,7 +45,7 @@ test('a 240 × 320 book opens on an empty first spread and comes back from the r
   try {
     await pickFolders(app, albums);
     const page = await app.firstWindow();
-    await expect(page.getByText('Aucun album récent')).toBeVisible();
+    await expect(page.getByText('Aucun album pour le moment')).toBeVisible();
 
     // The dialog refuses a book without a title, then takes a free size.
     await page.getByRole('button', { name: 'Nouveau livre' }).click();

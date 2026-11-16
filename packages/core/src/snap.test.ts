@@ -74,6 +74,21 @@ describe('snapLinesFor', () => {
   });
 });
 
+describe('snapLinesFor with ruler guides', () => {
+  it('lists the guides of the spread across the whole spread', () => {
+    const book = freshBook(1);
+    const spread = inner(book);
+    spread.guides = { x: [33], y: [77] };
+    const lines = snapLinesFor(book, spread, []);
+    const xi = lines.x.indexOf(33);
+    const yi = lines.y.indexOf(77);
+    expect(xi).toBeGreaterThanOrEqual(0);
+    expect(yi).toBeGreaterThanOrEqual(0);
+    expect(lines.xSpans![xi]).toEqual([0, book.format.height]);
+    expect(lines.ySpans![yi]).toEqual([0, 2 * book.format.width]);
+  });
+});
+
 describe('snapMove', () => {
   const plain: SnapLines = { x: [10], y: [50] };
 

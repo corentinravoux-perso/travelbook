@@ -1,7 +1,7 @@
 /*
- * Shared controls: buttons, text fields, segmented controls. Direction A: no hue, contrast
- * inverts when primary or pressed. Every control answers the pointer: a step on hover, a press
- * on click.
+ * Shared controls: buttons, text fields, segmented controls. Direction B: white controls with a
+ * soft border; the primary action is a lagoon pill; a pressed segment is a white chip lifted out
+ * of its track. Every control answers the pointer: a step on hover, a press on click.
  */
 .button {
   display: inline-flex;
@@ -21,15 +21,17 @@
     background var(--fast) var(--ease),
     border-color var(--fast) var(--ease),
     box-shadow var(--fast) var(--ease),
+    color var(--fast) var(--ease),
     transform var(--fast) var(--ease),
     opacity var(--fast) var(--ease);
 }
-.button:hover:not(:disabled) {
-  border-color: var(--ink-3);
-  background: var(--paper);
+.button .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
 }
-:root[data-theme='dark'] .button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface) 80%, var(--ink));
+.button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 .button:active:not(:disabled) {
   transform: translateY(1px);
@@ -40,17 +42,57 @@
   cursor: default;
   box-shadow: none;
 }
+/* The primary action of a view: a filled lagoon pill, one per view. */
 .button--primary {
-  border-color: var(--invert-bg);
-  background: var(--invert-bg);
-  color: var(--invert-fg);
+  padding: 0 var(--s6);
+  border-color: var(--accent);
+  border-radius: var(--pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow:
+    var(--shadow-1),
+    0 4px 12px -4px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 .button--primary:hover:not(:disabled) {
-  border-color: var(--invert-bg);
-  background: color-mix(in srgb, var(--invert-bg) 86%, var(--invert-fg));
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+  color: var(--on-accent);
 }
-:root[data-theme='dark'] .button--primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--invert-bg) 88%, var(--invert-fg));
+/* Taking something out of the album: the outline asks, the fill confirms. */
+.button--danger-outline {
+  border-color: color-mix(in srgb, var(--low) 45%, var(--line-strong));
+  color: var(--low);
+}
+.button--danger-outline:hover:not(:disabled) {
+  border-color: var(--low);
+  color: var(--low);
+  background: color-mix(in srgb, var(--low) 8%, var(--surface));
+}
+.button--danger {
+  border-color: var(--low);
+  background: var(--low);
+  color: #ffffff;
+}
+.button--danger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--low) 85%, black);
+  background: color-mix(in srgb, var(--low) 85%, black);
+  color: #ffffff;
+}
+:root[data-theme='dark'] .button--danger,
+:root[data-theme='dark'] .button--danger:hover:not(:disabled) {
+  color: #1a1012;
+}
+/* A secondary action next to a stronger one: no frame until pointed at. */
+.button--quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-2);
+}
+.button--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--sunken);
+  color: var(--ink);
 }
 .button--small {
   height: 22px;
@@ -76,10 +118,10 @@
 .input:hover {
   border-color: var(--ink-3);
 }
-/* A focused field keeps the ink ring of every control, and gains a soft halo. */
+/* A focused field takes the lagoon ring of every control, and a soft halo. */
 .input:focus-visible {
-  border-color: var(--ink);
-  outline: 1px solid var(--ink);
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
   outline-offset: 0;
   box-shadow: 0 0 0 4px var(--halo);
 }
@@ -110,24 +152,24 @@
 }
 
 /*
- * A segmented control: a sunken track holding the entries; the pressed one is the only
- * inverted fill of its group, a chip inside the track.
+ * A segmented control: a sunken track holding the entries; the pressed one is a white chip
+ * lifted out of the track, its label in the lagoon.
  */
 .seg {
   display: flex;
   flex: 1;
   gap: 2px;
   min-width: 0;
-  padding: 2px;
+  padding: 3px;
   border-radius: var(--r1);
   background: var(--sunken);
 }
 .seg button {
   flex: 1;
   min-width: 0;
-  height: 22px;
+  height: 24px;
   padding: 0 var(--s2);
-  border-radius: 3px;
+  border-radius: 5px;
   font-size: var(--t-xs);
   color: var(--ink-2);
   white-space: nowrap;
@@ -141,9 +183,12 @@
   color: var(--ink);
 }
 .seg button[aria-pressed='true'] {
-  background: var(--invert-bg);
-  color: var(--invert-fg);
-  box-shadow: var(--shadow-1);
+  background: var(--surface);
+  color: var(--accent-ink);
+  font-weight: var(--w-semibold);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-1);
 }
 /* Inside a segmented control the focus ring must not be clipped by its rounded border. */
 .seg button:focus-visible {

@@ -7,6 +7,18 @@ import { ThemeToggle } from '../editor/ThemeToggle';
 import { NewProjectDialog } from './NewProjectDialog';
 import { SettingsDialog } from './SettingsDialog';
 import './Home.css';
+// Four of the app's own Bohème drawings (MIT) set the scene of the empty home screen.
+import valise from '../../../resources/stickers-src/boheme/carnet-valise-vintage.svg?url';
+import polaroid from '../../../resources/stickers-src/boheme/carnet-polaroid.svg?url';
+import billets from '../../../resources/stickers-src/boheme/carnet-billets-avion.svg?url';
+import appareil from '../../../resources/stickers-src/boheme/carnet-appareil-argentique.svg?url';
+
+const SCENE = [
+  { src: valise, place: 'valise' },
+  { src: polaroid, place: 'polaroid' },
+  { src: billets, place: 'billets' },
+  { src: appareil, place: 'appareil' },
+] as const;
 
 const DATE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -95,6 +107,18 @@ export function Home() {
 
         {recent.length === 0 ? (
           <div className="home__empty">
+            <div className="home__scene" aria-hidden="true">
+              <span className="home__book" />
+              {SCENE.map(({ src, place }) => (
+                <img
+                  key={place}
+                  className={`home__sticker home__sticker--${place}`}
+                  src={src}
+                  alt=""
+                  draggable={false}
+                />
+              ))}
+            </div>
             <p className="home__empty-title">{fr.home.emptyTitle}</p>
             <p>{fr.home.emptyHint}</p>
           </div>
