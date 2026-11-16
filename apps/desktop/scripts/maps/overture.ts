@@ -1,6 +1,6 @@
 /**
  * Overture Maps `divisions` access through DuckDB (anonymous S3 over HTTPS, build time only), and
- * the Natural Earth 10m lakes. Every download lands in `scripts/maps/.cache/`, which is never
+ * the Natural Earth 10m lakes (pinned commit). Every download lands in `scripts/maps/.cache/`, which is never
  * committed, so a second run (or another subject) does not touch the network again.
  */
 import { DuckDBInstance, type DuckDBConnection } from '@duckdb/node-api';
@@ -13,8 +13,14 @@ import type { Bbox, Collection, Feature } from './simplify.ts';
 export const OVERTURE_RELEASE = '2026-10-21.0';
 
 const DIVISION_AREA = `s3://overturemaps-us-west-2/release/${OVERTURE_RELEASE}/theme=divisions/type=division_area/*`;
-export const LAKES_URL =
-  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_lakes.geojson';
+/**
+ * Natural Earth is pinned to a commit of its vector repository (master on 2026-11-16, after
+ * v5.1.2), never to a moving branch: lakes and populated places both come from it.
+ */
+export const NATURAL_EARTH_COMMIT = 'ca96624a56bd078437bca8184e78163e5039ad19';
+export const naturalEarthUrl = (file: string): string =>
+  `https://raw.githubusercontent.com/nvkelso/natural-earth-vector/${NATURAL_EARTH_COMMIT}/geojson/${file}`;
+export const LAKES_URL = naturalEarthUrl('ne_10m_lakes.geojson');
 
 export const CACHE_DIR = appFileUrl('scripts/maps/.cache');
 
