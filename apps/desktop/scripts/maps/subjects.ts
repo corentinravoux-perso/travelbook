@@ -81,9 +81,24 @@ export function subjectDefs(catalog: CatalogEntry[]): SubjectDef[] {
   return defs.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-/** `--only=FR,US-HI`: an id, an ISO code, or the prefix of an id (`FR` selects every `FR-*`). */
+/**
+ * `--only=FR,US-HI`: an id, an ISO code, or the prefix of an id (`FR` selects every `FR-*`). An
+ * empty selection throws: a step that rebuilt "no subject" would still prune what the index does
+ * not list, that is every other subject.
+ */
 export function selectSubjects(defs: SubjectDef[], only: string[] | undefined): SubjectDef[] {
-  if (only === undefined) return defs;
+  const picked = only === undefined ? defs : pick(defs, only);
+  if (picked.length === 0) {
+    throw new Error(
+      only === undefined
+        ? 'the catalogue holds no subject'
+        : `--only=${only.join(',')} selects no subject`,
+    );
+  }
+  return picked;
+}
+
+function pick(defs: SubjectDef[], only: string[]): SubjectDef[] {
   const wanted = new Set(only.map((s) => s.trim().toUpperCase()).filter(Boolean));
   const picked = defs.filter(
     (def) => wanted.has(def.id) || wanted.has(def.iso) || wanted.has(def.id.split('-')[0] ?? ''),

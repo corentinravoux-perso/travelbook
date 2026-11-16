@@ -6,7 +6,7 @@
  * directories.
  */
 import { createHash } from 'node:crypto';
-import { mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import type { MapIndex, MapSubjectEntry } from './build-geodata.ts';
 import type { PackMode } from './simplify.ts';
@@ -45,6 +45,26 @@ export async function writeFileAtomic(path: string, data: string | Uint8Array): 
 
 export const writeIndexFile = (dirs: MapDirs, index: MapIndex): Promise<void> =>
   writeFileAtomic(indexFile(dirs), `${JSON.stringify(index, null, 1)}\n`);
+
+/**
+ * The committed `index.json`. `undefined` only when the file does not exist (a first run); a file
+ * that cannot be read or parsed throws, because a run that took it for "no index" would treat
+ * every other subject as unknown and prune their files.
+ */
+export async function readIndexFile(dirs: MapDirs): Promise<MapIndex | undefined> {
+  let text: string;
+  try {
+    text = await readFile(indexFile(dirs), 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    throw new Error(`cannot read ${indexFile(dirs)}: ${messageOf(error)}`, { cause: error });
+  }
+  try {
+    return JSON.parse(text) as MapIndex;
+  } catch (error) {
+    throw new Error(`${indexFile(dirs)} is not valid JSON: ${messageOf(error)}`, { cause: error });
+  }
+}
 
 /** File names (not paths) of every directory that the index lists. */
 export function listedFiles(index: MapIndex): {
@@ -156,8 +176,7 @@ export async function rebuildSubjects(opts: {
   await mkdir(dirs.subjects, { recursive: true });
   for (const entry of rebuilt) {
     await rename(join(dirs.staging, basename(entry.file)), join(dirs.maps, entry.file));
-    await removePacks(dirs, entry.id); // the entry restarts without a pack
-    built.set(entry.id, entry);
+    built.set(entry.id, entry); // restarts without a pack: the prune below removes its old file
   }
   const index: MapIndex = {
     overture: opts.release,
@@ -258,10 +277,12 @@ export async function rebuildPacks(opts: {
 
 // --- sizes -----------------------------------------------------------------------------------
 
-/** Together the base files stay under this (design section 7.4). */
-export const BASE_MAX_BYTES = 25_000_000;
-/** Together the bundled packs stay under this (design section 7.4). */
-export const BUNDLED_PACKS_MAX_BYTES = 25_000_000;
+/**
+ * The size budget of design section 7.4. The owner lifted the limit (2026-11-16): going over it
+ * only prints a warning, it never fails a run and triggers no fallback.
+ */
+export const BASE_BUDGET_BYTES = 25_000_000;
+export const BUNDLED_PACKS_BUDGET_BYTES = 25_000_000;
 
 /** Total size of the regular files directly inside `dir` (0 when it does not exist). */
 export async function dirBytes(dir: string): Promise<number> {
@@ -295,24 +316,22 @@ const mb = (bytes: number): string => `${(bytes / 1e6).toFixed(2)} MB`;
 
 export function sizeReport(sizes: Sizes): string[] {
   return [
-    `base (subjects/ + places/ + index.json): ${mb(sizes.base)} (limit ${mb(BASE_MAX_BYTES)})`,
-    `bundled packs (packs/): ${mb(sizes.bundledPacks)} (limit ${mb(BUNDLED_PACKS_MAX_BYTES)})`,
+    `base (subjects/ + places/ + index.json): ${mb(sizes.base)} (budget ${mb(BASE_BUDGET_BYTES)})`,
+    `bundled packs (packs/): ${mb(sizes.bundledPacks)} (budget ${mb(BUNDLED_PACKS_BUDGET_BYTES)})`,
     `release packs (scripts/maps/out/packs/): ${mb(sizes.outPacks)}`,
   ];
 }
 
-/** What is over budget, one line each (empty when everything fits). */
-export function budgetProblems(sizes: Sizes): string[] {
-  const problems: string[] = [];
-  if (sizes.base > BASE_MAX_BYTES) {
-    problems.push(
-      `the base files are ${mb(sizes.base)}, over ${mb(BASE_MAX_BYTES)} (design section 7.4)`,
+/** What is over the budget, one line each (empty when everything fits). Warnings, never errors. */
+export function budgetWarnings(sizes: Sizes): string[] {
+  const warnings: string[] = [];
+  if (sizes.base > BASE_BUDGET_BYTES) {
+    warnings.push(`the base files are ${mb(sizes.base)}, over the ${mb(BASE_BUDGET_BYTES)} budget`);
+  }
+  if (sizes.bundledPacks > BUNDLED_PACKS_BUDGET_BYTES) {
+    warnings.push(
+      `the bundled packs are ${mb(sizes.bundledPacks)}, over the ${mb(BUNDLED_PACKS_BUDGET_BYTES)} budget`,
     );
   }
-  if (sizes.bundledPacks > BUNDLED_PACKS_MAX_BYTES) {
-    problems.push(
-      `the bundled packs are ${mb(sizes.bundledPacks)}, over ${mb(BUNDLED_PACKS_MAX_BYTES)} (design section 7.4)`,
-    );
-  }
-  return problems;
+  return warnings;
 }

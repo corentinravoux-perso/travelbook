@@ -177,12 +177,17 @@ const ringBox = (ring: Ring): Box => {
   return box;
 };
 
-const unionBox = (boxes: Box[]): Box => [
-  Math.min(...boxes.map((b) => b[0])),
-  Math.min(...boxes.map((b) => b[1])),
-  Math.max(...boxes.map((b) => b[2])),
-  Math.max(...boxes.map((b) => b[3])),
-];
+/** The box around the boxes. A loop, not `Math.min(...)`: a country has tens of thousands of polygons. */
+const unionBox = (boxes: Box[]): Box => {
+  const union: Box = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const [x0, y0, x1, y1] of boxes) {
+    if (x0 < union[0]) union[0] = x0;
+    if (y0 < union[1]) union[1] = y0;
+    if (x1 > union[2]) union[2] = x1;
+    if (y1 > union[3]) union[3] = y1;
+  }
+  return union;
+};
 
 const ringArea = (ring: Ring): number => {
   let sum = 0;
@@ -439,8 +444,9 @@ export function cellOf(subject: Subject, x: number, y: number): Cell {
     scale: (OVERVIEW_PX - 2 * OVERVIEW_PAD) / (Math.max(x1 - x0, y1 - y0) || 1),
     size: OVERVIEW_PX,
   };
-  const side = ZOOM_FRACTION * mainExtent(all);
-  const reach = (BORDER_REACH * toleranceMetres(mainExtent(all) * 111.2)) / 111_200;
+  const extent = mainExtent(all);
+  const side = ZOOM_FRACTION * extent;
+  const reach = (BORDER_REACH * toleranceMetres(extent * 111.2)) / 111_200;
   const window = pickZoomWindow(
     all.flatMap((p) => p.rings),
     side,
