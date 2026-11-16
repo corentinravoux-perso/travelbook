@@ -5,6 +5,17 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Photos: each day of the tray folds away under its header (the chevron left of the date),
+  and unfolds again.
+
+### Changed
+
+- Stickers: the "Mes stickers" tab is gone, as it repeated "Récents" and "Favoris". Images are
+  now imported (button, drop or paste) and removed in "Récents", which lists the stickers
+  placed or imported most recently.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added

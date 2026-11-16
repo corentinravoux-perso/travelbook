@@ -74,8 +74,19 @@ function Segments<T extends string>({
   );
 }
 
-/** The checkbox of a day: ticks every photo of the group; half-ticked when only some are. */
-function DayHeader({ group, selected }: { group: PhotoGroup; selected: ReadonlySet<string> }) {
+/**
+ * The header of a day: a chevron that folds its photos away (or shows them again), and a checkbox
+ * that ticks every photo of the group, half-ticked when only some are.
+ */
+function DayHeader({
+  group,
+  selected,
+  folded,
+}: {
+  group: PhotoGroup;
+  selected: ReadonlySet<string>;
+  folded: boolean;
+}) {
   const box = useRef<HTMLInputElement>(null);
   const state = dayState(selected, group.photos);
   useEffect(() => {
@@ -84,7 +95,17 @@ function DayHeader({ group, selected }: { group: PhotoGroup; selected: ReadonlyS
   const label = group.key === NO_DATE ? fr.photos.noDate : dayLabel(group.key);
   const name = group.key === NO_DATE ? fr.photos.selectNoDate : fr.photos.selectDay(label);
   return (
-    <div className="photo-day" data-day={group.key}>
+    <div className="photo-day" data-day={group.key} data-folded={folded || undefined}>
+      <button
+        type="button"
+        className="photo-day__fold"
+        aria-expanded={!folded}
+        aria-label={fr.photos.fold(group.key === NO_DATE ? null : label, folded)}
+        title={fr.photos.fold(group.key === NO_DATE ? null : label, folded)}
+        onClick={() => trayStore.getState().toggleFolded(group.key)}
+      >
+        <Icon name="chevron-down" />
+      </button>
       <label className="photo-day__check">
         <input
           ref={box}
@@ -125,6 +146,8 @@ function Tray({ book }: { book: Book }) {
   const sort = useTray((s) => s.sort);
   const filter = useTray((s) => s.filter);
   const selectedIds = useTray((s) => s.selected);
+  const foldedKeys = useTray((s) => s.folded);
+  const folded = useMemo(() => new Set(foldedKeys), [foldedKeys]);
   const pickerOpen = useEditor((s) => s.pickerId !== null);
   const [dropping, setDropping] = useState(false);
   const spreadId = useEditor((s) => s.currentSpreadId);
@@ -257,7 +280,10 @@ function Tray({ book }: { book: Book }) {
       {shown > 0 ? (
         <PhotoGrid
           groups={groups}
-          header={(group) => <DayHeader group={group} selected={selected} />}
+          folded={folded}
+          header={(group) => (
+            <DayHeader group={group} selected={selected} folded={folded.has(group.key)} />
+          )}
           thumb={(asset) => (
             <div className="photo-cell">
               <PhotoThumb

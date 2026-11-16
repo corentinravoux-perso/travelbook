@@ -209,6 +209,20 @@ test('imports photos, groups them by EXIF day, and the day checkbox selects its 
     await page.getByRole('checkbox', { name: /mercredi 10 juin 2026/ }).uncheck();
     expect((await pressed()).sort()).toEqual(['landscape.jpg', 'small.jpg']);
 
+    // The chevron of a day folds its photos away under the header, and unfolds them.
+    const fold = page.getByRole('button', { name: 'Replier les photos du mercredi 10 juin 2026' });
+    await expect(fold).toHaveAttribute('aria-expanded', 'true');
+    await fold.click();
+    await expect(grid.locator('.photo-thumb')).toHaveCount(3);
+    await expect(grid.locator('.photo-thumb[title="day1.jpg"]')).toHaveCount(0);
+    await expect(days).toHaveCount(3);
+    const unfold = page.getByRole('button', {
+      name: 'Déplier les photos du mercredi 10 juin 2026',
+    });
+    await expect(unfold).toHaveAttribute('aria-expanded', 'false');
+    await unfold.click();
+    await expect(grid.locator('.photo-thumb')).toHaveCount(4);
+
     // Sorting by name keeps the groups and orders each by name.
     await page.getByRole('button', { name: 'Nom', exact: true }).click();
     await expect(grid.locator('.photo-thumb').first()).toHaveAttribute('title', 'day1.jpg');

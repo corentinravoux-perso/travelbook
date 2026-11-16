@@ -12,6 +12,8 @@ interface Props {
   groups: readonly PhotoGroup[];
   /** The header of a group; without it the groups run into one another without headers. */
   header?(group: PhotoGroup): ReactNode;
+  /** Keys of the groups shown as their header alone (only with `header`). */
+  folded?: ReadonlySet<string>;
   /** One photo, filling its cell. */
   thumb(asset: AssetRef): ReactNode;
 }
@@ -21,7 +23,7 @@ interface Props {
  * windowing: only the rows near the viewport are mounted, so a book of a thousand photos costs
  * the same as one of twenty. The geometry is in `gridLayout.ts`.
  */
-export function PhotoGrid({ groups, header, thumb }: Props) {
+export function PhotoGrid({ groups, header, folded, thumb }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ width: 0, height: 0, scrollTop: 0 });
 
@@ -44,8 +46,8 @@ export function PhotoGrid({ groups, header, thumb }: Props) {
   const columns = columnsFor(inner);
   const cell = cellSize(inner, columns);
   const layout = useMemo(
-    () => layoutRows(groups, columns, cell, header !== undefined),
-    [groups, columns, cell, header],
+    () => layoutRows(groups, columns, cell, header !== undefined, folded),
+    [groups, columns, cell, header, folded],
   );
   const shown = visibleRows(layout.rows, view.scrollTop, view.height, OVERSCAN);
   const byKey = useMemo(() => new Map(groups.map((g) => [g.key, g])), [groups]);
