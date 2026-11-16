@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { assetUrl } from './assetUrl';
 import { coverThumbs } from '../store/project';
 import { stage, useStage, type StageRequest } from './coverThumb';
+import { preloadMapGeometries, useMapGeometryLookup } from '../maps/geometryCache';
 
 /** Long edge of the cover as drawn for the capture, in CSS px: the thumbnail's long edge. */
 const STAGE_EDGE = 320;
@@ -43,6 +44,7 @@ export function CoverStage() {
 }
 
 function Shot({ request }: { request: StageRequest }) {
+  const mapGeometry = useMapGeometryLookup();
   const { book } = request;
   const ref = useRef<HTMLDivElement>(null);
   const size = spreadSize(book, book.cover);
@@ -62,6 +64,8 @@ function Shot({ request }: { request: StageRequest }) {
         } catch {
           // Not shown in the top layer: it is still drawn, only a dialog could hide it.
         }
+        await preloadMapGeometries(book.cover);
+        await frame();
         await imagesReady(el);
         await document.fonts?.ready;
         await frame();
@@ -79,7 +83,7 @@ function Shot({ request }: { request: StageRequest }) {
     return () => {
       cancelled = true;
     };
-  }, [request, width, height]);
+  }, [request, width, height, book]);
 
   return (
     <div
@@ -91,7 +95,13 @@ function Shot({ request }: { request: StageRequest }) {
       style={{ width, height }}
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0' }}>
-        <SpreadView book={book} spread={book.cover} quality="thumb" assetUrl={assetUrl} />
+        <SpreadView
+          book={book}
+          spread={book.cover}
+          quality="thumb"
+          assetUrl={assetUrl}
+          mapGeometry={mapGeometry}
+        />
       </div>
     </div>
   );

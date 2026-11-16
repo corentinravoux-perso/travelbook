@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { ExportPageHandle, ExportPageJob } from '../../shared/exportPage';
 import { BOOK_FONTS, installBookFonts } from '../fonts/bookFonts';
+import { createGeometryCache, preloadMapGeometries } from '../maps/geometryCache';
 
 /**
  * The page the hidden export window loads (`#export`): it draws one page at a time, by the same
@@ -49,12 +50,22 @@ async function decode(src: string, image: HTMLImageElement): Promise<void> {
   }
 }
 
+/** Every SVG `<image>` href (medallions of a map): `data:` ones are already in the page. */
+function svgImageUrls(root: HTMLElement): string[] {
+  const urls = new Set<string>();
+  for (const node of root.querySelectorAll('image')) {
+    const url = node.getAttribute('href') ?? node.getAttribute('xlink:href');
+    if (url && !url.startsWith('data:')) urls.add(url);
+  }
+  return [...urls];
+}
+
 /** Resolves once every image the page draws is decoded; rejects naming the first that is not. */
-async function imagesReady(root: HTMLElement): Promise<void> {
+export async function imagesReady(root: HTMLElement): Promise<void> {
   const loading: Promise<void>[] = [];
   for (const img of root.querySelectorAll('img'))
     loading.push(decode(img.currentSrc || img.src, img));
-  for (const url of cssImageUrls(root)) {
+  for (const url of [...cssImageUrls(root), ...svgImageUrls(root)]) {
     const image = new Image();
     image.src = url;
     loading.push(decode(url, image));
@@ -85,6 +96,12 @@ export function installExportPage(host: HTMLElement): void {
   window.__tbExport = {
     show: async (job) => {
       pageRule.textContent = `@page { size: ${job.clip.w}mm ${job.clip.h}mm; margin: 0; }`;
+      // The geometry of every map of the page is read before the page is drawn (a map drawn
+      // empty would be captured empty); an unreadable one is drawn as the hatched frame.
+      const geometries = createGeometryCache({
+        urlOf: (id) => `tb://export/${job.token}/original/${encodeURIComponent(id)}`,
+      });
+      await preloadMapGeometries(job.spread, geometries);
       flushSync(() =>
         root.render(
           <SpreadView
@@ -92,6 +109,7 @@ export function installExportPage(host: HTMLElement): void {
             spread={job.spread}
             quality="export"
             clip={job.clip}
+            mapGeometry={(id) => geometries.peek(id)}
             assetUrl={assetUrlOf(job)}
             patternTile={(layer) => {
               const file = job.patternTiles?.[layer];
