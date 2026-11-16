@@ -31,6 +31,10 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the inspector's coordinates: they mark the pointer with its position, the extent of the
   selection and the safe margins. A drag from a ruler lays a guide that elements snap to; guides
   are saved with the spread and never printed. "Règles et repères" in Affichage hides them.
+- Photos: a click on a photo of the tray puts it on the page in view (in its first empty frame,
+  or in a frame of its own) or takes it off; the photos on the double page in view are framed
+  in lagoon. A double-click shows the photo large, with its date, size and use; the arrows go
+  through the tray. Ticking photos is now Ctrl or Shift + click.
 - Calques: a bin at the end of each row deletes its element, and the bin of a group's row the
   whole group, in one undo step.
 
