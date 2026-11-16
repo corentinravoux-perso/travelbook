@@ -299,6 +299,14 @@ describe('resources/maps/index.json', () => {
     expect(drawn.sort()).toEqual(th.regions.map((r) => r.id).sort());
   });
 
+  it('draws no region twice: Alaska has no census area inside its Unorganized Borough', () => {
+    const names = entry('US-AK').regions.map((r) => r.name);
+    expect(names).toContain('Unorganized Borough');
+    expect(names).not.toContain('Prince of Wales-Hyder');
+    const drawn = topo('US-AK').objects.regions!.geometries.map((g) => g.properties?.name);
+    expect(drawn).not.toContain('Prince of Wales-Hyder');
+  });
+
   it('keeps Réunion out of metropolitan France', () => {
     const fr = entry('FR-MET');
     expect(fr.kind).toBe('overseas');
@@ -454,6 +462,12 @@ describe('the fine region packs', () => {
       expect(s.pack?.file, `${s.id} pack`).toBe(`packs/${s.id}.topo.json`);
       expect(s.pack?.sha256, `${s.id} sha256`).toMatch(/^[0-9a-f]{64}$/);
       expect(s.pack?.bytes, `${s.id} bytes`).toBeGreaterThan(0);
+    }
+  });
+
+  it('records the mode each pack was built with', () => {
+    for (const s of withRegions) {
+      expect(['finest', 'per-region'], `${s.id} mode`).toContain(s.pack?.mode);
     }
   });
 

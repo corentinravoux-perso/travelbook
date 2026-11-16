@@ -58,7 +58,8 @@
     "file": "packs/FR-GF.topo.json",
     "sha256": "1e299d96397904a16f27f230376765623e441e0fc4e60b29778eb591b8cc0a05",
     "bytes": 71047,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -106,7 +107,8 @@
     "file": "packs/FR-GP.topo.json",
     "sha256": "fee79f62f62124fb916a66202a78b070188275e600b78b31264ccb69d992ca9c",
     "bytes": 112725,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -265,7 +267,8 @@
     "file": "packs/FR-MET.topo.json",
     "sha256": "b9dae68ca3d5272a88fcef65d0c7fe2ce20800f99878c1ffd04bce2d8dca7fc5",
     "bytes": 876192,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -333,7 +336,8 @@
     "file": "packs/FR-MQ.topo.json",
     "sha256": "44168f8b7f03d45980097122c62b2a9c0a95e2af387a5d36f17c8bd8821007b6",
     "bytes": 155051,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -602,7 +606,8 @@
     "file": "packs/FR-RE.topo.json",
     "sha256": "8de998775b6b93315e2563cc4d4cb7ee5f6bdbdfe8be4528d6afd6b800f079d4",
     "bytes": 171165,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -800,7 +805,8 @@
     "file": "packs/FR-YT.topo.json",
     "sha256": "5aa521c52a2b45fadea09424269cc9760737074e4dd57f294e1d24e4a64a827b",
     "bytes": 168931,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -868,7 +874,8 @@
     "file": "packs/GB.topo.json",
     "sha256": "e909b4c8b3fbf66167f83c33f1938e452f2ffc8580f679883f353d92455a5df2",
     "bytes": 179012,
-    "bundled": true
+    "bundled": true,
+    "mode": "finest"
    }
   },
   {
@@ -1037,7 +1044,8 @@
     "file": "packs/GR.topo.json",
     "sha256": "316f91500388eef7e2fe71e948869a09dba0efb36bf6c39027b8201b6f291c94",
     "bytes": 256398,
-    "bundled": true
+    "bundled": true,
+    "mode": "finest"
    }
   },
   {
@@ -1266,7 +1274,8 @@
     "file": "packs/IT.topo.json",
     "sha256": "8388c2d3e466b1d7835648cc84bc9059e751a969079d4d9bdbe0a55046779f1b",
     "bytes": 1141367,
-    "bundled": true
+    "bundled": true,
+    "mode": "finest"
    }
   },
   {
@@ -1545,7 +1554,8 @@
     "file": "packs/PE.topo.json",
     "sha256": "4ad38450cb01349a2c65fff995376639aa7986959bb63014e88cab449f42d6d9",
     "bytes": 1420922,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -2344,7 +2354,8 @@
     "file": "packs/TH.topo.json",
     "sha256": "696b1571fa57dd2c3ebbc758656561a538692d6e1eb83461ff7c0e840b0ea612",
     "bytes": 2334166,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -2882,7 +2893,8 @@
     "file": "packs/US.topo.json",
     "sha256": "4bfa80f54f2bfa282d63fabee4752a63099a524a5a639f7d5b935cc69c898059",
     "bytes": 2625400,
-    "bundled": true
+    "bundled": true,
+    "mode": "finest"
    }
   },
   {
@@ -2903,7 +2915,7 @@
     "US"
    ],
    "file": "subjects/US-AK.topo.json",
-   "sha256": "6dcfe405734fb649e0a7542fde499c91e8061d0b160376d409ef70764edcd903",
+   "sha256": "30d9bb1c731611cac0c8774feadbcdff6340965bc52ac60f16ea9c5b0f88eb2d",
    "regions": [
     {
      "id": "01352d78-757e-4eac-9997-8992d10dc5cc",
@@ -3046,16 +3058,6 @@
      ]
     },
     {
-     "id": "bd8ad0c2-0657-43b9-93fd-fefd33e26e63",
-     "name": "Prince of Wales-Hyder",
-     "bbox": [
-      -133.9448,
-      54.6634,
-      -130.0035,
-      56.3574
-     ]
-    },
-    {
      "id": "ca8ee943-2147-48e8-84e7-da3065950b98",
      "name": "Juneau",
      "bbox": [
@@ -3119,9 +3121,10 @@
    "landSource": "county",
    "pack": {
     "file": "packs/US-AK.topo.json",
-    "sha256": "b667fdbac6683e36bc26a49cc058074c77d209b3180de50b69e09dac458b4b07",
-    "bytes": 555978,
-    "bundled": false
+    "sha256": "0fa529e268114c43c1b43965192376e80c535584f94e1b4ec4b6e33e0de72760",
+    "bytes": 552457,
+    "bundled": false,
+    "mode": "finest"
    }
   },
   {
@@ -3200,7 +3203,8 @@
     "file": "packs/US-HI.topo.json",
     "sha256": "5c8689ac5081641c9cbd3f37f0230735732a3487919dbb367a2ed7e3a167acb0",
     "bytes": 12482,
-    "bundled": false
+    "bundled": false,
+    "mode": "finest"
    }
   }
  ]
