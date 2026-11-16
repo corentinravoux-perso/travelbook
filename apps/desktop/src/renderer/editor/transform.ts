@@ -132,7 +132,10 @@ export function resizeRect(
   return { x, y, w, h };
 }
 
-/** Handles whose ratio-keeping the user did not ask for: photos and stickers keep it on corners. */
+/**
+ * Handles whose ratio-keeping the user did not ask for: photos and stickers keep it on corners.
+ * Texts, shapes and maps resize freely: a taller or wider map shows more context (spec §7.1).
+ */
 export const keepsRatioOnCorners = (el: Element): boolean =>
   el.type === 'photo' || el.type === 'sticker';
 

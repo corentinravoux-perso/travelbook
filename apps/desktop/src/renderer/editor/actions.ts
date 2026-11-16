@@ -1,4 +1,5 @@
 import {
+  elementAssetIds,
   groupElements,
   pasteElements,
   removeElements,
@@ -139,15 +140,19 @@ export function stack(to: 'forward' | 'backward'): void {
 /** Pastes since the last copy into the spread it came from: each is shifted one step more. */
 let streak = 0;
 
-/** Put the selection on the system clipboard, with the assets it uses. */
+/**
+ * Put the selection on the system clipboard, with the assets it uses: photos and stickers, and
+ * for a map its geometry and its medallion photos, so a paste into another album can copy them.
+ */
 export async function copySelection(): Promise<boolean> {
   const c = context();
   if (!c || c.elements.length === 0) return false;
   const assets: AssetRef[] = [];
   for (const el of c.elements) {
-    const id = el.type === 'photo' || el.type === 'sticker' ? el.assetId : null;
-    const asset = id === null ? undefined : c.book.assets[id];
-    if (asset && !assets.includes(asset)) assets.push(asset);
+    for (const id of elementAssetIds(el)) {
+      const asset = c.book.assets[id];
+      if (asset && !assets.includes(asset)) assets.push(asset);
+    }
   }
   try {
     await window.tb.clipboard.writeElements({

@@ -233,6 +233,8 @@ export const fr = {
       where === null
         ? `L’original « ${file} » est introuvable.`
         : `L’original « ${file} » est introuvable (${where}).`,
+    issueMap: (where: string) => `Carte introuvable, ${where}.`,
+    issueMapAnywhere: 'Carte introuvable.',
     issueRule: (pages: number, min: number, multiple: number) =>
       `Le livre compte ${pages} pages : l’imprimeur en attend au moins ${min}, par multiples de ${multiple}.`,
     start: 'Exporter',
@@ -685,7 +687,7 @@ export const fr = {
     untitledPhoto: 'Cadre photo vide',
     untitledText: 'Texte vide',
     sticker: 'Sticker',
-    map: 'Carte',
+    mapNamed: (subject: string) => `Carte · ${subject}`,
     undoReorder: 'Changer l’ordre des calques',
     undoRename: 'Renommer un calque',
     undoHide: 'Masquer un élément',
@@ -964,6 +966,7 @@ export const fr = {
     heading: 'Crédits des images',
     undoInsert: 'Insérer les crédits des images',
     unknownAuthor: 'auteur inconnu',
+    mapTitle: 'Cartes',
   },
   settings: {
     open: 'Réglages',
