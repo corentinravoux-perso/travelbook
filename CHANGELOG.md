@@ -5,25 +5,10 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-11-16
+## [1.1.0] - 2026-11-16
 
 ### Added
 
-- Stickers: a new **travelbook** tab, first in the panel, with the sets drawn for travelbook
-  (MIT): **Croquis** (83 bold black ink doodles with a white fill), **Bohème** (line art on
-  colour blobs, flat flowers, sprigs, tropical plants and travel drawings), **Déco** (175
-  generated stickers: washi tape, labels, travel and postage stamps, hand-drawn arrows, speech
-  bubbles, photo corners, confetti, French lettering) and **Affiches**.
-- Stickers: Bibliothèque opens on about 120 recommended stickers picked from the open packs.
-- Stickers: the hand-drawn monochrome icon sets doodle-icons, Streamline Freehand and
-  Pepicons Pencil.
-- Affiches: "Créer une affiche…" (cover tools and the Modèles panel) composes a poster cover,
-  front and spine: the place in large letters at the top, the year under it, and a drawing
-  centred below, in five layouts (Classique, Empilé, Arche, Soleil, Horizon), with a live
-  preview, applied in one undoable step as ordinary elements.
-- 68 original drawings for 13 destinations, with one preset each; they are also the
-  sticker set "Affiches", usable on any page. Recolourable drawings follow the title colour on
-  request.
 - Affiches: a sixth layout, **Géant**: the title set word by word, as large as the front
   allows, the year at almost twice its usual size, the drawing edge to edge and standing on
   the foot of the page (a wide drawing is centred under the title instead).
@@ -37,8 +22,6 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   which stay: Golden Gate in the fog, Great Wall on the ridges, Fuji over a lake, Arenal over
   the rainforest, Etna above its vineyards, the rainbow mountain with hikers.
 - Affiches: the Géant presets use Anton, a condensed title face; the others keep Lilita One.
-- Lilita One, the posters' title face, among the bundled fonts (42 families).
-
 - Photos: remove photos imported by mistake: the bin on a thumbnail, or tick photos and
   "Supprimer…" in the bar under the tray. The question says how many are placed; their frames
   become empty frames. One undo step brings everything back.
@@ -72,6 +55,27 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Stickers: a tall drawing no longer stretches its tile over the next row of the grid.
 - The photo tray and the sticker grid no longer re-lay themselves in a loop where the scrollbar
   takes room (classic scrollbars): the room of the scrollbar is always kept.
+
+## [1.0.0] - 2026-11-16
+
+### Added
+
+- Stickers: a new **travelbook** tab, first in the panel, with the sets drawn for travelbook
+  (MIT): **Croquis** (83 bold black ink doodles with a white fill), **Bohème** (line art on
+  colour blobs, flat flowers, sprigs, tropical plants and travel drawings), **Déco** (175
+  generated stickers: washi tape, labels, travel and postage stamps, hand-drawn arrows, speech
+  bubbles, photo corners, confetti, French lettering) and **Affiches**.
+- Stickers: Bibliothèque opens on about 120 recommended stickers picked from the open packs.
+- Stickers: the hand-drawn monochrome icon sets doodle-icons, Streamline Freehand and
+  Pepicons Pencil.
+- Affiches: "Créer une affiche…" (cover tools and the Modèles panel) composes a poster cover,
+  front and spine: the place in large letters at the top, the year under it, and a drawing
+  centred below, in five layouts (Classique, Empilé, Arche, Soleil, Horizon), with a live
+  preview, applied in one undoable step as ordinary elements.
+- 43 original flat drawings for 13 destinations, with one preset each; they are also the
+  sticker set "Affiches", usable on any page. Recolourable drawings follow the title colour on
+  request.
+- Lilita One, the posters' title face, among the bundled fonts (42 families).
 
 ## [0.1.0] - 2026-11-15
 
@@ -117,6 +121,7 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 
-[Unreleased]: https://github.com/corentinravoux/travelbook/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/corentinravoux/travelbook/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/corentinravoux/travelbook/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/corentinravoux/travelbook/releases/tag/v1.0.0
 [0.1.0]: https://github.com/corentinravoux/travelbook/releases/tag/v0.1.0
