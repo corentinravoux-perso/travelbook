@@ -1,0 +1,135 @@
+{
+  "id": "pastel",
+  "name": "Pastel",
+  "style": {
+    "styleVersion": 1,
+    "land": {
+      "fill": "#f7c8d4",
+      "stroke": "#ffffff",
+      "width": 0.4
+    },
+    "regions": {
+      "stroke": "#ffffff",
+      "width": 0.2,
+      "dash": null
+    },
+    "neighbours": {
+      "fill": "#e4def0",
+      "stroke": "#ffffff",
+      "width": 0.2
+    },
+    "lakes": {
+      "fill": "#cde9f5",
+      "stroke": "#ffffff",
+      "width": 0.2
+    },
+    "outline": {
+      "color": "#ffffff",
+      "width": 0.5,
+      "detail": 1
+    },
+    "label": {
+      "font": "Lilita One",
+      "weight": 400,
+      "italicSights": false,
+      "sizePt": 10,
+      "color": "#ffffff",
+      "case": "none",
+      "letterSpacingEm": 0.02,
+      "halo": {
+        "color": "#c96a86",
+        "width": 0.9
+      }
+    },
+    "markers": {
+      "capital": {
+        "kind": "pin",
+        "color": "#ffffff",
+        "stroke": "#c96a86",
+        "scale": 1.3
+      },
+      "city": {
+        "kind": "point",
+        "color": "#ffffff",
+        "stroke": "#c96a86",
+        "scale": 1
+      },
+      "sight": {
+        "kind": "star",
+        "color": "#fff1a8",
+        "stroke": "#c96a86",
+        "scale": 1
+      },
+      "custom": {
+        "kind": "pin",
+        "color": "#ffffff",
+        "stroke": "#c96a86",
+        "scale": 0.9
+      }
+    },
+    "route": {
+      "voiture": {
+        "color": "#7b6fc2",
+        "width": 0.7,
+        "dash": [
+          2.2,
+          1.5
+        ]
+      },
+      "bus": {
+        "color": "#7b6fc2",
+        "width": 0.7,
+        "dash": [
+          2.2,
+          1.5
+        ]
+      },
+      "train": {
+        "color": "#7b6fc2",
+        "width": 0.7,
+        "dash": null
+      },
+      "avion": {
+        "color": "#7b6fc2",
+        "width": 0.6,
+        "dash": [
+          0.01,
+          1.7
+        ]
+      },
+      "bateau": {
+        "color": "#7b6fc2",
+        "width": 0.6,
+        "dash": [
+          1,
+          1
+        ]
+      },
+      "pied": {
+        "color": "#7b6fc2",
+        "width": 0.5,
+        "dash": [
+          0.5,
+          1
+        ]
+      }
+    },
+    "badge": {
+      "fill": "#7b6fc2",
+      "text": "#ffffff",
+      "stroke": "#ffffff",
+      "font": "Lilita One",
+      "weight": 400
+    },
+    "medallion": {
+      "ringColor": "#ffffff",
+      "ringWidth": 0.8
+    },
+    "sizes": {
+      "marker": 3,
+      "badge": 5,
+      "vehicle": 6
+    },
+    "rough": null
+  }
+}

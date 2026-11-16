@@ -1,3 +1,4 @@
+import { normalizeStyle } from './map/style';
 import { BookSchema, type Book } from './schema';
 
 /** The newest album format this release reads. */
@@ -42,7 +43,29 @@ export function bookForSave(book: Book): Book {
   return { ...pruned, schemaVersion: bookSchemaVersion(pruned) };
 }
 
-/** Validate a raw document and bring it to the current schema version. */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** `raw` with the style of every map element completed from the defaults; `raw` itself is not edited. */
+function withNormalizedMapStyles(raw: Record<string, unknown>): Record<string, unknown> {
+  const spread = (value: unknown): unknown => {
+    if (!isRecord(value) || !Array.isArray(value['elements'])) return value;
+    const elements = value['elements'].map((el: unknown) =>
+      isRecord(el) && el['type'] === 'map' ? { ...el, style: normalizeStyle(el['style']) } : el,
+    );
+    return { ...value, elements };
+  };
+  const out = { ...raw };
+  if ('cover' in raw) out['cover'] = spread(raw['cover']);
+  if (Array.isArray(raw['spreads'])) out['spreads'] = raw['spreads'].map(spread);
+  return out;
+}
+
+/**
+ * Validate a raw document and bring it to the current schema version. The style of every map is
+ * normalised first (spec 7.9): an album saved with an older or newer set of style tokens still
+ * opens, its missing tokens filled from the defaults and the unknown ones dropped.
+ */
 export function migrate(raw: unknown): Book {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     throw new BookFormatError("Fichier d'album illisible : ce n'est pas un objet JSON.");
@@ -59,7 +82,7 @@ export function migrate(raw: unknown): Book {
   if (version !== 1 && version !== 2) {
     throw new BookFormatError(`Version de format inconnue : ${version}.`);
   }
-  const parsed = BookSchema.safeParse(raw);
+  const parsed = BookSchema.safeParse(withNormalizedMapStyles(raw as Record<string, unknown>));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const where = issue ? issue.path.join('.') : '';

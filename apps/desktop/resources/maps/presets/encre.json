@@ -1,0 +1,135 @@
+{
+  "id": "encre",
+  "name": "Encre",
+  "style": {
+    "styleVersion": 1,
+    "land": {
+      "fill": null,
+      "stroke": "#111111",
+      "width": 0.25
+    },
+    "regions": {
+      "stroke": "#8c8c8c",
+      "width": 0.1,
+      "dash": null
+    },
+    "neighbours": {
+      "fill": null,
+      "stroke": "#9a9a9a",
+      "width": 0.12
+    },
+    "lakes": {
+      "fill": null,
+      "stroke": "#111111",
+      "width": 0.15
+    },
+    "outline": {
+      "color": "#111111",
+      "width": 0.3,
+      "detail": 1
+    },
+    "label": {
+      "font": "Inter",
+      "weight": 400,
+      "italicSights": true,
+      "sizePt": 8,
+      "color": "#111111",
+      "case": "none",
+      "letterSpacingEm": 0.02,
+      "halo": {
+        "color": "#ffffff",
+        "width": 0
+      }
+    },
+    "markers": {
+      "capital": {
+        "kind": "point",
+        "color": "#111111",
+        "stroke": null,
+        "scale": 1.6
+      },
+      "city": {
+        "kind": "point",
+        "color": "#111111",
+        "stroke": null,
+        "scale": 1
+      },
+      "sight": {
+        "kind": "star",
+        "color": "#111111",
+        "stroke": null,
+        "scale": 0.9
+      },
+      "custom": {
+        "kind": "point",
+        "color": "#111111",
+        "stroke": null,
+        "scale": 1.2
+      }
+    },
+    "route": {
+      "voiture": {
+        "color": "#111111",
+        "width": 0.35,
+        "dash": [
+          1.6,
+          1.1
+        ]
+      },
+      "bus": {
+        "color": "#111111",
+        "width": 0.35,
+        "dash": [
+          1.6,
+          1.1
+        ]
+      },
+      "train": {
+        "color": "#111111",
+        "width": 0.35,
+        "dash": null
+      },
+      "avion": {
+        "color": "#111111",
+        "width": 0.35,
+        "dash": [
+          0.01,
+          1.3
+        ]
+      },
+      "bateau": {
+        "color": "#111111",
+        "width": 0.35,
+        "dash": [
+          0.9,
+          0.9
+        ]
+      },
+      "pied": {
+        "color": "#111111",
+        "width": 0.3,
+        "dash": [
+          0.4,
+          0.8
+        ]
+      }
+    },
+    "badge": {
+      "fill": "#111111",
+      "text": "#ffffff",
+      "stroke": null,
+      "font": "Inter",
+      "weight": 700
+    },
+    "medallion": {
+      "ringColor": "#111111",
+      "ringWidth": 0.3
+    },
+    "sizes": {
+      "marker": 2.5,
+      "badge": 4.5,
+      "vehicle": 5
+    },
+    "rough": null
+  }
+}
