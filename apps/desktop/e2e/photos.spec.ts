@@ -27,6 +27,7 @@ interface EditorHandle {
     apply(op: (book: Book) => Book, label: string): void;
     flush(): Promise<void>;
     setZoom(zoom: number): void;
+    setActivePage(page: 'left' | 'right'): void;
   };
   setState(patch: { currentSpreadId?: string; selection?: string[] }): void;
 }
@@ -676,7 +677,7 @@ test('photos imported by mistake are removed from the album, frames emptied, and
     expect(frames(placed)[0]!.assetId).toBe(assetIdOf(placed, 'small.jpg'));
 
     // Tick two photos: the bar counts them and asks before removing.
-    await page.locator('.photo-thumb[title="small.jpg"]').click();
+    await page.locator('.photo-thumb[title="small.jpg"]').click({ modifiers: ['Control'] });
     await page.locator('.photo-thumb[title="day1.jpg"]').click({ modifiers: ['Control'] });
     const bar = page.getByRole('region', { name: 'Photos sélectionnées' });
     await expect(bar).toContainText('2 photos sélectionnées');
@@ -720,6 +721,60 @@ test('photos imported by mistake are removed from the album, frames emptied, and
     await pickFiles(app, ['day1.jpg']);
     await page.getByRole('button', { name: 'Importer des photos' }).click();
     await expect(page.locator('.photo-thumb')).toHaveCount(3);
+  } finally {
+    await app.close();
+  }
+});
+
+test('a click puts a photo on the page or takes it off; a double-click shows it large', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    // One layout frame on the right page of the spread.
+    await openAlbum(page, 'Clic', [slot('frame', 250, 30, 120, 90)]);
+    await importPhotos(app, page, ['landscape.jpg', 'small.jpg']);
+    await evalEditor(page, (e) => e.getState().setActivePage('right'), null);
+    const thumb = (name: string) => page.locator(`.photo-thumb[title="${name}"]`);
+
+    // First click: the photo fills the empty frame of the page, and the tray marks it.
+    await thumb('small.jpg').click();
+    await expect(thumb('small.jpg')).toHaveAttribute('data-on-page', 'true');
+    await expect
+      .poll(async () => frames(await savedBook(page, 'clic'))[0]!.assetId)
+      .toBe(assetIdOf(await savedBook(page, 'clic'), 'small.jpg'));
+
+    // Another photo, with no empty frame left, gets a frame of its own.
+    await thumb('landscape.jpg').click();
+    await expect.poll(async () => frames(await savedBook(page, 'clic')).length).toBe(2);
+
+    // A second click takes it off: its own frame goes, the layout frame is only emptied.
+    await thumb('landscape.jpg').click();
+    await expect.poll(async () => frames(await savedBook(page, 'clic')).length).toBe(1);
+    await thumb('small.jpg').click();
+    await expect.poll(async () => frames(await savedBook(page, 'clic'))[0]!.assetId).toBeNull();
+    await expect(thumb('small.jpg')).not.toHaveAttribute('data-on-page', 'true');
+    // Ctrl + click ticks instead; nothing goes on the page.
+    await thumb('small.jpg').click({ modifiers: ['Control'] });
+    await expect(thumb('small.jpg')).toHaveAttribute('aria-pressed', 'true');
+    expect(frames(await savedBook(page, 'clic'))[0]!.assetId).toBeNull();
+
+    // A double-click opens the photo large and changes nothing on the page.
+    await thumb('landscape.jpg').dblclick();
+    const viewer = page.getByRole('dialog', { name: 'Photo landscape.jpg' });
+    await expect(viewer).toBeVisible();
+    await expect(viewer.getByRole('img', { name: 'landscape.jpg' })).toBeVisible();
+    await page.waitForTimeout(400);
+    expect(frames(await savedBook(page, 'clic'))).toHaveLength(1);
+    // The arrows go through the tray; the button puts the photo in view on the page.
+    await page.keyboard.press('ArrowRight');
+    const next = page.getByRole('dialog', { name: 'Photo small.jpg' });
+    await expect(next).toBeVisible();
+    await next.getByRole('button', { name: 'Mettre sur la page' }).click();
+    await expect(next.getByRole('button', { name: 'Retirer de la page' })).toBeVisible();
+    await expect.poll(async () => frames(await savedBook(page, 'clic'))[0]!.assetId).not.toBeNull();
+    await page.keyboard.press('Escape');
+    await expect(next).toBeHidden();
   } finally {
     await app.close();
   }

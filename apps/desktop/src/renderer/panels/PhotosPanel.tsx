@@ -1,13 +1,24 @@
 import { assetUsage, removePhotos, type AssetRef, type Book } from '@travelbook/core';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import { PHOTO_DRAG_TYPE, encodePhotoDrag } from '../editor/PhotoDrop';
 import { droppedPaths, photoImporter } from '../editor/photoImport';
+import { isOnSpread, togglePhotoOnPage } from '../editor/trayToggle';
 import { editorStore, useEditor } from '../store/editor';
 import { trayStore, useTray } from '../store/tray';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import { PhotoGrid } from './PhotoGrid';
 import { PhotoPicker } from './PhotoPicker';
+import { PhotoViewer } from './PhotoViewer';
 import { PhotoThumb } from './PhotoThumb';
 import {
   NO_DATE,
@@ -94,6 +105,9 @@ function DayHeader({ group, selected }: { group: PhotoGroup; selected: ReadonlyS
   );
 }
 
+/** Longest wait between the two clicks of a double-click, in ms. */
+const DOUBLE_CLICK_MS = 250;
+
 const carriesFiles = (e: DragEvent): boolean => Array.from(e.dataTransfer.types).includes('Files');
 
 /**
@@ -113,6 +127,11 @@ function Tray({ book }: { book: Book }) {
   const selectedIds = useTray((s) => s.selected);
   const pickerOpen = useEditor((s) => s.pickerId !== null);
   const [dropping, setDropping] = useState(false);
+  const spreadId = useEditor((s) => s.currentSpreadId);
+  /** The photo shown large (a double-click), or `null`. */
+  const [viewing, setViewing] = useState<string | null>(null);
+  const clickTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(clickTimer.current), []);
   /** Photos waiting for the confirmation of their removal, or `null`. */
   const [removing, setRemoving] = useState<string[] | null>(null);
 
@@ -135,6 +154,29 @@ function Tray({ book }: { book: Book }) {
   }, [book, removing]);
 
   const cancelRemove = useCallback(() => setRemoving(null), []);
+  const ordered = useMemo(() => groups.flatMap((g) => g.photos), [groups]);
+
+  /**
+   * A click puts the photo on the page in view or takes it off; it waits for a possible second
+   * click, which opens the photo instead. Ctrl or Shift + click ticks it. The keys act at once.
+   */
+  const activate = (asset: AssetRef) => (e: MouseEvent | KeyboardEvent) => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      trayStore.getState().pick(asset.id, true);
+      return;
+    }
+    window.clearTimeout(clickTimer.current);
+    if (e.type !== 'click') {
+      togglePhotoOnPage(asset.id);
+      return;
+    }
+    if ((e as MouseEvent).detail > 1) return;
+    clickTimer.current = window.setTimeout(() => togglePhotoOnPage(asset.id), DOUBLE_CLICK_MS);
+  };
+  const open = (asset: AssetRef) => {
+    window.clearTimeout(clickTimer.current);
+    setViewing(asset.id);
+  };
   const remove = (ids: string[]) => {
     editorStore.getState().apply((b) => removePhotos(b, ids), fr.photos.undoRemove);
     trayStore.getState().setMany(ids, false);
@@ -209,6 +251,7 @@ function Tray({ book }: { book: Book }) {
         <p className="photos__count" aria-live="polite">
           {fr.photos.count(shown)}
         </p>
+        {shown > 0 && <p className="photos__hint">{fr.photos.trayHint}</p>}
       </div>
 
       {shown > 0 ? (
@@ -221,9 +264,9 @@ function Tray({ book }: { book: Book }) {
                 asset={asset}
                 uses={usage[asset.id] ?? 0}
                 selected={selected.has(asset.id)}
-                onActivate={(e) =>
-                  trayStore.getState().pick(asset.id, e.ctrlKey || e.metaKey || e.shiftKey)
-                }
+                onPage={isOnSpread(book, spreadId, asset.id)}
+                onActivate={activate(asset)}
+                onOpen={() => open(asset)}
                 onDragStart={dragStart(asset)}
               />
               {/* A shortcut for the pointer; the keyboard ticks photos and uses the bar below. */}
@@ -272,6 +315,15 @@ function Tray({ book }: { book: Book }) {
         </div>
       )}
       {pickerOpen && <PhotoPicker book={book} />}
+      {viewing !== null && book.assets[viewing] !== undefined && (
+        <PhotoViewer
+          book={book}
+          photos={ordered.some((p) => p.id === viewing) ? ordered : [book.assets[viewing]!]}
+          start={viewing}
+          usage={usage}
+          onClose={() => setViewing(null)}
+        />
+      )}
     </div>
   );
 }
@@ -302,7 +354,7 @@ function SelectionBar({
   useEffect(() => {
     if (!asking) return;
     confirmRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       e.preventDefault();
       e.stopPropagation();

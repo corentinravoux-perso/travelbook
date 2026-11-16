@@ -359,12 +359,27 @@ export const fr = {
     removeConfirm: "Supprimer de l'album",
     removeCancel: 'Annuler',
     undoRemove: 'Supprimer des photos',
+    undoPutOn: 'Mettre une photo sur la page',
+    undoTakeOff: 'Retirer une photo de la page',
+    onThisPage: 'sur cette double page',
+    trayHint: 'Clic : sur la page ou retirée. Double-clic : en grand. Ctrl + clic : sélectionner.',
+    viewer: (name: string) => `Photo ${name}`,
+    viewerClose: 'Fermer',
+    viewerPrev: 'Photo précédente',
+    viewerNext: 'Photo suivante',
+    viewerPosition: (at: number, count: number) => `${at} sur ${count}`,
+    viewerPutOn: 'Mettre sur la page',
+    viewerTakeOff: 'Retirer de la page',
+    viewerUses: (n: number) =>
+      n === 0 ? 'Pas encore dans le livre' : n === 1 ? 'Placée 1 fois' : `Placée ${n} fois`,
+    viewerPixels: (w: number, h: number) => `${w} × ${h} px`,
     removed: (n: number) =>
       n === 1
         ? "1 photo supprimée de l'album. Ctrl+Z pour annuler."
         : `${n} photos supprimées de l'album. Ctrl+Z pour annuler.`,
-    photoLabel: (name: string, uses: number) =>
-      uses === 0 ? name : `${name}, placée ${uses === 1 ? '1 fois' : `${uses} fois`}`,
+    photoLabel: (name: string, uses: number, here = false) =>
+      (uses === 0 ? name : `${name}, placée ${uses === 1 ? '1 fois' : `${uses} fois`}`) +
+      (here ? ', sur cette double page' : ''),
     failedTitle: (n: number) =>
       n === 1 ? "1 fichier n'a pas pu être importé" : `${n} fichiers n'ont pas pu être importés`,
     failedLine: (name: string, why: string) => `${name} : ${why}`,

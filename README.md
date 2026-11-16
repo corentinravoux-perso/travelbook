@@ -62,10 +62,11 @@ the front.
 2. **Import photos.** "Importer des photos" in the Photos panel, or drag files and folders from the
    file manager onto the window. Photos are grouped by day (from their EXIF date). Importing a
    photo the album already holds does nothing, except that a missing original is copied back.
-   A photo imported by mistake goes with the bin on its thumbnail, or by ticking photos (a click,
-   Ctrl+click, or a day's checkbox) and "Supprimer…" in the bar under the tray. The frames that
+   A photo imported by mistake goes with the bin on its thumbnail, or by ticking photos
+   (Ctrl+click, or a day's checkbox) and "Supprimer…" in the bar under the tray. The frames that
    showed it become empty; Ctrl+Z brings it back. The files on your computer are not touched.
-3. **Lay out the spreads.** Drag a photo onto a page, or pick a layout in the Modèles panel
+3. **Lay out the spreads.** Click a photo of the tray to put it on the page in view (a second
+   click takes it off), double-click it to see it large, or drag it onto a page, or pick a layout in the Modèles panel
    (273 templates for 1 to 16 photos, covers, chapter openings, text pages and whole spreads;
    "Mise en page aléatoire" tries another layout with the same number of photos). Crop, rotate,
    mask, add borders and shadows, and adjust the look of a photo in the inspector. A page can be
