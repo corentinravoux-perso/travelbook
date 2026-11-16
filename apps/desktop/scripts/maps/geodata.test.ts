@@ -42,12 +42,14 @@ import {
   type RawSight,
 } from './wikidata.ts';
 import {
+  buildPack,
   coverage,
   dropSmallHoles,
   extentKm,
   mainBbox,
   minAreaKm2,
   pickLandLevel,
+  quantizationFor,
   ringAreaKm2,
   scaleBbox,
   toleranceMetres,
@@ -323,6 +325,213 @@ describe('the licence of resources/maps', () => {
     const listed = new Set(maps.flatMap((e) => e.files));
     expect(listed.has('maps/index.json')).toBe(true);
     for (const subject of index.subjects) expect(listed.has(`maps/${subject.file}`)).toBe(true);
+  });
+});
+
+interface PackTopo {
+  arcs: unknown[][];
+  objects: Record<
+    string,
+    { geometries: { arcs?: unknown[]; properties?: Record<string, string> }[] }
+  >;
+}
+/** Arc indices (shared arcs as `~i` folded to `i`) of a geometry. */
+function arcIndices(arcs: unknown): number[] {
+  if (Array.isArray(arcs)) return arcs.flatMap(arcIndices);
+  return typeof arcs === 'number' ? [arcs < 0 ? ~arcs : arcs] : [];
+}
+/** Points of the arcs of one region of a pack (an arc shared by two regions counts in both). */
+function regionPoints(t: PackTopo, id: string): number {
+  const region = t.objects.regions?.geometries.find((g) => g.properties?.id === id);
+  if (!region) throw new Error(`no region ${id}`);
+  return arcIndices(region.arcs).reduce((sum, i) => sum + (t.arcs[i]?.length ?? 0), 0);
+}
+
+/** A ring of `n` points around (cx, cy), with a fine relief of `wiggle` x radius. */
+function wiggly(cx: number, cy: number, radius: number, n: number, wiggle: number): number[][] {
+  const ring = Array.from({ length: n }, (_, k) => {
+    const a = (2 * Math.PI * k) / n;
+    const r = radius * (1 + wiggle * Math.sin(53 * a) * Math.cos(29 * a));
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+  return [...ring, ring[0] ?? []];
+}
+const region = (id: string, ring: number[][]): Feature => ({
+  type: 'Feature',
+  properties: { id, name: `Région ${id}` },
+  geometry: { type: 'Polygon', coordinates: [ring] },
+});
+
+describe('buildPack', () => {
+  // The same shape at two scales: a province of 650 km and a county of 11 km.
+  const big = region('big', wiggly(10, 10, 3, 2000, 1 / 8000));
+  const small = region('small', wiggly(20, 10, 0.05, 2000, 1 / 8000));
+
+  it('writes one object, regions, with the properties of every region', async () => {
+    for (const mode of ['per-region', 'finest'] as const) {
+      const pack = (await buildPack([big, small], mode)) as unknown as PackTopo;
+      expect(Object.keys(pack.objects), mode).toEqual(['regions']);
+      expect(pack.objects.regions?.geometries.map((g) => g.properties)).toEqual([
+        { id: 'big', name: 'Région big' },
+        { id: 'small', name: 'Région small' },
+      ]);
+    }
+  });
+
+  it('simplifies each region at the tolerance of its own extent (per-region)', async () => {
+    const pack = (await buildPack([big, small], 'per-region')) as unknown as PackTopo;
+    const [a, b] = [regionPoints(pack, 'big'), regionPoints(pack, 'small')];
+    // the same shape at the same relative tolerance keeps about the same points
+    expect(a / b).toBeGreaterThan(0.5);
+    expect(a / b).toBeLessThan(2);
+    expect(a).toBeLessThan(400);
+  });
+
+  it('simplifies every region at the finest tolerance of the set (finest)', async () => {
+    const own = (await buildPack([big, small], 'per-region')) as unknown as PackTopo;
+    const finest = (await buildPack([big, small], 'finest')) as unknown as PackTopo;
+    expect(regionPoints(finest, 'big')).toBeGreaterThan(2 * regionPoints(own, 'big'));
+    expect(regionPoints(finest, 'small')).toBeGreaterThan(0);
+  });
+
+  it('keeps the border of two neighbours as one shared arc (finest)', async () => {
+    const edge = Array.from({ length: 200 }, (_, k) => [1, k / 200 + 0.001 * Math.sin(k)]);
+    const left = region('l', [[0, 0], ...edge, [1, 1], [0, 1], [0, 0]]);
+    const right = region('r', [[1, 0], [2, 0], [2, 1], [1, 1], ...[...edge].reverse(), [1, 0]]);
+    const pack = (await buildPack([left, right], 'finest')) as unknown as PackTopo;
+    const [l, r] = pack.objects.regions?.geometries ?? [];
+    const shared = arcIndices(l?.arcs).filter((i) => arcIndices(r?.arcs).includes(i));
+    expect(shared.length).toBeGreaterThan(0);
+  });
+
+  it('refuses an empty set of regions', async () => {
+    await expect(buildPack([])).rejects.toThrow(/at least one region/);
+  });
+});
+
+describe('quantizationFor', () => {
+  it('resolves the tolerance over the larger side of the box', () => {
+    expect(quantizationFor([0, 0, 10, 5], 10)).toBe(Math.ceil((10 * 111_320) / 10));
+    expect(quantizationFor([0, 0, 5, 10], 10)).toBe(Math.ceil((10 * 111_320) / 10));
+  });
+
+  it('never goes under the 100000 of a base file, nor over 1e9', () => {
+    expect(quantizationFor([0, 0, 0.01, 0.01], 100)).toBe(100_000);
+    expect(quantizationFor([-180, -90, 180, 90], 0.01)).toBe(1e9);
+  });
+});
+
+describe('the fine region packs', () => {
+  const BUNDLED = ['GB', 'GR', 'IT', 'US'];
+  const OUT_PACKS = join(import.meta.dirname, 'out/packs');
+  const withRegions = index.subjects.filter((s) => s.regions.length > 0);
+  /** The file of a pack: bundled in resources, else the build output (absent on a fresh clone). */
+  const packFile = (s: (typeof index.subjects)[number]): string | null => {
+    if (!s.pack) return null;
+    const file = s.pack.bundled
+      ? join(MAPS_DIR, s.pack.file)
+      : join(OUT_PACKS, `${s.id}.topo.json`);
+    return existsSync(file) ? file : null;
+  };
+  const packOf = (id: string): PackTopo => {
+    const file = packFile(entry(id));
+    if (!file) throw new Error(`no pack file for ${id}`);
+    return JSON.parse(readFileSync(file, 'utf8')) as PackTopo;
+  };
+
+  it('gives every subject with regions a pack named after it', () => {
+    expect(withRegions.length).toBeGreaterThan(0);
+    for (const s of withRegions) {
+      expect(s.pack?.file, `${s.id} pack`).toBe(`packs/${s.id}.topo.json`);
+      expect(s.pack?.sha256, `${s.id} sha256`).toMatch(/^[0-9a-f]{64}$/);
+      expect(s.pack?.bytes, `${s.id} bytes`).toBeGreaterThan(0);
+    }
+  });
+
+  it('bundles the packs of the US, GB, IT and GR, and only those', () => {
+    const bundled = index.subjects.filter((s) => s.pack?.bundled).map((s) => s.id);
+    expect(bundled.sort()).toEqual(BUNDLED);
+  });
+
+  it('records the size and sha256 of every pack file that exists', () => {
+    let checked = 0;
+    for (const s of withRegions) {
+      const file = packFile(s);
+      if (s.pack?.bundled) expect(file, `${s.id} bundled file`).not.toBeNull();
+      if (!file || !s.pack) continue; // not built here: the release holds it
+      checked++;
+      const bytes = readFileSync(file);
+      expect(bytes.length, `${s.id} bytes`).toBe(s.pack.bytes);
+      expect(createHash('sha256').update(bytes).digest('hex'), `${s.id} sha256`).toBe(
+        s.pack.sha256,
+      );
+    }
+    expect(checked).toBeGreaterThanOrEqual(BUNDLED.length);
+  });
+
+  it('has no bundled pack file that the index does not list', async () => {
+    const files = await readdir(join(MAPS_DIR, 'packs'));
+    const listed = index.subjects.filter((s) => s.pack?.bundled).map((s) => s.pack?.file);
+    expect(files.map((f) => `packs/${f}`).sort()).toEqual(listed.sort());
+  });
+
+  it('holds the regions of the base file: same ids, same names, one object', () => {
+    let checked = 0;
+    for (const s of withRegions) {
+      if (!packFile(s)) continue;
+      checked++;
+      const pack = packOf(s.id);
+      expect(Object.keys(pack.objects), `${s.id} objects`).toEqual(['regions']);
+      const drawn = (pack.objects.regions?.geometries ?? [])
+        .map((g) => ({ id: g.properties?.id, name: g.properties?.name }))
+        .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+      expect(drawn, `${s.id} regions`).toEqual(s.regions.map((r) => ({ id: r.id, name: r.name })));
+      expect(
+        drawn.map((r) => r.id),
+        `${s.id} order`,
+      ).toEqual(s.regions.map((r) => r.id));
+    }
+    expect(checked).toBeGreaterThanOrEqual(BUNDLED.length);
+  });
+
+  it('draws Sicily with more vertices than the IT base file does', () => {
+    const base = topo('IT') as unknown as PackTopo;
+    expect(regionPoints(packOf('IT'), 'IT-82')).toBeGreaterThan(regionPoints(base, 'IT-82'));
+  });
+
+  it('draws the regions of a country with more points than the base file does', () => {
+    let checked = 0;
+    for (const id of ['IT', 'TH', 'US']) {
+      if (!packFile(entry(id))) continue;
+      checked++;
+      const pack = packOf(id);
+      const base = topo(id) as unknown as PackTopo;
+      const [fine, coarse] = [pack, base].map((t) =>
+        (t.objects.regions?.geometries ?? []).reduce(
+          (sum, g) => sum + arcIndices(g.arcs).reduce((n, i) => n + (t.arcs[i]?.length ?? 0), 0),
+          0,
+        ),
+      );
+      expect(fine, `${id} points`).toBeGreaterThan(coarse ?? Infinity);
+    }
+    expect(checked).toBeGreaterThanOrEqual(2);
+  });
+
+  it('keeps the four bundled packs under the 25 MB that gates the installer size', () => {
+    const total = index.subjects.reduce((sum, s) => sum + (s.pack?.bundled ? s.pack.bytes : 0), 0);
+    expect(total).toBeGreaterThan(0);
+    expect(total).toBeLessThan(25_000_000);
+  });
+
+  it('lists the bundled packs, and only them, in LICENCES.json', () => {
+    const own = JSON.parse(readFileSync(join(MAPS_DIR, '../LICENCES.json'), 'utf8')) as {
+      entries: { files: string[] }[];
+    };
+    const listed = new Set(own.entries.flatMap((e) => e.files));
+    expect(listed.has('maps/packs/IT.topo.json')).toBe(true);
+    for (const s of withRegions) {
+      expect(listed.has(`maps/${s.pack?.file}`), `${s.id} licence`).toBe(s.pack?.bundled === true);
+    }
   });
 });
 
