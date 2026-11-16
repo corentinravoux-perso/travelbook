@@ -41,6 +41,7 @@
  * network access to Overture's public S3 bucket, GitHub (Natural Earth) and Wikidata.
  */
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
@@ -50,6 +51,7 @@ import {
   fetchLakes,
   fetchLand,
   fetchPerspectives,
+  fetchWorldLand,
   type DivisionLevel,
   type CatalogEntry,
 } from './overture.ts';
@@ -78,6 +80,7 @@ import {
 } from './perspectives.ts';
 import {
   OVERLAP_TOLERANCE,
+  buildWorld,
   bboxOf,
   bboxesOverlap,
   buildBestPack,
@@ -370,6 +373,17 @@ export async function boundaries(only: string[] | undefined): Promise<void> {
   );
 }
 
+/** The shared far-context land: `resources/maps/world.topo.json`, from Natural Earth 10m land. */
+export async function world(): Promise<void> {
+  console.log(`[${clock()}] world: Natural Earth 10m land`);
+  const topology = await buildWorld(await fetchWorldLand());
+  const json = JSON.stringify(topology);
+  await writeFileAtomic(join(MAPS_DIR, 'world.topo.json'), json);
+  const index = await readIndex();
+  if (index) await writeLicences(index);
+  console.log(`[${clock()}] world: world.topo.json ${Math.round(json.length / 1024)} KB`);
+}
+
 /** Keep the `maps/` entry of `resources/LICENCES.json` in step with the files the index lists. */
 export async function writeLicences(index: MapIndex): Promise<void> {
   const places = await readdir(join(MAPS_DIR, 'places')).catch(() => [] as string[]);
@@ -395,6 +409,18 @@ export async function writeLicences(index: MapIndex): Promise<void> {
     requiresAttribution: true,
     note: 'Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector). The places files (maps/places/) combine Natural Earth populated places, public domain, with Wikidata, CC0 (sights, https://www.wikidata.org/wiki/Wikidata:Licensing), and, for countries where Natural Earth lists fewer than 8 cities, GeoNames, CC BY 4.0 (https://www.geonames.org/, attribution required). The packs (maps/packs/) are the regions of the same Overture divisions, simplified more finely.',
   } as (typeof licences.entries)[number]);
+  // The world land is Natural Earth, public domain: an entry of its own, whenever the file exists.
+  if (existsSync(join(MAPS_DIR, 'world.topo.json'))) {
+    licences.entries.push({
+      files: ['maps/world.topo.json'],
+      source: 'Natural Earth, 10m physical vectors, land',
+      author: 'Natural Earth contributors',
+      licence: 'Public domain',
+      url: 'https://www.naturalearthdata.com/about/terms-of-use/',
+      requiresAttribution: false,
+      note: 'The coarse world land that fills the far context of a map, beyond the neighbours of each subject (https://github.com/nvkelso/natural-earth-vector).',
+    } as (typeof licences.entries)[number]);
+  }
   await writeFileAtomic(file, `${JSON.stringify(licences, null, 2)}\n`);
 }
 
@@ -503,6 +529,8 @@ const describeError = (error: unknown): string =>
 
 /** The three steps of `all`, so that their order and failure handling can be tested. */
 export interface AllSteps {
+  /** The shared far-context land; optional, and run first when there is one. */
+  world?: () => Promise<void>;
   boundaries: () => Promise<void>;
   places: () => Promise<SkippedPlaces[]>;
   packs: () => Promise<void>;
@@ -515,9 +543,16 @@ export interface AllSteps {
  * licences), and the exit code is 1 at the end. Returns the countries Wikidata did not answer.
  */
 export async function runSteps(steps: AllSteps): Promise<SkippedPlaces[]> {
-  console.log(`[${clock()}] step 1/3: boundaries`);
+  // the world step, when there is one, comes first and shifts the numbering
+  const n = steps.world ? 1 : 0;
+  const total = 3 + n;
+  if (steps.world) {
+    console.log(`[${clock()}] step 1/${total}: world`);
+    await steps.world();
+  }
+  console.log(`[${clock()}] step ${n + 1}/${total}: boundaries`);
   await steps.boundaries();
-  console.log(`[${clock()}] step 2/3: places`);
+  console.log(`[${clock()}] step ${n + 2}/${total}: places`);
   let skipped: SkippedPlaces[] = [];
   try {
     skipped = await steps.places();
@@ -526,7 +561,7 @@ export async function runSteps(steps: AllSteps): Promise<SkippedPlaces[]> {
     console.error('packs still runs; run `places` again afterwards');
     process.exitCode = 1;
   }
-  console.log(`[${clock()}] step 3/3: packs`);
+  console.log(`[${clock()}] step ${n + 3}/${total}: packs`);
   await steps.packs();
   console.log(`[${clock()}] all: done${process.exitCode ? ' WITH ERRORS (exit code 1)' : ''}`);
   if (skipped.length > 0) {
@@ -544,6 +579,7 @@ export async function all(only: string[] | undefined, mode?: PackMode): Promise<
       `Overture ${OVERTURE_RELEASE}${only ? `, only ${only.join(',')}` : ''}`,
   );
   await runSteps({
+    world,
     boundaries: () => boundaries(only),
     places: () => places(only),
     packs: () => packs(only, mode),
@@ -555,6 +591,8 @@ if (process.argv[1]?.endsWith('build-geodata.ts')) {
   try {
     if (command === 'all') {
       await all(parseOnly(args), parseMode(args));
+    } else if (command === 'world') {
+      await world();
     } else if (command === 'boundaries') {
       await boundaries(parseOnly(args));
     } else if (command === 'places') {
@@ -563,7 +601,7 @@ if (process.argv[1]?.endsWith('build-geodata.ts')) {
       await packs(parseOnly(args), parseMode(args));
     } else {
       console.error(
-        'usage: npm run maps -- all|boundaries|places|packs [--only=TH,PE] [--mode=finest|per-region]',
+        'usage: npm run maps -- all|world|boundaries|places|packs [--only=TH,PE] [--mode=finest|per-region]',
       );
       process.exitCode = 1;
     }

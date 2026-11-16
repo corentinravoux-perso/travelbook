@@ -27,6 +27,8 @@ export const NATURAL_EARTH_COMMIT = 'ca96624a56bd078437bca8184e78163e5039ad19';
 export const naturalEarthUrl = (file: string): string =>
   `https://raw.githubusercontent.com/nvkelso/natural-earth-vector/${NATURAL_EARTH_COMMIT}/geojson/${file}`;
 export const LAKES_URL = naturalEarthUrl('ne_10m_lakes.geojson');
+export const WORLD_LAND_FILE = 'ne_10m_land.geojson';
+export const WORLD_LAND_URL = naturalEarthUrl(WORLD_LAND_FILE);
 
 export const CACHE_DIR = appFileUrl('scripts/maps/.cache');
 
@@ -212,4 +214,27 @@ export function fetchLakes(): Promise<Feature[]> {
         geometry: f.geometry,
       }));
   });
+}
+
+/** Natural Earth 10m land (public domain), as downloaded once and cached in its own file. */
+export async function fetchWorldLand(): Promise<Collection> {
+  const path = join(
+    CACHE_DIR,
+    `natural-earth-${NATURAL_EARTH_COMMIT.slice(0, 8)}`,
+    WORLD_LAND_FILE,
+  );
+  // only a missing file is downloaded again: an unreadable or corrupt cache is an error to see
+  let cached: string | undefined;
+  try {
+    cached = await readFile(path, 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  if (cached !== undefined) return JSON.parse(cached) as Collection;
+  const response = await fetch(WORLD_LAND_URL);
+  if (!response.ok) throw new Error(`world land: HTTP ${response.status}`);
+  const text = await response.text();
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, text);
+  return JSON.parse(text) as Collection;
 }

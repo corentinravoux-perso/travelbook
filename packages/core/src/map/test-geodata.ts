@@ -15,6 +15,9 @@ interface IndexSubject {
 export const subjectTopology = (id: string): Topology =>
   read(`subjects/${id}.topo.json`) as Topology;
 
+/** The shared coarse world land (`world.topo.json`, one `land` object): the far context of a map. */
+export const worldTopology = (): Topology => read('world.topo.json') as Topology;
+
 /** The bundled fine pack of a subject (only the US, GB, IT and GR packs are bundled). */
 export const packTopology = (id: string): Topology => read(`packs/${id}.topo.json`) as Topology;
 

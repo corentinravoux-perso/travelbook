@@ -385,6 +385,38 @@ export async function buildTopology(input: TopologyInput): Promise<Topology> {
   return { ...topology, objects };
 }
 
+/** Tolerance (m) of the world far-context land: it is drawn small, beyond the subject's own frame. */
+export const WORLD_TOLERANCE_M = 2000;
+/** Islands under this area (km2) are left out of the world land. */
+export const WORLD_MIN_AREA_KM2 = 20;
+const WORLD_QUANTIZATION = 400_000;
+
+/**
+ * The land of the world (Natural Earth, already cut at the antimeridian) as one quantized TopoJSON
+ * object `land`, simplified for far context: a map's neighbours stop at 1.3 x the subject's bbox,
+ * and this layer fills the rest of a wide or tall box.
+ */
+export async function buildWorld(
+  source: Collection,
+  toleranceM: number = WORLD_TOLERANCE_M,
+  minAreaKm2: number = WORLD_MIN_AREA_KM2,
+): Promise<Topology> {
+  const features = source.features.filter((f) => f.geometry).map((f) => ({ ...f, properties: {} }));
+  const out = await mapshaper.applyCommands(
+    [
+      '-i land.json',
+      `-simplify dp interval=${toleranceM}m keep-shapes`,
+      `-filter-islands min-area=${minAreaKm2}km2 remove-empty`,
+      `-o format=topojson quantization=${WORLD_QUANTIZATION} out.topo.json`,
+    ].join(' '),
+    { 'land.json': collection(features) },
+  );
+  const topology = JSON.parse(String(out['out.topo.json'])) as Topology;
+  const object = topology.objects.land;
+  if (!object) throw new Error('world: mapshaper produced no land object');
+  return { ...topology, objects: { land: object } };
+}
+
 /** How the regions of a pack share their borders (see `buildPack`). */
 export type PackMode = 'per-region' | 'finest';
 
