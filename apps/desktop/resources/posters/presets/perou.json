@@ -27,6 +27,33 @@
     }
   },
   {
+    "id": "perou-machu-picchu-simple",
+    "destination": "perou",
+    "name": "Pérou, Machu Picchu simple",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#cde9d2",
+        "title": "#fff8ec",
+        "accent": "#5c2b2f",
+        "decor": "#e3f3e6",
+        "illustration": {
+          "main": "#7db56c",
+          "shade": "#7db56c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-machu-picchu-simple"
+      },
+      "spine": true
+    }
+  },
+  {
     "id": "perou-lama",
     "destination": "perou",
     "name": "Pérou, lama",
