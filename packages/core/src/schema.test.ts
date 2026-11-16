@@ -13,6 +13,7 @@ import {
   type Spread,
   BookFormatError,
   BookSchema,
+  bookForSave,
   bookSchemaVersion,
   migrate,
   newBook,
@@ -22,7 +23,7 @@ import {
   removeElements,
   setIdSource,
 } from './index';
-import { mapElement } from './map/test-helpers';
+import { mapAsset, mapElement } from './map/test-helpers';
 
 const rect = { x: 1, y: 2, w: 30, h: 40 };
 
@@ -279,6 +280,104 @@ describe('bookSchemaVersion', () => {
 
   it('is not changed by the factory: a new book is version 1', () => {
     expect(fresh().schemaVersion).toBe(1);
+  });
+});
+
+describe('bookForSave', () => {
+  const fresh = (): Book => newBook({ title: 'T', innerSpreads: 2 });
+  const plainAsset = (id: string, kind: AssetRef['kind']): AssetRef => ({
+    id,
+    kind,
+    file: `files/${id}`,
+    originalName: id,
+    sha256: 'x',
+  });
+  /** A book with `map` on the cover (or an inner spread) and the given assets registered. */
+  function bookWith(where: 'cover' | 'inner', assets: AssetRef[]): Book {
+    const book = fresh();
+    (where === 'cover' ? book.cover : book.spreads[1]!).elements.push(mapElement());
+    for (const a of assets) book.assets[a.id] = a;
+    return book;
+  }
+  const kindsOf = (book: Book): string[] => Object.values(book.assets).map((a) => a.kind);
+
+  it('keeps the geometry asset of a map that is there, and stamps 2', () => {
+    const saved = bookForSave(bookWith('inner', [mapAsset()]));
+    expect(Object.keys(saved.assets)).toEqual([mapAsset().id]);
+    expect(saved.schemaVersion).toBe(2);
+  });
+
+  it('counts a map on the cover', () => {
+    const saved = bookForSave(bookWith('cover', [mapAsset()]));
+    expect(Object.keys(saved.assets)).toEqual([mapAsset().id]);
+    expect(saved.schemaVersion).toBe(2);
+  });
+
+  it('drops the geometry of a deleted map, and stamps 1: nothing a release without maps refuses', () => {
+    const book = bookWith('cover', [mapAsset()]);
+    const gone = removeElements(book, book.cover.id, [book.cover.elements[0]!.id]);
+    expect(Object.keys(gone.assets)).toEqual([mapAsset().id]);
+    const saved = bookForSave(gone);
+    expect(saved.assets).toEqual({});
+    expect(saved.schemaVersion).toBe(1);
+  });
+
+  it('drops the old geometry of a map that was baked again, and keeps the new one', () => {
+    const book = bookWith('cover', [mapAsset(), mapAsset('map-fedcba9876543210')]);
+    book.cover.elements = [{ ...mapElement(), geometryAssetId: 'map-fedcba9876543210' }];
+    const saved = bookForSave(book);
+    expect(Object.keys(saved.assets)).toEqual(['map-fedcba9876543210']);
+    expect(saved.schemaVersion).toBe(2);
+  });
+
+  it('keeps the geometry of every map left, whichever spread holds it', () => {
+    const book = bookWith('cover', [mapAsset(), mapAsset('map-fedcba9876543210')]);
+    book.spreads[1]!.elements.push({
+      ...mapElement(),
+      id: 'map-2',
+      geometryAssetId: 'map-fedcba9876543210',
+    });
+    book.assets['map-orphan'] = mapAsset('map-orphan');
+    expect(Object.keys(bookForSave(book).assets).sort()).toEqual([
+      'map-0123456789abcdef',
+      'map-fedcba9876543210',
+    ]);
+  });
+
+  it('leaves the assets of every other kind alone, used or not', () => {
+    const others = (['photo', 'sticker', 'background', 'pattern', 'font'] as const).map((kind) =>
+      plainAsset(`unused-${kind}`, kind),
+    );
+    const gone = bookWith('cover', [...others, mapAsset()]);
+    gone.cover.elements = [];
+    const saved = bookForSave(gone);
+    expect(Object.keys(saved.assets).sort()).toEqual(others.map((a) => a.id).sort());
+    expect(kindsOf(saved)).not.toContain('map');
+    expect(saved.assets).toEqual(Object.fromEntries(others.map((a) => [a.id, a])));
+  });
+
+  it('does not touch an album without maps, but for its version', () => {
+    const book = { ...fresh(), schemaVersion: 2 as const };
+    book.assets['a'] = plainAsset('a', 'photo');
+    const saved = bookForSave(book);
+    expect(saved).toEqual({ ...book, schemaVersion: 1 });
+  });
+
+  it('never changes the book it is given, so undo keeps the map and its geometry', () => {
+    const book = bookWith('cover', [mapAsset(), plainAsset('a', 'photo')]);
+    book.cover.elements = [];
+    const before = JSON.stringify(book);
+    const saved = bookForSave(book);
+    expect(saved).not.toBe(book);
+    expect(JSON.stringify(book)).toBe(before);
+    expect(book.assets[mapAsset().id]).toBeDefined();
+    expect(book.schemaVersion).toBe(1);
+  });
+
+  it('writes a book migrate reads back, with or without a map', () => {
+    for (const book of [fresh(), bookWith('cover', [mapAsset()])]) {
+      expect(migrate(bookForSave(book))).toEqual(bookForSave(book));
+    }
   });
 });
 

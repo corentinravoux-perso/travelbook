@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { bookSchemaVersion, migrate, pageCount, type Book } from '@travelbook/core';
+import { bookForSave, migrate, pageCount, type Book } from '@travelbook/core';
 import type { SnapshotInfo } from '../../shared/api';
 import { serialize, writeFileAtomic } from './atomic-write';
 
@@ -75,8 +75,7 @@ export function writeSnapshot(
       time += 1;
       id = `${safeTimestamp(new Date(time))}-${label}`;
     }
-    const stamped: Book = { ...book, schemaVersion: bookSchemaVersion(book) };
-    await writeFileAtomic(snapshotPath(dir, id), JSON.stringify(stamped, null, 2) + '\n');
+    await writeFileAtomic(snapshotPath(dir, id), JSON.stringify(bookForSave(book), null, 2) + '\n');
     return { id, at: new Date(time).toISOString(), label, pages: pageCount(book) };
   });
 }
