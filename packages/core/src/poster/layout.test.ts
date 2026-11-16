@@ -230,6 +230,22 @@ describe('posterLayout details', () => {
     expect(total * PT_MM * 0.8).toBeLessThanOrEqual(0.4 * front.h + EPS);
   });
 
+  it('lowers a large accented title so its accent keeps clear of the trim', () => {
+    const at = (title: string, layout: 'geant' | 'classique') =>
+      titleOf(posterLayout(b, input(spec({ layout, title }))).elements);
+    const plain = at('Japon', 'geant');
+    const accented = at('Pérou', 'geant');
+    expect(accented.y).toBeGreaterThan(plain.y);
+    // The accent rises 0.13 em above the line box: it stays inside the safe margin.
+    for (const layout of ['geant', 'classique'] as const) {
+      const title = at('Pérou', layout);
+      const pt = lines(title)[0]!.pt;
+      expect(title.y - 0.13 * pt * PT_MM).toBeGreaterThanOrEqual(b.safeMargin - EPS);
+    }
+    // A title without accent keeps its place.
+    expect(plain.y).toBeCloseTo(0.05 * front.w);
+  });
+
   it('sets a geant year larger than the usual year', () => {
     const yearPt = (layout: 'geant' | 'classique') =>
       (

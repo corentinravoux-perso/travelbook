@@ -7,6 +7,16 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Affiches: Machu Picchu, a new Peru poster (Géant): Huayna Picchu over the citadel, its
+  terraces, a woolly llama in a woven blanket and an Inca wall, modelled in volume with ink
+  linework; and "Machu Picchu simple", the same site in flat colours and ink lines: the
+  twin peaks, the ruins, terraces with llamas.
+- Cover: "Avec tranche / Sans tranche" on the cover toolbar and in "Créer une affiche…", with
+  the spine width in mm (a first guess from the page count). The dialog previews the choice and
+  applies it with the poster, in one undo step; the volume view of a book without spine shows
+  only a thin edge.
+- Aperçu: "Zones rognées" (on by default) draws the bleed and hatches what the cut removes, the
+  folds and the spine dashed, so the part of a photo the print trims off is visible.
 - Déco: 122 new labels ("Étiquettes") in 41 new shapes, simple and elaborate: oval, pill,
   round badge, pennant, swallowtail flag, heart, cloud, shield, hexagon, apothecary,
   diamond, star, arch, scroll, curved ribbon, rosette, wax seal, sunburst, price tag, gift
@@ -26,6 +36,12 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Stickers: the "Mes stickers" tab is gone, as it repeated "Récents" and "Favoris". Images are
   now imported (button, drop or paste) and removed in "Récents", which lists the stickers
   placed or imported most recently.
+
+### Fixed
+
+- Affiches: a large accented title (PÉROU, ÉCOSSE in Géant) no longer pushes its accent past
+  the trim: the title moves down until the accent is inside the safe margin.
+- Removing the spine removes the spine title, which would otherwise straddle the fold.
 
 ## [1.1.0] - 2026-11-16
 

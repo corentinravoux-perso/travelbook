@@ -868,10 +868,6 @@ button.page-bar__label:hover,
   background: var(--surface);
   box-shadow: var(--shadow-2);
 }
-.cover-tools__hint {
-  font-size: var(--t-xs);
-  color: var(--ink-2);
-}
 /* The cover as drawn for the thumbnail capture: top layer, top left, never interactive. */
 .cover-stage {
   position: fixed;
@@ -1094,4 +1090,37 @@ button.page-bar__label:hover,
 }
 .font-more {
   margin-top: var(--s3);
+}
+
+/* The spine choice: "Avec tranche / Sans tranche", then the width in mm when there is one. */
+.spine-choice__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.spine-choice .seg {
+  flex: none;
+}
+.spine-choice__width {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.spine-choice__width .input {
+  width: 6ch;
+  height: 28px;
+  padding: 0 var(--s2);
+  text-align: right;
+}
+.spine-choice--compact .field__help {
+  position: absolute;
+  top: 100%;
+  margin-top: var(--s2);
+}
+.spine-choice .seg button {
+  flex: none;
+  padding: 0 var(--s3);
 }

@@ -84,6 +84,18 @@ describe('applyPosterToCover', () => {
     expect(editorStore.getState().book).toEqual(before);
   });
 
+  it('changes the spine in the same undo step, the front moving with it', async () => {
+    const before = editorStore.getState().book!;
+    expect(await applyPosterToCover(spec(), undefined, 0)).toBe(true);
+    const after = editorStore.getState().book!;
+    expect(after.spineWidth).toBe(0);
+    const title = after.cover.elements.find((e) => e.name === 'Affiche · titre')!;
+    expect(title.x).toBeGreaterThanOrEqual(after.format.width);
+    expect(after.cover.elements.some((e) => e.name === 'Affiche · dos')).toBe(false);
+    editorStore.getState().undo();
+    expect(editorStore.getState().book).toEqual(before);
+  });
+
   it('replaces the first poster when applied twice; one undo restores the first', async () => {
     await applyPosterToCover(spec());
     const first = editorStore.getState().book!;
