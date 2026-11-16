@@ -14,6 +14,10 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   note, paper clip, taped sheet, torn paper, wooden signpost, stitched leather tag,
   chalkboard, envelope, beaded medallion, brace banner, airport luggage tag, bow, scroll
   ornaments and two hand-drawn sketch labels. The set grows from 175 to 297 stickers.
+- Déco: 66 torn-paper labels: plain rectangles torn on one side (right or bottom), two sides
+  (left and right, top and bottom), a corner or all four, in five tear styles (fine, chunky,
+  teeth, soft wave, fibre with a pale paper fringe), plus notebook pages torn from a pad
+  (Seyès, squared, lined) in white and yellow. The set grows to 363 stickers.
 
 ## [1.1.0] - 2026-11-16
 

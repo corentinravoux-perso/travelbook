@@ -22,7 +22,7 @@ import {
 } from './core.ts';
 
 /** A palette: `f` the label, `e` its border, `l` a lighter panel, `d` a deep accent. */
-interface Pal {
+export interface Pal {
   id: string;
   fr: string;
   f: string;
@@ -31,7 +31,7 @@ interface Pal {
   d: string;
 }
 
-const PAL: Record<string, Pal> = {
+export const PAL: Record<string, Pal> = {
   kraft: {
     id: 'kraft',
     fr: 'kraft marron',
