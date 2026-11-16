@@ -136,8 +136,35 @@
   font-weight: var(--w-semibold);
   color: var(--ink);
 }
+.photo-day__fold {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 var(--s2) 0 calc(-1 * var(--s2));
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.photo-day__fold:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.photo-day__fold svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 120ms ease;
+}
+.photo-day[data-folded] .photo-day__fold svg {
+  transform: rotate(-90deg);
+}
 .photo-day__check {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--s3);
   min-width: 0;

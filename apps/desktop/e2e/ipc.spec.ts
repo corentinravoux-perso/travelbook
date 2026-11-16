@@ -162,7 +162,8 @@ test('the user library keeps files, serves them through tb://library and copies 
   expect(done.item.id).toMatch(/^sticker-[0-9a-f]{16}$/);
   expect(done.favourites.map((i) => i.id)).toEqual([done.item.id]);
   expect(done.found.map((i) => i.id)).toEqual([done.item.id]);
-  expect(done.unused).toEqual([]);
+  // Imported but never placed: already in the recents, without a use date.
+  expect(done.unused.map((i) => [i.id, i.lastUsedAt])).toEqual([[done.item.id, undefined]]);
   expect(done.recent.map((i) => i.id)).toEqual([done.item.id]);
   expect(done.asset).toMatchObject({
     id: done.item.id,

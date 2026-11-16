@@ -13,6 +13,8 @@ export interface TrayState {
   filter: UsageFilter;
   /** Asset ids ticked in the tray (a day's checkbox ticks all of its photos). */
   selected: string[];
+  /** Day keys (see `trayGroups`) whose photos are folded away under their header. */
+  folded: string[];
   /** While an import runs: files done out of the total (`total` is 0 until the first report). */
   progress: { done: number; total: number } | null;
   /** What the last import left behind; empty when it went through. */
@@ -27,6 +29,8 @@ export interface TrayState {
   /** The checkbox of a day: tick or untick all of `ids`. */
   setMany(ids: readonly string[], on: boolean): void;
   clearSelection(): void;
+  /** The chevron of a day: fold its photos away, or show them again. */
+  toggleFolded(key: string): void;
   setProgress(progress: TrayState['progress']): void;
   setFailures(failures: ImportFailure[]): void;
   setRestored(names: string[]): void;
@@ -39,6 +43,7 @@ export function createTrayStore(): TrayStore {
     sort: 'date',
     filter: 'all',
     selected: [],
+    folded: [],
     progress: null,
     failures: [],
     restored: [],
@@ -65,6 +70,10 @@ export function createTrayStore(): TrayStore {
     },
     clearSelection() {
       if (get().selected.length > 0) set({ selected: [] });
+    },
+    toggleFolded(key) {
+      const { folded } = get();
+      set({ folded: folded.includes(key) ? folded.filter((k) => k !== key) : [...folded, key] });
     },
     setProgress(progress) {
       set({ progress });
