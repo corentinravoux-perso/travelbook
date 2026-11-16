@@ -73,6 +73,15 @@ describe('MapGeometrySchema', () => {
     expect(accepts(broken((g) => (g.paths.outline = 'M0,0L-Infinity,3Z')))).toBe(false);
   });
 
+  it('has neighbourLines optional (old assets have none) and finite', () => {
+    const g = baked();
+    expect(typeof g.paths.neighbourLines).toBe('string');
+    const old: Partial<MapGeometry['paths']> = { ...g.paths };
+    delete old.neighbourLines;
+    expect(accepts({ ...g, paths: old })).toBe(true);
+    expect(accepts({ ...g, paths: { ...g.paths, neighbourLines: 'M0 NaN' } })).toBe(false);
+  });
+
   it('has the type of MapGeometry', () => {
     expectTypeOf<z.output<typeof MapGeometrySchema>>().toEqualTypeOf<MapGeometry>();
   });

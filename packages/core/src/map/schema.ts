@@ -147,6 +147,7 @@ export const MapGeometrySchema = z.object({
     regions: bakedPath,
     selected: bakedPath,
     neighbours: bakedPath,
+    neighbourLines: bakedPath.optional(),
     lakes: bakedPath,
   }),
 });

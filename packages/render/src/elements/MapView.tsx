@@ -270,9 +270,24 @@ export function MapView({
             <path
               d={geometry.paths.neighbours}
               fill={paint(style.neighbours.fill)}
+              // with separate lines the fill carries none: its edge may be a cut, not a coast
+              stroke={
+                geometry.paths.neighbourLines === undefined
+                  ? paint(style.neighbours.stroke)
+                  : 'none'
+              }
+              strokeWidth={u(style.neighbours.width)}
+              strokeLinejoin="round"
+            />
+          ) : null}
+          {el.subject.showNeighbours && geometry.paths.neighbourLines ? (
+            <path
+              d={geometry.paths.neighbourLines}
+              fill="none"
               stroke={paint(style.neighbours.stroke)}
               strokeWidth={u(style.neighbours.width)}
               strokeLinejoin="round"
+              strokeLinecap="round"
             />
           ) : null}
         </g>
