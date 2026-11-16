@@ -4,7 +4,7 @@
 .text-edit-frame {
   position: absolute;
   pointer-events: none;
-  outline: 1px solid var(--ink);
+  outline: 1px solid var(--accent);
   outline-offset: 1px;
 }
 

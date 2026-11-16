@@ -1,4 +1,4 @@
-/* Editor shell, direction A: docked columns separated by hairlines, the page on a neutral grey. */
+/* Editor shell, direction B: white pages docked round a sky-mist desk with a faint dot grid. */
 .shell {
   display: grid;
   height: 100%;
@@ -35,11 +35,15 @@
 .shell-top > * {
   flex: none;
 }
+/* The app signs in the hand of a travel notebook, the only place the chrome uses it. */
 .shell-top__mark {
-  font-family: var(--f-display);
-  font-size: 17px;
-  font-weight: var(--w-semibold);
-  letter-spacing: -0.015em;
+  font-family: var(--f-hand);
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--accent-ink);
+  transform: translateY(-1px);
 }
 .shell-top__title {
   flex: 0 1 auto;
@@ -48,7 +52,7 @@
   text-overflow: ellipsis;
   font-family: var(--f-display);
   font-size: 15px;
-  font-weight: var(--w-regular);
+  font-weight: var(--w-semibold);
   letter-spacing: -0.005em;
 }
 .shell-top__grow {
@@ -56,7 +60,7 @@
 }
 .shell-sep {
   width: 1px;
-  height: 18px;
+  height: 22px;
   margin: 0 var(--s2);
   background: var(--line);
 }
@@ -77,7 +81,7 @@
 }
 .icon-button:hover:not(:disabled) {
   background: var(--sunken);
-  color: var(--ink);
+  color: var(--accent-ink);
 }
 .icon-button:active:not(:disabled) {
   transform: translateY(1px);
@@ -143,13 +147,13 @@
   text-align: center;
 }
 
-/* ---------- rail: the active panel inverts contrast, no accent hue ---------- */
+/* ---------- rail: the open tool sits in a soft lagoon chip ---------- */
 .shell-rail {
   grid-area: rail;
   display: flex;
   flex-direction: column;
-  gap: var(--s2);
-  padding: var(--s4) var(--s2);
+  gap: var(--s3);
+  padding: var(--s5) var(--s2);
   border-right: 1px solid var(--line);
   background: var(--chrome);
 }
@@ -159,15 +163,18 @@
   align-items: center;
   gap: 3px; /* optical: the label sits close to its icon */
   padding: var(--s2) 0 var(--s3);
-  font-size: var(--t-xxs);
+  font-size: var(--t-xs);
+  font-weight: var(--w-medium);
   color: var(--ink-2);
   transition: color var(--fast) var(--ease);
 }
 /* The icon sits in a chip: sunken on hover, inverted when its panel is open. */
 .shell-rail__item .icon {
   box-sizing: content-box;
-  padding: 5px 11px;
-  border-radius: var(--r2);
+  width: 20px;
+  height: 20px;
+  padding: 7px 14px;
+  border-radius: var(--pill);
   transition:
     background var(--fast) var(--ease),
     color var(--fast) var(--ease);
@@ -179,19 +186,18 @@
   background: var(--sunken);
 }
 .shell-rail__item[aria-pressed='true'] {
-  color: var(--ink);
-  font-weight: var(--w-medium);
+  color: var(--accent-ink);
+  font-weight: var(--w-semibold);
 }
 .shell-rail__item[aria-pressed='true'] .icon {
-  background: var(--invert-bg);
-  color: var(--invert-fg);
-  box-shadow: var(--shadow-1);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
 }
 .shell-rail__item:focus-visible {
   outline: none;
 }
 .shell-rail__item:focus-visible .icon {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -209,10 +215,10 @@
   border-right: 1px solid var(--line);
 }
 .shell-panel__title {
-  padding: var(--s5) var(--s5) var(--s4);
+  padding: var(--s6) var(--s5) var(--s4);
   font-family: var(--f-display);
   font-size: var(--t-panel);
-  font-weight: var(--w-semibold);
+  font-weight: var(--w-heavy);
   letter-spacing: -0.01em;
 }
 .shell-inspector {
@@ -220,14 +226,17 @@
   border-left: 1px solid var(--line);
 }
 
-/* ---------- canvas: the neutral grey surround of ISO 3664 viewing ---------- */
+/* ---------- canvas: the desk, sky mist with the dot grid of a notebook ---------- */
 .shell-canvas {
   grid-area: canvas;
   position: relative;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--ground);
+  background-color: var(--ground);
+  background-image: radial-gradient(circle, var(--ground-dot) 1px, transparent 1.4px);
+  background-size: 20px 20px;
+  background-position: 10px 10px;
 }
 .shell-canvas__empty {
   font-size: var(--t-sm);
@@ -294,11 +303,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s3);
-  height: 22px;
-  padding: 0 var(--s3);
-  border-radius: var(--r1);
+  height: 24px;
+  padding: 0 var(--s4);
+  border-radius: var(--pill);
   font-size: var(--t-xs);
-  color: var(--ink);
+  font-weight: var(--w-medium);
+  color: var(--ink-2);
   white-space: nowrap;
   transition:
     background var(--fast),
@@ -306,7 +316,9 @@
 }
 button.page-bar__label:hover,
 .page-bar__random:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--chrome) 85%, transparent);
+  background: var(--chrome);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-1);
 }
 .page-bar__label[aria-pressed='true'] {
   background: var(--invert-bg);
@@ -533,10 +545,10 @@ button.page-bar__label:hover,
   flex: none;
   flex-direction: column;
   align-items: center;
-  gap: var(--s1);
-  padding: var(--s2);
+  gap: var(--s2);
+  padding: var(--s3) var(--s3) var(--s2);
   border: 1px solid transparent;
-  border-radius: var(--r1);
+  border-radius: var(--r2);
   color: var(--ink-2);
   font-size: var(--t-xs);
   font-variant-numeric: tabular-nums;
@@ -552,10 +564,10 @@ button.page-bar__label:hover,
   color: var(--ink);
 }
 .tile[aria-current='true'] {
-  border-color: var(--ink);
-  background: var(--surface);
-  color: var(--ink);
-  font-weight: var(--w-medium);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: var(--w-semibold);
 }
 .tile[data-dragging] {
   opacity: 0.4;
@@ -566,7 +578,7 @@ button.page-bar__label:hover,
   top: var(--s2);
   bottom: var(--s2);
   width: 2px;
-  background: var(--ink);
+  background: var(--accent);
 }
 .tile[data-drop='before']::before {
   left: calc(-1 * var(--s2));
@@ -618,7 +630,9 @@ button.page-bar__label:hover,
   z-index: 50;
   display: flex;
   flex-direction: column;
-  background: var(--ground);
+  background-color: var(--ground);
+  background-image: radial-gradient(circle, var(--ground-dot) 1px, transparent 1.4px);
+  background-size: 20px 20px;
 }
 .overview__bar {
   display: flex;
@@ -632,7 +646,7 @@ button.page-bar__label:hover,
 .overview__title {
   font-family: var(--f-display);
   font-size: var(--t-panel);
-  font-weight: var(--w-semibold);
+  font-weight: var(--w-heavy);
   letter-spacing: -0.01em;
 }
 .overview__hint {
@@ -657,9 +671,13 @@ button.page-bar__label:hover,
 .overview__item {
   position: relative;
 }
+/* Tighter than in the strip: four rows of spreads fit a small window. */
 .overview .tile {
+  gap: var(--s1);
+  padding: var(--s2);
   background: var(--chrome);
   color: var(--ink);
+  box-shadow: var(--shadow-1);
 }
 .overview .tile:hover {
   background: var(--surface);
@@ -706,8 +724,8 @@ button.page-bar__label:hover,
 }
 .cover-tools {
   position: absolute;
-  top: var(--s4);
-  left: var(--s4);
+  top: var(--s5);
+  left: var(--s5);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -751,7 +769,7 @@ button.page-bar__label:hover,
   padding: 0;
   font-family: var(--f-display);
   font-size: var(--t-lg);
-  font-weight: var(--w-semibold);
+  font-weight: var(--w-heavy);
   color: var(--ink);
 }
 .settings-group__fields {
@@ -804,7 +822,7 @@ button.page-bar__label:hover,
 .resize-handle:hover::after,
 .resize-handle:active::after,
 .resize-handle:focus-visible::after {
-  background: var(--ink);
+  background: var(--accent);
 }
 .resize-handle:focus-visible {
   outline: none;

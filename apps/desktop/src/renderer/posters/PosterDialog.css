@@ -37,7 +37,7 @@
   color: var(--ink);
 }
 .poster-chip[aria-pressed='true'] {
-  border-color: var(--invert-bg);
+  border-color: var(--accent);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
@@ -64,7 +64,7 @@
   box-shadow: var(--shadow-2);
 }
 .poster-tile[aria-pressed='true'] {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
 }
 .poster-preview {
   position: relative;
@@ -154,8 +154,8 @@
   border-color: var(--line-strong);
 }
 .poster-drawing[aria-pressed='true'] {
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .poster-drawing img {
   max-width: 100%;

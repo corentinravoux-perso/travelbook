@@ -13,6 +13,8 @@ import { format, resolveConfig } from 'prettier';
 export const ICON_NAMES = [
   'arrow-back-up',
   'arrow-narrow-right',
+  'file-export',
+  'photo-plus',
   'chevron-down',
   'chevron-left',
   'chevron-right',

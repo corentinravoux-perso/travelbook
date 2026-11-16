@@ -24,6 +24,20 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   request.
 - Lilita One, the posters' title face, among the bundled fonts (42 families).
 
+### Changed
+
+- Interface: new visual direction B, "Carnet de route" (`docs/design/visual-direction.md`). White
+  panels round a sky-mist desk with a notebook dot grid, navy ink, one lagoon teal for the
+  primary action and the selected choice, Nunito for the interface and Caveat for the app name
+  and the home heading, in light and dark.
+- Home: with no album yet, four Bohème drawings lie round an open blank book.
+- Photos: "Importer des photos" is the panel's first, primary action; the days of the trip read
+  as chapters; a used photo carries a lagoon count chip. Exporter gains an icon.
+
+### Fixed
+
+- Stickers: a tall drawing no longer stretches its tile over the next row of the grid.
+
 ## [0.1.0] - 2026-11-15
 
 First release. Every package of the repository (`travelbook`, `@travelbook/core`,

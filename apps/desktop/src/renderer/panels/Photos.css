@@ -1,4 +1,4 @@
-/* Photos panel (the tray) and the photo picker, direction A: hairlines, inverted active state, no hue. */
+/* Photos panel (the tray) and the photo picker: the import action on top, days as chapters. */
 .photos {
   position: relative;
   display: flex;
@@ -51,7 +51,7 @@
 }
 .progress__bar {
   height: 100%;
-  background: var(--ink);
+  background: var(--accent);
 }
 .import-notice {
   display: flex;
@@ -104,21 +104,26 @@
   left: var(--s5);
   right: var(--s5);
 }
+/* One row of cells, exactly the row's height: a tall picture is fitted, never pushes the row. */
 .photo-grid__row--photos {
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   gap: 3px; /* the grid's own GAP (gridLayout.ts) */
 }
 .photo-grid__row--photos > div {
   min-width: 0;
+  min-height: 0;
 }
+/* A day of the trip opens a chapter of the tray: its date in the ink, the count as a chip. */
 .photo-day {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   height: 100%;
-  padding-bottom: var(--s2);
-  font-size: var(--t-xs);
-  color: var(--ink-2);
+  padding-bottom: var(--s3);
+  font-size: var(--t-sm);
+  font-weight: var(--w-semibold);
+  color: var(--ink);
 }
 .photo-day__check {
   display: flex;
@@ -131,16 +136,28 @@
   width: 14px;
   height: 14px;
   margin: 0;
-  accent-color: var(--ink);
+  accent-color: var(--accent);
 }
 .photo-day__label {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.photo-day__label::first-letter {
+  text-transform: uppercase;
+}
 .photo-day__count {
   flex: none;
-  color: var(--ink-3);
+  min-width: 20px;
+  padding: 0 var(--s3);
+  border-radius: var(--pill);
+  background: var(--sunken);
+  font-size: var(--t-xs);
+  font-weight: var(--w-medium);
+  line-height: 18px;
+  text-align: center;
+  color: var(--ink-2);
 }
 
 /* ---------- a thumbnail ---------- */
@@ -148,7 +165,7 @@
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 1px;
+  border-radius: 4px;
   background: var(--line);
   cursor: grab;
 }
@@ -164,7 +181,7 @@
   transform: scale(1.03);
 }
 .photo-thumb[aria-pressed='true'] {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 .photo-thumb:not([draggable='true']) {
@@ -178,10 +195,11 @@
   height: 16px;
   padding: 0 4px;
   border-radius: 8px;
-  background: var(--badge-bg);
-  box-shadow: 0 0 0 1px var(--badge-ring);
-  color: var(--badge-fg);
+  background: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--badge-ring);
+  color: var(--on-accent);
   font-size: var(--t-xxs);
+  font-weight: var(--w-semibold);
   line-height: 16px;
   text-align: center;
 }
@@ -193,21 +211,39 @@
   flex-direction: column;
   justify-content: center;
   gap: var(--s3);
-  margin: var(--s4) var(--s5);
-  padding: var(--s5);
-  border: 1px dashed var(--ink-3);
-  border-radius: var(--r1);
+  align-items: center;
+  margin: 0 var(--s5) var(--s5);
+  padding: var(--s7) var(--s6);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r2);
+  background: var(--sunken);
   font-size: var(--t-sm);
   color: var(--ink-2);
   text-align: center;
+}
+.photos__empty > .icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: var(--s3);
+  color: var(--accent);
+}
+.photos__empty p {
+  max-width: 30ch;
 }
 .photos__empty-title {
   font-weight: var(--w-medium);
   color: var(--ink);
 }
+/* The panel's one primary action, first thing under its title, as wide as the panel. */
 .photos__import {
   flex: none;
-  margin: var(--s4) var(--s5) var(--s5);
+  height: 36px;
+  margin: 0 var(--s5) var(--s5);
+  font-size: var(--t-md);
+}
+.photos__import .icon {
+  width: var(--icon);
+  height: var(--icon);
 }
 .photos__drop {
   position: absolute;
@@ -215,7 +251,7 @@
   z-index: 4;
   display: grid;
   place-items: center;
-  border: 2px dashed var(--ink);
+  border: 2px dashed var(--accent);
   border-radius: var(--r2);
   background: color-mix(in srgb, var(--chrome) 90%, transparent);
   font-weight: var(--w-medium);

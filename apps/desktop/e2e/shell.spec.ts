@@ -44,16 +44,20 @@ test('the shell shows its six regions under their French names', async () => {
     );
     await expect(page.getByRole('region', { name: 'Panneau Modèles' })).toBeVisible();
 
-    // The UI face is the bundled IBM Plex Sans, not a system fallback.
+    // The UI faces are the bundled Nunito and Caveat, not a system fallback.
     // (`fonts.load` resolves to the faces it loaded: none if no bundled face matched.)
     const faces = await page.evaluate(async () =>
       Promise.all(
-        ['400', '500', '600'].map(
-          async (w) => (await document.fonts.load(`${w} 13px "IBM Plex Sans"`)).length,
-        ),
+        [
+          '400 13px "Nunito"',
+          '600 13px "Nunito"',
+          '700 13px "Nunito"',
+          '800 13px "Nunito"',
+          '700 27px "Caveat"',
+        ].map(async (font) => (await document.fonts.load(font)).length),
       ),
     );
-    expect(faces).toEqual([1, 1, 1]);
+    expect(faces.every((n) => n >= 1)).toBe(true);
   } finally {
     await app.close();
   }

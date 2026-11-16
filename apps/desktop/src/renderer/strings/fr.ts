@@ -310,7 +310,8 @@ export const fr = {
     importFailed: "L'importation a échoué. Réessayez.",
     dropHere: 'Déposez pour importer',
     emptyTitle: 'Aucune photo pour le moment',
-    emptyHint: 'Glissez des photos ou un dossier ici, ou utilisez le bouton Importer des photos.',
+    emptyHint:
+      'Glissez des photos ou un dossier ici, ou utilisez le bouton Importer des photos au-dessus.',
     sort: 'Tri',
     sortLabel: 'Trier les photos',
     sortDate: 'Date',
@@ -1012,8 +1013,9 @@ export const fr = {
     newBook: 'Nouveau livre',
     open: 'Ouvrir',
     recent: 'Albums récents',
-    emptyTitle: 'Aucun album récent',
-    emptyHint: 'Créez un livre, ou ouvrez un dossier .travelbook déjà existant.',
+    emptyTitle: 'Aucun album pour le moment',
+    emptyHint:
+      'Créez un livre pour votre prochain voyage, ou ouvrez un dossier .travelbook déjà existant.',
     openedOn: (date: string) => `Ouvert le ${date}`,
     coverAlt: (title: string) => `Couverture de ${title}`,
     createFailed: "Le livre n'a pas pu être créé. Vérifiez le dossier choisi et réessayez.",

@@ -166,6 +166,15 @@ function Tray({ book }: { book: Book }) {
       onDragLeave={onFileLeave}
       onDrop={onFileDrop}
     >
+      <button
+        type="button"
+        className="button button--primary photos__import"
+        onClick={() => void importFiles()}
+      >
+        <Icon name="photo-plus" />
+        {fr.photos.import}
+      </button>
+
       <div className="photos__controls">
         <Segments
           label={fr.photos.sortLabel}
@@ -206,6 +215,7 @@ function Tray({ book }: { book: Book }) {
         <div className="photos__empty">
           {total === 0 ? (
             <>
+              <Icon name="photo-plus" />
               <p className="photos__empty-title">{fr.photos.emptyTitle}</p>
               <p>{fr.photos.emptyHint}</p>
             </>
@@ -214,11 +224,6 @@ function Tray({ book }: { book: Book }) {
           )}
         </div>
       )}
-
-      <button type="button" className="button photos__import" onClick={() => void importFiles()}>
-        <Icon name="plus" />
-        {fr.photos.import}
-      </button>
 
       {dropping && (
         <div className="photos__drop" aria-hidden="true">

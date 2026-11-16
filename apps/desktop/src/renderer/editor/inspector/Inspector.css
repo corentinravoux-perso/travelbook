@@ -19,7 +19,7 @@
 .insp-title {
   font-family: var(--f-display);
   font-size: var(--t-panel);
-  font-weight: var(--w-semibold);
+  font-weight: var(--w-heavy);
   letter-spacing: -0.01em;
 }
 .insp-file {
@@ -190,7 +190,7 @@
   border: 1px solid var(--line);
 }
 .insp-toggle[aria-pressed='true'] {
-  border-color: var(--invert-bg);
+  border-color: var(--accent);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
@@ -227,7 +227,7 @@
   fill: currentColor;
 }
 .shape-tile[aria-pressed='true'] {
-  border-color: var(--invert-bg);
+  border-color: var(--accent);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
@@ -283,7 +283,7 @@
   color: var(--ink);
 }
 .look-tile[aria-pressed='true'] .look-tile__image {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 .look-tile[aria-pressed='true'] .look-tile__name {
@@ -318,9 +318,9 @@
   color: var(--ink);
 }
 .insp-tab[aria-selected='true'] {
-  border-bottom-color: var(--ink);
-  color: var(--ink);
-  font-weight: var(--w-medium);
+  border-bottom-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: var(--w-semibold);
 }
 .insp-pane {
   display: flex;
@@ -333,7 +333,7 @@
   align-self: flex-start;
 }
 .insp-lock[aria-pressed='true'] {
-  border-color: var(--invert-bg);
+  border-color: var(--accent);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
