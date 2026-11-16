@@ -89,11 +89,13 @@ function PresetTile({
   book,
   preset,
   pressed,
+  volume,
   onPick,
 }: {
   book: Book;
   preset: PosterPreset;
   pressed: boolean;
+  volume: boolean;
   onPick(): void;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -117,6 +119,7 @@ function PresetTile({
             svgUrl={url}
             ratio={svg.ratio}
             height={132}
+            volume={volume}
           />
         )}
       </button>
@@ -180,6 +183,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
   const [asking, setAsking] = useState(false);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [volume, setVolume] = useState(true);
   const ids = { place: useId(), subtitle: useId(), year: useId(), font: useId() };
   const { spec } = state;
 
@@ -239,6 +243,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
               book={book}
               preset={p}
               pressed={state.presetId === p.id}
+              volume={volume}
               onPick={() => {
                 setOrigin({ licence: AFFICHES_LICENCE });
                 dispatch({ type: 'pickPreset', id: p.id });
@@ -257,8 +262,13 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
               svgUrl={previewUrl}
               ratio={svg.ratio}
               height={420}
+              volume={volume}
             />
           )}
+          <label className="check poster-dialog__view">
+            <input type="checkbox" checked={volume} onChange={(e) => setVolume(e.target.checked)} />
+            {t.volume}
+          </label>
         </figure>
 
         <div className="poster-dialog__form">

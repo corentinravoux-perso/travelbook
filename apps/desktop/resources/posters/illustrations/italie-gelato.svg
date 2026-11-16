@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 1088" data-tb-style="relief">
+  <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f9d9a0"/><stop offset="0.5" stop-color="#d99a4e"/><stop offset="1" stop-color="#9a5e22"/></linearGradient><radialGradient id="g2" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#a87458"/><stop offset="0.5" stop-color="#5e3424"/><stop offset="1" stop-color="#2e160e"/></radialGradient><radialGradient id="g3" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#e7f2b8"/><stop offset="0.5" stop-color="#a7c46a"/><stop offset="1" stop-color="#6c8a34"/></radialGradient><radialGradient id="g4" cx="0.35" cy="0.3" r="0.85"><stop offset="0" stop-color="#ffd0dc"/><stop offset="0.5" stop-color="#f2789a"/><stop offset="1" stop-color="#b03a5e"/></radialGradient><linearGradient id="g5" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f9d9a0"/><stop offset="1" stop-color="#9a5e22"/></linearGradient></defs>
+  <!-- Cone: a waffle cone, its tip on the bottom edge -->
+  <path fill="url(#g1)" d="M190 560L366 1082Q380 1100 394 1082L570 560z"/>
+  <path fill="none" d="M212 560L203 574" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M258 560L220 619" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M304 560L236 665" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M350 560L252 711" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M396 560L268 757" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M442 560L284 803" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M326 927L396 1035" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M488 560L299 852" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M270 771L412 989" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M534 560L315 898" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M217 617L428 943" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M543 617L332 943" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M226 560L445 898" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M490 771L348 989" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M272 560L461 852" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M434 927L364 1035" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M318 560L476 803" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M364 560L492 757" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M410 560L508 711" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M456 560L524 665" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M502 560L540 619" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="none" d="M548 560L557 574" stroke="#9a5e22" stroke-width="7" opacity="0.5"/>
+  <path fill="#9a5e22" opacity="0.25" d="M380 1098L570 560L500 560z"/>
+  <!-- Scoops: pistachio, strawberry on top, chocolate -->
+  <path fill="url(#g2)" d="M70 635C71.4 614.2 61.7 536 79 500C96.3 464 142 423.9 178 410C214 396.1 265.1 397.4 304 413C342.9 428.6 400.8 472 421 507.5C441.2 543 428.6 615.4 430 635C431.4 654.6 439.6 635.3 430 630C420.4 624.7 389.2 602 370 602C350.8 602 329.2 630 310 630C290.8 630 269.2 602 250 602C230.8 602 209.2 630 190 630C170.8 630 149.2 602 130 602C110.8 602 79.6 624.7 70 630C60.4 635.3 68.6 655.8 70 635z"/>
+  <path fill="#ffffff" opacity="0.5" d="M124.00000000000001 515.0C142.0 447.5 214.0 425.0 268.0 428.0C205.0 455.0 160.0 485.0 124.00000000000001 515.0z"/>
+  <path fill="url(#g3)" d="M330 635C331.4 614.2 321.7 536 339 500C356.3 464 402 423.9 438 410C474 396.1 525.1 397.4 564 413C602.9 428.6 660.8 472 681 507.5C701.2 543 688.6 615.4 690 635C691.4 654.6 699.6 635.3 690 630C680.4 624.7 649.2 602 630 602C610.8 602 589.2 630 570 630C550.8 630 529.2 602 510 602C490.8 602 469.2 630 450 630C430.8 630 409.2 602 390 602C370.8 602 339.6 624.7 330 630C320.4 635.3 328.6 655.8 330 635z"/>
+  <path fill="#ffffff" opacity="0.5" d="M384.0 515.0C402.0 447.5 474.0 425.0 528.0 428.0C465.0 455.0 420.0 485.0 384.0 515.0z"/>
+  <path fill="url(#g4)" d="M190 445C191.5 418.1 181.3 332.8 199.5 292C217.7 251.2 266 205.8 304 190C342 174.2 396 175.7 437 193.4C478 211.1 539.2 260.2 560.5 300.5C581.8 340.8 568.5 419.5 570 445C571.5 470.5 580.1 462.7 570 460C559.9 457.3 526.9 428 506.7 428C486.4 428 463.6 460 443.3 460C423.1 460 400.3 428 380 428C359.7 428 336.9 460 316.7 460C296.4 460 273.6 428 253.3 428C233.1 428 200.1 457.3 190 460C179.9 462.7 188.5 471.9 190 445z"/>
+  <path fill="#ffffff" opacity="0.5" d="M247.0 309.0C266.0 232.5 342.0 207.0 399.0 210.4C332.5 241.0 285.0 275.0 247.0 309.0z"/>
+  <!-- Bits: pistachio pieces, strawberry seeds, a wafer -->
+  <ellipse fill="#6c8a34" opacity="0.9" cx="610.3" cy="593.7" rx="9" ry="6" transform="rotate(7 610 594)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="420.1" cy="523.3" rx="9" ry="6" transform="rotate(21 420 523)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="561.9" cy="560.4" rx="9" ry="6" transform="rotate(39 562 560)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="455.3" cy="505.5" rx="9" ry="6" transform="rotate(4 455 505)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="527.9" cy="499" rx="9" ry="6" transform="rotate(55 528 499)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="540.5" cy="576.4" rx="9" ry="6" transform="rotate(65 540 576)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="608.9" cy="545.3" rx="9" ry="6" transform="rotate(56 609 545)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="510.5" cy="588.1" rx="9" ry="6" transform="rotate(3 510 588)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="480.1" cy="591.8" rx="9" ry="6" transform="rotate(48 480 592)"/>
+  <ellipse fill="#6c8a34" opacity="0.9" cx="493.2" cy="586.1" rx="9" ry="6" transform="rotate(21 493 586)"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="396.9" cy="292.5" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="246.7" cy="308.5" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="278.3" cy="341.8" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="519.6" cy="371.4" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="290.9" cy="410.8" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="463.1" cy="382.2" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="493.8" cy="387.3" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="461.1" cy="313.7" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="514.7" cy="423.1" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="285.1" cy="385.7" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="440.2" cy="333.1" rx="5" ry="8"/>
+  <ellipse fill="#b03a5e" opacity="0.9" cx="388.5" cy="338.2" rx="5" ry="8"/>
+  <path fill="url(#g5)" d="M500 250L640 60L668 78L530 270z"/>
+  <path fill="none" d="M520 225L548 244" stroke="#9a5e22" stroke-width="5"/>
+  <path fill="none" d="M553 180L581 199" stroke="#9a5e22" stroke-width="5"/>
+  <path fill="none" d="M586 135L614 154" stroke="#9a5e22" stroke-width="5"/>
+  <path fill="none" d="M619 90L647 109" stroke="#9a5e22" stroke-width="5"/>
+</svg>

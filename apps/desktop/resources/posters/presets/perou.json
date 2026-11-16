@@ -79,5 +79,86 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "perou-mais",
+    "destination": "perou",
+    "name": "Pérou, maïs violet",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#efe1f5",
+        "title": "#7a3fa6",
+        "accent": "#d9a520",
+        "decor": "#f7effa",
+        "illustration": {
+          "main": "#7a3fa6",
+          "shade": "#7a3fa6"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-mais"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "perou-titicaca",
+    "destination": "perou",
+    "name": "Pérou, lac Titicaca",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f8e2c8",
+        "title": "#3f7fbf",
+        "accent": "#a87a32",
+        "decor": "#fcefdf",
+        "illustration": {
+          "main": "#3f7fbf",
+          "shade": "#3f7fbf"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-titicaca"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "perou-arc-en-ciel",
+    "destination": "perou",
+    "name": "Pérou, randonnée sur la montagne arc-en-ciel",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f6e8d8",
+        "title": "#c8553a",
+        "accent": "#7fae8a",
+        "decor": "#f6e8d8",
+        "illustration": {
+          "main": "#c8553a",
+          "shade": "#c8553a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-arc-en-ciel"
+      },
+      "spine": true
+    }
   }
 ]

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 992" data-tb-style="relief">
+  <defs><radialGradient id="g1" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#5c0904" stop-opacity="0.45"/><stop offset="1" stop-color="#5c0904" stop-opacity="0"/></radialGradient><radialGradient id="g2" cx="0.36" cy="0.3" r="0.85"><stop offset="0" stop-color="#ff7a5c"/><stop offset="0.4" stop-color="#d8261c"/><stop offset="0.85" stop-color="#981209"/><stop offset="1" stop-color="#5c0904"/></radialGradient><radialGradient id="g3" cx="0.4" cy="0.35" r="0.8"><stop offset="0" stop-color="#ffffff"/><stop offset="0.6" stop-color="#fff8ea"/><stop offset="1" stop-color="#e2cfb0"/></radialGradient><linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe39a"/><stop offset="0.5" stop-color="#e3a72f"/><stop offset="1" stop-color="#9a6a10"/></linearGradient><radialGradient id="g5" cx="0.4" cy="0.35" r="0.78"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9e2d6"/></radialGradient><radialGradient id="g6" cx="0.4" cy="0.35" r="0.78"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9e2d6"/></radialGradient><linearGradient id="g7" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe39a"/><stop offset="0.5" stop-color="#e3a72f"/><stop offset="1" stop-color="#9a6a10"/></linearGradient></defs>
+  <!-- Contact shadow -->
+  <ellipse fill="url(#g1)" cx="450" cy="985" rx="360" ry="26"/>
+  <!-- Body: a weighted egg, flat underneath -->
+  <path fill="url(#g2)" d="M450 60C531.6 60 627.1 78.8 690 140C752.9 201.2 801.3 314.6 820 420C838.7 525.4 830.6 668.2 800 760C769.4 851.8 699.5 920.6 640 960C580.5 999.4 514.6 992 450 992C385.4 992 319.5 999.4 260 960C200.5 920.6 130.6 851.8 100 760C69.4 668.2 61.3 525.4 80 420C98.7 314.6 147.1 201.2 210 140C272.9 78.8 368.4 60 450 60z"/>
+  <!-- Face -->
+  <path fill="url(#g3)" d="M450 205C507.6 205 572.2 211.7 610 245C647.8 278.3 658.2 338.7 660 390C661.8 441.3 657.8 496.7 620 530C582.2 563.3 511.2 575 450 575C388.8 575 317.8 563.3 280 530C242.2 496.7 238.2 441.3 240 390C241.8 338.7 252.2 278.3 290 245C327.8 211.7 392.4 205 450 205z"/>
+  <!-- Gold rim of the face -->
+  <path fill="none" d="M450 205C507.6 205 572.2 211.7 610 245C647.8 278.3 658.2 338.7 660 390C661.8 441.3 657.8 496.7 620 530C582.2 563.3 511.2 575 450 575C388.8 575 317.8 563.3 280 530C242.2 496.7 238.2 441.3 240 390C241.8 338.7 252.2 278.3 290 245C327.8 211.7 392.4 205 450 205z" stroke="url(#g4)" stroke-width="12"/>
+  <!-- Eyebrows: crane wings -->
+  <path fill="#16110f" d="M290 330C320 270 380 262 430 300C390 292 350 300 318 336C330 316 312 318 290 330z"/>
+  <path fill="#16110f" d="M610 330C580 270 520 262 470 300C510 292 550 300 582 336C570 316 588 318 610 330z"/>
+  <!-- Eyes: the left painted in, the right still blank (a wish not yet granted) -->
+  <circle fill="url(#g5)" cx="360" cy="385" r="50"/>
+  <circle fill="url(#g6)" cx="540" cy="385" r="50"/>
+  <circle fill="#16110f" cx="360" cy="388" r="30"/>
+  <circle fill="#ffffff" cx="350" cy="377" r="8"/>
+  <circle fill="none" cx="360" cy="385" r="50" stroke="#16110f" stroke-width="6"/>
+  <circle fill="none" cx="540" cy="385" r="50" stroke="#16110f" stroke-width="6"/>
+  <!-- Nose and moustache: turtle swirls -->
+  <path fill="none" d="M440 430Q450 455 460 430" stroke="#16110f" stroke-width="7" stroke-linecap="round"/>
+  <path fill="#16110f" d="M450 470C410 455 360 470 335 505C365 490 400 488 430 500C420 512 412 524 410 540C430 520 445 505 450 490C455 505 470 520 490 540C488 524 480 512 470 500C500 488 535 490 565 505C540 470 490 455 450 470z"/>
+  <!-- Gold emblem on the belly: a lucky cloud and two waves -->
+  <path fill="url(#g7)" d="M330 700C330 650 380 630 410 660C420 620 480 615 495 655C520 625 575 640 572 690C600 695 605 740 570 748H335C300 745 300 705 330 700z"/>
+  <path fill="none" d="M285.0 800C367.5 770 408.75 830 450 800C491.25 770 532.5 830 615.0 800" stroke="#e3a72f" stroke-width="16" stroke-linecap="round"/>
+  <path fill="none" d="M320.0 850C385.0 820 417.5 880 450 850C482.5 820 515.0 880 580.0 850" stroke="#e3a72f" stroke-width="16" stroke-linecap="round"/>
+  <!-- Lacquer: a broad sheen and glints -->
+  <path fill="#ffffff" opacity="0.38" d="M175 300C200 200 280 140 360 118C290 175 240 255 222 360C214 420 214 500 226 560C190 500 165 400 175 300z"/>
+  <ellipse fill="#ffffff" opacity="0.75" cx="300" cy="165" rx="42" ry="18" transform="rotate(-28 300 165)"/>
+  <path fill="#ff7a5c" opacity="0.5" d="M720 600C735 700 715 800 660 880C690 790 700 700 690 610z"/>
+</svg>

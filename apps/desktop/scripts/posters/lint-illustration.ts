@@ -4,7 +4,11 @@
  * style sheet or style attribute, no link), at most five colours, written as hex; at least one
  * `tb-main` shape; every `tb-main` / `tb-shade` shape carries its own default `fill`; a `viewBox`
  * on the root. Two families: "découpé" (the default: at most five colours, a `tb-main` shape) and
- * "pixory" (`<svg data-tb-style="pixory">`: natural colours, at most eight, no role required). Pure string work, no DOM. The base-on-the-bottom-edge rule needs a render: the
+ * "pixory" (`<svg data-tb-style="pixory">`: natural colours, at most eight, no role required) and
+ * "relief" (`<svg data-tb-style="relief">`: modelled in volume, like "pixory" but with linear and
+ * radial gradients, `fill="url(#id)"` to a gradient of the same file, and `opacity` /
+ * `fill-opacity` for highlights and soft shadows; at most sixteen hex colours, gradient stops
+ * included; still no filter, mask or clip path). Pure string work, no DOM. The base-on-the-bottom-edge rule needs a render: the
  * presets test checks it.
  */
 
@@ -30,7 +34,12 @@ const BANNED_ELEMENTS = [
 ];
 export const MAX_COLOURS = 5;
 export const MAX_COLOURS_PIXORY = 8;
-export const FAMILIES = ['decoupe', 'pixory'] as const;
+export const MAX_COLOURS_RELIEF = 16;
+export const FAMILIES = ['decoupe', 'pixory', 'relief'] as const;
+/** What the relief family adds to the flat families: gradients and their stops. */
+const RELIEF_ELEMENTS = new Set(['linearGradient', 'radialGradient']);
+const RELIEF_ONLY_ATTRS = new Set(['opacity', 'fill-opacity', 'stop-opacity']);
+const URL_REF = /^url\(#([\w-]+)\)$/;
 
 const TAG = /<([A-Za-z][\w:-]*)(\s[^<>]*?)?\/?>/g;
 const ATTR = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
@@ -55,6 +64,8 @@ export function lintIllustration(svg: string): string[] {
   let root = true;
   let mains = 0;
   let family: string = 'decoupe';
+  const gradients = new Set<string>();
+  const refs = new Set<string>();
   for (const m of svg.matchAll(TAG)) {
     const name = m[1]!;
     const attrs = attributes(m[2]);
@@ -68,13 +79,22 @@ export function lintIllustration(svg: string): string[] {
       }
     }
     const banned = BANNED_ELEMENTS.find((b) => b.toLowerCase() === name.toLowerCase());
-    if (banned !== undefined) errors.push(`<${banned}> element is not allowed`);
+    const relief = family === 'relief';
+    if (banned !== undefined && !(relief && RELIEF_ELEMENTS.has(banned))) {
+      errors.push(`<${banned}> element is not allowed`);
+    }
+    if (relief && RELIEF_ELEMENTS.has(name) && attrs.has('id')) gradients.add(attrs.get('id')!);
     for (const [key, value] of attrs) {
+      if (RELIEF_ONLY_ATTRS.has(key) && !relief) {
+        errors.push(`${key} on <${name}> is only allowed in the relief family`);
+      }
       if (key === 'style') errors.push(`style attribute on <${name}> is not allowed`);
       if (key === 'href' || key === 'xlink:href') errors.push(`href on <${name}> is not allowed`);
       if (/^on/i.test(key)) errors.push(`event attribute ${key} on <${name}> is not allowed`);
       if (COLOUR_ATTRS.has(key) && value !== 'none') {
+        const ref = URL_REF.exec(value);
         if (HEX.test(value)) colours.add(normalise(value));
+        else if (relief && ref && (key === 'fill' || key === 'stroke')) refs.add(ref[1]!);
         else errors.push(`${key}="${value}" on <${name}> is not a hex colour`);
       }
     }
@@ -86,10 +106,18 @@ export function lintIllustration(svg: string): string[] {
     }
   }
   if (root) errors.push('no <svg> element');
-  const max = family === 'pixory' ? MAX_COLOURS_PIXORY : MAX_COLOURS;
+  for (const id of refs) {
+    if (!gradients.has(id)) errors.push(`url(#${id}) names no gradient of the file`);
+  }
+  const max =
+    family === 'relief'
+      ? MAX_COLOURS_RELIEF
+      : family === 'pixory'
+        ? MAX_COLOURS_PIXORY
+        : MAX_COLOURS;
   if (colours.size > max) {
     errors.push(`${colours.size} colours (at most ${max}): ${[...colours].join(' ')}`);
   }
-  if (mains === 0 && family !== 'pixory') errors.push('no shape has class="tb-main"');
+  if (mains === 0 && family === 'decoupe') errors.push('no shape has class="tb-main"');
   return errors;
 }

@@ -106,5 +106,32 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "thailande-coco",
+    "destination": "thailande",
+    "name": "Thaïlande, noix de coco",
+    "spec": {
+      "layout": "geant",
+      "title": "THAÏLANDE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f7d7e3",
+        "title": "#c2387a",
+        "accent": "#4f8a2a",
+        "decor": "#fbe9f0",
+        "illustration": {
+          "main": "#c2387a",
+          "shade": "#c2387a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "thailande-coco"
+      },
+      "spine": true
+    }
   }
 ]
