@@ -284,6 +284,9 @@ export function MapView({
             strokeWidth={u(landLook.width)}
             strokeLinejoin="round"
           />
+          {chosen ? (
+            <path data-selected-fill d={geometry.paths.selected} fill={landFill} stroke="none" />
+          ) : null}
         </g>
         <g data-layer="lakes">
           {el.subject.showLakes && geometry.paths.lakes ? (
@@ -309,11 +312,11 @@ export function MapView({
           ) : null}
         </g>
         <g data-layer="selected">
-          {chosen ? (
+          {chosen && style.land.stroke ? (
             <path
               d={geometry.paths.selected}
-              fill={landFill}
-              stroke={paint(style.land.stroke)}
+              fill="none"
+              stroke={style.land.stroke}
               strokeWidth={u(style.land.width)}
               strokeLinejoin="round"
             />

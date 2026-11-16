@@ -499,7 +499,15 @@ describe('MapView', () => {
     style.outline.color = null;
     const chosen = draw(mapEl({ style, subject: { ...mapEl().subject, regions: ['US-CA'] } }));
     expect(chosen.layer('land')?.querySelector('path')?.getAttribute('fill')).toBe('#eeeeee');
-    expect(chosen.layer('selected')?.querySelector('path')?.getAttribute('fill')).toBe('#111111');
+    const fill = chosen.layer('land')?.querySelector('path[data-selected-fill]');
+    expect(fill?.getAttribute('fill')).toBe('#111111');
+    expect(fill?.getAttribute('d')).toBe(geometry.paths.selected);
+    // the fill is in the land group, so the lakes group paints over it
+    const lakes = chosen.layer('lakes') as Element;
+    expect(fill?.compareDocumentPosition(lakes) ?? 0).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    const sel = chosen.layer('selected')?.querySelector('path');
+    expect(sel?.getAttribute('fill')).toBe('none');
+    expect(sel?.getAttribute('stroke')).toBe(style.land.stroke);
     const none = draw(mapEl({ style }));
     expect(none.layer('land')?.querySelector('path')?.getAttribute('fill')).toBe('#111111');
     expect(none.layer('selected')?.querySelector('path')).toBeNull();
