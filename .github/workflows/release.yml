@@ -7,10 +7,19 @@ name: Release
 # check both installers and keep them as workflow artifacts, but nothing is released: a dry run
 # before the first tag. electron-builder itself never publishes (`--publish never` in the dist
 # scripts); the release is created by the last job alone.
+#
+# Every push to main also refreshes the pre-release `latest`: the installers of that commit under
+# fixed names, travelbook-latest.exe and travelbook-latest.deb, so their download links never change.
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
+
+# A newer push to main supersedes a build of `latest` still running.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -20,7 +29,8 @@ jobs:
     name: Installer (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      # Each installer stands alone: a failed Linux check must not cancel the Windows build.
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -84,3 +94,40 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" installers/* \
             --verify-tag --title "travelbook ${GITHUB_REF_NAME#v}" --generate-notes
+
+  latest:
+    name: Latest build (pre-release)
+    needs: installer
+    # Whatever installers built: one failed OS leaves the other one up to date.
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: installers
+          merge-multiple: true
+      - name: Replace the installers of the pre-release `latest`
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          shopt -s nullglob
+          files=()
+          for f in installers/*.exe; do cp "$f" travelbook-latest.exe; files+=(travelbook-latest.exe); done
+          for f in installers/*.deb; do cp "$f" travelbook-latest.deb; files+=(travelbook-latest.deb); done
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::No installer was built"
+            exit 1
+          fi
+          notes="Built from ${GITHUB_SHA::7} on main, $(date -u +'%Y-%m-%d %H:%M UTC'). Not a versioned release."
+          if gh release view latest >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/latest" -f sha="$GITHUB_SHA" -F force=true
+            gh release edit latest --notes "$notes" --prerelease
+            gh release upload latest "${files[@]}" --clobber
+          else
+            gh release create latest "${files[@]}" --target "$GITHUB_SHA" --prerelease \
+              --title "travelbook (latest build of main)" --notes "$notes"
+          fi
