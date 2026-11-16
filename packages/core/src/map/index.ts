@@ -6,3 +6,4 @@ export {
   MapElementSchema,
   MapStyleSchema,
 } from './schema';
+export { DEFAULT_MAP_STYLE, normalizeStyle, type MapPreset } from './style';

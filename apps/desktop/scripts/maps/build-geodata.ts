@@ -333,7 +333,9 @@ export async function writeLicences(index: MapIndex): Promise<void> {
   const licences = JSON.parse(await readFile(file, 'utf8')) as {
     entries: { files: string[] }[];
   };
-  licences.entries = licences.entries.filter((e) => !e.files.every((f) => f.startsWith('maps/')));
+  // The presets (`maps/presets/`) are our own work, with an entry of their own that stays.
+  const isGeodata = (f: string): boolean => f.startsWith('maps/') && !f.startsWith('maps/presets/');
+  licences.entries = licences.entries.filter((e) => !e.files.every(isGeodata));
   licences.entries.push({
     files: [
       'maps/index.json',
