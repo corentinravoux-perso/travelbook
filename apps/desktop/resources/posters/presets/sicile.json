@@ -89,7 +89,7 @@
       "title": "SICILE",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#fff1d6",
         "title": "#e06a14",
@@ -103,6 +103,33 @@
       "illustration": {
         "set": "affiches",
         "id": "sicile-oranges"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "sicile-etna-vignes",
+    "destination": "sicile",
+    "name": "Sicile, l'Etna et ses vignes",
+    "spec": {
+      "layout": "geant",
+      "title": "SICILE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f6ecd8",
+        "title": "#4a4250",
+        "accent": "#7f9a3a",
+        "decor": "#f6ecd8",
+        "illustration": {
+          "main": "#4a4250",
+          "shade": "#4a4250"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "sicile-etna-vignes"
       },
       "spine": true
     }

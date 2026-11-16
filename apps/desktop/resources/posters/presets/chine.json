@@ -116,7 +116,7 @@
       "title": "CHINE",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#dfe9f7",
         "title": "#2d4fa8",
@@ -130,6 +130,33 @@
       "illustration": {
         "set": "affiches",
         "id": "chine-theiere"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "chine-grande-muraille",
+    "destination": "chine",
+    "name": "Chine, Grande Muraille sur les crêtes",
+    "spec": {
+      "layout": "geant",
+      "title": "CHINE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f3e6d8",
+        "title": "#5f7f45",
+        "accent": "#e8794a",
+        "decor": "#f3e6d8",
+        "illustration": {
+          "main": "#5f7f45",
+          "shade": "#5f7f45"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "chine-grande-muraille"
       },
       "spine": true
     }

@@ -19,7 +19,7 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   front and spine: the place in large letters at the top, the year under it, and a drawing
   centred below, in five layouts (Classique, Empilé, Arche, Soleil, Horizon), with a live
   preview, applied in one undoable step as ordinary elements.
-- 62 original drawings for 13 destinations, with one preset each; they are also the
+- 68 original drawings for 13 destinations, with one preset each; they are also the
   sticker set "Affiches", usable on any page. Recolourable drawings follow the title colour on
   request.
 - Affiches: a sixth layout, **Géant**: the title set word by word, as large as the front
@@ -31,6 +31,10 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   13 modelled in volume (the new "relief" family, with gradients and highlights), one per
   destination, and 6 hand-drawn scenes with ink linework and hatching (Amalfi coast, Highland
   stag, scarlet macaw, rhinoceros, koi pond, Lake Titicaca reed boat).
+- Affiches: 6 hand-drawn scenes added beside the cut-paper drawings of the same places,
+  which stay: Golden Gate in the fog, Great Wall on the ridges, Fuji over a lake, Arenal over
+  the rainforest, Etna above its vineyards, the rainbow mountain with hikers.
+- Affiches: the Géant presets use Anton, a condensed title face; the others keep Lilita One.
 - Lilita One, the posters' title face, among the bundled fonts (42 families).
 
 ## [0.1.0] - 2026-11-15

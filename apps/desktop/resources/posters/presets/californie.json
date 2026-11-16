@@ -89,7 +89,7 @@
       "title": "CALIFORNIE",
       "subtitle": "",
       "year": "",
-      "font": "Lilita One",
+      "font": "Anton",
       "colors": {
         "background": "#ffe3c4",
         "title": "#1f8f98",
@@ -103,6 +103,33 @@
       "illustration": {
         "set": "affiches",
         "id": "californie-surf"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "californie-brume",
+    "destination": "californie",
+    "name": "Californie, pont dans la brume",
+    "spec": {
+      "layout": "geant",
+      "title": "CALIFORNIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#fbe3d0",
+        "title": "#d5502f",
+        "accent": "#4f86a8",
+        "decor": "#fbe3d0",
+        "illustration": {
+          "main": "#d5502f",
+          "shade": "#d5502f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "californie-brume"
       },
       "spine": true
     }
