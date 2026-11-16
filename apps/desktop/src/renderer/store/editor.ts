@@ -27,6 +27,19 @@ export interface Guides {
   trim: boolean;
   safe: boolean;
   gutter: boolean;
+  /** The rulers round the canvas and the ruler guides on the page. Kept across sessions. */
+  rulers: boolean;
+}
+
+/** Where the choice of showing the rulers is kept (renderer `localStorage`). */
+export const RULERS_KEY = 'travelbook.rulers';
+
+function rulersShown(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(RULERS_KEY) !== 'off';
+  } catch {
+    return true;
+  }
 }
 
 /** `pending`: a change waits for the debounce; `error`: the last save failed. */
@@ -289,7 +302,7 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       shapeKind: 'rect',
       panel: 'photos',
       activePage: 'left',
-      guides: { bleed: true, trim: true, safe: true, gutter: true },
+      guides: { bleed: true, trim: true, safe: true, gutter: true, rulers: rulersShown() },
       overview: false,
       preview: false,
       notice: null,
@@ -397,6 +410,13 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       },
       setGuide(guide, on) {
         set({ guides: { ...get().guides, [guide]: on } });
+        if (guide === 'rulers') {
+          try {
+            globalThis.localStorage?.setItem(RULERS_KEY, on ? 'on' : 'off');
+          } catch {
+            // No storage (a test, a locked profile): the choice lasts for the session.
+          }
+        }
       },
     };
   });

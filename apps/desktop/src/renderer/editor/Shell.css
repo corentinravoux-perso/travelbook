@@ -244,6 +244,104 @@
   opacity: 0.75;
 }
 
+/* ---------- rulers: millimetres along the top and the left, as in a word processor ---------- */
+.shell-canvas {
+  --ruler: 24px;
+}
+.shell-canvas[data-rulers] .canvas-scroller {
+  inset: var(--ruler) 0 0 var(--ruler);
+}
+.ruler,
+.ruler-corner {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  font-family: var(--f-ui);
+}
+.ruler--top {
+  top: 0;
+  left: var(--ruler);
+  width: calc(100% - var(--ruler));
+  height: var(--ruler);
+  cursor: s-resize;
+}
+.ruler--left {
+  top: var(--ruler);
+  left: 0;
+  width: var(--ruler);
+  height: calc(100% - var(--ruler));
+  cursor: e-resize;
+}
+.ruler-corner {
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--ruler);
+  height: var(--ruler);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--sunken);
+  font-size: 9px;
+  font-weight: var(--w-semibold);
+  color: var(--ink-3);
+}
+/* What floats at the top left of the canvas moves clear of the rulers. */
+.shell-canvas[data-rulers] .cover-tools {
+  top: calc(var(--ruler) + var(--s5));
+  left: calc(var(--ruler) + var(--s5));
+}
+.shell-canvas[data-rulers] .missing-notice,
+.shell-canvas[data-rulers] .crop-bar {
+  top: calc(var(--ruler) + var(--s4));
+}
+
+/* Ruler guides on the page: thin lagoon lines with a white edge, so they read on any photo. */
+.ruler-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ruler-guide {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+}
+.ruler-guide::after {
+  content: '';
+  position: absolute;
+  background: var(--accent);
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.7);
+}
+/* A 7 px band to grab, the line in its middle. */
+.ruler-guide--x {
+  width: 7px;
+  margin-left: -3px;
+  cursor: col-resize;
+}
+.ruler-guide--x::after {
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 1px;
+}
+.ruler-guide--y {
+  height: 7px;
+  margin-top: -3px;
+  cursor: row-resize;
+}
+.ruler-guide--y::after {
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 1px;
+}
+.ruler-guide--draft,
+.ruler-guide[data-leaving] {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
 /* The workspace scrolls; the page sits in the middle of it and keeps a margin when it is larger. */
 .canvas-scroller {
   position: absolute;
@@ -798,7 +896,7 @@ button.page-bar__label:hover,
   position: absolute;
   top: 0;
   bottom: 0;
-  z-index: 1;
+  z-index: 3; /* over the left ruler, which its hit zone overlaps */
   width: 7px;
   cursor: col-resize;
   touch-action: none;

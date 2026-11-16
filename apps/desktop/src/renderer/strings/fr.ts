@@ -49,6 +49,7 @@ export const fr = {
     trim: 'Coupe',
     safe: 'Marge de sécurité',
     gutter: 'Pli central',
+    rulers: 'Règles et repères',
     nothingToPaste: 'Rien à coller : le presse-papiers ne contient aucun élément.',
     pasteFailed: "Le collage a échoué : les fichiers de l'album d'origine sont introuvables.",
     copyFailed: "La copie a échoué : le presse-papiers n'est pas accessible.",
@@ -301,6 +302,17 @@ export const fr = {
     apply: 'Appliquer',
     undo: 'Modifier les réglages du livre',
   },
+  // Rulers round the canvas and ruler guides.
+  rulers: {
+    unit: 'Règles en millimètres, depuis le coin haut gauche de la double page',
+    topHint: 'Glissez vers la page pour poser un repère horizontal',
+    leftHint: 'Glissez vers la page pour poser un repère vertical',
+    guide: (axis: 'x' | 'y', at: string) =>
+      `Repère ${axis === 'x' ? 'vertical' : 'horizontal'} à ${at} mm. Glissez-le pour le déplacer, sur sa règle ou par un double-clic pour le retirer.`,
+    undoAdd: 'Poser un repère',
+    undoMove: 'Déplacer un repère',
+    undoRemove: 'Retirer un repère',
+  },
   // Photos panel (the tray), the photo picker, drops on the page.
   photos: {
     import: 'Importer des photos',
@@ -327,6 +339,30 @@ export const fr = {
     noDate: 'Sans date',
     selectDay: (label: string) => `Sélectionner les photos du ${label}`,
     selectNoDate: 'Sélectionner les photos sans date',
+    selectedCount: (n: number) => (n === 1 ? '1 photo sélectionnée' : `${n} photos sélectionnées`),
+    selectionBar: 'Photos sélectionnées',
+    clearSelection: 'Désélectionner',
+    remove: 'Supprimer…',
+    removeOne: (name: string) => `Supprimer ${name} de l'album…`,
+    removeTitle: "Supprimer de l'album",
+    removeQuestion: (n: number) =>
+      n === 1 ? "Supprimer 1 photo de l'album ?" : `Supprimer ${n} photos de l'album ?`,
+    removeUsed: (total: number, placed: number) =>
+      placed === 0
+        ? ''
+        : total === 1
+          ? 'Elle est placée dans le livre : son cadre sera vidé. '
+          : placed === 1
+            ? '1 est placée dans le livre : son cadre sera vidé. '
+            : `${placed} sont placées dans le livre : leurs cadres seront vidés. `,
+    removeSafe: 'Les fichiers sur votre ordinateur ne sont pas touchés.',
+    removeConfirm: "Supprimer de l'album",
+    removeCancel: 'Annuler',
+    undoRemove: 'Supprimer des photos',
+    removed: (n: number) =>
+      n === 1
+        ? "1 photo supprimée de l'album. Ctrl+Z pour annuler."
+        : `${n} photos supprimées de l'album. Ctrl+Z pour annuler.`,
     photoLabel: (name: string, uses: number) =>
       uses === 0 ? name : `${name}, placée ${uses === 1 ? '1 fois' : `${uses} fois`}`,
     failedTitle: (n: number) =>
@@ -673,7 +709,7 @@ export const fr = {
   layers: {
     title: 'Calques de cette double page',
     empty: "Cette double page n'a pas encore d'élément.",
-    hint: 'Le calque du haut est devant. Glissez un calque pour le déplacer.',
+    hint: 'Le calque du haut est devant. Glissez un calque pour le déplacer, la corbeille le supprime.',
     group: (count: number) => `Groupe de ${count} éléments`,
     expand: 'Déplier le groupe',
     collapse: 'Replier le groupe',
@@ -692,6 +728,10 @@ export const fr = {
     undoShow: 'Afficher un élément',
     undoLock: 'Verrouiller un élément',
     undoUnlock: 'Déverrouiller un élément',
+    remove: (name: string) => `Supprimer ${name}`,
+    removeGroup: 'Supprimer le groupe',
+    undoRemove: 'Supprimer un élément',
+    undoRemoveGroup: 'Supprimer un groupe',
   },
   // History tab: the snapshots of the project.
   history: {

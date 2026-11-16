@@ -58,6 +58,42 @@
   background: var(--accent-hover);
   color: var(--on-accent);
 }
+/* Taking something out of the album: the outline asks, the fill confirms. */
+.button--danger-outline {
+  border-color: color-mix(in srgb, var(--low) 45%, var(--line-strong));
+  color: var(--low);
+}
+.button--danger-outline:hover:not(:disabled) {
+  border-color: var(--low);
+  color: var(--low);
+  background: color-mix(in srgb, var(--low) 8%, var(--surface));
+}
+.button--danger {
+  border-color: var(--low);
+  background: var(--low);
+  color: #ffffff;
+}
+.button--danger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--low) 85%, black);
+  background: color-mix(in srgb, var(--low) 85%, black);
+  color: #ffffff;
+}
+:root[data-theme='dark'] .button--danger,
+:root[data-theme='dark'] .button--danger:hover:not(:disabled) {
+  color: #1a1012;
+}
+/* A secondary action next to a stronger one: no frame until pointed at. */
+.button--quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-2);
+}
+.button--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--sunken);
+  color: var(--ink);
+}
 .button--small {
   height: 22px;
   padding: 0 var(--s4);

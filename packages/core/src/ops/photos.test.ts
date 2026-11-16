@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AssetRef, Book, PhotoElement } from '../schema';
 import { OpError } from './errors';
-import { assetUsage, fillSlot, setCrop, swapPhotos, unusedAssets } from './photos';
+import { assetUsage, fillSlot, removePhotos, setCrop, swapPhotos, unusedAssets } from './photos';
 import { freshBook, inner, photo, shape, useCounterIds } from './test-helpers';
 
 useCounterIds();
@@ -174,5 +174,34 @@ describe('assetUsage / unusedAssets', () => {
     const book = freshBook(1);
     inner(book).elements.push(photo('e', 0, 0, 10, 10, null));
     expect(assetUsage(book)).toEqual({});
+  });
+});
+
+describe('removePhotos', () => {
+  it('drops the assets and empties every frame that showed them, keeping the frame', () => {
+    const { book, s1, s2 } = setup();
+    const next = removePhotos(book, ['a1', 'a3']);
+    expect(Object.keys(next.assets).sort()).toEqual(['a2']);
+    const p1 = get(next, s1, 'p1');
+    expect(p1.assetId).toBeNull();
+    expect(p1.crop).toEqual(NEUTRAL);
+    // The look of the frame stays: a new photo dropped in gets it.
+    expect(p1.mask).toEqual({ kind: 'ellipse' });
+    expect(p1.border).toEqual({ width: 1, color: '#000' });
+    expect(get(next, s2, 'q1').assetId).toBe('a2');
+    expect(book.assets['a1']).toBeDefined();
+  });
+
+  it('empties frames on the cover too', () => {
+    const { book } = setup();
+    book.cover.elements.push(photo('c1', 0, 0, 10, 10, 'a2'));
+    const next = removePhotos(book, ['a2']);
+    expect((next.cover.elements[0] as PhotoElement).assetId).toBeNull();
+  });
+
+  it('leaves assets that are not photos, and unknown ids, alone', () => {
+    const { book } = setup();
+    book.assets['st'] = asset('st', 'sticker');
+    expect(removePhotos(book, ['st', 'nope'])).toBe(book);
   });
 });
