@@ -1,6 +1,6 @@
 import { copyFile, mkdir, mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import sharp from 'sharp';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { AssetRef } from '@travelbook/core';
@@ -31,7 +31,7 @@ afterEach(async () => {
 
 /** Put a fixture (or any file) in `originals/` and describe it as an asset. */
 async function stage(source: FixtureName | string, id: string, ext = 'jpg'): Promise<AssetRef> {
-  const from = source.includes('/') ? source : fixturePath(source as FixtureName);
+  const from = isAbsolute(source) ? source : fixturePath(source as FixtureName);
   await copyFile(from, join(dir, 'originals', `${id}.${ext}`));
   return {
     id,

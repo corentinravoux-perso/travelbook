@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from '../imaging';
 
 /** Most colours `dominantColours` returns. */
 export const MAX_COLOURS = 6;

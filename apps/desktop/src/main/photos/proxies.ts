@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { access, mkdir, rename, rm } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
-import sharp from 'sharp';
+import sharp from '../imaging';
 import type { AssetRef } from '@travelbook/core';
 import { serialize } from '../project/atomic-write';
 import { createLimiter } from './limit';

@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, extname, join } from 'node:path';
-import sharp from 'sharp';
+import sharp from '../imaging';
 import type { AssetRef } from '@travelbook/core';
 import type { ImportedAssetKind } from '../../shared/api';
 import { sanitizeSvg } from '../library/stickers/sanitizeSvg';
