@@ -597,9 +597,18 @@ describe('MapView', () => {
       const t = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(marker.getAttribute('transform') ?? '');
       const px = Number(t?.[1]);
       const leader = layer('leaders')?.querySelector('line') as Element;
+      expect(leader.getAttribute('stroke')).toBe(DEFAULT_MAP_STYLE.label.color);
       expect(Number(leader.getAttribute('x1'))).toBeCloseTo(px + 20 - 5, 3);
       expect(Number(leader.getAttribute('x2'))).toBeCloseTo(px, 3);
       expect(Number(ring.getAttribute('cx'))).toBeCloseTo(px + 20, 3);
+    });
+
+    it('still draws the leader, at least 0.2 mm wide, with a ring of width 0', () => {
+      const el = withPhoto(true);
+      const style = { ...el.style, medallion: { ...el.style.medallion, ringWidth: 0 } };
+      const { layer } = draw({ ...el, style });
+      const leader = layer('leaders')?.querySelector('line') as Element;
+      expect(Number(leader.getAttribute('stroke-width'))).toBe(0.2);
     });
 
     it('draws the ring only when the asset is missing', () => {
