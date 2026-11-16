@@ -24,15 +24,13 @@ export interface RawSight {
   worldHeritage: boolean;
   parents: string[];
   types: string[];
+  /** The label is French (else it is the English fallback of the label service). */
+  french: boolean;
 }
 
 const WORLD_HERITAGE = 'Q9259';
-/** UNESCO sites count from this many Wikipedia editions; the parts of a site are often at 2-3. */
-const MIN_LINKS_HERITAGE = 5;
-/** Any other attraction needs this many, which keeps the list to what a traveller has heard of. */
-const MIN_LINKS_ATTRACTION = 8;
-/** Rows kept per country before merging, most linked first. */
-const QUERY_LIMIT = 500;
+/** Rows kept per class and country before merging, most linked first. */
+const QUERY_LIMIT = 300;
 
 /**
  * The instance-of classes that make an item an attraction (besides a World Heritage statement),
@@ -41,7 +39,7 @@ const QUERY_LIMIT = 500;
 /** Parks and reserves: nature even when the site is also World Heritage. */
 const PARK = ['Q46169', 'Q179049'];
 /** Natural features: nature, unless the site is World Heritage (Delos is an island and ruins). */
-const NATURE = ['Q34038', 'Q23442', 'Q23397', 'Q35509'];
+const NATURE = ['Q34038', 'Q23442', 'Q23397', 'Q35509', 'Q150784'];
 const BEACH = ['Q40080'];
 const MOUNTAIN = ['Q8502', 'Q8072', 'Q207326'];
 const RELIGIOUS = [
@@ -58,56 +56,70 @@ const RELIGIOUS = [
   'Q1128397',
   'Q2742013',
 ];
-const HERITAGE = ['Q839954', 'Q23413', 'Q4989906', 'Q570116', 'Q33506', 'Q811979', 'Q12280'];
+const HERITAGE = [
+  'Q839954',
+  'Q23413',
+  'Q4989906',
+  'Q570116',
+  'Q33506',
+  'Q811979',
+  'Q12280',
+  'Q16560',
+];
 /** A sight that is itself a city or district: kept only when no listed city is near. */
 const URBAN = ['Q515', 'Q702492', 'Q484170', 'Q3957', 'Q532', 'Q1549591', 'Q15243209'];
 
 /**
- * The classes the query starts from. A subset of the groups above: Wikidata's 60 s limit rules out
- * the classes with the most instances (mountain, island, lake, mosque, museum, protected area:
- * measured 20-40 s each for France alone). Items of those classes are still recognised when they
- * are World Heritage sites.
+ * One small query per class of attraction and country: each stays well under Wikidata's 60 s limit
+ * (a single query over every class timed out for France, GB and the US), and a class can be added
+ * without touching the others. `minLinks` (Wikipedia editions) keeps the list to what a traveller
+ * has heard of; the common classes (church, mountain, museum) ask for more.
  */
-export const SEED_TYPES = [
-  'Q46169',
-  'Q179049',
-  'Q34038',
-  'Q35509',
-  'Q40080',
-  'Q8072',
-  'Q207326',
-  'Q16970',
-  'Q44539',
-  'Q5393308',
-  'Q2977',
-  'Q160742',
-  'Q34627',
-  'Q120560',
-  'Q839954',
-  'Q23413',
-  'Q570116',
+export interface SightClass {
+  id: string;
+  /** Instance-of classes; empty for the World Heritage query (`P1435 = Q9259`). */
+  seeds: string[];
+  minLinks: number;
+}
+export const SIGHT_CLASSES: SightClass[] = [
+  { id: 'heritage', seeds: [], minLinks: 5 },
+  { id: 'temple', seeds: ['Q44539', 'Q5393308', 'Q842402'], minLinks: 8 },
+  { id: 'palace', seeds: ['Q16560'], minLinks: 8 },
+  { id: 'castle', seeds: ['Q23413'], minLinks: 15 },
+  { id: 'church', seeds: ['Q16970', 'Q2977', 'Q120560', 'Q160742'], minLinks: 25 },
+  { id: 'island', seeds: ['Q23442'], minLinks: 15 },
+  { id: 'mountain', seeds: ['Q8502', 'Q8072', 'Q207326'], minLinks: 25 },
+  { id: 'lake', seeds: ['Q23397'], minLinks: 20 },
+  { id: 'natural', seeds: ['Q34038', 'Q150784', 'Q35509'], minLinks: 15 },
+  { id: 'beach', seeds: ['Q40080'], minLinks: 10 },
+  { id: 'park', seeds: ['Q46169', 'Q179049'], minLinks: 10 },
+  { id: 'archaeological', seeds: ['Q839954'], minLinks: 15 },
+  { id: 'museum', seeds: ['Q33506'], minLinks: 40 },
+  { id: 'attraction', seeds: ['Q570116'], minLinks: 8 },
 ];
 
-/** When the full query times out (the United States do), these cheap classes are still enough. */
-export const LIGHT_SEED_TYPES = ['Q46169', 'Q34038', 'Q40080', 'Q8072', 'Q570116'];
-
-/** The SPARQL text for one country (`P297` is the ISO 3166-1 alpha-2 code of a country). */
-export function sightsQuery(iso: string, seeds: string[] = SEED_TYPES): string {
+/**
+ * The SPARQL text for one class in one country (`P297` is the ISO 3166-1 alpha-2 code). A class
+ * with several instance-of seeds is asked one seed at a time: a `VALUES` over three temple
+ * classes timed out for Thailand (65 s) where each seed alone takes 1-5 s.
+ */
+export function sightsQuery(iso: string, cls: SightClass, seed?: string): string {
   if (!/^[A-Z]{2}$/.test(iso)) throw new Error(`bad country code ${iso}`);
+  if (seed !== undefined && !cls.seeds.includes(seed))
+    throw new Error(`${seed} is not in ${cls.id}`);
+  const match =
+    cls.seeds.length === 0
+      ? `?item wdt:P1435 wd:${WORLD_HERITAGE} .`
+      : `?item wdt:P31 wd:${seed ?? cls.seeds[0]} .`;
   return `SELECT ?item ?itemLabel ?coord ?links ?wh ?parent (GROUP_CONCAT(DISTINCT ?t; separator=",") AS ?types) WHERE {
   {
     SELECT DISTINCT ?item ?coord ?links ?wh WHERE {
       # A subquery binds the country first: as a plain triple pattern it makes FR time out (60 s).
       { SELECT ?country WHERE { ?country wdt:P297 "${iso}" } LIMIT 1 }
-      {
-        ?item wdt:P1435 wd:${WORLD_HERITAGE} ; wdt:P17 ?country ; wdt:P625 ?coord ; wikibase:sitelinks ?links .
-        BIND(true AS ?wh)
-        FILTER(?links >= ${MIN_LINKS_HERITAGE})
-      } UNION {
-        VALUES ?seed { ${seeds.map((q) => `wd:${q}`).join(' ')} }
-        ?item wdt:P31 ?seed ; wdt:P17 ?country ; wdt:P625 ?coord ; wikibase:sitelinks ?links .
-        FILTER(?links >= ${MIN_LINKS_ATTRACTION})
-      }
+      ${match}
+      ?item wdt:P17 ?country ; wdt:P625 ?coord ; wikibase:sitelinks ?links .
+      ${cls.seeds.length === 0 ? 'BIND(true AS ?wh)' : ''}
+      FILTER(?links >= ${cls.minLinks})
     } ORDER BY DESC(?links) LIMIT ${QUERY_LIMIT}
   }
   OPTIONAL { ?item wdt:P361 ?parent . }
@@ -162,41 +174,53 @@ export async function runSparql(
   }
 }
 
-/** The full query, then the light one if the full one hit Wikidata's time limit. */
-export async function runSightsQuery(
+/**
+ * Raw SPARQL JSON of every class for one country. Each query (class, seed) has its own cache file
+ * (`<iso>-<class>[-<seed>].json`), so a result is only ever reused for the query that produced it. A query
+ * that times out (HTTP 500/504) is skipped with a warning and not cached; the rest is kept.
+ */
+export async function fetchSights(
   iso: string,
   fetchImpl: typeof fetch = fetch,
   sleep: Sleep = realSleep,
-): Promise<string> {
-  try {
-    return await runSparql(sightsQuery(iso), fetchImpl, sleep);
-  } catch (error) {
-    if (!(error instanceof SparqlError) || ![500, 504].includes(error.status)) throw error;
-    console.warn(`${iso}: Wikidata timed out, retrying with the light query`);
-    return runSparql(sightsQuery(iso, LIGHT_SEED_TYPES), fetchImpl, sleep);
+  cacheDir: string = join(CACHE_DIR, 'wikidata'),
+): Promise<string[]> {
+  const raws: string[] = [];
+  const queries = SIGHT_CLASSES.flatMap((cls): { cls: SightClass; seed?: string; key: string }[] =>
+    cls.seeds.length === 0
+      ? [{ cls, key: cls.id }]
+      : cls.seeds.map((seed) => ({ cls, seed, key: `${cls.id}-${seed}` })),
+  );
+  for (const { cls, seed, key } of queries) {
+    const path = join(cacheDir, `${iso}-${key}.json`);
+    try {
+      raws.push(await readFile(path, 'utf8'));
+      continue;
+    } catch {
+      // not cached yet
+    }
+    try {
+      const raw = await runSparql(sightsQuery(iso, cls, seed), fetchImpl, sleep);
+      await mkdir(cacheDir, { recursive: true });
+      await writeFile(path, raw);
+      raws.push(raw);
+    } catch (error) {
+      if (!(error instanceof SparqlError) || ![500, 504].includes(error.status)) throw error;
+      console.warn(`${iso}: Wikidata timed out on "${key}", skipped`);
+    }
   }
-}
-
-/** Raw SPARQL JSON for one country, from the cache when present. */
-export async function fetchSights(iso: string): Promise<string> {
-  const path = join(CACHE_DIR, 'wikidata', `${iso}.json`);
-  try {
-    return await readFile(path, 'utf8');
-  } catch {
-    const raw = await runSightsQuery(iso);
-    await mkdir(join(CACHE_DIR, 'wikidata'), { recursive: true });
-    await writeFile(path, raw);
-    return raw;
-  }
+  return raws;
 }
 
 interface Binding {
-  [name: string]: { value: string } | undefined;
+  [name: string]: { value: string; 'xml:lang'?: string } | undefined;
 }
 
 /** Rows of the query merged by item: a row per parent becomes one sight with its parents. */
-export function parseSights(raw: string): RawSight[] {
-  const bindings = (JSON.parse(raw) as { results: { bindings: Binding[] } }).results.bindings;
+export function parseSights(raw: string | string[]): RawSight[] {
+  const bindings = (Array.isArray(raw) ? raw : [raw]).flatMap(
+    (text) => (JSON.parse(text) as { results: { bindings: Binding[] } }).results.bindings,
+  );
   const byQid = new Map<string, RawSight>();
   for (const row of bindings) {
     const qid = row.item?.value.split('/').pop();
@@ -215,6 +239,7 @@ export function parseSights(raw: string): RawSight[] {
         worldHeritage: false,
         parents: [],
         types: [],
+        french: row.itemLabel?.['xml:lang'] === 'fr',
       };
       byQid.set(qid, sight);
     }

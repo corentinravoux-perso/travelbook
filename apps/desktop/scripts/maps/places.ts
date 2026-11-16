@@ -8,11 +8,10 @@
  * (capital 0, then Natural Earth's LABELRANK, then POP_MAX); the sights are the other (World
  * Heritage first, then Wikipedia sitelinks).
  */
-import { execFile, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
-import { promisify } from 'node:util';
 import { CACHE_DIR, NATURAL_EARTH_COMMIT, naturalEarthUrl } from './overture.ts';
 import { appFileUrl } from './paths.ts';
 import type { Bbox } from './simplify.ts';
@@ -25,8 +24,6 @@ import {
   type RawSight,
   type SightCategory,
 } from './wikidata.ts';
-
-const execFileAsync = promisify(execFile);
 
 export interface BundledPlace {
   /** `ne:<NE_ID>`, `gn:<geonameid>` or `wd:Q…`. */
@@ -99,10 +96,34 @@ const byCityImportance = (a: CityCandidate, b: CityCandidate): number =>
   b.pop - a.pop ||
   a.ref.localeCompare(b.ref);
 
+/** A World Heritage site counts as this many more Wikipedia editions: a boost, not a free pass. */
+export const HERITAGE_BOOST = 15;
+const score = (s: RawSight): number => s.links + (s.worldHeritage ? HERITAGE_BOOST : 0);
 const bySightImportance = (a: RawSight, b: RawSight): number =>
-  Number(b.worldHeritage) - Number(a.worldHeritage) ||
-  b.links - a.links ||
-  a.qid.localeCompare(b.qid);
+  score(b) - score(a) || a.qid.localeCompare(b.qid);
+
+/** Words that name a kind of place, not the place: two sights sharing only these differ. */
+const GENERIC_WORDS = new Set(
+  (
+    'parc national nationale historique historic centre ville mont monts mount saint sainte wat phra prasat ' +
+    'palais palace chateau cathedrale eglise basilique temple ile iles lac plage site archeologique sanctuaire ' +
+    'reserve royal royale grand grande vieille vieux town park church cathedral lake island islands beach ' +
+    'castle chemin chemins complexe region zone ruines monastere pont tour jardin jardins musee museum ' +
+    'place fort forteresse mosquee pagode associated associes and with'
+  ).split(' '),
+);
+
+/** The distinctive words of a name: lower case, no accents, at least 4 letters, not generic. */
+export function mainWords(name: string): string[] {
+  return name
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((w) => w.length >= 4 && !GENERIC_WORDS.has(w));
+}
+/** Sights nearer than this (Machu Picchu and its sanctuary are 6.6 km apart) with a main word in common are one place under two names. */
+export const SAME_NAME_KM = 10;
 
 /** The first `limit` of `sorted` inside each box, merged (a place in two boxes counts once). */
 function topPerBox<T extends { lon: number; lat: number }>(
@@ -143,8 +164,11 @@ export function assemble(
   const cityIds = new Set(cities.flatMap((c) => (c.qid ? [c.qid] : [])));
 
   const kept: RawSight[] = [];
+  const candidateIds = new Set(sightCandidates.map((s) => s.qid));
   for (const sight of [...sightCandidates].sort(bySightImportance)) {
     if (!boxes.some((box) => inside(sight.lon, sight.lat, box))) continue;
+    // A part of another candidate (P361) is shown through that candidate.
+    if (sight.parents.some((parent) => candidateIds.has(parent))) continue;
     if (cityIds.has(sight.qid)) continue;
     if (
       isUrban(sight) &&
@@ -156,6 +180,8 @@ export function assemble(
       const km = haversineKm(other.lon, other.lat, sight.lon, sight.lat);
       return (
         km < SIGHT_SPACING_KM ||
+        (km < SAME_NAME_KM &&
+          mainWords(other.name).some((word) => mainWords(sight.name).includes(word))) ||
         (km < SERIAL_PART_KM && other.parents.some((parent) => sight.parents.includes(parent)))
       );
     });
@@ -173,16 +199,26 @@ export function assemble(
   return { iso, places: [...cityPlaces, ...sightPlaces] };
 }
 
-/** Hand fixes for one file, applied last: rename, drop, then add (an added ref replaces). */
+/**
+ * Hand fixes for one file, applied last: rename, drop, then add (an added ref replaces). Ranks are
+ * renumbered from 0 in each list afterwards; an added place takes the position of its `rank`
+ * (ahead of an existing place with the same rank).
+ */
 export function applyOverrides(file: MapPlacesFile, overrides: PlacesOverrides): MapPlacesFile {
   const fix = overrides[file.iso];
   if (!fix) return file;
   const dropped = new Set(fix.drop ?? []);
   const added = new Set((fix.add ?? []).map((p) => p.ref));
-  const places = file.places
+  const kept = file.places
     .filter((p) => !dropped.has(p.ref) && !added.has(p.ref))
     .map((p) => ({ ...p, name: fix.rename?.[p.ref] ?? p.name }));
-  return { iso: file.iso, places: [...places, ...(fix.add ?? [])] };
+  const places = [...(fix.add ?? []).map((p) => ({ ...p })), ...kept];
+  const renumber = (sights: boolean): BundledPlace[] =>
+    places
+      .filter((p) => (p.kind === 'sight') === sights)
+      .sort((a, b) => a.rank - b.rank)
+      .map((p, rank) => ({ ...p, rank }));
+  return { iso: file.iso, places: [...renumber(false), ...renumber(true)] };
 }
 
 // --- Natural Earth -----------------------------------------------------------------------------
@@ -257,14 +293,28 @@ async function download(url: string, path: string): Promise<void> {
   await writeFile(path, Buffer.from(await response.arrayBuffer()));
 }
 
+/** The lines of one member of a zip, through the `unzip` binary; a failing `unzip` throws. */
+export async function* unzipLines(zip: string, member: string): AsyncGenerator<string> {
+  const child = spawn('unzip', ['-p', zip, member], { stdio: ['ignore', 'pipe', 'pipe'] });
+  let stderr = '';
+  child.stderr.on('data', (chunk: Buffer) => (stderr += chunk.toString()));
+  const exit = new Promise<number | null>((resolve, reject) => {
+    child.once('error', (error) => reject(new Error(`cannot run unzip: ${error.message}`)));
+    child.once('close', resolve);
+  });
+  exit.catch(() => {}); // reported below; keeps an early error from being unhandled
+  yield* createInterface({ input: child.stdout });
+  const code = await exit;
+  if (code !== 0) throw new Error(`unzip ${zip} ${member} failed (exit ${code}): ${stderr.trim()}`);
+}
+
+type Lines = AsyncIterable<string> | Iterable<string>;
+
 /** French names (`isolanguage = fr`, not historic or colloquial) of the given GeoNames ids. */
-async function frenchNames(zip: string, ids: Set<number>): Promise<Map<number, string>> {
+export async function frenchNames(lines: Lines, ids: Set<number>): Promise<Map<number, string>> {
   const names = new Map<number, string>();
   const preferred = new Set<number>();
-  const child = spawn('unzip', ['-p', zip, 'alternateNamesV2.txt'], {
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  for await (const line of createInterface({ input: child.stdout })) {
+  for await (const line of lines) {
     // alternateNameId, geonameid, isolanguage, name, isPreferred, isShort, isColloquial, isHistoric
     const c = line.split('\t');
     if (c[2] !== 'fr' || c[6] === '1' || c[7] === '1') continue;
@@ -280,26 +330,18 @@ async function frenchNames(zip: string, ids: Set<number>): Promise<Map<number, s
   return names;
 }
 
-/** `cities5000` of one ISO (its overseas codes too), French names from `alternateNamesV2`. */
-export async function geonamesCities(iso: string): Promise<CityCandidate[]> {
-  const dir = join(CACHE_DIR, 'geonames');
-  await download(`${GEONAMES}/cities5000.zip`, join(dir, 'cities5000.zip'));
-  const { stdout } = await execFileAsync(
-    'unzip',
-    ['-p', join(dir, 'cities5000.zip'), 'cities5000.txt'],
-    { maxBuffer: 256 * 1024 * 1024 },
-  );
-  const rows = stdout
-    .split('\n')
-    .map((line) => line.split('\t'))
-    .filter((c) => c.length > 14 && placesIso(c[8] ?? '') === iso);
-  if (rows.length === 0) return [];
-  await download(`${GEONAMES}/alternateNamesV2.zip`, join(dir, 'alternateNamesV2.zip'));
-  const french = await frenchNames(
-    join(dir, 'alternateNamesV2.zip'),
-    new Set(rows.map((c) => Number(c[0]))),
-  );
-  // columns: id, name, asciiname, alternatenames, lat, lon, fclass, fcode, country, ..., population
+/** Rows of `cities5000.txt` of one ISO (its overseas codes too). */
+export async function geonamesRows(lines: Lines, iso: string): Promise<string[][]> {
+  const rows: string[][] = [];
+  for await (const line of lines) {
+    // id, name, asciiname, alternatenames, lat, lon, fclass, fcode, country, ..., population
+    const c = line.split('\t');
+    if (c.length > 14 && placesIso(c[8] ?? '') === iso) rows.push(c);
+  }
+  return rows;
+}
+
+export function geonamesCandidates(rows: string[][], french: Map<number, string>): CityCandidate[] {
   return rows.map((c) => ({
     ref: `gn:${c[0]}`,
     name: french.get(Number(c[0])) ?? c[1] ?? c[2] ?? String(c[0]),
@@ -310,6 +352,20 @@ export async function geonamesCities(iso: string): Promise<CityCandidate[]> {
     pop: Number(c[14]),
     gnid: Number(c[0]),
   }));
+}
+
+/** `cities5000` of one ISO, French names from `alternateNamesV2`. */
+export async function geonamesCities(iso: string): Promise<CityCandidate[]> {
+  const dir = join(CACHE_DIR, 'geonames');
+  await download(`${GEONAMES}/cities5000.zip`, join(dir, 'cities5000.zip'));
+  const rows = await geonamesRows(unzipLines(join(dir, 'cities5000.zip'), 'cities5000.txt'), iso);
+  if (rows.length === 0) return [];
+  await download(`${GEONAMES}/alternateNamesV2.zip`, join(dir, 'alternateNamesV2.zip'));
+  const french = await frenchNames(
+    unzipLines(join(dir, 'alternateNamesV2.zip'), 'alternateNamesV2.txt'),
+    new Set(rows.map((c) => Number(c[0]))),
+  );
+  return geonamesCandidates(rows, french);
 }
 
 /** GeoNames cities that Natural Earth does not already list. */
