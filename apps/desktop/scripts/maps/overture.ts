@@ -7,12 +7,14 @@ import { DuckDBInstance, type DuckDBConnection } from '@duckdb/node-api';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { appFileUrl } from './paths.ts';
+import type { DivisionPerspective, PerspectiveMode } from './perspectives.ts';
 import type { Bbox, Collection, Feature } from './simplify.ts';
 
 /** The Overture release the committed data comes from (newest listed on S3 on 2026-11-16). */
 export const OVERTURE_RELEASE = '2026-10-21.0';
 
 const DIVISION_AREA = `s3://overturemaps-us-west-2/release/${OVERTURE_RELEASE}/theme=divisions/type=division_area/*`;
+const DIVISION = `s3://overturemaps-us-west-2/release/${OVERTURE_RELEASE}/theme=divisions/type=division/*`;
 /**
  * Natural Earth is pinned to a commit of its vector repository (master on 2026-11-16, after
  * v5.1.2), never to a moving branch: lakes and populated places both come from it.
@@ -149,6 +151,34 @@ export function fetchDivisions(
         ${region ? `AND region = '${region}'` : ''}
       ORDER BY region, id`);
     return toFeatures(rows, subtype === 'region');
+  });
+}
+
+/**
+ * The land divisions whose division carries `perspectives` (`division_area` has no such column:
+ * it is read from `division`, joined on `division_id`), as one entry per area id and per ISO
+ * 3166-2 code. Empty in 2026-10-21.0, where no division has any (see `perspectives.ts`).
+ */
+export function fetchPerspectives(): Promise<DivisionPerspective[]> {
+  return cached('perspectives.json', async () => {
+    const rows = await query(`
+      SELECT a.id AS id, a.region AS region, a.country AS country,
+             d.perspectives."mode" AS mode, d.perspectives.countries AS countries
+      FROM read_parquet('${DIVISION}') d
+      JOIN read_parquet('${DIVISION_AREA}') a ON a.division_id = d.id
+      WHERE d.perspectives IS NOT NULL AND a.is_land`);
+    return rows.flatMap((r) => {
+      const perspectives = {
+        mode: String(r.mode) as PerspectiveMode,
+        countries: (r.countries as unknown[]).map(String),
+      };
+      const country = String(r.country);
+      return [String(r.id), ...(str(r.region) ? [String(r.region)] : [])].map((id) => ({
+        country,
+        id,
+        perspectives,
+      }));
+    });
   });
 }
 
