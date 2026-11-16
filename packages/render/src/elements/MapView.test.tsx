@@ -582,9 +582,10 @@ describe('MapView', () => {
       const { container, layer } = draw(el);
       const images = container.querySelectorAll('image');
       expect(images.length).toBe(1);
-      expect(images[0].getAttribute('href')).toBe('/a/ph-a');
+      const image = images.item(0) as Element;
+      expect(image.getAttribute('href')).toBe('/a/ph-a');
       const m = layer('medallions') as Element;
-      const clip = images[0].getAttribute('clip-path') as string;
+      const clip = image.getAttribute('clip-path') as string;
       const id = /url\(#(.+)\)/.exec(clip)?.[1] as string;
       const circle = container.querySelector(`clipPath[id="${id}"] circle`) as Element;
       expect(Number(circle.getAttribute('r'))).toBe(5);
@@ -640,7 +641,7 @@ describe('MapView', () => {
           medallions,
           places: [place('a', 0, 0, { labelShown: true, photo: photo(8, 0, 'ph-1', 10) })],
         });
-      const pos = (m: boolean) => {
+      const pos = (m: boolean): [number, number] => {
         const t = draw(el(m)).layer('labels')?.querySelector('text') as Element;
         return [Number(t.getAttribute('x')), Number(t.getAttribute('y'))];
       };
