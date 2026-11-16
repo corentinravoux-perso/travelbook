@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 290">
+<path d="M28 10H412A18 18 0 0 1 430 28V262A18 18 0 0 1 412 280H28A18 18 0 0 1 10 262V28A18 18 0 0 1 28 10Z" fill="#00000022" transform="translate(4 7)"/>
+<path d="M28 10H412A18 18 0 0 1 430 28V262A18 18 0 0 1 412 280H28A18 18 0 0 1 10 262V28A18 18 0 0 1 28 10Z" fill="#b98250"/>
+<path d="M24 22 C85.6 21.2, 156.2 22.2, 220 24 M220 24 C287.9 28.7, 352.2 26.8, 414 22 M26 266 C102.2 268.5, 172.8 265.1, 240 264 M240 264 C307.1 258.5, 364.7 261.4, 414 268" fill="none" stroke="#8a5a35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M42 34H398A8 8 0 0 1 406 42V248A8 8 0 0 1 398 256H42A8 8 0 0 1 34 248V42A8 8 0 0 1 42 34Z" fill="#2f4a3e"/>
+<path d="M70 220 C120.2 209.9, 177.2 205.3, 230 214" fill="none" stroke="#ffffff14" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M240 70 C283.5 64.6, 327.4 57.6, 370 66" fill="none" stroke="#ffffff10" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M305 246H347A5 5 0 0 1 352 251V253A5 5 0 0 1 347 258H305A5 5 0 0 1 300 253V251A5 5 0 0 1 305 246Z" fill="#f4f1ea"/>
+</svg>

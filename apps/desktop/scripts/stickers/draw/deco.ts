@@ -18,6 +18,7 @@ import {
   stroke,
   tidy,
 } from './core.ts';
+import { ETIQUETTES } from './deco-etiquettes.ts';
 import { font, textOnCircle, textPath, textWidth } from './text.ts';
 
 export const SET = {
@@ -343,6 +344,8 @@ for (const l of LABELS) {
     });
   }
 }
+
+for (const d of ETIQUETTES) add(d);
 
 // ---------------------------------------------------------------- travel stamps
 
