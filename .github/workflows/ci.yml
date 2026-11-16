@@ -38,6 +38,9 @@ jobs:
       # Ubuntu 24.04 blocks the unprivileged user namespaces Chromium's sandbox needs.
       - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: xvfb-run --auto-servernum npm run e2e
+        # Each step and action in the log, with its time: a slow or stuck one shows where it is.
+        env:
+          PLAYWRIGHT_LIST_PRINT_STEPS: '1'
       # What a failed test saw (its error context and page snapshot), to read without a rerun.
       - if: failure()
         uses: actions/upload-artifact@v4

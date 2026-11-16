@@ -258,8 +258,8 @@ function TopBar() {
 }
 
 /**
- * The tools. A click on another tool opens its panel; a click on the open tool folds the panel
- * away, and opens it again.
+ * The tools. A click on a tool opens its panel, and unfolds the panel if it was folded; it never
+ * folds it (a click to make sure a panel is open must not hide it). The panel's own button folds.
  */
 function Rail({ folded, onFold }: { folded: boolean; onFold(on: boolean): void }) {
   const panel = useEditor((s) => s.panel);
@@ -274,9 +274,8 @@ function Rail({ folded, onFold }: { folded: boolean; onFold(on: boolean): void }
           aria-pressed={panel === id}
           aria-controls="shell-panel"
           data-folded={(panel === id && folded) || undefined}
-          title={panel === id ? (folded ? fr.shell.unfoldPanel : fr.shell.foldPanel) : undefined}
+          title={panel === id && folded ? fr.shell.unfoldPanel : undefined}
           onClick={() => {
-            if (panel === id) return onFold(!folded);
             setPanel(id);
             onFold(false);
           }}
