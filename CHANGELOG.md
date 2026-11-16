@@ -17,6 +17,25 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only a thin edge.
 - Aperçu: "Zones rognées" (on by default) draws the bleed and hatches what the cut removes, the
   folds and the spine dashed, so the part of a photo the print trims off is visible.
+- Déco: 122 new labels ("Étiquettes") in 41 new shapes, simple and elaborate: oval, pill,
+  round badge, pennant, swallowtail flag, heart, cloud, shield, hexagon, apothecary,
+  diamond, star, arch, scroll, curved ribbon, rosette, wax seal, sunburst, price tag, gift
+  tag, jam-jar label, school label, cartouche, index tab, flower, raffle ticket, pinned
+  note, paper clip, taped sheet, torn paper, wooden signpost, stitched leather tag,
+  chalkboard, envelope, beaded medallion, brace banner, airport luggage tag, bow, scroll
+  ornaments and two hand-drawn sketch labels. The set grows from 175 to 297 stickers.
+- Déco: 66 torn-paper labels: plain rectangles torn on one side (right or bottom), two sides
+  (left and right, top and bottom), a corner or all four, in five tear styles (fine, chunky,
+  teeth, soft wave, fibre with a pale paper fringe), plus notebook pages torn from a pad
+  (Seyès, squared, lined) in white and yellow. The set grows to 363 stickers.
+- Photos: each day of the tray folds away under its header (the chevron left of the date),
+  and unfolds again.
+
+### Changed
+
+- Stickers: the "Mes stickers" tab is gone, as it repeated "Récents" and "Favoris". Images are
+  now imported (button, drop or paste) and removed in "Récents", which lists the stickers
+  placed or imported most recently.
 
 ### Fixed
 
