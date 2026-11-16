@@ -98,14 +98,18 @@ const openPanel = (page: Page, name: string): Promise<void> =>
   page.getByRole('button', { name, exact: true }).click();
 
 /**
- * Put `count` photos of the tray, from the `first` one, on the spread in view: tick them, then drag
- * them onto the page at `at` (fractions of the canvas). They land as as many frames, in one drop.
+ * Put `count` photos of the tray, from the `first` one, on the spread in view: tick them (Ctrl +
+ * click; a plain click would put one on the page), then drag them onto the page at `at`
+ * (fractions of the canvas). They land as as many frames, in one drop.
  */
 async function dropPhotos(page: Page, first: number, count: number, at: { x: number; y: number }) {
   await openPanel(page, 'Photos');
   const thumbs = page.locator('.photo-thumb');
+  // Nothing ticked from an earlier drop.
+  const clear = page.getByRole('button', { name: 'Désélectionner' });
+  if (await clear.isVisible()) await clear.click();
   for (let i = 0; i < count; i++) {
-    await thumbs.nth(first + i).click({ modifiers: i === 0 ? [] : ['Control'] });
+    await thumbs.nth(first + i).click({ modifiers: ['Control'] });
   }
   const paper = page.locator('.canvas-paper');
   const box = (await paper.boundingBox())!;
@@ -255,9 +259,9 @@ test('a book from nothing to both exports, then quit', async () => {
       await openPanel(page, 'Photos');
       const frame = photoFrames(page).first();
       // The four photos of the last drop are still ticked, and a drag takes the whole selection:
-      // a plain click leaves only this photo ticked.
+      // untick them first, so that only this photo goes.
+      await page.getByRole('button', { name: 'Désélectionner' }).click();
       const thumb = page.locator('.photo-thumb').nth(11);
-      await thumb.click();
       await thumb.dragTo(frame);
       await expect(frame.locator('img')).toBeVisible();
       const title = page.locator('.canvas-paper .tb-text').first();
