@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { newBook, pageCount, type Book } from '@travelbook/core';
-import { mapElement } from '@travelbook/core/src/map/test-helpers';
+import { mapAsset, mapElement } from '@travelbook/core/src/map/test-helpers';
+import { z } from 'zod';
 import {
   listSnapshots,
   pruneSnapshots,
@@ -66,9 +67,42 @@ describe('writeSnapshot', () => {
 
     const withMap = structuredClone(book);
     withMap.cover.elements.push(mapElement());
+    withMap.assets[mapAsset().id] = mapAsset();
     const mapped = await writeSnapshot(dir, withMap, 'manual');
     expect(await readVersion(mapped.id)).toBe(2);
-    expect((await readSnapshot(dir, mapped.id)).cover.elements).toEqual([mapElement()]);
+    const read = await readSnapshot(dir, mapped.id);
+    expect(read.cover.elements).toEqual([mapElement()]);
+    expect(Object.keys(read.assets)).toEqual([mapAsset().id]);
+  });
+
+  it('writes a snapshot the previous release opens once the last map is deleted', async () => {
+    const release01Assets = z.record(
+      z.string(),
+      z.object({ kind: z.enum(['photo', 'sticker', 'background', 'pattern', 'font']) }),
+    );
+    const readAssets = async (id: string): Promise<unknown> =>
+      (
+        JSON.parse(await readFile(join(dir, 'history', `${id}.json`), 'utf8')) as {
+          assets: unknown;
+        }
+      ).assets;
+
+    const withMap = structuredClone(book);
+    withMap.cover.elements.push(mapElement());
+    withMap.assets[mapAsset().id] = mapAsset();
+    const kept = await writeSnapshot(dir, withMap, 'manual');
+    expect(release01Assets.safeParse(await readAssets(kept.id)).success).toBe(false);
+
+    // The map element is deleted; its geometry asset is still in the document (undo restores both).
+    const deleted: Book = { ...withMap, cover: { ...withMap.cover, elements: [] } };
+    const before = JSON.stringify(deleted);
+    const info = await writeSnapshot(dir, deleted, 'auto');
+
+    expect(await readAssets(info.id)).toEqual({});
+    expect(release01Assets.safeParse(await readAssets(info.id)).success).toBe(true);
+    const read = await readSnapshot(dir, info.id);
+    expect(read.schemaVersion).toBe(1);
+    expect(JSON.stringify(deleted)).toBe(before);
   });
 
   it('creates history/ when it is missing', async () => {

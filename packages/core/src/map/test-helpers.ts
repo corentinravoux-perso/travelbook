@@ -1,3 +1,4 @@
+import type { AssetRef } from '../schema';
 import type { MapElement, MapStyle } from './types';
 
 /** A complete style (the pilot's `carnet` look), for tests that need a valid map. */
@@ -105,5 +106,23 @@ export function mapElement(): MapElement {
     },
     medallions: false,
     background: null,
+  };
+}
+
+/** The geometry asset `mapElement()` points at. */
+export function mapAsset(id = mapElement().geometryAssetId): AssetRef {
+  return {
+    id,
+    kind: 'map',
+    file: `assets/${id.slice(-16)}.json`,
+    originalName: 'Thaïlande.json',
+    sha256: 'x',
+    licence: {
+      source: 'Overture Maps',
+      author: '© OpenStreetMap contributors, Overture Maps Foundation',
+      licence: 'ODbL 1.0',
+      url: 'https://opendatacommons.org/licenses/odbl/1-0/',
+      requiresAttribution: true,
+    },
   };
 }
