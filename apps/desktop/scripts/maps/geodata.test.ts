@@ -703,7 +703,7 @@ describe('the Wikidata client', () => {
     let seen: Headers | undefined;
     const fake = (async (_url: string, init?: RequestInit) => {
       seen = new Headers(init?.headers);
-      return new Response('{}', { status: 200 });
+      return new Response('{"results":{"bindings":[]}}', { status: 200 });
     }) as unknown as typeof fetch;
     await runSparql('SELECT 1', fake, async () => {});
     expect(seen?.get('user-agent')).toBe(USER_AGENT);
@@ -716,10 +716,10 @@ describe('the Wikidata client', () => {
       calls += 1;
       return calls === 1
         ? new Response('', { status: 429, headers: { 'Retry-After': '7' } })
-        : new Response('{"ok":true}', { status: 200 });
+        : new Response('{"results":{"bindings":[]}}', { status: 200 });
     }) as unknown as typeof fetch;
     const body = await runSparql('SELECT 1', fake, async (ms) => void waits.push(ms));
-    expect(body).toBe('{"ok":true}');
+    expect(body).toBe('{"results":{"bindings":[]}}');
     expect(waits).toEqual([7000]);
   });
 
@@ -756,9 +756,11 @@ describe('the Wikidata client', () => {
     let calls = 0;
     const flaky = (async () => {
       calls += 1;
-      return calls < 3 ? new Response('', { status: 504 }) : new Response('{"ok":true}');
+      return calls < 3
+        ? new Response('', { status: 504 })
+        : new Response('{"results":{"bindings":[]}}');
     }) as unknown as typeof fetch;
-    expect(await runSparql('SELECT 1', flaky, sleep)).toBe('{"ok":true}');
+    expect(await runSparql('SELECT 1', flaky, sleep)).toBe('{"results":{"bindings":[]}}');
     expect(calls).toBe(3);
     expect(waits).toEqual([20_000, 40_000]);
 
@@ -779,7 +781,7 @@ describe('the Wikidata client', () => {
     const fake = (async () => {
       calls += 1;
       if (calls < 3) throw new TypeError('fetch failed');
-      return new Response('{}');
+      return new Response('{"results":{"bindings":[]}}');
     }) as unknown as typeof fetch;
     await runSparql('SELECT 1', fake, async (ms) => void waits.push(ms));
     expect(waits).toEqual([5_000, 10_000]);
@@ -821,6 +823,65 @@ describe('the Wikidata client', () => {
     expect(raws).toHaveLength(total);
     const lake = await readText(join(dir, 'XX-lake-Q23397.json'), 'utf8');
     expect(lake).toContain('bindings');
+  });
+
+  const BROKEN =
+    '{"head":{"vars":["item"]},"results":{"bindings":[]}}SPARQL-QUERY: queryStr=SELECT ?item\njava.util.concurrent.TimeoutException';
+
+  it('retries a 200 body that is JSON plus a timeout trace, and never caches it', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'wikidata-'));
+    let calls = 0;
+    const fake = (async (url: string) => {
+      const query = decodeURIComponent(new URL(url).searchParams.get('query') ?? '');
+      if (!query.includes('wd:Q23442')) return new Response('{"results":{"bindings":[]}}');
+      calls += 1;
+      return new Response(calls < 2 ? BROKEN : '{"results":{"bindings":[]}}');
+    }) as unknown as typeof fetch;
+    await fetchSights('XX', fake, async () => {}, dir);
+    expect(calls).toBe(2);
+    expect(await readText(join(dir, 'XX-island-Q23442.json'), 'utf8')).toBe(
+      '{"results":{"bindings":[]}}',
+    );
+  });
+
+  it('reports a class whose body stays broken as incomplete, without caching it', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'wikidata-'));
+    let calls = 0;
+    const fake = (async (url: string) => {
+      const query = decodeURIComponent(new URL(url).searchParams.get('query') ?? '');
+      if (!query.includes('wd:Q23442')) return new Response('{"results":{"bindings":[]}}');
+      calls += 1;
+      return new Response(calls % 2 ? BROKEN : '<html>Bad gateway</html>');
+    }) as unknown as typeof fetch;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const failure = await fetchSights('XX', fake, async () => {}, dir).catch((e: unknown) => e);
+    warn.mockRestore();
+    expect(failure).toBeInstanceOf(IncompleteSightsError);
+    expect(failure).toMatchObject({ iso: 'XX', classes: ['island-Q23442'] });
+    expect(calls).toBe(TIMEOUT_ATTEMPTS);
+    expect(await listDir(dir)).not.toContain('XX-island-Q23442.json');
+  });
+
+  it('refetches a corrupt cache file, with a warning that names it', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'wikidata-'));
+    await saveText(join(dir, 'XX-heritage.json'), BROKEN);
+    // every other class is fetched too; the point is that heritage is, and is rewritten
+    const total = SIGHT_CLASSES.reduce((n, c) => n + Math.max(1, c.seeds.length), 0);
+    let calls = 0;
+    const fake = (async () => {
+      calls += 1;
+      return new Response('{"results":{"bindings":[]}}');
+    }) as unknown as typeof fetch;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const raws = await fetchSights('XX', fake, async () => {}, dir);
+    const messages = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    expect(messages.some((m) => m.includes('XX-heritage.json'))).toBe(true);
+    expect(calls).toBe(total);
+    expect(raws.every((r) => r === '{"results":{"bindings":[]}}')).toBe(true);
+    expect(await readText(join(dir, 'XX-heritage.json'), 'utf8')).toBe(
+      '{"results":{"bindings":[]}}',
+    );
   });
 
   it('stops at once on a failure that is not a timeout (a ban, a bad query)', async () => {

@@ -3,7 +3,7 @@
  * cached in `scripts/maps/.cache/wikidata/<iso>.json` (git-ignored), so a rebuild is offline.
  * Wikidata is CC0.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { CACHE_DIR } from './overture.ts';
 
@@ -151,6 +151,24 @@ export class SparqlError extends Error {
   }
 }
 
+/** HTTP 200 whose body is not a SPARQL result: WDQS appends a Java trace to a timed-out answer. */
+export class BrokenAnswerError extends SparqlError {
+  constructor() {
+    super(200);
+    this.message = 'wikidata: HTTP 200 with a body that is not a SPARQL result';
+  }
+}
+
+/** True when the text is one whole JSON document with `results.bindings` an array. */
+export function isSparqlResult(text: string): boolean {
+  try {
+    const doc = JSON.parse(text) as { results?: { bindings?: unknown } } | null;
+    return Array.isArray(doc?.results?.bindings);
+  } catch {
+    return false;
+  }
+}
+
 /** The classes of a country that Wikidata could not answer: its places file would be incomplete. */
 export class IncompleteSightsError extends Error {
   readonly iso: string;
@@ -193,7 +211,14 @@ export async function runSparql(
       await sleep(5_000 * 2 ** (attempt - 1));
       continue;
     }
-    if (response.ok) return response.text();
+    if (response.ok) {
+      const body = await response.text();
+      if (isSparqlResult(body)) return body;
+      // Its JSON part is unreliable (empty, truncated): ask again, like after a timeout.
+      if (attempt >= TIMEOUT_ATTEMPTS) throw new BrokenAnswerError();
+      await sleep(TIMEOUT_BACKOFF_MS * 2 ** (attempt - 1));
+      continue;
+    }
     if (isTimeout(response.status)) {
       if (attempt >= TIMEOUT_ATTEMPTS) throw new SparqlError(response.status);
       await sleep(TIMEOUT_BACKOFF_MS * 2 ** (attempt - 1));
@@ -232,11 +257,19 @@ export async function fetchSights(
   );
   for (const { cls, seed, key } of queries) {
     const path = join(cacheDir, `${iso}-${key}.json`);
+    let cached: string | undefined;
     try {
-      raws.push(await readFile(path, 'utf8'));
-      continue;
+      cached = await readFile(path, 'utf8');
     } catch {
       // not cached yet
+    }
+    if (cached !== undefined) {
+      if (isSparqlResult(cached)) {
+        raws.push(cached);
+        continue;
+      }
+      console.warn(`${iso}: corrupt cache file ${path}, deleted; fetching "${key}" again`);
+      await rm(path, { force: true });
     }
     try {
       const raw = await runSparql(sightsQuery(iso, cls, seed), fetchImpl, sleep);
@@ -244,8 +277,11 @@ export async function fetchSights(
       await writeFile(path, raw);
       raws.push(raw);
     } catch (error) {
-      if (!(error instanceof SparqlError) || !isTimeout(error.status)) throw error;
-      console.warn(`${iso}: Wikidata timed out on "${key}" ${TIMEOUT_ATTEMPTS} times`);
+      const broken = error instanceof BrokenAnswerError;
+      if (!(error instanceof SparqlError) || !(broken || isTimeout(error.status))) throw error;
+      console.warn(
+        `${iso}: Wikidata ${broken ? 'gave a broken answer' : 'timed out'} on "${key}" ${TIMEOUT_ATTEMPTS} times`,
+      );
       failed.push(key);
     }
   }
