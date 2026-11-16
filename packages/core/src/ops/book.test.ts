@@ -43,6 +43,18 @@ describe('setBookSettings', () => {
     expect(at('spine').x + 4).toBe(220); // centre of the new spine: 210 + 10
   });
 
+  it('removing the spine removes what lay on it alone, not what runs across it', () => {
+    let book = setBookSettings(freshBook(1), { spineWidth: 10 });
+    const cover = book.cover.id;
+    book = addElement(book, cover, shape('title', 211, 20, 8, 100));
+    book = addElement(book, cover, { ...shape('turned', 165, 100, 100, 6), rotation: 90 });
+    book = addElement(book, cover, shape('wrap', 0, 0, 430, 297));
+    book = addElement(book, cover, shape('front', 230, 10, 50, 50));
+    const out = setBookSettings(book, { spineWidth: 0 });
+    expect(out.cover.elements.map((e) => e.id)).toEqual(['wrap', 'front']);
+    expect(out.cover.elements[1]!.x).toBe(220);
+  });
+
   it.each([
     { bleed: -1 },
     { spineWidth: Number.NaN },

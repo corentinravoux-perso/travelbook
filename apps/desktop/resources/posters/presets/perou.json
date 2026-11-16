@@ -1,5 +1,59 @@
 [
   {
+    "id": "perou-machu-picchu",
+    "destination": "perou",
+    "name": "Pérou, Machu Picchu",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#a9d6b8",
+        "title": "#fff8ec",
+        "accent": "#7a4044",
+        "decor": "#c6e6cf",
+        "illustration": {
+          "main": "#5d9c5c",
+          "shade": "#5d9c5c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-machu-picchu"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "perou-machu-picchu-simple",
+    "destination": "perou",
+    "name": "Pérou, Machu Picchu simple",
+    "spec": {
+      "layout": "geant",
+      "title": "PÉROU",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#cde9d2",
+        "title": "#fff8ec",
+        "accent": "#5c2b2f",
+        "decor": "#e3f3e6",
+        "illustration": {
+          "main": "#7db56c",
+          "shade": "#7db56c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "perou-machu-picchu-simple"
+      },
+      "spine": true
+    }
+  },
+  {
     "id": "perou-lama",
     "destination": "perou",
     "name": "Pérou, lama",

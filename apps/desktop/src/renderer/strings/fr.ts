@@ -147,7 +147,8 @@ export const fr = {
     otherSticker: 'Autre sticker…',
     mineEmpty: 'Votre bibliothèque de stickers est vide : ajoutez-en depuis le panneau Stickers.',
     spine: 'Titre sur le dos',
-    spineNone: 'Le dos est trop étroit pour un titre.',
+    spineNone: 'Le dos est trop étroit pour un titre (6 mm au moins).',
+    spineOff: 'Sans tranche, pas de titre sur le dos.',
     contrast: 'Le titre se lit mal sur ce fond.',
     cancel: 'Annuler',
     apply: 'Appliquer à la couverture',
@@ -162,8 +163,22 @@ export const fr = {
     tools: 'Outils de la couverture',
     spineZone: 'Dos du livre',
     spineText: 'Texte sur le dos',
-    spineNone: 'Définissez la largeur du dos dans les réglages du livre pour y placer du texte.',
+    spineNone: 'Choisissez « Avec tranche » pour placer du texte sur le dos.',
     undoSpineText: 'Ajouter un texte sur le dos',
+  },
+  // The spine choice, on the cover toolbar and in the poster dialog.
+  spine: {
+    label: 'Tranche du livre',
+    with: 'Avec tranche',
+    without: 'Sans tranche',
+    width: 'Largeur',
+    helpWith:
+      'Livre relié à dos carré (format BD) : la tranche se place entre le dos et la face avant. Votre imprimeur vous donne sa largeur exacte.',
+    helpWithout:
+      'Couverture sans tranche (agrafée, spirale) : le dos et la face avant se rejoignent au pli.',
+    invalid: (min: number, max: number) => `Une largeur entre ${min} et ${max} mm.`,
+    undoWith: (mm: string) => `Tranche de ${mm} mm`,
+    undoWithout: 'Couverture sans tranche',
   },
   // Export dialog (spec §10).
   exporter: {
@@ -794,6 +809,12 @@ export const fr = {
     page: (n: number) => `Page ${n}`,
     pages: (a: number, b: number) => `Pages ${a}–${b}`,
     position: (label: string, n: number, total: number) => `${label}, ${n} sur ${total}`,
+    cut: 'Zones rognées',
+    cutHelp:
+      'Montrer ce que la coupe retire : le fond perdu hachuré, le pli et la tranche en pointillés.',
+    cutLegend: (mm: string) => `Hachuré : rogné à la coupe (${mm} mm)`,
+    foldLegend: 'Pointillés : pli',
+    spineLegend: (mm: string) => `Tranche ${mm} mm`,
   },
   // Backgrounds panel (Fonds).
   backgrounds: {
