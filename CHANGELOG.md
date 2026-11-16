@@ -5,6 +5,8 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-16
+
 ### Added
 
 - Stickers: a new **travelbook** tab, first in the panel, with the sets drawn for travelbook
@@ -68,4 +70,6 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 
+[Unreleased]: https://github.com/corentinravoux/travelbook/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/corentinravoux/travelbook/releases/tag/v1.0.0
 [0.1.0]: https://github.com/corentinravoux/travelbook/releases/tag/v0.1.0
