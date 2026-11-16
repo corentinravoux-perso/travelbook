@@ -92,9 +92,9 @@ describe('readLocalSets', () => {
     expect(await localSetIds(dir)).toEqual(['a', 'b']);
     expect((await readLocalSets(dir)).map((s) => s.id)).toEqual(['b', 'a']);
     expect((await localSetFiles(dir)).map((f) => f.slice(dir.length + 1))).toEqual([
-      'a/meta.json',
-      'b/meta.json',
-      'b/x-1.svg',
+      join('a', 'meta.json'),
+      join('b', 'meta.json'),
+      join('b', 'x-1.svg'),
     ]);
   });
 
