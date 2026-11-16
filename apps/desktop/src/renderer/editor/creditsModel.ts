@@ -1,4 +1,5 @@
 import {
+  MAP_LICENCE,
   elementAssetIds,
   newElement,
   pageBox,
@@ -45,9 +46,10 @@ const titleOf = (asset: AssetRef): string =>
     : asset.originalName.replace(/\.[A-Za-z0-9]{1,5}$/, '');
 
 /**
- * The licences of every asset the book uses. Photos and map geometries are left out unless they
- * carry licence data (a photo of the user's own has none; a map geometry without one has nothing
- * to credit); any other asset is listed, as the user's own file when it has no licence. Two
+ * The licences of every asset the book uses. Photos are left out unless they carry licence data
+ * (a photo of the user's own has none); any other asset is listed, as the user's own file when it
+ * has no licence. A map geometry always comes from Overture and OpenStreetMap, so one saved
+ * without licence data is credited with `MAP_LICENCE`: the attribution is owed all the same. Two
  * assets with the same title, author, licence and source page are listed once (so the geometries
  * of all the album's maps make one ODbL entry); the list is ordered by title.
  */
@@ -58,8 +60,8 @@ export function creditEntries(book: Book): CreditEntry[] {
   for (const id of used) {
     const asset = book.assets[id];
     if (asset === undefined) continue;
-    const licence = asset.licence;
-    if (licence === undefined && (asset.kind === 'photo' || asset.kind === 'map')) continue;
+    const licence = asset.licence ?? (asset.kind === 'map' ? MAP_LICENCE : undefined);
+    if (licence === undefined && asset.kind === 'photo') continue;
     const key = [
       licence?.author ?? '',
       licence?.licence ?? '',

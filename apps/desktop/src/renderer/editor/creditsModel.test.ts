@@ -114,12 +114,17 @@ describe('credits', () => {
 });
 
 describe('credits of maps', () => {
+  /** What a geometry asset carries: the entry of the bundled map data in `resources/LICENCES.json`. */
   const ODBL = {
-    source: '© OpenStreetMap contributors, Overture Maps Foundation',
+    source: 'Overture Maps Foundation, divisions theme',
+    author: '© OpenStreetMap contributors, Overture Maps Foundation',
     licence: 'ODbL 1.0',
-    url: 'https://opendatacommons.org/licenses/odbl/1-0/',
+    url: 'https://docs.overturemaps.org/attribution/',
     requiresAttribution: true,
   };
+  /** The line the credits print for it. */
+  const ODBL_LINE =
+    'Cartes, © OpenStreetMap contributors, Overture Maps Foundation, ODbL 1.0 (Overture Maps Foundation, divisions theme)';
   const geometry = (id: string, name: string): AssetRef => ({
     id,
     kind: 'map',
@@ -154,17 +159,24 @@ describe('credits of maps', () => {
     const entries = creditEntries(bookWithMaps());
     const maps = entries.filter((e) => e.licence === 'ODbL 1.0');
     expect(maps).toHaveLength(1);
-    expect(creditLine(maps[0]!)).toBe(
-      'Cartes, ODbL 1.0 (© OpenStreetMap contributors, Overture Maps Foundation)',
-    );
+    expect(creditLine(maps[0]!)).toBe(ODBL_LINE);
     expect(maps[0]!.requiresAttribution).toBe(true);
   });
 
-  it('leaves out a geometry that carries no licence data', () => {
+  it('credits a geometry that carries no licence data with the ODbL entry, never as a personal file', () => {
     const book = bookWithMaps();
     delete book.assets['map-th']!.licence;
     delete book.assets['map-pe']!.licence;
-    expect(creditEntries(book).map((e) => e.title)).toEqual(['Phuket']);
+    const entries = creditEntries(book);
+    expect(entries.map((e) => e.title)).toEqual(['Cartes', 'Phuket']);
+    expect(creditLine(entries[0]!)).toBe(ODBL_LINE);
+    expect(entries[0]!.requiresAttribution).toBe(true);
+  });
+
+  it('lists one ODbL entry for a map with licence data and one without', () => {
+    const book = bookWithMaps();
+    delete book.assets['map-pe']!.licence;
+    expect(creditEntries(book).filter((e) => e.title === 'Cartes')).toHaveLength(1);
   });
 
   it('lists a medallion photo only when it carries a licence', () => {
