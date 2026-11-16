@@ -12,6 +12,7 @@ import {
   mainBbox,
   minAreaKm2,
   pickLandLevel,
+  ringAreaKm2,
   scaleBbox,
   toleranceMetres,
   type Feature,
@@ -149,6 +150,28 @@ describe('the land outline level', () => {
     // tolerance ~ 9 m on a 70 km extent: Overture's own polygons had 200 and 62 vertices
     expect(landPoints('FR-MQ')).toBeGreaterThanOrEqual(1000);
     expect(landPoints('FR-RE')).toBeGreaterThanOrEqual(1000);
+  });
+
+  it('measures a ring across the antimeridian like the same ring elsewhere', () => {
+    const ring = (x: number): number[][] => [
+      [x - 1, 60],
+      [x - 1, 62],
+      [x + 1, 62],
+      [x + 1, 60],
+      [x - 1, 60],
+    ];
+    const wrapped = ring(180).map(([x, y]) => [x! > 180 ? x! - 360 : x!, y!]);
+    expect(ringAreaKm2(wrapped)).toBeCloseTo(ringAreaKm2(ring(0)), 6);
+    expect(ringAreaKm2(ring(0))).toBeGreaterThan(20000);
+    expect(ringAreaKm2(ring(0))).toBeLessThan(30000);
+  });
+
+  it('records where each land outline comes from', () => {
+    expect(entry('TH').landSource).toBe('region');
+    expect(entry('FR-MQ').landSource).toBe('region');
+    // US and Alaska span the antimeridian: their divisions must still be recognised as covering
+    expect(entry('US').landSource).toBe('region');
+    expect(entry('US-AK').landSource).toBe('county');
   });
 
   it('keeps Thailand at least as detailed as the country polygon was (3047 points)', () => {
