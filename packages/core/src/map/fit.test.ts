@@ -109,6 +109,17 @@ describe('fitFrame', () => {
       expect(cy * base.scale + base.dy).toBeCloseTo(140, 6);
     });
 
+    it('clamps a zoom to 1/1000..1000 of the default fit, so the result stays finite', () => {
+      const huge = fitFrame(th, box, { center: [99, 8], scale: 1e308 }, false);
+      expect(Number.isFinite(huge.scale + huge.dx + huge.dy)).toBe(true);
+      expect(huge.scale).toBeCloseTo(1000 * base.scale, 6);
+      const tiny = fitFrame(th, box, { center: [99, 8], scale: 1e-308 }, false);
+      expect(tiny.scale).toBeCloseTo(base.scale / 1000, 12);
+      expect(Number.isFinite(tiny.dx + tiny.dy)).toBe(true);
+      const big = fitFrame(th, { w: 1e308, h: 1e308 }, { center: [99, 8], scale: 1e308 }, false);
+      expect(Number.isFinite(big.scale + big.dx + big.dy)).toBe(true);
+    });
+
     it('falls back to the default on a frame it cannot use', () => {
       for (const frame of [
         { center: [99, 8], scale: 0 },

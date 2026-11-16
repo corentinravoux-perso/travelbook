@@ -44,6 +44,10 @@ const REMOTE_SHARE = 0.01;
 const MAIN_COVERAGE = 0.5;
 /** The side of the unit plane: the larger side of a subject's bounds. */
 const UNITS = 1000;
+/** A closed ring needs four points to enclose anything. */
+const MIN_RING_POINTS = 4;
+/** Context is drawn within this many selection extents (larger side of its bounds), centred on it. */
+const CONTEXT_EXTENTS = 8;
 
 const wrapDelta = (d: number): number => Math.abs(((((d + 180) % 360) + 360) % 360) - 180);
 
@@ -130,8 +134,12 @@ interface Framing {
  * from the bbox of the parts over 1 %. When those parts are under half of the area (an archipelago
  * of islets), nothing is remote.
  */
-function framing(polygons: PolygonCoords[]): Framing {
-  const areas = polygons.map((p) => geoArea({ type: 'Polygon', coordinates: p }));
+function framing(parts: PolygonCoords[]): Framing {
+  // a polygon that d3 reads as over a hemisphere is wound the wrong way: it frames nothing
+  const sized = parts.map((p) => ({ p, area: geoArea({ type: 'Polygon', coordinates: p }) }));
+  const sane = sized.filter(({ area }) => area <= 2 * Math.PI);
+  const polygons = sane.map(({ p }) => p);
+  const areas = sane.map(({ area }) => area);
   const total = areas.reduce((a, b) => a + b, 0);
   const big = polygons.filter((_, i) => (areas[i] ?? 0) >= total * REMOTE_SHARE);
   const bigArea = areas.filter((a) => a >= total * REMOTE_SHARE).reduce((a, b) => a + b, 0);
@@ -182,7 +190,8 @@ const ringKey = (ring: number[]): string => ring.join(',');
  * build's (0.05 mm on a 400 mm page, for a subject of `extentKm`) times `factor`: points whose
  * triangle with their neighbours (Visvalingam) is under tolerance squared go. Rings under the
  * build's islet size (0.3 mm on the page) times `factor` go too, holes included, except the largest
- * ring of each land or region geometry: a chosen region never vanishes.
+ * ring of each land or region geometry: a chosen region never vanishes. Rings that the
+ * simplification collapsed (under four points) or turned inside out go whatever their size.
  */
 export function simplifyTopology(topology: Topology, extentKm: number, factor: number): Topology {
   if (!(extentKm > 0) || !(factor > 0)) return topology;
@@ -204,18 +213,23 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
     if (object) walk(object);
     return out;
   };
-  const areas = new Map<string, number>();
-  const areaOf = (ring: number[], interior: boolean): number => {
+  const infos = new Map<string, { area: number; points: number }>();
+  const infoOf = (ring: number[], interior: boolean): { area: number; points: number } => {
     const key = `${interior ? 'i' : 'e'}${ringKey(ring)}`;
-    let area = areas.get(key);
-    if (area === undefined) {
+    let info = infos.get(key);
+    if (!info) {
       const f = feature(simplified, { type: 'Polygon', arcs: [ring] } as never) as unknown as {
         geometry: { coordinates: number[][][] };
       };
-      area = sphericalRingArea((f.geometry.coordinates[0] ?? []) as never, interior);
-      areas.set(key, area);
+      const coordinates = f.geometry.coordinates[0] ?? [];
+      let area = sphericalRingArea(coordinates as never, interior);
+      // The simplification can leave a sliver inside out (anticlockwise): d3 reads it as the whole
+      // sphere minus a speck, about 4 pi. No ring of a map is over a hemisphere: that one has no area.
+      if (!(area <= 2 * Math.PI)) area = 0;
+      info = { area, points: coordinates.length };
+      infos.set(key, info);
     }
-    return area;
+    return info;
   };
   const keep = new Set<string>();
   const walkLargest = (g: GeometryObject): void => {
@@ -225,11 +239,11 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
     }
     const polygons = g.type === 'Polygon' ? [g.arcs] : g.type === 'MultiPolygon' ? g.arcs : [];
     let best: number[] | undefined;
-    let most = -1;
+    let most = 0;
     for (const [exterior] of polygons) {
       if (!exterior) continue;
-      const area = areaOf(exterior, false);
-      if (area > most) [best, most] = [exterior, area];
+      const { area, points } = infoOf(exterior, false);
+      if (points >= MIN_RING_POINTS && area > most) [best, most] = [exterior, area];
     }
     if (best) keep.add(ringKey(best));
   };
@@ -241,9 +255,11 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
   const neighbourRings = new Set(rings(simplified.objects.neighbours).flat().map(ringKey));
 
   return filter(simplified, ((ring: number[], interior: boolean) => {
+    const { area, points } = infoOf(ring, interior);
+    if (points < MIN_RING_POINTS) return false; // collapsed to a line or a point
     const key = ringKey(ring);
     if (!interior && keep.has(key)) return true;
-    return areaOf(ring, interior) >= (neighbourRings.has(key) ? 9 : 1) * isletArea;
+    return area >= (neighbourRings.has(key) ? 9 : 1) * isletArea;
   }) as never) as Topology;
 }
 
@@ -253,7 +269,9 @@ const clampDetail = (detail: number): number =>
 const tidy = (d: string): string =>
   d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * 100) / 100));
 
-const handDrawn = rough.generator();
+let generator: ReturnType<typeof rough.generator> | undefined;
+/** roughjs's generator, made when a map first needs it: core is imported everywhere. */
+const handDrawn = (): NonNullable<typeof generator> => (generator ??= rough.generator());
 
 /** roughjs treats the seed 0 as "no seed" and then draws at random: map any integer to 1..2^31-1. */
 const roughSeed = (seed: number): number => (Math.abs(Math.trunc(seed)) % (2 ** 31 - 1)) + 1;
@@ -261,7 +279,8 @@ const roughSeed = (seed: number): number => (Math.abs(Math.trunc(seed)) % (2 ** 
 /** A seeded roughjs line along `d`: always the same wobble for the same seed. */
 function hand(d: string, seed: number, roughness: number): string {
   if (d === '') return d;
-  const drawable = handDrawn.path(d, {
+  const gen = handDrawn();
+  const drawable = gen.path(d, {
     seed: roughSeed(seed),
     roughness: Math.max(0, Number.isFinite(roughness) ? roughness : 0),
     bowing: 1,
@@ -271,7 +290,7 @@ function hand(d: string, seed: number, roughness: number): string {
     fill: 'none',
   });
   return tidy(
-    handDrawn
+    gen
       .toPaths(drawable)
       .map((p) => p.d)
       .join(''),
@@ -293,10 +312,16 @@ const EMPTY_BOUNDS: Bounds = [
  * - `subject.regions` selects regions by id (ids that do not exist are ignored); the frame then is
  *   the union of the chosen regions and the rest of the land is context. `showRegions`,
  *   `showNeighbours` and `showLakes` leave their layer out (an empty path).
- * - The default frame ignores the remote parts (see `framing`) unless `includeRemote`.
+ * - The default frame ignores the remote parts (see `framing`) unless `includeRemote`. The frame
+ *   is taken from the full-detail geometry, so the projection and the bounds do not move when
+ *   `detail` does.
  * - `detail` (0..1) simplifies the shared topology: tolerance and islet size grow by
  *   2^(6 x (1 - detail)) over the build's; 1 leaves it as it is.
- * - `rough` draws the outline and the region borders with roughjs, seeded; the fills are clean.
+ * - Context (the land around chosen regions, the neighbours, the lakes) is clipped to a window of
+ *   8 selection extents around the selection, in unit space: enough for a pan, or a zoom out to
+ *   an extreme box, without carrying a whole country at pack precision.
+ * - `rough` draws the outline and the borders of the selection (all of them when no region is
+ *   chosen) with roughjs, seeded; the fills and the context are always clean.
  */
 export function bakeGeometry(
   base: Topology,
@@ -310,16 +335,17 @@ export function bakeGeometry(
   const level = clampDetail(detail);
   // a pack without regions is no pack
   const usablePack = pack && geometriesOf(pack, 'regions').some(isAreal) ? pack : null;
-  let src: Sources = { base, pack: usablePack };
-  let frame = framingOf(src, wanted);
+  const full: Sources = { base, pack: usablePack };
+  // the frame comes from the full-detail geometry, once
+  const frame = framingOf(full, wanted);
+  let src = full;
   if (level < 1) {
     const factor = 2 ** (6 * (1 - level));
-    const extent = extentKm(frame.mainBox);
+    const extent = extentKm(subject.includeRemote ? frame.allBox : frame.mainBox);
     src = {
       base: simplifyTopology(base, extent, factor),
       pack: usablePack && simplifyTopology(usablePack, extent, factor),
     };
-    frame = framingOf(src, wanted);
   }
 
   // the projection is chosen for the frame, then scaled so that the default frame is 1000 units
@@ -352,7 +378,19 @@ export function bakeGeometry(
         ]
       : EMPTY_BOUNDS;
 
-  const path = geoPath(d3Projection(params)).digits(2);
+  const projected = d3Projection(params);
+  const window = unit(subject.includeRemote ? all : main);
+  const reach =
+    (CONTEXT_EXTENTS * Math.max(window[1][0] - window[0][0], window[1][1] - window[0][1])) / 2;
+  if (reach > 0) {
+    const cx = (window[0][0] + window[1][0]) / 2;
+    const cy = (window[0][1] + window[1][1]) / 2;
+    projected.clipExtent([
+      [cx - reach, cy - reach],
+      [cx + reach, cy + reach],
+    ]);
+  }
+  const path = geoPath(projected).digits(2);
   const draw = (object: unknown): string => path(object as GeoPermissibleObjects) ?? '';
 
   const regionsTopo = regionsTopology(src);
@@ -371,14 +409,25 @@ export function bakeGeometry(
       : draw(feature(src.base, landObject));
   // the outer boundary of the chosen regions, else of the whole land
   let outline = edgeOf(chosenOnes.length > 0 ? collection(chosenOnes) : landObject);
-  let borders =
-    subject.showRegions && regions.length > 0
-      ? draw(mesh(regionsTopo, collection(regions), (a, b) => a !== b))
-      : '';
-  if (roughStyle) {
-    outline = hand(outline, roughStyle.seed, roughStyle.roughness);
-    borders = hand(borders, roughStyle.seed + 1, roughStyle.roughness);
+  // the borders between regions, each once; `touching` keeps those that touch a chosen region
+  const chosenSet = new Set<GeometryObject>(chosenOnes);
+  const bordersOf = (touching: boolean | null): string =>
+    draw(
+      mesh(regionsTopo, collection(regions), (a, b) => {
+        if (a === b) return false;
+        return touching === null || (chosenSet.has(a) || chosenSet.has(b)) === touching;
+      }),
+    );
+  let borders = '';
+  if (subject.showRegions && regions.length > 0) {
+    if (!roughStyle) borders = bordersOf(null);
+    else if (chosenSet.size === 0) {
+      borders = hand(bordersOf(null), roughStyle.seed + 1, roughStyle.roughness);
+    } else {
+      borders = bordersOf(false) + hand(bordersOf(true), roughStyle.seed + 1, roughStyle.roughness);
+    }
   }
+  if (roughStyle) outline = hand(outline, roughStyle.seed, roughStyle.roughness);
   const layer = (show: boolean, name: string): string => {
     const object = src.base.objects[name];
     return show && object ? draw(feature(src.base, object)) : '';
