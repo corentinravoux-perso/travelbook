@@ -4,7 +4,16 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { newBook, newElement, type AssetRef, type Book, type Template } from '@travelbook/core';
+import {
+  DEFAULT_MAP_STYLE,
+  MAP_LICENCE,
+  newBook,
+  newElement,
+  type AssetRef,
+  type Book,
+  type MapPreset,
+  type Template,
+} from '@travelbook/core';
 import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
@@ -12,6 +21,7 @@ import type {
   ImportReport,
   LibraryItem,
   OpenedProject,
+  PackResult,
   ProjectInfo,
   RecentProject,
   SnapshotInfo,
@@ -27,6 +37,7 @@ import {
 import { setBundledResourcesDir, type BundledTemplates } from './library/templates';
 import { addToLibrary, listLibrary } from './library/userLibrary';
 import { setFontCatalogue, setFontsResourcesDir } from './library/fonts';
+import { setMapsResourcesDir } from './maps/packs';
 import { setStickerService, type StickerService } from './library/stickers/service';
 import { SourceError } from './library/stickers/source';
 import { recentProjects } from './project/recent';
@@ -1209,6 +1220,113 @@ describe('fonts', () => {
       JSON.parse(await readFile(join(created.dir, 'book.json'), 'utf8')).spreads[1].elements,
     ).toHaveLength(1);
     warn.mockRestore();
+  });
+});
+
+describe('maps', () => {
+  const RESOURCES = join(import.meta.dirname, '../../resources');
+  const geometry = JSON.stringify({ v: 1, paths: ['M0 0L10 10Z'] });
+
+  afterEach(() => setMapsResourcesDir(null));
+
+  describe('saveGeometry', () => {
+    it('keeps the geometry in the open album, with the ODbL licence, and indexes the asset', async () => {
+      const created = await create();
+      const asset = await call<AssetRef>(CHANNEL.mapsSaveGeometry, geometry, { name: 'Thaïlande' });
+      expect(asset).toMatchObject({ kind: 'map', originalName: 'Thaïlande.json' });
+      expect(asset.id).toMatch(/^map-[0-9a-f]{16}$/);
+      expect(asset.licence).toEqual(MAP_LICENCE);
+      expect(await readFile(join(created.dir, asset.file), 'utf8')).toBe(geometry);
+      expect(currentSession()?.assets.get(asset.id)).toEqual(asset);
+      // The same geometry again: the same asset, one file.
+      expect(await call(CHANNEL.mapsSaveGeometry, geometry, { name: 'Thaïlande' })).toEqual(asset);
+      expect(await readdir(join(created.dir, 'assets'))).toHaveLength(1);
+    });
+
+    it('needs an open album', async () => {
+      await expect(call(CHANNEL.mapsSaveGeometry, geometry, { name: 'x' })).rejects.toThrow(
+        /No project is open/,
+      );
+    });
+
+    it('checks what it is given: text, a name, nothing else', async () => {
+      await create();
+      await expect(call(CHANNEL.mapsSaveGeometry, { paths: [] }, { name: 'x' })).rejects.toThrow(
+        /maps:saveGeometry/,
+      );
+      await expect(call(CHANNEL.mapsSaveGeometry, '', { name: 'x' })).rejects.toThrow(
+        /maps:saveGeometry/,
+      );
+      await expect(call(CHANNEL.mapsSaveGeometry, geometry, { name: '' })).rejects.toThrow(
+        /maps:saveGeometry/,
+      );
+      await expect(
+        call(CHANNEL.mapsSaveGeometry, geometry, { name: 'x', file: '/etc/passwd' }),
+      ).rejects.toThrow(/maps:saveGeometry/);
+      await expect(call(CHANNEL.mapsSaveGeometry, '[1]', { name: 'x' })).rejects.toThrow(
+        /JSON object/,
+      );
+    });
+  });
+
+  describe('loadPack', () => {
+    it('gives the pack that ships with the app, and says unknown for a subject without one', async () => {
+      setMapsResourcesDir(RESOURCES);
+      const us = await call<PackResult>(CHANNEL.mapsLoadPack, 'US');
+      expect(us.ok).toBe(true);
+      expect(await call(CHANNEL.mapsLoadPack, 'ZZ')).toEqual({ ok: false, reason: 'unknown' });
+    });
+
+    it('checks the subject id', async () => {
+      await expect(call(CHANNEL.mapsLoadPack, '../etc/passwd')).rejects.toThrow(/maps:loadPack/);
+      await expect(call(CHANNEL.mapsLoadPack, '')).rejects.toThrow(/maps:loadPack/);
+      await expect(call(CHANNEL.mapsLoadPack, 42)).rejects.toThrow(/maps:loadPack/);
+      await expect(call(CHANNEL.mapsLoadPack)).rejects.toThrow(/maps:loadPack/);
+    });
+  });
+
+  describe('styles', () => {
+    const style = { ...DEFAULT_MAP_STYLE, land: { ...DEFAULT_MAP_STYLE.land, fill: '#123456' } };
+
+    it('saves, lists, renames and deletes the user styles', async () => {
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([]);
+      const saved = await call<MapPreset>(CHANNEL.mapsSaveStyle, ' Mon carnet ', style);
+      expect(saved).toMatchObject({ name: 'Mon carnet', style });
+      expect(saved.id).toMatch(/^user-/);
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([saved]);
+      await call(CHANNEL.mapsRenameStyle, saved.id, 'Renommé');
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([{ ...saved, name: 'Renommé' }]);
+      await call(CHANNEL.mapsDeleteStyle, saved.id);
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([]);
+    });
+
+    it('needs no open album: the styles belong to the app', async () => {
+      await expect(call(CHANNEL.mapsSaveStyle, 'x', style)).resolves.toMatchObject({ name: 'x' });
+    });
+
+    it('checks what it is given', async () => {
+      await expect(call(CHANNEL.mapsListStyles, 1)).rejects.toThrow(/maps:listStyles/);
+      await expect(call(CHANNEL.mapsSaveStyle, '', style)).rejects.toThrow(/maps:saveStyle/);
+      await expect(call(CHANNEL.mapsSaveStyle, 'x'.repeat(101), style)).rejects.toThrow(
+        /maps:saveStyle/,
+      );
+      await expect(call(CHANNEL.mapsSaveStyle, 'x', { styleVersion: 1 })).rejects.toThrow(
+        /maps:saveStyle/,
+      );
+      await expect(call(CHANNEL.mapsRenameStyle, 'carnet', 'x')).rejects.toThrow(
+        /maps:renameStyle/,
+      );
+      await expect(call(CHANNEL.mapsRenameStyle, 'user-a', '  ')).rejects.toThrow(
+        /maps:renameStyle/,
+      );
+      await expect(call(CHANNEL.mapsDeleteStyle, '../user-a')).rejects.toThrow(/maps:deleteStyle/);
+    });
+
+    it('rejects renaming a style that does not exist', async () => {
+      await expect(call(CHANNEL.mapsRenameStyle, 'user-gone', 'x')).rejects.toThrow(
+        /Unknown style/,
+      );
+    });
   });
 });
 
