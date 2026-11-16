@@ -1,7 +1,7 @@
 import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { newBook, type MapGeometry, type Spread } from '@travelbook/core';
 import { describe, expect, it, vi } from 'vitest';
-import { createGeometryCache, preloadMapGeometries } from './geometryCache';
+import { GEOMETRY_TIMEOUT_MS, createGeometryCache, preloadMapGeometries } from './geometryCache';
 
 const geometry: MapGeometry = {
   version: 1,
@@ -44,7 +44,7 @@ describe('geometry cache', () => {
     expect(a).toEqual(geometry);
     expect(b).toEqual(geometry);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith('tb://asset/map-a?v=original');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('tb://asset/map-a?v=original');
   });
 
   it.each([
@@ -101,6 +101,33 @@ describe('geometry cache', () => {
     release(json('', 404));
     await stale;
     expect(cache.peek('map-a')).toEqual(geometry);
+  });
+});
+
+describe('geometry cache lifetime', () => {
+  it('clear forgets a cached failure and a cached geometry', async () => {
+    let body: Response = json('', 404);
+    const { cache, fetchMock } = cacheWith(() => body);
+    expect(await cache.load('map-a')).toBe('missing');
+    body = json(geometry);
+    cache.clear();
+    expect(await cache.load('map-a')).toEqual(geometry);
+    cache.clear();
+    expect(cache.peek('map-a')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('turns a stalled read into missing after the timeout', async () => {
+    vi.useFakeTimers();
+    try {
+      const { cache } = cacheWith(() => new Promise<Response>(() => undefined));
+      const pending = cache.load('map-a');
+      await vi.advanceTimersByTimeAsync(GEOMETRY_TIMEOUT_MS);
+      await expect(pending).resolves.toBe('missing');
+      expect(cache.peek('map-a')).toBe('missing');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -6,8 +6,8 @@ import { editorStore, useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import { clickDirection, pagesLabel, previewPages, turn } from './previewModel';
-import './Preview.css';
 import { useMapGeometryLookup } from '../maps/geometryCache';
+import './Preview.css';
 
 /** Room kept round the spread, in px. */
 const MARGIN = 32;

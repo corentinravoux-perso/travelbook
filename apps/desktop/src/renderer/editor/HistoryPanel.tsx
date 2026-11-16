@@ -7,8 +7,8 @@ import { useProject } from '../store/project';
 import { fr } from '../strings/fr';
 import { assetUrl } from './assetUrl';
 import { spreadName } from './pages';
-import './HistoryPanel.css';
 import { useMapGeometryLookup } from '../maps/geometryCache';
+import './HistoryPanel.css';
 
 const t = fr.history;
 

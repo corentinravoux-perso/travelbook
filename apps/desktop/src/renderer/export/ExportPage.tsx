@@ -3,7 +3,11 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { ExportPageHandle, ExportPageJob } from '../../shared/exportPage';
 import { BOOK_FONTS, installBookFonts } from '../fonts/bookFonts';
-import { createGeometryCache, preloadMapGeometries } from '../maps/geometryCache';
+import {
+  createGeometryCache,
+  preloadMapGeometries,
+  type GeometryCache,
+} from '../maps/geometryCache';
 
 /**
  * The page the hidden export window loads (`#export`): it draws one page at a time, by the same
@@ -83,6 +87,21 @@ const nextFrame = (): Promise<void> =>
     });
   });
 
+let exportGeometries: { token: string; cache: GeometryCache } | null = null;
+
+/** One cache per export (token): a geometry shared by several pages is read once. */
+function geometriesOf(token: string): GeometryCache {
+  if (exportGeometries?.token !== token) {
+    exportGeometries = {
+      token,
+      cache: createGeometryCache({
+        urlOf: (id) => `tb://export/${token}/original/${encodeURIComponent(id)}`,
+      }),
+    };
+  }
+  return exportGeometries.cache;
+}
+
 export function installExportPage(host: HTMLElement): void {
   // No scrollbar may be drawn over the page the capture takes.
   document.documentElement.style.overflow = 'hidden';
@@ -98,9 +117,7 @@ export function installExportPage(host: HTMLElement): void {
       pageRule.textContent = `@page { size: ${job.clip.w}mm ${job.clip.h}mm; margin: 0; }`;
       // The geometry of every map of the page is read before the page is drawn (a map drawn
       // empty would be captured empty); an unreadable one is drawn as the hatched frame.
-      const geometries = createGeometryCache({
-        urlOf: (id) => `tb://export/${job.token}/original/${encodeURIComponent(id)}`,
-      });
+      const geometries = geometriesOf(job.token);
       await preloadMapGeometries(job.spread, geometries);
       flushSync(() =>
         root.render(
