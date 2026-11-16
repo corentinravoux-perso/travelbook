@@ -2002,24 +2002,28 @@ describe('the world far context', () => {
     expect(WORLD_LAND_URL).toMatch(/ne_(10|50)m_land\.geojson$/);
   });
 
-  it('is written: one land object, and no ring across the whole width of the world', () => {
+  it('is written: one land object, and only Antarctica and Afro-Eurasia wider than 180 degrees', () => {
     const topology = worldFile();
     expect(Object.keys(topology.objects)).toEqual(['land']);
     const { scale, translate } = topology.transform;
-    // lon range of each arc, after delta decoding
-    const lonRange = (arc: number[][]): [number, number] => {
+    // box [lon0, lat0, lon1, lat1] of each arc, after delta decoding
+    const boxOf = (arc: number[][]): number[] => {
       let x = 0;
-      let lo = Infinity;
-      let hi = -Infinity;
-      for (const [dx = 0] of arc) {
+      let y = 0;
+      const box = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const [dx = 0, dy = 0] of arc) {
         x += dx;
+        y += dy;
         const lon = x * (scale[0] ?? 1) + (translate[0] ?? 0);
-        lo = Math.min(lo, lon);
-        hi = Math.max(hi, lon);
+        const lat = y * (scale[1] ?? 1) + (translate[1] ?? 0);
+        box[0] = Math.min(box[0]!, lon);
+        box[1] = Math.min(box[1]!, lat);
+        box[2] = Math.max(box[2]!, lon);
+        box[3] = Math.max(box[3]!, lat);
       }
-      return [lo, hi];
+      return box;
     };
-    const ranges = topology.arcs.map(lonRange);
+    const boxes = topology.arcs.map(boxOf);
     const rings: number[][][] = [];
     const walk = (a: unknown, depth: number): void => {
       if (depth === 0) rings.push(a as number[][]);
@@ -2030,15 +2034,24 @@ describe('the world far context', () => {
       else walk(g.arcs, 2);
     }
     expect(rings.length).toBeGreaterThan(100);
-    // a ring from -180 to 180 would be a stripe across the world: only Antarctica, which reaches the
-    // pole, runs the whole width (Eurasia reaches 180 at Chukotka, over 197 degrees, and ends there)
-    const stripes = rings.filter((ring) => {
-      const spans = ring.flat().map((i) => ranges[i < 0 ? ~i : i] as [number, number]);
-      const lo = Math.min(...spans.map(([a]) => a));
-      const hi = Math.max(...spans.map(([, b]) => b));
-      return hi - lo > 340;
-    });
-    expect(stripes.length).toBeLessThanOrEqual(1);
+    const wide = rings
+      .map((ring) => {
+        const b = ring.flat().map((i) => boxes[i < 0 ? ~i : i] as number[]);
+        return [
+          Math.min(...b.map((x) => x[0]!)),
+          Math.min(...b.map((x) => x[1]!)),
+          Math.max(...b.map((x) => x[2]!)),
+          Math.max(...b.map((x) => x[3]!)),
+        ] as [number, number, number, number];
+      })
+      .filter(([lo, , hi]) => hi - lo > 180);
+    // Antarctica reaches the pole, so its ring runs along the whole width; Afro-Eurasia (Africa joins
+    // Eurasia at Suez) runs from Cape Verde's longitude to Chukotka at 180: neither is a stripe
+    const antarctica = wide.filter(([, , , north]) => north < -60);
+    const afroEurasia = wide.filter(([lo, , hi, north]) => north > 70 && lo < -15 && hi > 179);
+    expect(antarctica).toHaveLength(1);
+    expect(afroEurasia).toHaveLength(1);
+    expect(wide).toHaveLength(2);
   });
 
   it('is declared in LICENCES.json as Natural Earth, public domain', () => {

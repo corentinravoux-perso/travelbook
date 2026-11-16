@@ -1,7 +1,7 @@
-import { neighbors } from 'topojson-client';
+import { feature, neighbors } from 'topojson-client';
 import type { GeometryCollection } from 'topojson-specification';
 import { describe, expect, it } from 'vitest';
-import { bakeGeometry, simplifyTopology, type Topology } from './bake';
+import { bakeGeometry, farLand, simplifyTopology, type Topology } from './bake';
 import { d3Projection, projectPlace, type MapGeometry } from './projection';
 import {
   box,
@@ -613,13 +613,28 @@ describe('bakeGeometry, odd input', () => {
 
 describe('bakeGeometry, the world far context', () => {
   const world = worldTopology();
-  const thBox = [97.3, 5.6, 105.7, 20.5]; // Thailand's main bbox, as the build wrote its frame
-  const frameOf = (): [number, number, number, number] => {
-    const [x0, y0, x1, y1] = thBox as [number, number, number, number];
-    const dx = ((x1 - x0) * 0.3) / 2;
-    const dy = ((y1 - y0) * 0.3) / 2;
-    return [x0 - dx, y0 - dy, x1 + dx, y1 + dy];
+  type Box4 = [number, number, number, number];
+  /** The bbox of the points of the topology's `neighbours` object: the build's real clip. */
+  const neighboursBox = (topology: Topology): Box4 => {
+    const { features } = feature(
+      topology,
+      topology.objects.neighbours as GeometryCollection,
+    ) as unknown as {
+      features: { geometry: { type: string; coordinates: unknown } | null }[];
+    };
+    const box: Box4 = [Infinity, Infinity, -Infinity, -Infinity];
+    const walk = (c: unknown): void => {
+      if (Array.isArray(c) && typeof c[0] === 'number') {
+        box[0] = Math.min(box[0], c[0]);
+        box[1] = Math.min(box[1], c[1] as number);
+        box[2] = Math.max(box[2], c[0]);
+        box[3] = Math.max(box[3], c[1] as number);
+      } else if (Array.isArray(c)) c.forEach(walk);
+    };
+    for (const f of features) walk(f.geometry?.coordinates);
+    return box;
   };
+  const frameOf = (): Box4 => neighboursBox(th);
   const bakeWith = (
     id: string,
     topology: Topology,
@@ -650,7 +665,7 @@ describe('bakeGeometry, the world far context', () => {
     expect(g.projection).toEqual(plain.projection);
   });
 
-  it('adds land of Thailand, outside the 1.3 x frame and none inside it', () => {
+  it('adds land of Thailand, outside the neighbours bbox and none inside it', () => {
     const plain = bakeTh();
     const g = bakeWith('TH', th);
     const added = worldPart(g, plain);
@@ -671,7 +686,7 @@ describe('bakeGeometry, the world far context', () => {
     expect(outside).toBeGreaterThan(20);
   });
 
-  it('emits the neighbours lines apart: real borders and coasts, none on the 1.3 x clip rectangle', () => {
+  it('emits the neighbours lines apart: real borders and coasts, none on the neighbours clip rectangle', () => {
     for (const withWorld of [world, null]) {
       const g = bakeWith('TH', th, {}, withWorld);
       const lines = g.paths.neighbourLines ?? '';
@@ -679,10 +694,17 @@ describe('bakeGeometry, the world far context', () => {
       expect(lines).not.toMatch(/NaN|Infinity|Z/);
       const proj = d3Projection(g.projection);
       const [x0, y0, x1, y1] = frameOf();
-      const eps = 0.02;
+      // two ends within 0.01 degree of one side of the bbox, over 0.05 degree apart: a run of the cut
+      const eps = 0.01;
       const onEdge = (a: [number, number], b: [number, number]): boolean =>
-        [x0, x1].some((e) => Math.abs(a[0] - e) < eps && Math.abs(b[0] - e) < eps) ||
-        [y0, y1].some((e) => Math.abs(a[1] - e) < eps && Math.abs(b[1] - e) < eps);
+        [x0, x1].some(
+          (e) =>
+            Math.abs(a[0] - e) < eps && Math.abs(b[0] - e) < eps && Math.abs(a[1] - b[1]) > 0.05,
+        ) ||
+        [y0, y1].some(
+          (e) =>
+            Math.abs(a[1] - e) < eps && Math.abs(b[1] - e) < eps && Math.abs(a[0] - b[0]) > 0.05,
+        );
       let segments = 0;
       let inside = 0;
       for (const sub of lines.split(/(?=M)/)) {
@@ -702,6 +724,44 @@ describe('bakeGeometry, the world far context', () => {
 
   it('has no neighbours lines without neighbours', () => {
     expect(bakeWith('TH', th, { showNeighbours: false }).paths.neighbourLines).toBe('');
+  });
+
+  it('erases the neighbours bbox of the real files: no far-land vertex inside it, none missing at its edge', () => {
+    for (const id of ['TH', 'PE', 'US-AK']) {
+      const topology = subjectTopology(id);
+      const [x0, y0, x1, y1] = neighboursBox(topology);
+      const pieces = farLand(world, [x0, y0, x1, y1]);
+      const eps = 1e-6;
+      for (const polygon of pieces) {
+        for (const [lon, lat] of polygon[0] ?? []) {
+          const inside = lon! > x0 + eps && lon! < x1 - eps && lat! > y0 + eps && lat! < y1 - eps;
+          expect(inside, `${id} ${lon},${lat}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('reaches the neighbours bbox with no gap: land on both sides of its south edge, over Malaysia', () => {
+    const [, south] = neighboursBox(th);
+    expect(south).toBeCloseTo(4.164, 2);
+    const pieces = farLand(world, neighboursBox(th));
+    const vertices = pieces.flatMap((p) => p.flat());
+    const near = (pred: (lat: number) => boolean): boolean =>
+      vertices.some(([lon, lat]) => lon! > 100 && lon! < 104 && pred(lat!));
+    // far land south of the edge (Peninsular Malaysia) and a vertex right on the edge
+    expect(near((lat) => lat < south - 0.5)).toBe(true);
+    expect(near((lat) => Math.abs(lat - south) < 1e-9)).toBe(true);
+  });
+
+  it('keeps the polygon whole when polygon-clipping throws, and the bake goes on', () => {
+    const box = neighboursBox(th);
+    const whole = farLand(world, null);
+    const pieces = farLand(world, box, () => {
+      throw new Error('degenerate ring');
+    });
+    // every polygon that meets the box is kept unclipped
+    expect(pieces.length).toBe(whole.length);
+    expect(farLand(world, box).length).toBeGreaterThan(0);
   });
 
   it('draws the world first, and as clean lines even in rough', () => {

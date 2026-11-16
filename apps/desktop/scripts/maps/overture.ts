@@ -223,14 +223,18 @@ export async function fetchWorldLand(): Promise<Collection> {
     `natural-earth-${NATURAL_EARTH_COMMIT.slice(0, 8)}`,
     WORLD_LAND_FILE,
   );
+  // only a missing file is downloaded again: an unreadable or corrupt cache is an error to see
+  let cached: string | undefined;
   try {
-    return JSON.parse(await readFile(path, 'utf8')) as Collection;
-  } catch {
-    const response = await fetch(WORLD_LAND_URL);
-    if (!response.ok) throw new Error(`world land: HTTP ${response.status}`);
-    const text = await response.text();
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, text);
-    return JSON.parse(text) as Collection;
+    cached = await readFile(path, 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
   }
+  if (cached !== undefined) return JSON.parse(cached) as Collection;
+  const response = await fetch(WORLD_LAND_URL);
+  if (!response.ok) throw new Error(`world land: HTTP ${response.status}`);
+  const text = await response.text();
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, text);
+  return JSON.parse(text) as Collection;
 }

@@ -543,13 +543,16 @@ export interface AllSteps {
  * licences), and the exit code is 1 at the end. Returns the countries Wikidata did not answer.
  */
 export async function runSteps(steps: AllSteps): Promise<SkippedPlaces[]> {
+  // the world step, when there is one, comes first and shifts the numbering
+  const n = steps.world ? 1 : 0;
+  const total = 3 + n;
   if (steps.world) {
-    console.log(`[${clock()}] step 0/3: world`);
+    console.log(`[${clock()}] step 1/${total}: world`);
     await steps.world();
   }
-  console.log(`[${clock()}] step 1/3: boundaries`);
+  console.log(`[${clock()}] step ${n + 1}/${total}: boundaries`);
   await steps.boundaries();
-  console.log(`[${clock()}] step 2/3: places`);
+  console.log(`[${clock()}] step ${n + 2}/${total}: places`);
   let skipped: SkippedPlaces[] = [];
   try {
     skipped = await steps.places();
@@ -558,7 +561,7 @@ export async function runSteps(steps: AllSteps): Promise<SkippedPlaces[]> {
     console.error('packs still runs; run `places` again afterwards');
     process.exitCode = 1;
   }
-  console.log(`[${clock()}] step 3/3: packs`);
+  console.log(`[${clock()}] step ${n + 3}/${total}: packs`);
   await steps.packs();
   console.log(`[${clock()}] all: done${process.exitCode ? ' WITH ERRORS (exit code 1)' : ''}`);
   if (skipped.length > 0) {
