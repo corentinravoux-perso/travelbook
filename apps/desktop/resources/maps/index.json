@@ -2915,7 +2915,7 @@
     "US"
    ],
    "file": "subjects/US-AK.topo.json",
-   "sha256": "30d9bb1c731611cac0c8774feadbcdff6340965bc52ac60f16ea9c5b0f88eb2d",
+   "sha256": "dd13d62a0b44a896b82b0343791f73db1173705c1267689b8dcf73b8384c976e",
    "regions": [
     {
      "id": "01352d78-757e-4eac-9997-8992d10dc5cc",
@@ -3058,6 +3058,16 @@
      ]
     },
     {
+     "id": "bd8ad0c2-0657-43b9-93fd-fefd33e26e63",
+     "name": "Prince of Wales-Hyder",
+     "bbox": [
+      -133.9448,
+      54.6634,
+      -130.0035,
+      56.3574
+     ]
+    },
+    {
      "id": "ca8ee943-2147-48e8-84e7-da3065950b98",
      "name": "Juneau",
      "bbox": [
@@ -3121,8 +3131,8 @@
    "landSource": "county",
    "pack": {
     "file": "packs/US-AK.topo.json",
-    "sha256": "0fa529e268114c43c1b43965192376e80c535584f94e1b4ec4b6e33e0de72760",
-    "bytes": 552457,
+    "sha256": "9b3596fa75b10dc77582fed24ac8f1adc56d7d5bb903514856cd7b4e7a1b3e61",
+    "bytes": 552580,
     "bundled": false,
     "mode": "finest"
    }

@@ -67,7 +67,7 @@ import {
   bboxesOverlap,
   buildBestPack,
   buildTopology,
-  dropCoveredRegions,
+  cutOverlappingRegions,
   extentKm,
   mainBbox,
   mergeGeometry,
@@ -150,9 +150,9 @@ const loadLevel = (def: SubjectDef, level: DivisionLevel): Promise<Feature[]> =>
   fetchDivisions(def.country, level, def.part?.region);
 
 /**
- * The regions of a subject: `all` as Overture lists them, and `kept`, without the regions that
- * overlap another (see `dropCoveredRegions`). The base file and the pack both draw `kept`, so
- * their region ids stay the same; the land is still the union of `all`.
+ * The regions of a subject: `all` as Overture lists them, and `kept`, where a region that lies
+ * inside another is cut out of it (see `cutOverlappingRegions`). The base file and the pack both
+ * draw `kept`, so their region ids stay the same; the land is still the union of `all`.
  */
 async function loadRegions(def: SubjectDef): Promise<{ all: Feature[]; kept: Feature[] }> {
   const all = await loadLevel(def, regionsLevel(def));
@@ -162,20 +162,30 @@ async function loadRegions(def: SubjectDef): Promise<{ all: Feature[]; kept: Fea
     if (ids.has(id)) throw new Error(`${def.id}: duplicate region id ${id}`);
     ids.add(id);
   }
-  const { kept, dropped, ratio, ratioAfter } = await dropCoveredRegions(all);
-  if (dropped.length > 0) {
+  const { regions, cuts, dropped, ratio, ratioAfter } = await cutOverlappingRegions(all);
+  if (cuts.length > 0 || dropped.length > 0) {
     console.log(
-      `  ${def.id}: overlapping regions, summed area ${ratio.toFixed(4)} x their union; dropped ${dropped.length}: ` +
-        `${dropped.map((d) => `${d.name} (${d.id}, ${(d.covered * 100).toFixed(0)} % covered, ${Math.round(d.areaKm2)} km2)`).join(', ')}; now ${ratioAfter.toFixed(4)}`,
+      `  ${def.id}: overlapping regions, summed area ${ratio.toFixed(4)} x their union, now ${ratioAfter.toFixed(4)}`,
     );
+    for (const cut of cuts) {
+      console.log(
+        `    ${cut.name} (${cut.id}) cut by ${cut.by.map((b) => `${b.name} (${b.id})`).join(', ')}, ` +
+          `${(cut.left * 100).toFixed(1)} % of it left`,
+      );
+    }
+    for (const gone of dropped) {
+      console.log(
+        `    ${gone.name} (${gone.id}) dropped: ${(gone.left * 100).toFixed(2)} % of it left after the cuts`,
+      );
+    }
   }
   if (ratioAfter > 1 + OVERLAP_TOLERANCE) {
     console.warn(
       `  ${def.id}: WARNING the regions still overlap (summed area ${ratioAfter.toFixed(4)} x their union), ` +
-        'and none is a parent to drop',
+        'and none lies inside another',
     );
   }
-  return { all, kept };
+  return { all, kept: regions };
 }
 
 export async function buildSubject(
