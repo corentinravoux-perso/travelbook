@@ -12,6 +12,7 @@ import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { MASK_PRESETS } from '@travelbook/render';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editorStore } from '../../store/editor';
+import { ICONS } from '../../theme/icons';
 import { fr } from '../../strings/fr';
 import { Inspector } from './Inspector';
 
@@ -302,6 +303,18 @@ describe('Inspector', () => {
       expect(screen.getByLabelText(fr.inspector.opacity)).toBeTruthy();
       expect(screen.queryByTestId('photo-inspector')).toBeNull();
       expect(screen.queryByLabelText('Épaisseur')).toBeNull();
+    });
+
+    it('lists the map in the layers with its own icon and its label', () => {
+      vi.stubGlobal('tb', {
+        project: { save: () => Promise.resolve(), listSnapshots: () => Promise.resolve([]) },
+      });
+      render(<Inspector />);
+      fireEvent.click(screen.getByRole('tab', { name: 'Calques' }));
+      const row = screen.getByText('Carte · TH').closest('li, [role="option"], div')!;
+      const pathOf = (body: string) => /\sd="([^"]+)"/.exec(body)![1];
+      expect(row.querySelector('svg.icon path')!.getAttribute('d')).toBe(pathOf(ICONS.map));
+      expect(pathOf(ICONS.map)).not.toBe(pathOf(ICONS['layout-grid']));
     });
 
     it('sets the opacity of the map', () => {
