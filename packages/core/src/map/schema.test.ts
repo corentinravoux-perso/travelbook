@@ -61,7 +61,7 @@ describe('MapElementSchema', () => {
   });
 
   it('rejects a subject without its switches', () => {
-    for (const key of ['showRegions', 'showNeighbours', 'includeRemote']) {
+    for (const key of ['showRegions', 'showNeighbours', 'showLakes', 'includeRemote']) {
       expect(accepts(broken((m) => delete m['subject'][key]))).toBe(false);
     }
   });
@@ -180,6 +180,8 @@ describe('MapStyleSchema', () => {
       s['regions'].stroke = null;
       s['neighbours'].fill = null;
       s['neighbours'].stroke = null;
+      s['lakes'].fill = null;
+      s['lakes'].stroke = null;
       s['outline'].color = null;
       s['markers'].city.stroke = null;
       s['badge'].stroke = null;

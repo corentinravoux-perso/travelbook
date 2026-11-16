@@ -78,6 +78,8 @@ export interface MapStyle {
   land: { fill: string | null; stroke: string | null; width: Mm };
   regions: { stroke: string | null; width: Mm; dash: Mm[] | null };
   neighbours: { fill: string | null; stroke: string | null; width: Mm };
+  /** The major lakes, drawn over the land. */
+  lakes: { fill: string | null; stroke: string | null; width: Mm };
   /** `detail` 0..1: 1 keeps the full print precision of the outline, less simplifies it. */
   outline: { color: string | null; width: Mm; detail: number };
   label: {
@@ -115,6 +117,8 @@ export interface MapElement extends ElementBase {
     regions: string[];
     showRegions: boolean;
     showNeighbours: boolean;
+    /** The lakes layer; on by default. */
+    showLakes: boolean;
     /** Frame far-off territories too. */
     includeRemote: boolean;
   };
