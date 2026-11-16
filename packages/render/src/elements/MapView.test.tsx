@@ -549,4 +549,123 @@ describe('MapView', () => {
       Number(/translate\(([-\d.]+)/.exec(marker?.getAttribute('transform') ?? '')?.[1]),
     ).toBeLessThan(4);
   });
+
+  describe('medallions', () => {
+    const photo = (dx: number, dy: number, assetId = 'ph-1', diameter = 10) => ({
+      assetId,
+      offset: { dx, dy },
+      diameter,
+      crop: { scale: 2, cx: 0.5, cy: 0.5 },
+    });
+    const withPhoto = (medallions: boolean, labelShown = false) =>
+      mapEl({
+        medallions,
+        places: [place('a', 0, 0, { photo: photo(20, 0), labelShown })],
+      });
+
+    it('draws no image when the master switch is off', () => {
+      const { container, layer } = draw(withPhoto(false));
+      expect(container.querySelector('image')).toBeNull();
+      expect(layer('medallions')?.children.length).toBe(0);
+      expect(layer('leaders')?.children.length).toBe(0);
+    });
+
+    it('draws one circle-clipped image with ring and leader per shown place with a photo', () => {
+      const el = mapEl({
+        medallions: true,
+        places: [
+          place('a', 0, 0, { photo: photo(20, 0, 'ph-a') }),
+          place('b', 5, 5, { photo: photo(0, 20, 'ph-b'), shown: false }),
+          place('c', 5, -5),
+        ],
+      });
+      const { container, layer } = draw(el);
+      const images = container.querySelectorAll('image');
+      expect(images.length).toBe(1);
+      expect(images[0].getAttribute('href')).toBe('/a/ph-a');
+      const m = layer('medallions') as Element;
+      const clip = images[0].getAttribute('clip-path') as string;
+      const id = /url\(#(.+)\)/.exec(clip)?.[1] as string;
+      const circle = container.querySelector(`clipPath[id="${id}"] circle`) as Element;
+      expect(Number(circle.getAttribute('r'))).toBe(5);
+      const ring = m.querySelector('circle[data-ring]') as Element;
+      expect(ring.getAttribute('stroke')).toBe(DEFAULT_MAP_STYLE.medallion.ringColor);
+      expect(Number(ring.getAttribute('stroke-width'))).toBe(DEFAULT_MAP_STYLE.medallion.ringWidth);
+      expect(Number(ring.getAttribute('r'))).toBe(5);
+      // the leader runs from the medallion edge to the point (20 mm right of it)
+      const marker = layer('markers')?.querySelector('[data-place="a"]') as Element;
+      const t = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(marker.getAttribute('transform') ?? '');
+      const px = Number(t?.[1]);
+      const leader = layer('leaders')?.querySelector('line') as Element;
+      expect(Number(leader.getAttribute('x1'))).toBeCloseTo(px + 20 - 5, 3);
+      expect(Number(leader.getAttribute('x2'))).toBeCloseTo(px, 3);
+      expect(Number(ring.getAttribute('cx'))).toBeCloseTo(px + 20, 3);
+    });
+
+    it('draws the ring only when the asset is missing', () => {
+      const el = withPhoto(true);
+      const { container } = render(
+        <MapView
+          el={el}
+          geometry={geometry}
+          quality={quality}
+          assetUrl={assetUrl}
+          hasAsset={() => false}
+        />,
+      );
+      const layer = (n: string) => container.querySelector(`[data-layer="${n}"]`);
+      expect(container.querySelector('image')).toBeNull();
+      expect(layer('medallions')?.querySelector('circle[data-ring]')).not.toBeNull();
+    });
+
+    it('gives each view its own clip ids', () => {
+      const a = draw(withPhoto(true)).container.querySelector('clipPath')?.id;
+      const b = draw(withPhoto(true)).container.querySelector('clipPath')?.id;
+      expect(a).toBeTruthy();
+      expect(a).not.toBe(b);
+    });
+
+    it('keeps labels off the medallion', () => {
+      const el = (medallions: boolean) =>
+        mapEl({
+          medallions,
+          places: [place('a', 0, 0, { labelShown: true, photo: photo(8, 0, 'ph-1', 10) })],
+        });
+      const pos = (m: boolean) => {
+        const t = draw(el(m)).layer('labels')?.querySelector('text') as Element;
+        return [Number(t.getAttribute('x')), Number(t.getAttribute('y'))];
+      };
+      const ring = draw(el(true)).layer('medallions')?.querySelector('circle') as Element;
+      const [x, y] = pos(true);
+      const [x0, y0] = pos(false);
+      expect(Math.hypot(x - x0, y - y0)).toBeGreaterThan(0);
+      // the label centre is outside the disc
+      expect(
+        Math.hypot(x - Number(ring.getAttribute('cx')), y - Number(ring.getAttribute('cy'))),
+      ).toBeGreaterThan(5);
+    });
+
+    it('emits no NaN for a non-finite photo', () => {
+      const el = mapEl({
+        medallions: true,
+        places: [place('a', 0, 0, { photo: photo(Number.NaN, Number.POSITIVE_INFINITY) })],
+      });
+      expect(allAttributes(draw(el).container).join(' ')).not.toMatch(/NaN|Infinity/);
+    });
+
+    it('is told by SpreadView which assets are missing', () => {
+      const { book, spread } = bookWith([withPhoto(true)]);
+      const { container } = render(
+        <SpreadView
+          book={book}
+          spread={spread}
+          quality={quality}
+          assetUrl={assetUrl}
+          mapGeometry={() => geometry}
+        />,
+      );
+      expect(container.querySelector('image')).toBeNull();
+      expect(container.querySelector('circle[data-ring]')).not.toBeNull();
+    });
+  });
 });
