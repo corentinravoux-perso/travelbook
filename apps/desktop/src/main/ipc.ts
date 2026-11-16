@@ -4,6 +4,7 @@ import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import {
   BookSchema,
   LicenceSchema,
+  MapStyleSchema,
   TemplateSchema,
   fontFamiliesUsed,
   type Book,
@@ -56,6 +57,15 @@ import {
 } from './library/fonts';
 import { getStickerService } from './library/stickers/service';
 import { SourceError } from './library/stickers/source';
+import { saveGeometryAsset } from './maps/geometry-asset';
+import { loadPack } from './maps/packs';
+import {
+  USER_STYLE_ID,
+  deleteUserStyle,
+  listUserStyles,
+  renameUserStyle,
+  saveUserStyle,
+} from './maps/user-styles';
 import { projectFilePath } from './protocol';
 import { isBusy, serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
@@ -159,6 +169,9 @@ const stickerSearch = z.strictObject({
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 /** Longest SVG text `assets:fromSvg` accepts (a poster illustration is a few kB). */
 const MAX_SVG_CHARS = 2_000_000;
+/** Longest baked map geometry `maps:saveGeometry` accepts (a whole country is a few hundred kB). */
+const MAX_GEOMETRY_CHARS = 20_000_000;
+const styleName = z.string().trim().min(1).max(100);
 
 /** A failed online call reaches the renderer as `SourceError:<kind>`, which it maps to French. */
 async function viaSource<T>(task: () => Promise<T>): Promise<T> {
@@ -226,6 +239,15 @@ const schemas = {
     z.string().min(1).max(MAX_SVG_CHARS),
     z.object({ name: z.string().min(1).max(200), licence: LicenceSchema.optional() }).strict(),
   ]),
+  mapGeometry: z.tuple([
+    z.string().min(2).max(MAX_GEOMETRY_CHARS),
+    z.strictObject({ name: z.string().min(1).max(200) }),
+  ]),
+  /** An index subject id: `TH`, `US-AK`, `FR-MET`. */
+  subjectId: z.tuple([z.string().regex(/^[A-Za-z0-9-]{1,32}$/, 'must be a subject id')]),
+  styleSave: z.tuple([styleName, MapStyleSchema]),
+  styleRename: z.tuple([z.string().regex(USER_STYLE_ID, 'must be a user style id'), styleName]),
+  styleId: z.tuple([z.string().regex(USER_STYLE_ID, 'must be a user style id')]),
   clipboardWrite: z.tuple([clipboardPayload]),
   externalUrl: z.tuple([z.string().max(2048).refine(isHttps, 'only https: URLs are opened')]),
 };
@@ -594,6 +616,41 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.stickersSetKey]: async (_ctx, ...args) => {
       const [sourceId, key] = parseArgs(CHANNEL.stickersSetKey, schemas.sourceKey, args);
       await (await getStickerService(() => host.version())).setKey(sourceId, key);
+    },
+
+    [CHANNEL.mapsSaveGeometry]: async (_ctx, ...args) => {
+      const [json, meta] = parseArgs(CHANNEL.mapsSaveGeometry, schemas.mapGeometry, args);
+      const session = requireSession();
+      return serialize(importQueue(session), async () => {
+        const asset = await saveGeometryAsset(session.dir, json, meta);
+        recordAssets(session, [asset]);
+        return asset;
+      });
+    },
+
+    [CHANNEL.mapsLoadPack]: async (_ctx, ...args) => {
+      const [subjectId] = parseArgs(CHANNEL.mapsLoadPack, schemas.subjectId, args);
+      return loadPack(subjectId, () => host.version());
+    },
+
+    [CHANNEL.mapsListStyles]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.mapsListStyles, schemas.none, args);
+      return listUserStyles();
+    },
+
+    [CHANNEL.mapsSaveStyle]: async (_ctx, ...args) => {
+      const [name, style] = parseArgs(CHANNEL.mapsSaveStyle, schemas.styleSave, args);
+      return saveUserStyle(name, style);
+    },
+
+    [CHANNEL.mapsRenameStyle]: async (_ctx, ...args) => {
+      const [id, name] = parseArgs(CHANNEL.mapsRenameStyle, schemas.styleRename, args);
+      await renameUserStyle(id, name);
+    },
+
+    [CHANNEL.mapsDeleteStyle]: async (_ctx, ...args) => {
+      const [id] = parseArgs(CHANNEL.mapsDeleteStyle, schemas.styleId, args);
+      await deleteUserStyle(id);
     },
 
     [CHANNEL.clipboardWrite]: async (_ctx, ...args) => {

@@ -5,6 +5,8 @@ import type {
   Book,
   Element,
   Licence,
+  MapPreset,
+  MapStyle,
   PreflightIssue,
   Template,
   Theme,
@@ -295,6 +297,41 @@ export interface BundledBackground {
   licence: Licence;
 }
 
+/** What `maps.loadPack` gives: the pack's text, or why there is none. */
+export type PackResult =
+  | { ok: true; json: string }
+  /**
+   * `offline`: not kept on this computer and the download did not answer (no network, or the
+   * release does not have it); `checksum`: the download is not the file the app expects (nothing
+   * is kept); `unknown`: no fine pack exists for that subject.
+   */
+  | { ok: false; reason: 'offline' | 'checksum' | 'unknown' };
+
+/** The map maker's data and the user's own map styles ("modèles"). */
+export interface MapsApi {
+  /**
+   * Keep the baked geometry of a map in the open project's `assets/` as `assets/<sha16>.json`
+   * (kind `map`, id `map-<sha16>`, once per content) with its ODbL licence, which the album's
+   * credits list. The renderer adds the asset to its book (`store.apply`). `json` is a JSON object.
+   */
+  saveGeometry(json: string, meta: { name: string }): Promise<AssetRef>;
+  /**
+   * The fine region pack of a subject id (`US`, `US-AK`, `FR-MET`): the copy shipped with the app,
+   * else the one kept after a download, else a download from the geodata release (sha256 checked).
+   */
+  loadPack(subjectId: string): Promise<PackResult>;
+  /**
+   * The user's styles, by name. The built-in presets are not here: they are the files of
+   * `resources/maps/presets/`, served as `tb://resource/maps/presets/<id>.json`.
+   */
+  listStyles(): Promise<MapPreset[]>;
+  /** Keep a style under a name, as a new style with its own id (a user id starts with `user-`). */
+  saveStyle(name: string, style: MapStyle): Promise<MapPreset>;
+  /** Rejects when the id is not one of the user's styles. */
+  renameStyle(id: string, name: string): Promise<void>;
+  deleteStyle(id: string): Promise<void>;
+}
+
 /** Elements on the system clipboard (`application/x-travelbook`), with what they need. */
 export interface ClipboardPayload {
   /** Where they were copied from: pasting back there shifts them so they do not hide the originals. */
@@ -438,6 +475,7 @@ export interface TbApi {
     palette(assetIds: string[]): Promise<string[]>;
   };
   library: LibraryApi;
+  maps: MapsApi;
   clipboard: {
     writeElements(payload: ClipboardPayload): Promise<void>;
     /**
