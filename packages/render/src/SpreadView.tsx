@@ -56,6 +56,7 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
           geometry={p.mapGeometry?.(el.geometryAssetId) ?? null}
           quality={p.quality}
           assetUrl={p.assetUrl}
+          hasAsset={(id) => p.book.assets[id] !== undefined}
         />
       );
   }
