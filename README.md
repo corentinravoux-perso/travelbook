@@ -12,6 +12,10 @@ The interface is in French. Code, comments and documentation are in English.
 
 ## Install
 
+The pre-release [`latest`](https://github.com/corentinravoux/travelbook/releases/tag/latest) always
+holds the installers of the last commit on `main`: `travelbook-latest.exe` (Windows) and
+`travelbook-latest.deb` (Linux). Versioned releases carry the names below.
+
 ### Linux (Ubuntu and other Debian systems, x64)
 
 Download `travelbook_<version>_amd64.deb` from the GitHub Releases page, then:
@@ -167,4 +171,5 @@ npm run e2e:stress     # 100-page book of 400 photos of 24 MP: measurements for 
 A tag `vX.Y.Z` (equal to the version in `apps/desktop/package.json`) builds both installers and
 publishes them on a GitHub Release (`.github/workflows/release.yml`). The same workflow can be run
 by hand from the Actions tab: it then builds and checks the installers and keeps them as workflow
-artifacts, without creating a release.
+artifacts, without creating a release. Every push to `main` runs it too and replaces the installers
+of the pre-release `latest`.
