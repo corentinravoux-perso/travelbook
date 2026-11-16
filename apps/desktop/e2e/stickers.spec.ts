@@ -73,8 +73,9 @@ test('search avion, place the first result and tint it; import alpha.png, place 
       await expect.poll(async () => (await stickers())[0]!.flipH).toBe(true);
     });
 
-    await test.step('alpha.png goes into Mes stickers and is placed', async () => {
-      await page.getByRole('tab', { name: 'Mes stickers' }).click();
+    await test.step('alpha.png goes into Récents and is placed', async () => {
+      await expect(page.getByRole('tab', { name: 'Mes stickers' })).toHaveCount(0);
+      await page.getByRole('tab', { name: 'Récents' }).click();
       await expect(page.getByText('Aucun sticker')).toHaveCount(0);
       await app.evaluate(
         ({ dialog }, files) => {
