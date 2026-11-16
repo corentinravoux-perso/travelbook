@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { assetUrl } from '../editor/assetUrl';
 import { withAssets } from '../editor/photoImport';
 import { measureText } from './posterActions';
+import { useMapGeometryLookup } from '../maps/geometryCache';
 
 export const PREVIEW_ASSET_ID = 'poster-preview';
 
@@ -58,6 +59,7 @@ export function PosterPreview({
   height: number;
 }) {
   const tick = useFontsTick([spec.font, 'Work Sans']);
+  const mapGeometry = useMapGeometryLookup();
   const preview = useMemo(() => {
     void tick;
     const b = withAssets(book, [previewAsset]);
@@ -84,6 +86,7 @@ export function PosterPreview({
           spread={preview.cover}
           clip={clip}
           quality="thumb"
+          mapGeometry={mapGeometry}
           assetUrl={(id, quality, el) =>
             id === PREVIEW_ASSET_ID ? svgUrl : assetUrl(id, quality, el)
           }
