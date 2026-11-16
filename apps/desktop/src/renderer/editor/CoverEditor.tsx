@@ -1,6 +1,7 @@
 import {
   addElement,
   newElement,
+  setBookSettings,
   spineBox,
   type Book,
   type Spread,
@@ -10,6 +11,7 @@ import { openPosterDialog } from '../posters/PosterDialog';
 import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
+import { SpineChoice } from './SpineChoice';
 
 /** 1 pt in mm. */
 const PT_MM = 25.4 / 72;
@@ -79,6 +81,15 @@ function addSpineText(): void {
   select([el.id]);
 }
 
+/** Give the book a spine `width` mm wide, or none (0): one undo step; the front moves with it. */
+export function setSpineWidth(width: number): void {
+  const { book, apply } = editorStore.getState();
+  if (!book || width === book.spineWidth) return;
+  const label =
+    width > 0 ? fr.spine.undoWith(String(width).replace('.', ',')) : fr.spine.undoWithout;
+  apply((b) => setBookSettings(b, { spineWidth: width }), label);
+}
+
 /** The cover's own tools, over the canvas while the cover is shown. */
 export function CoverTools({ book, spread }: { book: Book; spread: Spread }) {
   if (spread.kind !== 'cover') return null;
@@ -89,6 +100,7 @@ export function CoverTools({ book, spread }: { book: Book; spread: Spread }) {
         <Icon name="layout-grid" />
         {fr.poster.open}
       </button>
+      <SpineChoice book={book} value={book.spineWidth} onChange={setSpineWidth} compact />
       <button
         type="button"
         className="button button--small"
@@ -99,7 +111,6 @@ export function CoverTools({ book, spread }: { book: Book; spread: Spread }) {
         <Icon name="letter-t" />
         {fr.cover.spineText}
       </button>
-      {!spine && <span className="cover-tools__hint">{fr.cover.spineNone}</span>}
     </div>
   );
 }

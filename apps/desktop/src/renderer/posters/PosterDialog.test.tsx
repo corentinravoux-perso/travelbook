@@ -168,7 +168,33 @@ describe('PosterDialog', () => {
     expect(apply).toHaveBeenCalledWith(
       expect.objectContaining({ illustration: { itemId: 'sticker-a' } }),
       { name: 'Avion', licence: cc },
+      10,
     );
+  });
+
+  it('chooses the spine with the poster: "Sans tranche" turns the spine title off, applies 0', async () => {
+    await openWith(book);
+    const spineTitle = () => screen.getByRole('checkbox', { name: t.spine }) as HTMLInputElement;
+    expect(spineTitle().disabled).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: fr.spine.without }));
+    expect(spineTitle().disabled).toBe(true);
+    expect(screen.getByText(t.spineOff)).toBeTruthy();
+    expect(screen.queryByLabelText(fr.spine.width)).toBeNull();
+    // Nothing reaches the book before the poster is applied.
+    expect(editorStore.getState().book!.spineWidth).toBe(10);
+    fireEvent.click(screen.getByRole('button', { name: t.apply }));
+    expect(apply).toHaveBeenCalledWith(expect.anything(), expect.anything(), 0);
+  });
+
+  it('"Avec tranche" on a book without spine offers a width the user can change', async () => {
+    await openWith({ ...book, spineWidth: 0 });
+    fireEvent.click(screen.getByRole('button', { name: fr.spine.with }));
+    const width = screen.getByLabelText(fr.spine.width) as HTMLInputElement;
+    expect(Number(width.value.replace(',', '.'))).toBeGreaterThanOrEqual(6);
+    fireEvent.change(width, { target: { value: '12,5' } });
+    fireEvent.keyDown(width, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: t.apply }));
+    expect(apply).toHaveBeenCalledWith(expect.anything(), expect.anything(), 12.5);
   });
 
   it('warns when the title vanishes into the background', async () => {

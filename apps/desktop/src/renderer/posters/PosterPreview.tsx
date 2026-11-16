@@ -41,6 +41,8 @@ function useFontsTick(families: string[]): number {
 
 /** The spine face of the volume view is never narrower than this share of the front. */
 const VOLUME_SPINE_MIN = 0.07;
+/** Without a spine, the volume view shows only the edge of the boards: this share of the front. */
+const VOLUME_EDGE = 0.02;
 
 /**
  * The front cover and the spine of `book` with the poster `spec` applied, drawn by the real
@@ -49,7 +51,8 @@ const VOLUME_SPINE_MIN = 0.07;
  *
  * `volume` shows the same poster as a closed book seen from the left (CSS 3D, no extra
  * rendering): the spine folds back at the hinge, the front recedes, a light hinge crease and a
- * soft gloss sit on top, a contact shadow below. The flat view stays the default.
+ * soft gloss sit on top, a contact shadow below. A book without a spine shows only a thin edge.
+ * The flat view stays the default.
  */
 export function PosterPreview({
   book,
@@ -101,7 +104,8 @@ export function PosterPreview({
     const k = height / H;
     const frontPx = W * k;
     const spinePx = spine * k;
-    const face = Math.max(spinePx, VOLUME_SPINE_MIN * frontPx);
+    // No spine (stapled, spiral): a thin edge in the background colour, never a spine face.
+    const face = spine > 0 ? Math.max(spinePx, VOLUME_SPINE_MIN * frontPx) : VOLUME_EDGE * frontPx;
     return (
       <span
         className="poster-preview poster-book"
