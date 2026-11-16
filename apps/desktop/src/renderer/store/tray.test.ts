@@ -40,4 +40,14 @@ describe('tray store', () => {
     store.getState().setMany(['a', 'b'], false);
     expect(store.getState().selected).toEqual(['x']);
   });
+
+  it('starts with every day unfolded; the chevron folds a day and unfolds it', () => {
+    const store = createTrayStore();
+    expect(store.getState().folded).toEqual([]);
+    store.getState().toggleFolded('2026-05-06');
+    store.getState().toggleFolded('no-date');
+    expect(store.getState().folded).toEqual(['2026-05-06', 'no-date']);
+    store.getState().toggleFolded('2026-05-06');
+    expect(store.getState().folded).toEqual(['no-date']);
+  });
 });

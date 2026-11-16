@@ -8,21 +8,20 @@ import './stickers/Stickers.css';
 
 const t = fr.stickers;
 
-type TabKey = 'travelbook' | 'library' | 'online' | 'mine' | 'favourites' | 'recent';
+type TabKey = 'travelbook' | 'library' | 'online' | 'favourites' | 'recent';
 
 const TABS: [TabKey, string][] = [
   ['travelbook', t.tab.travelbook],
   ['library', t.tab.library],
   ['online', t.tab.online],
-  ['mine', t.tab.mine],
   ['favourites', t.tab.favourites],
   ['recent', t.tab.recent],
 ];
 
 /**
  * The "Stickers" panel (spec §9.2): our own drawn sets ("travelbook", first), the offline
- * library of open packs, online sources, the user's own
- * stickers, favourites and recents. Placing one (a click, or a drag onto the page) goes through
+ * library of open packs, online sources, favourites, and recents (where the user's own images
+ * are imported). Placing one (a click, or a drag onto the page) goes through
  * `placeSticker`, which copies it into the album and adds the element in one undo step.
  */
 export function StickersPanel() {
@@ -64,7 +63,6 @@ export function StickersPanel() {
         {tab === 'travelbook' && <LibraryTab key="travelbook" group="travelbook" />}
         {tab === 'library' && <LibraryTab key="library" group="library" />}
         {tab === 'online' && <OnlineTab />}
-        {tab === 'mine' && <MineTab view="mine" />}
         {tab === 'favourites' && <MineTab view="favourites" />}
         {tab === 'recent' && <MineTab view="recent" />}
       </div>
