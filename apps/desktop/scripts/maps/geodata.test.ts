@@ -336,7 +336,10 @@ describe('the licence of resources/maps', () => {
     const own = JSON.parse(readFileSync(join(MAPS_DIR, '../LICENCES.json'), 'utf8')) as {
       entries: { files: string[]; licence: string; author: string; note?: string }[];
     };
-    const maps = own.entries.filter((e) => e.files.some((f) => f.startsWith('maps/')));
+    // The presets (`maps/presets/`) are our own work: MIT, checked in presets.test.ts.
+    const maps = own.entries.filter((e) =>
+      e.files.some((f) => f.startsWith('maps/') && !f.startsWith('maps/presets/')),
+    );
     expect(maps.length).toBeGreaterThan(0);
     for (const e of maps) {
       expect(e.licence).toBe('ODbL 1.0');

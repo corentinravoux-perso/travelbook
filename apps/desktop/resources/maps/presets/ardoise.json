@@ -1,0 +1,135 @@
+{
+  "id": "ardoise",
+  "name": "Ardoise",
+  "style": {
+    "styleVersion": 1,
+    "land": {
+      "fill": "#5b5f66",
+      "stroke": "#ffffff",
+      "width": 0.3
+    },
+    "regions": {
+      "stroke": "#ffffff",
+      "width": 0.22,
+      "dash": null
+    },
+    "neighbours": {
+      "fill": "#b9bcc2",
+      "stroke": "#ffffff",
+      "width": 0.2
+    },
+    "lakes": {
+      "fill": "#cfdbe6",
+      "stroke": "#ffffff",
+      "width": 0.2
+    },
+    "outline": {
+      "color": "#ffffff",
+      "width": 0.3,
+      "detail": 1
+    },
+    "label": {
+      "font": "Libre Baskerville",
+      "weight": 700,
+      "italicSights": false,
+      "sizePt": 9.5,
+      "color": "#111111",
+      "case": "none",
+      "letterSpacingEm": 0,
+      "halo": {
+        "color": "#ffffff",
+        "width": 0.9
+      }
+    },
+    "markers": {
+      "capital": {
+        "kind": "flag",
+        "color": "#ffffff",
+        "stroke": "#111111",
+        "scale": 1.3
+      },
+      "city": {
+        "kind": "flag",
+        "color": "#ffffff",
+        "stroke": "#111111",
+        "scale": 1
+      },
+      "sight": {
+        "kind": "flag",
+        "color": "#f4c542",
+        "stroke": "#111111",
+        "scale": 0.85
+      },
+      "custom": {
+        "kind": "flag",
+        "color": "#f4c542",
+        "stroke": "#111111",
+        "scale": 0.85
+      }
+    },
+    "route": {
+      "voiture": {
+        "color": "#e6a700",
+        "width": 0.7,
+        "dash": [
+          2.2,
+          1.5
+        ]
+      },
+      "bus": {
+        "color": "#e6a700",
+        "width": 0.7,
+        "dash": [
+          2.2,
+          1.5
+        ]
+      },
+      "train": {
+        "color": "#e6a700",
+        "width": 0.7,
+        "dash": null
+      },
+      "avion": {
+        "color": "#e6a700",
+        "width": 0.6,
+        "dash": [
+          0.01,
+          1.7
+        ]
+      },
+      "bateau": {
+        "color": "#e6a700",
+        "width": 0.6,
+        "dash": [
+          1,
+          1
+        ]
+      },
+      "pied": {
+        "color": "#e6a700",
+        "width": 0.5,
+        "dash": [
+          0.5,
+          1
+        ]
+      }
+    },
+    "badge": {
+      "fill": "#f4c542",
+      "text": "#111111",
+      "stroke": "#111111",
+      "font": "Libre Baskerville",
+      "weight": 700
+    },
+    "medallion": {
+      "ringColor": "#ffffff",
+      "ringWidth": 0.6
+    },
+    "sizes": {
+      "marker": 3,
+      "badge": 5,
+      "vehicle": 6
+    },
+    "rough": null
+  }
+}

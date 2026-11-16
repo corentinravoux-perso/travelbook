@@ -575,6 +575,20 @@
     },
     {
       "files": [
+        "maps/presets/ardoise.json",
+        "maps/presets/carnet.json",
+        "maps/presets/crayon.json",
+        "maps/presets/encre.json",
+        "maps/presets/pastel.json",
+        "maps/presets/safran.json"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
         "maps/index.json",
         "maps/packs/GB.topo.json",
         "maps/packs/GR.topo.json",
