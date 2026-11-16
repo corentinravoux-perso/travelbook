@@ -2,6 +2,7 @@ import { MM_TO_PX, pageBox, spineBox, spreadSize, type Book, type Spread } from 
 import { SpreadView } from '@travelbook/render';
 import { memo, useEffect, useRef, useState, type RefObject } from 'react';
 import { assetUrl } from './assetUrl';
+import { useMapGeometryLookup } from '../maps/geometryCache';
 
 /**
  * True once `ref` has come within `margin` px of the viewport, and for good after that: a long
@@ -44,6 +45,7 @@ export function thumbSize(book: Book, spread: Spread, height: number): { w: numb
  * is decoration: the tile around it carries the name.
  */
 function SpreadThumbView({ book, spread, height }: Props) {
+  const mapGeometry = useMapGeometryLookup();
   const ref = useRef<HTMLSpanElement>(null);
   const seen = useSeen(ref);
   const size = spreadSize(book, spread);
@@ -63,7 +65,13 @@ function SpreadThumbView({ book, spread, height }: Props) {
     >
       {seen && (
         <span className="thumb__paper" style={{ transform: `scale(${scale})` }}>
-          <SpreadView book={book} spread={spread} quality="thumb" assetUrl={assetUrl} />
+          <SpreadView
+            book={book}
+            spread={spread}
+            quality="thumb"
+            assetUrl={assetUrl}
+            mapGeometry={mapGeometry}
+          />
         </span>
       )}
       {voids.map((side) => (

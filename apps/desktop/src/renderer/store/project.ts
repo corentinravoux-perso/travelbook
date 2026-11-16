@@ -7,6 +7,7 @@ import type {
   RecentProject,
   SnapshotInfo,
 } from '../../shared/api';
+import { geometryCache } from '../maps/geometryCache';
 import { captureCoverThumb, createCoverThumbs } from '../editor/coverThumb';
 import { editorStore, type EditorStore } from './editor';
 
@@ -96,6 +97,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         const opened = await editor.getState().openWith(open);
         if (opened) {
           snapshotBase = opened.book;
+          geometryCache.clear(); // ids are content addresses: another album may differ
           set({ view: 'editor', missing: opened.missing ?? [], snapshotNote: null });
         }
         return opened;
@@ -137,6 +139,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         }
         await flushCover?.(); // never rejects: the thumbnail is a cache
         set({ view: 'home' });
+        geometryCache.clear();
         await get().refreshRecent();
       },
       dismissMissing() {
