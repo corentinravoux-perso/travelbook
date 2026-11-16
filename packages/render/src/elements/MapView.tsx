@@ -32,6 +32,8 @@ const LABEL_GAP = 0.8;
 /** A badge's digits fill this fraction of its diameter. */
 const BADGE_TEXT = 0.55;
 const VEHICLE_FLIP_ANGLE = 90;
+/** A medallion leader is at least this wide, mm, even with a ring of width 0. */
+const LEADER_MIN_WIDTH = 0.2;
 
 export interface MapViewProps {
   el: MapElement;
@@ -379,7 +381,7 @@ export function MapView({
         {medallions.map((m) => {
           const dist = Math.hypot(m.cx - m.x, m.cy - m.y);
           // A leader only where the point is outside the disc.
-          if (!(dist > m.r) || style.medallion.ringWidth <= 0) return null;
+          if (!(dist > m.r)) return null;
           const k = m.r / dist;
           return (
             <line
@@ -389,8 +391,8 @@ export function MapView({
               y1={f(m.cy + (m.y - m.cy) * k)}
               x2={f(m.x)}
               y2={f(m.y)}
-              stroke={style.medallion.ringColor}
-              strokeWidth={f(style.medallion.ringWidth)}
+              stroke={style.label.color}
+              strokeWidth={f(Math.max(finite(style.medallion.ringWidth), LEADER_MIN_WIDTH))}
               strokeLinecap="round"
             />
           );
