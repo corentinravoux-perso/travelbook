@@ -75,7 +75,7 @@ the front.
    the page to lay a guide that elements snap to; drag it back onto its ruler, or double-click
    it, to remove it. Guides are kept with the album and never printed. "Affichage" hides them
    and sets the size of the rulers. The panel and the inspector fold away (the button at their
-   top, or a click on the open tool) to give the page the room.
+   top) to give the page the room; a click on a tool opens the panel again.
 4. **Add text, stickers, shapes and backgrounds.** The Texte panel has five ready styles and the
    fonts (42 bundled families, your own TTF, OTF or WOFF2 files, and a search in the Fontsource
    catalogue). The Stickers panel searches 51 000 bundled stickers in French or English, online

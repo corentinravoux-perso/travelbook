@@ -94,12 +94,18 @@
 }
 
 /* ---------- the virtualised grid ---------- */
+/*
+ * The room of the scrollbar is kept even when there is nothing to scroll: the grid sizes its
+ * columns from its width, and a scrollbar that came and went with the rows would change that
+ * width, then the rows, then the scrollbar again, in a loop (seen with classic scrollbars).
+ */
 .photo-grid {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
+  scrollbar-gutter: stable;
 }
 .photo-grid__content {
   position: relative;
