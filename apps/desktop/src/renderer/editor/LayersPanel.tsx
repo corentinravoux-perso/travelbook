@@ -1,4 +1,10 @@
-import { updateElements, type Book, type Element, type Spread } from '@travelbook/core';
+import {
+  removeElements,
+  updateElements,
+  type Book,
+  type Element,
+  type Spread,
+} from '@travelbook/core';
 import { useMemo, useState, type DragEvent } from 'react';
 import { editorStore, findSpread, useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -20,6 +26,28 @@ const TYPE_ICON: Record<Element['type'], IconName> = {
 interface DropTarget {
   id: string;
   above: boolean;
+}
+
+/** Delete elements of the spread, in one undo step named `label`. */
+function remove(spreadId: string, ids: string[], label: string) {
+  editorStore.getState().apply((b) => removeElements(b, spreadId, ids), label);
+  const { select, selection } = editorStore.getState();
+  select(selection.filter((id) => !ids.includes(id)));
+}
+
+/** The bin at the end of a row: deletes what the row stands for. */
+function RemoveButton({ label, onClick }: { label: string; onClick(): void }) {
+  return (
+    <button
+      type="button"
+      className="icon-button layer__toggle layer__remove"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
+      <Icon name="trash" />
+    </button>
+  );
 }
 
 /** One state change of an element, undoable, named `label`. */
@@ -100,8 +128,9 @@ function LayerName({ book, spreadId, el }: { book: Book; spreadId: string; el: E
 
 /**
  * The Layers tab: the stack of the current spread, the top layer first. A click selects (Shift
- * adds), the eye hides, the padlock locks, a double-click renames, a drag moves a layer in the
- * stack with the core reorder op, and a group folds away. Everything is one undo step.
+ * adds), the eye hides, the padlock locks, the bin deletes (a group's bin, the whole group), a
+ * double-click renames, a drag moves a layer in the stack with the core reorder op, and a group
+ * folds away. Everything is one undo step.
  */
 export function LayersPanel() {
   const book = useEditor((s) => s.book);
@@ -173,6 +202,10 @@ export function LayersPanel() {
           >
             {t.group(r.count)}
           </button>
+          <RemoveButton
+            label={t.removeGroup}
+            onClick={() => remove(spread.id, members, t.undoRemoveGroup)}
+          />
         </li>
       );
     }
@@ -226,6 +259,10 @@ export function LayersPanel() {
           onClick={() =>
             change(spread.id, el.id, { locked: !el.locked }, el.locked ? t.undoUnlock : t.undoLock)
           }
+        />
+        <RemoveButton
+          label={t.remove(layerName(book, el))}
+          onClick={() => remove(spread.id, [el.id], t.undoRemove)}
         />
       </li>
     );

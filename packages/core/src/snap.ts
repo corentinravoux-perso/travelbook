@@ -1,4 +1,4 @@
-import { boundingBox, pageBox } from './geometry';
+import { boundingBox, pageBox, spreadSize } from './geometry';
 import type { Book, Mm, Rect, Side, Spread } from './schema';
 
 /** Extent of a line along the other axis, in mm. */
@@ -57,8 +57,9 @@ const SIDES: Side[] = ['left', 'right'];
 
 /**
  * Lines to snap to on a spread: the edges and centre of each page it has, the safe margins, the
- * spine of a cover (edges and centre), and the edges and centres of the visible elements not
- * listed in `excludeIds`. A rotated element counts by its box.
+ * spine of a cover (edges and centre), the ruler guides of the spread, and the edges and
+ * centres of the visible elements not listed in `excludeIds`. A rotated element counts by its
+ * box.
  */
 export function snapLinesFor(book: Book, spread: Spread, excludeIds: string[]): SnapLines {
   const xs: LineMap = new Map();
@@ -80,6 +81,10 @@ export function snapLinesFor(book: Book, spread: Spread, excludeIds: string[]): 
     const { width: W, height: H } = book.format;
     addRect(xs, ys, { x: W, y: 0, w: book.spineWidth, h: H });
   }
+  // Ruler guides run across the whole spread.
+  const { w: spreadW, h: spreadH } = spreadSize(book, spread);
+  for (const at of spread.guides?.x ?? []) addLine(xs, at, 0, spreadH);
+  for (const at of spread.guides?.y ?? []) addLine(ys, at, 0, spreadW);
   const excluded = new Set(excludeIds);
   for (const el of spread.elements) {
     if (excluded.has(el.id) || el.hidden) continue;
