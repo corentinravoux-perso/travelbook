@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 420">
+<g transform="translate(190 220) rotate(-5)"><path d="M-120 -150h240v290h-240Z" fill="#fbe8c4"/><path d="M-100 -130h200v190h-200Z" fill="#bcd9dc"/><path d="M26 -80a24 24 0 1 0 48 0a24 24 0 1 0 -48 0Z" fill="#f7c85c"/><path d="M-100 60L-40 -40L10 30L40 0L100 60Z" fill="#3e9a96"/><path d="M-100 60L-40 -40L-20 -6L-60 60Z" fill="#2f6f7a"/><path d="M-120 -150 C-30.9 -150.3, 59.3 -149.8, 120 -150 M120 -150 C120.6 -66.7, 120.4 15.8, 120 140 M120 140 C34.6 140.3, -49.8 140.2, -120 140 M-120 140 C-119.9 37.6, -119.7 -65, -120 -150" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M-100 -130 C-25 -129.7, 48.7 -130.3, 100 -130 M100 -130 C100.1 -61.4, 99.7 6.7, 100 60 M100 60 C21.6 60.1, -56 60.7, -100 60 M-100 60 C-100.4 -2.4, -99.6 -65.2, -100 -130" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M140 60L250 70L246 108L136 98Z" fill="#f7d27acc"/>
+<path d="M330 78Q332.6 87.4 342 90Q332.6 92.6 330 102Q327.4 92.6 318 90Q327.4 87.4 330 78Z" fill="#1d1b1a"/>
+<path d="M50 352Q51.8 358.2 58 360Q51.8 361.8 50 368Q48.2 361.8 42 360Q48.2 358.2 50 352Z" fill="#1d1b1a"/>
+</svg>

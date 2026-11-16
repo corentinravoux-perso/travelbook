@@ -169,6 +169,8 @@ export function createStickerService(options: StickerServiceOptions): StickerSer
         ...(query.category !== undefined ? { category: query.category } : {}),
         ...(query.mono !== undefined ? { mono: query.mono } : {}),
         ...(query.noAttribution === true ? { noAttribution: true } : {}),
+        ...(query.group !== undefined ? { group: query.group } : {}),
+        ...(query.recommended === true ? { recommended: true } : {}),
         offset,
         limit: OFFLINE_PAGE_SIZE,
       });

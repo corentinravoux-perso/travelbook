@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<path d="M200 360L70 90Q200 40 330 90Z" fill="#f7c85c"/>
+<path d="M70 90Q200 40 330 90L320 116Q200 70 80 116Z" fill="#c8775c"/>
+<path d="M138 150a22 22 0 1 0 44 0a22 22 0 1 0 -44 0Z" fill="#e2523f"/>
+<path d="M220 160a20 20 0 1 0 40 0a20 20 0 1 0 -40 0Z" fill="#e2523f"/>
+<path d="M180 230a20 20 0 1 0 40 0a20 20 0 1 0 -40 0Z" fill="#e2523f"/>
+<path d="M176 300a14 14 0 1 0 28 0a14 14 0 1 0 -28 0Z" fill="#e2523f"/>
+<path d="M152 146a4 4 0 1 0 8 0a4 4 0 1 0 -8 0Z" fill="#b83a2c"/>
+<path d="M240 156a4 4 0 1 0 8 0a4 4 0 1 0 -8 0Z" fill="#b83a2c"/>
+<path d="M192 226a4 4 0 1 0 8 0a4 4 0 1 0 -8 0Z" fill="#b83a2c"/>
+<path transform="translate(130 200) rotate(40)" d="M0 0C12 -12.8 30 -12.8 40 0C30 12.8 12 12.8 0 0Z" fill="#3f8f63"/>
+<path transform="translate(250 210) rotate(120)" d="M0 0C10.799999999999999 -11.52 27 -11.52 36 0C27 11.52 10.799999999999999 11.52 0 0Z" fill="#3f8f63"/>
+<path transform="translate(200 120) rotate(80)" d="M0 0C9 -9.6 22.5 -9.6 30 0C22.5 9.6 9 9.6 0 0Z" fill="#2a6b4c"/>
+<path d="M150 260Q160 290 170 296Q174 270 150 260Z" fill="#f2d06b"/>
+</svg>

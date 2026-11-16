@@ -7,6 +7,14 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Stickers: a new **travelbook** tab, first in the panel, with the sets drawn for travelbook
+  (MIT): **Croquis** (83 bold black ink doodles with a white fill), **Bohème** (line art on
+  colour blobs, flat flowers, sprigs, tropical plants and travel drawings), **Déco** (175
+  generated stickers: washi tape, labels, travel and postage stamps, hand-drawn arrows, speech
+  bubbles, photo corners, confetti, French lettering) and **Affiches**.
+- Stickers: Bibliothèque opens on about 120 recommended stickers picked from the open packs.
+- Stickers: the hand-drawn monochrome icon sets doodle-icons, Streamline Freehand and
+  Pepicons Pencil.
 - Affiches: "Créer une affiche…" (cover tools and the Modèles panel) composes a poster cover,
   front and spine: the place in large letters at the top, the year under it, and a drawing
   centred below, in five layouts (Classique, Empilé, Arche, Soleil, Horizon), with a live

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 320">
+<path d="M56 150a44 44 0 1 0 88 0a44 44 0 1 0 -88 0Z" fill="#2d3b36"/>
+<path d="M66 150a34 34 0 1 0 68 0a34 34 0 1 0 -68 0Z" fill="#fbe8c4"/>
+<path d="M84 150a16 16 0 1 0 32 0a16 16 0 1 0 -32 0Z" fill="#f39a7b"/>
+<path d="M90 152a6 6 0 1 0 12 0a6 6 0 1 0 -12 0Z" fill="#7cbf7a"/>
+<path d="M156 120a44 44 0 1 0 88 0a44 44 0 1 0 -88 0Z" fill="#2d3b36"/>
+<path d="M166 120a34 34 0 1 0 68 0a34 34 0 1 0 -68 0Z" fill="#fbe8c4"/>
+<path d="M184 120a16 16 0 1 0 32 0a16 16 0 1 0 -32 0Z" fill="#f39a7b"/>
+<path d="M190 122a6 6 0 1 0 12 0a6 6 0 1 0 -12 0Z" fill="#7cbf7a"/>
+<path d="M234 190a76 30 0 1 0 152 0a76 30 0 1 0 -152 0Z" fill="#fbe8c4"/>
+<path d="M236 176Q310 120 390 176Q390 196 370 196Q310 160 250 196Q236 196 236 176Z" fill="#f39a7b"/>
+<path d="M266 160Q310 140 356 160" fill="#f39a7b"/>
+<path d="M264 154Q300 142 340 152M276 172Q310 160 350 170" fill="none" stroke="#fbe8c4" stroke-width="4" stroke-linecap="round"/>
+<path d="M296 160h26v50h-26Z" fill="#2d3b36"/>
+<path d="M50 260L400 220M60 280L404 244" stroke="#c8775c" stroke-width="9" stroke-linecap="round"/>
+</svg>

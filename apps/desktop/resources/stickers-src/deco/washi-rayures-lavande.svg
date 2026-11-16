@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-rayures-lavande"><path d="M8 0L2 7L2 14L1 21L6 28L7 35L7 42L5 49L4 56L7 63L9 70L3 77L2 84L417 84L419 77L415 70L411 63L414 56L417 49L412 42L413 35L416 28L412 21L416 14L413 7L413 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-rayures-lavande)" opacity="0.92">
+<path d="M8 0L2 7L2 14L1 21L6 28L7 35L7 42L5 49L4 56L7 63L9 70L3 77L2 84L417 84L419 77L415 70L411 63L414 56L417 49L412 42L413 35L416 28L412 21L416 14L413 7L413 0Z" fill="#d4c8ec"/>
+<path d="M-84 84L0 0L12 0L-72 84Z" fill="#6a50a8"/>
+<path d="M-56 84L28 0L40 0L-44 84Z" fill="#6a50a8"/>
+<path d="M-28 84L56 0L68 0L-16 84Z" fill="#6a50a8"/>
+<path d="M0 84L84 0L96 0L12 84Z" fill="#6a50a8"/>
+<path d="M28 84L112 0L124 0L40 84Z" fill="#6a50a8"/>
+<path d="M56 84L140 0L152 0L68 84Z" fill="#6a50a8"/>
+<path d="M84 84L168 0L180 0L96 84Z" fill="#6a50a8"/>
+<path d="M112 84L196 0L208 0L124 84Z" fill="#6a50a8"/>
+<path d="M140 84L224 0L236 0L152 84Z" fill="#6a50a8"/>
+<path d="M168 84L252 0L264 0L180 84Z" fill="#6a50a8"/>
+<path d="M196 84L280 0L292 0L208 84Z" fill="#6a50a8"/>
+<path d="M224 84L308 0L320 0L236 84Z" fill="#6a50a8"/>
+<path d="M252 84L336 0L348 0L264 84Z" fill="#6a50a8"/>
+<path d="M280 84L364 0L376 0L292 84Z" fill="#6a50a8"/>
+<path d="M308 84L392 0L404 0L320 84Z" fill="#6a50a8"/>
+<path d="M336 84L420 0L432 0L348 84Z" fill="#6a50a8"/>
+<path d="M364 84L448 0L460 0L376 84Z" fill="#6a50a8"/>
+<path d="M392 84L476 0L488 0L404 84Z" fill="#6a50a8"/>
+<path d="M420 84L504 0L516 0L432 84Z" fill="#6a50a8"/>
+<path d="M448 84L532 0L544 0L460 84Z" fill="#6a50a8"/>
+<path d="M476 84L560 0L572 0L488 84Z" fill="#6a50a8"/>
+</g>
+</svg>

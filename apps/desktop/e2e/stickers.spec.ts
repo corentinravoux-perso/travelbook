@@ -149,6 +149,19 @@ test('search avion, place the first result and tint it; import alpha.png, place 
         await access(join(albums, 'stickers.travelbook', a.file));
       }
     });
+
+    await test.step('travelbook is the first tab and lists our drawings; Bibliothèque opens on its recommended stickers', async () => {
+      await page.getByRole('tab', { name: 'travelbook' }).click();
+      await page.getByRole('searchbox', { name: 'Rechercher un sticker' }).fill('');
+      const own = page.locator('.stk-tile__button img').first();
+      await expect(own).toHaveAttribute('src', /^tb:\/\/sticker\/(croquis|boheme|deco|affiches)\//);
+      await page.getByRole('tab', { name: 'Bibliothèque' }).click();
+      await expect(page.getByRole('combobox', { name: 'Collection' })).toHaveValue('__recommended');
+      await expect(page.locator('.stk-tile__button img').first()).toHaveAttribute(
+        'src',
+        'tb://sticker/fluent-emoji-flat/airplane.svg',
+      );
+    });
   } finally {
     await app.close();
   }

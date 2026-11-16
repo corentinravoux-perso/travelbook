@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 340">
+<path d="M409 180C402.2 208 379 236.8 345 260C311 283.2 244 318.2 205 319C166 319.8 137.2 283.3 111 265C84.8 246.7 58.2 232.8 48 209C37.8 185.2 37.2 145.7 50 122C62.8 98.3 80.8 79.5 125 67C169.2 54.5 271.5 42.8 315 47C358.5 51.2 370.3 69.8 386 92C401.7 114.2 415.8 152 409 180Z" fill="#f3dcae"/>
+<path d="M100 140 C137.1 122.6, 174.6 106.5, 220 86 M220 86 C266.1 106.4, 312.4 127.1, 340 140 M340 140 C288.3 139.8, 235.1 139.9, 100 140" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M96 140 C172.5 140.5, 250.6 140, 344 140 M344 140 C343.6 144, 343.6 147.6, 344 156 M344 156 C281.7 156.3, 218.9 156, 96 156 M96 156 C96.1 149.9, 95.9 144.4, 96 140" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M112 156 C112.3 185.3, 111.7 213.9, 112 250 M126 156 C126.3 186.9, 126 217.9, 126 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M143 156 C142.9 184.9, 143.3 215, 143 250 M157 156 C156.8 193.8, 157.5 231.1, 157 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M174 156 C173.5 184.5, 173.5 214.7, 174 250 M188 156 C188.6 181.9, 187.7 206.6, 188 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M205 156 C205.5 185.6, 205.1 214.4, 205 250 M219 156 C219.1 188.8, 219.2 221.1, 219 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M236 156 C236.1 185.2, 236.7 214.1, 236 250 M250 156 C249.5 176.9, 249.4 196.7, 250 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M267 156 C266.8 184.8, 266.9 213.9, 267 250 M281 156 C281.4 182.5, 280.9 209.8, 281 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M298 156 C297.4 185.9, 298.5 215, 298 250 M312 156 C311.8 189.4, 312.5 222.9, 312 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M329 156 C329.4 185.5, 328.7 214.7, 329 250 M343 156 C343.7 177.5, 342.6 199.9, 343 250" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M90 250 C170.8 249.9, 251.8 249.9, 350 250 M350 250 C350.1 253.6, 350.1 257.3, 350 262 M350 262 C253.5 262.4, 157.9 262.1, 90 262 M90 262 C89.7 257.6, 90.4 253.8, 90 250 M80 262 C183.7 261.5, 286.8 262, 360 262 M360 262 C360.3 266.3, 360.3 270, 360 274 M360 274 C284 274.1, 208.6 274.3, 80 274 M80 274 C79.9 270.2, 80 266.8, 80 262" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30 300 C90.1 279.3, 146.2 272.9, 200 284 M200 284 C266.2 268.8, 336.3 275.2, 410 300" fill="none" stroke="#1d1b1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M196 120 C211.5 120.6, 225.9 119.3, 244 120" fill="none" stroke="#1d1b1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M370 300 C366.1 272.8, 365.1 246.8, 368 220" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="translate(366 276) rotate(-140)" d="M0 0C7.8 -8.32 19.5 -8.32 26 0C19.5 8.32 7.8 8.32 0 0Z" fill="#a9c3b4"/>
+<path transform="translate(368 260) rotate(-40)" d="M0 0C7.199999999999999 -7.68 18 -7.68 24 0C18 7.68 7.199999999999999 7.68 0 0Z" fill="#a9c3b4"/>
+<path transform="translate(366 242) rotate(-140)" d="M0 0C6.6 -7.04 16.5 -7.04 22 0C16.5 7.04 6.6 7.04 0 0Z" fill="#a9c3b4"/>
+<path transform="translate(368 226) rotate(-60)" d="M0 0C6 -6.4 15 -6.4 20 0C15 6.4 6 6.4 0 0Z" fill="#a9c3b4"/>
+<path d="M390 68Q392.6 77.4 402 80Q392.6 82.6 390 92Q387.4 82.6 378 80Q387.4 77.4 390 68Z" fill="#1d1b1a"/>
+<path d="M50 82Q51.8 88.2 58 90Q51.8 91.8 50 98Q48.2 91.8 42 90Q48.2 88.2 50 82Z" fill="#1d1b1a"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-uni-corail"><path d="M6 0L5 7L6 14L2 21L1 28L5 35L5 42L1 49L6 56L4 63L2 70L7 77L2 84L418 84L415 77L417 70L417 63L412 56L412 49L416 42L413 35L415 28L416 21L416 14L419 7L415 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-uni-corail)" opacity="0.92">
+<path d="M6 0L5 7L6 14L2 21L1 28L5 35L5 42L1 49L6 56L4 63L2 70L7 77L2 84L418 84L415 77L417 70L417 63L412 56L412 49L416 42L413 35L415 28L416 21L416 14L419 7L415 0Z" fill="#f9bba5"/>
+<path d="M0 10H420M0 74H420" stroke="#fde1d6" stroke-width="3" stroke-dasharray="10 7"/>
+</g>
+</svg>

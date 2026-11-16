@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440">
+<defs><clipPath id="c-lavande"><path d="M60 420V180A140 140 0 0 1 340 180V420Z"/></clipPath></defs>
+<g clip-path="url(#c-lavande)"><path d="M40 20H360V420H40Z" fill="#fbd9c2"/><path d="M150 210a50 50 0 1 0 100 0a50 50 0 1 0 -100 0Z" fill="#f7c85c"/><path d="M40 250Q200 226 360 250V420H40Z" fill="#a690d6"/><path d="M168 250L-92 430H-68Z" fill="#6a50a8"/><path d="M176 250L-22 430H2Z" fill="#8b6cc0"/><path d="M184 250L48 430H72Z" fill="#6a50a8"/><path d="M192 250L118 430H142Z" fill="#8b6cc0"/><path d="M200 250L188 430H212Z" fill="#6a50a8"/><path d="M208 250L258 430H282Z" fill="#8b6cc0"/><path d="M216 250L328 430H352Z" fill="#6a50a8"/><path d="M224 250L398 430H422Z" fill="#8b6cc0"/><path d="M232 250L468 430H492Z" fill="#6a50a8"/><path d="M280 250V200Q280 186 296 186Q312 186 312 200V250Z" fill="#2a6b4c"/></g>
+<path d="M360 48Q362.6 57.4 372 60Q362.6 62.6 360 72Q357.4 62.6 348 60Q357.4 57.4 360 48Z" fill="#1d1b1a"/>
+<path d="M40 132Q41.8 138.2 48 140Q41.8 141.8 40 148Q38.2 141.8 32 140Q38.2 138.2 40 132Z" fill="#1d1b1a"/>
+<path d="M120 120 C124.4 115.1, 128.7 115.5, 134 120 M134 120 C138.3 115, 143.9 115.3, 148 120" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

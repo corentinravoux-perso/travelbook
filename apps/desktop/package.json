@@ -25,6 +25,7 @@
     "dist:linux": "npm run build && electron-builder --linux deb --publish never",
     "dist:win": "npm run build && electron-builder --win nsis --publish never",
     "stickers": "node scripts/build-sticker-packs.ts",
+    "draw-stickers": "node scripts/stickers/draw-stickers.ts",
     "fonts": "node scripts/build-fonts.ts"
   },
   "devDependencies": {
@@ -73,6 +74,7 @@
     "@fontsource/yeseva-one": "5.3.0",
     "@iconify-json/carbon": "1.2.30",
     "@iconify-json/circle-flags": "1.2.14",
+    "@iconify-json/doodle-icons": "1.2.0",
     "@iconify-json/fa6-solid": "1.2.4",
     "@iconify-json/flag": "1.2.15",
     "@iconify-json/fluent-emoji-flat": "1.2.6",
@@ -85,8 +87,10 @@
     "@iconify-json/mingcute": "1.2.10",
     "@iconify-json/noto": "1.2.10",
     "@iconify-json/openmoji": "1.2.31",
+    "@iconify-json/pepicons-pencil": "1.2.4",
     "@iconify-json/ph": "1.2.2",
     "@iconify-json/streamline-emojis": "1.2.4",
+    "@iconify-json/streamline-freehand": "1.2.1",
     "@iconify-json/streamline-freehand-color": "1.2.2",
     "@iconify-json/streamline-kameleon-color": "1.2.3",
     "@iconify-json/streamline-plump-color": "1.2.2",
@@ -106,6 +110,7 @@
     "electron-vite": "6.0.0",
     "emojibase-data": "18.0.0",
     "jsdom": "31.0.0",
+    "roughjs": "4.6.6",
     "vite": "8.3.8"
   },
   "dependencies": {

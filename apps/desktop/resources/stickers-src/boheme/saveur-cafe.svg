@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 380">
+<path d="M379 227C372.7 251.8 334.2 272.7 305 294C275.8 315.3 238.7 352.7 204 355C169.3 357.3 121.7 326.3 97 308C72.3 289.7 57 273 56 245C55 217 73.8 166.7 91 140C108.2 113.3 132 97.5 159 85C186 72.5 222.3 55 253 65C283.7 75 322 118 343 145C364 172 385.3 202.2 379 227Z" fill="#f6b48f"/>
+<path d="M120 170L270 170Q266 270 196 280Q130 270 120 170Z" fill="#fbe8c4"/>
+<path d="M120 170 C153.6 169.7, 186.5 170.7, 270 170 M270 170 C267.6 236.1, 242.2 273.3, 196 280 M196 280 C151.5 273.3, 126.6 236.4, 120 170 M120 170 C120 170, 120 170, 120 170" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M266 190 C294.8 187.2, 307.4 197.5, 304 220 M304 220 C300.7 239.6, 284.4 247.4, 256 244" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M90 290 C160.1 307.4, 230.9 307.1, 300 290" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M122 172a74 10 0 1 0 148 0a74 10 0 1 0 -148 0Z" fill="#b9705a"/>
+<path d="M170 150 C161.4 138.5, 161.7 126, 170 115 M170 115 C178 102.7, 177.8 92.1, 170 80" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M214 140 C205.4 126.9, 206.6 113.7, 214 100 M214 100 C221.6 86.6, 221.5 72.9, 214 60" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(80 330) rotate(-30)"><path d="M-14 0a14 20 0 1 0 28 0a14 20 0 1 0 -28 0Z" fill="#b9705a"/><path d="M0 -18Q-6 0 0 18Q6 0 0 -18Z" fill="#f6b48f"/></g>
+<g transform="translate(330 330) rotate(20)"><path d="M-14 0a14 20 0 1 0 28 0a14 20 0 1 0 -28 0Z" fill="#b9705a"/><path d="M0 -18Q-6 0 0 18Q6 0 0 -18Z" fill="#f6b48f"/></g>
+<g transform="translate(340 120) rotate(60)"><path d="M-14 0a14 20 0 1 0 28 0a14 20 0 1 0 -28 0Z" fill="#b9705a"/><path d="M0 -18Q-6 0 0 18Q6 0 0 -18Z" fill="#f6b48f"/></g>
+<path d="M70 100Q72.2 107.8 80 110Q72.2 112.2 70 120Q67.8 112.2 60 110Q67.8 107.8 70 100Z" fill="#1d1b1a"/>
+</svg>
