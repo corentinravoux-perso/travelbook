@@ -24,8 +24,6 @@ import { MARKER_GLYPHS, VEHICLE_GLYPHS } from './mapMarkers';
 /** The crayon hatching, on paper whatever the fit: 45 degrees, mm. */
 const HATCH_SPACING = 1.2;
 const HATCH_WIDTH = 0.25;
-/** The selected regions are tinted with the outline colour at this opacity. */
-const SELECTED_OPACITY = 0.25;
 /** Average glyph width in em, to size a label's box before it is laid out. */
 const GLYPH_EM = 0.55;
 const LABEL_LINE = 1.2;
@@ -202,6 +200,10 @@ export function MapView({
     el.route && el.route.numbered ? routeNumbers(el.route) : new Map<string, number[]>();
   const badgeD = Math.max(0, finite(style.sizes.badge));
 
+  // With regions chosen, the rest of the subject is context (neighbours look) and the chosen
+  // regions get the land look; with none chosen the land is drawn as is.
+  const chosen = el.subject.regions.length > 0 && geometry.paths.selected !== '';
+  const landLook = chosen ? style.neighbours : style.land;
   const hatched = style.rough !== null && style.land.fill !== null;
   const landFill = hatched ? `url(#${hatchId})` : paint(style.land.fill);
 
@@ -236,7 +238,17 @@ export function MapView({
       gap: size / 2 + LABEL_GAP,
     });
   });
-  const offsets = placeLabels(labelBoxes, obstacles);
+  // The four sides of the box are obstacles, so a label is placed inside it when a position fits.
+  const OUT = 1e4;
+  const edges: LabelObstacle[] = [
+    { x: -OUT, y: -OUT, w: OUT, h: 2 * OUT + h },
+    { x: w, y: -OUT, w: OUT, h: 2 * OUT + h },
+    { x: 0, y: -OUT, w, h: OUT },
+    { x: 0, y: h, w, h: OUT },
+  ];
+  const offsets = placeLabels(labelBoxes, [...obstacles, ...edges]);
+  const clampIn = (c: number, size: number, max: number): number =>
+    size >= max ? max / 2 : Math.min(max - size / 2, Math.max(size / 2, c));
 
   const segments = el.route ? routeSegments(el.route, places) : [];
 
@@ -267,9 +279,9 @@ export function MapView({
         <g data-layer="land">
           <path
             d={geometry.paths.land}
-            fill={landFill}
-            stroke={paint(style.land.stroke)}
-            strokeWidth={u(style.land.width)}
+            fill={chosen ? paint(style.neighbours.fill) : landFill}
+            stroke={paint(landLook.stroke)}
+            strokeWidth={u(landLook.width)}
             strokeLinejoin="round"
           />
         </g>
@@ -297,12 +309,13 @@ export function MapView({
           ) : null}
         </g>
         <g data-layer="selected">
-          {geometry.paths.selected && (style.outline.color ?? style.land.stroke) ? (
+          {chosen ? (
             <path
               d={geometry.paths.selected}
-              fill={(style.outline.color ?? style.land.stroke) as string}
-              fillOpacity={SELECTED_OPACITY}
-              stroke="none"
+              fill={landFill}
+              stroke={paint(style.land.stroke)}
+              strokeWidth={u(style.land.width)}
+              strokeLinejoin="round"
             />
           ) : null}
         </g>
@@ -428,12 +441,17 @@ export function MapView({
           if (!off || !p.shown || !p.labelShown) return null;
           const box = labelBoxes.find((l) => l.id === p.id) as LabelBox;
           const halo = style.label.halo;
+          // A label the user placed stays as given; the others are kept inside the box.
+          const cx = box.x + off.dx;
+          const cy = box.y + off.dy;
+          const lx = p.labelOffset ? cx : clampIn(cx, box.w, w);
+          const ly = p.labelOffset ? cy : clampIn(cy, box.h, h);
           return (
             <text
               key={p.id}
               data-label={p.id}
-              x={f(box.x + off.dx)}
-              y={f(box.y + off.dy)}
+              x={f(lx)}
+              y={f(ly)}
               textAnchor="middle"
               dominantBaseline="central"
               fontFamily={style.label.font}

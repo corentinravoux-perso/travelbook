@@ -169,7 +169,9 @@ describe('MapView', () => {
   });
 
   it('draws the geometry paths in their layers', () => {
-    const { layer } = draw(mapEl({ subject: { ...mapEl().subject, showNeighbours: true } }));
+    const { layer } = draw(
+      mapEl({ subject: { ...mapEl().subject, showNeighbours: true, regions: ['R'] } }),
+    );
     expect(layer('land')?.querySelector('path')?.getAttribute('d')).toBe(geometry.paths.land);
     expect(layer('neighbours')?.querySelector('path')?.getAttribute('d')).toBe(
       geometry.paths.neighbours,
@@ -488,5 +490,34 @@ describe('MapView', () => {
     ).toEqual(['c']);
     expect(layer('route')?.querySelectorAll('path[data-leg]')).toHaveLength(0);
     expect(allAttributes(container).join(' ')).not.toMatch(/NaN|Infinity/);
+  });
+
+  it('with regions chosen, the land is context and the selection gets the land look', () => {
+    const style = structuredClone(DEFAULT_MAP_STYLE);
+    style.land.fill = '#111111';
+    style.neighbours.fill = '#eeeeee';
+    style.outline.color = null;
+    const chosen = draw(mapEl({ style, subject: { ...mapEl().subject, regions: ['US-CA'] } }));
+    expect(chosen.layer('land')?.querySelector('path')?.getAttribute('fill')).toBe('#eeeeee');
+    expect(chosen.layer('selected')?.querySelector('path')?.getAttribute('fill')).toBe('#111111');
+    const none = draw(mapEl({ style }));
+    expect(none.layer('land')?.querySelector('path')?.getAttribute('fill')).toBe('#111111');
+    expect(none.layer('selected')?.querySelector('path')).toBeNull();
+  });
+
+  it('keeps a label inside the box when its place is near an edge', () => {
+    // lon -52 is about 2 mm from the left edge of a 100 x 60 mm box
+    const label = 'SAN FRANCISCO';
+    const el = mapEl({ places: [place('a', -52, 0, { label })] }, 100, 60);
+    const t = draw(el).layer('labels')?.querySelector('text');
+    const x = Number(t?.getAttribute('x'));
+    const width = label.length * 9.5 * PT_MM * 0.55;
+    expect(x - width / 2).toBeGreaterThanOrEqual(-0.01);
+    expect(x + width / 2).toBeLessThanOrEqual(100.01);
+    const marker = draw(el).layer('markers')?.querySelector('[data-place="a"]');
+    expect(/translate\(([-\d.]+)/.exec(marker?.getAttribute('transform') ?? '')?.[1]).toBeDefined();
+    expect(
+      Number(/translate\(([-\d.]+)/.exec(marker?.getAttribute('transform') ?? '')?.[1]),
+    ).toBeLessThan(4);
   });
 });
