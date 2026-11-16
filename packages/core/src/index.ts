@@ -1,7 +1,7 @@
 export const PACKAGE_NAME = '@travelbook/core';
 export * from './schema';
 export { defaultCrop, newBook, newSpread, newElement, pageCount, setIdSource } from './factory';
-export { migrate, BookFormatError } from './migrate';
+export { migrate, bookSchemaVersion, BookFormatError } from './migrate';
 export * from './photoLook';
 export * from './geometry';
 export * from './template';
@@ -12,3 +12,4 @@ export * from './snap';
 export * from './preflight';
 export * from './history';
 export * from './poster';
+export * from './map';

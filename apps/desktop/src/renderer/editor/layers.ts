@@ -96,5 +96,7 @@ export function layerName(book: Book, el: Element): string {
       return fr.shapes[(el as ShapeElement).shape];
     case 'sticker':
       return fr.layers.sticker;
+    case 'map':
+      return fr.layers.map;
   }
 }

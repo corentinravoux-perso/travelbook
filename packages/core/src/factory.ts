@@ -28,7 +28,13 @@ export function newSpread(kind: Spread['kind']): Spread {
   return { id: newId(), kind, background: {}, elements: [] };
 }
 
-export function newElement<T extends Element['type']>(
+/**
+ * The element types with a blank default. A map has none: it needs a baked geometry and a style,
+ * so it only exists once the map dialog has built it.
+ */
+export type BlankElementType = Exclude<Element['type'], 'map'>;
+
+export function newElement<T extends BlankElementType>(
   type: T,
   rect: Rect,
 ): Extract<Element, { type: T }> {
@@ -41,7 +47,7 @@ export function newElement<T extends Element['type']>(
     hidden: false,
   };
   let el: Element;
-  switch (type as Element['type']) {
+  switch (type as BlankElementType) {
     case 'photo':
       el = {
         ...base,

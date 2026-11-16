@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { newBook, newElement, type AssetRef, type Book, type Template } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
 import type {
@@ -250,6 +251,52 @@ describe('project', () => {
       await call(CHANNEL.projectSave, { ...created.book, assets: { abc: asset } });
       const session = currentSession();
       expect(session && knownAssets(session)).toEqual({ abc: asset });
+    });
+
+    describe('a map', () => {
+      const geometry: AssetRef = {
+        id: 'map-0123456789abcdef',
+        kind: 'map',
+        file: 'assets/0123456789abcdef.json',
+        originalName: 'Thaïlande.json',
+        sha256: 'x',
+        licence: {
+          source: 'Overture Maps',
+          author: '© OpenStreetMap contributors, Overture Maps Foundation',
+          licence: 'ODbL 1.0',
+          url: 'https://opendatacommons.org/licenses/odbl/1-0/',
+          requiresAttribution: true,
+        },
+      };
+
+      it('saves an asset of kind map and indexes it', async () => {
+        const created = await create();
+        await call(CHANNEL.projectSave, { ...created.book, assets: { [geometry.id]: geometry } });
+        const session = currentSession();
+        expect(session && knownAssets(session)).toEqual({ [geometry.id]: geometry });
+      });
+
+      it('saves a book holding a map element as album format 2', async () => {
+        const created = await create();
+        const book: Book = {
+          ...created.book,
+          cover: { ...created.book.cover, elements: [mapElement()] },
+          assets: { [geometry.id]: geometry },
+        };
+        await call(CHANNEL.projectSave, book);
+        const onDisk = JSON.parse(await readFile(join(created.dir, 'book.json'), 'utf8')) as Book;
+        expect(onDisk.schemaVersion).toBe(2);
+        expect(onDisk.cover.elements).toEqual([mapElement()]);
+      });
+
+      it('rejects a map element that breaks the schema, and leaves book.json alone', async () => {
+        const created = await create();
+        const before = await readFile(join(created.dir, 'book.json'), 'utf8');
+        const bad = { ...mapElement(), projection: 'robinson' };
+        const book = { ...created.book, cover: { ...created.book.cover, elements: [bad] } };
+        await expect(call(CHANNEL.projectSave, book)).rejects.toThrow(/project:save/);
+        expect(await readFile(join(created.dir, 'book.json'), 'utf8')).toBe(before);
+      });
     });
 
     it('rejects when no project is open', async () => {
@@ -803,6 +850,20 @@ describe('assets', () => {
       const [asset] = await call<AssetRef[]>(CHANNEL.assetsImportFiles, 'font', [font]);
       expect(await call(CHANNEL.assetsPalette, [asset?.id])).toEqual([]);
       expect(await call(CHANNEL.assetsPalette, [])).toEqual([]);
+    });
+
+    it('skips a map: its file is geometry, not an image', async () => {
+      const created = await create();
+      const geometry: AssetRef = {
+        id: 'map-0123456789abcdef',
+        kind: 'map',
+        file: 'assets/0123456789abcdef.json',
+        originalName: 'Thaïlande.json',
+        sha256: 'x',
+      };
+      await writeFile(join(created.dir, geometry.file), '{"version":1}');
+      await call(CHANNEL.projectSave, { ...created.book, assets: { [geometry.id]: geometry } });
+      expect(await call(CHANNEL.assetsPalette, [geometry.id])).toEqual([]);
     });
 
     it('rejects an asset the project does not hold', async () => {

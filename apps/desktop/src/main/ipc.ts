@@ -261,7 +261,8 @@ async function paletteFiles(session: Session, ids: readonly string[]): Promise<s
   for (const id of new Set(ids)) {
     const asset = session.assets.get(id);
     if (asset === undefined) throw new Error(`Unknown asset: ${id}`);
-    if (asset.kind === 'font') continue;
+    // A font and a map's geometry are not images: there is no palette to take from them.
+    if (asset.kind === 'font' || asset.kind === 'map') continue;
     if (asset.kind === 'photo') {
       files.push((await ensureProxies(session.dir, asset)).thumb);
       continue;

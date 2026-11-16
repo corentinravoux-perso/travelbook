@@ -69,8 +69,11 @@ export interface OpenedProject extends ProjectInfo {
   missing: string[];
 }
 
-/** Assets the user brings in as files; photos have their own import. */
-export type ImportedAssetKind = Exclude<AssetRef['kind'], 'photo'>;
+/**
+ * Assets the user brings in as files; photos have their own import, and a map's geometry is
+ * written by main from what the map dialog bakes, never imported from a file.
+ */
+export type ImportedAssetKind = Exclude<AssetRef['kind'], 'photo' | 'map'>;
 
 /** What a user library item is: a file the user keeps across albums. */
 export type LibraryItemKind = 'sticker' | 'background' | 'font' | 'template';

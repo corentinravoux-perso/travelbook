@@ -1,8 +1,9 @@
-import { mkdtemp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { newBook, pageCount, type Book } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import {
   listSnapshots,
   pruneSnapshots,
@@ -50,6 +51,24 @@ describe('writeSnapshot', () => {
       pages: pageCount(book),
     });
     expect(await readdir(join(dir, 'history'))).toEqual(['2026-03-04T10-20-30-456Z-manual.json']);
+  });
+
+  it('stamps the album format version of the book it copies', async () => {
+    const readVersion = async (id: string): Promise<unknown> =>
+      (
+        JSON.parse(await readFile(join(dir, 'history', `${id}.json`), 'utf8')) as {
+          schemaVersion: unknown;
+        }
+      ).schemaVersion;
+
+    const plain = await writeSnapshot(dir, { ...book, schemaVersion: 2 }, 'auto');
+    expect(await readVersion(plain.id)).toBe(1);
+
+    const withMap = structuredClone(book);
+    withMap.cover.elements.push(mapElement());
+    const mapped = await writeSnapshot(dir, withMap, 'manual');
+    expect(await readVersion(mapped.id)).toBe(2);
+    expect((await readSnapshot(dir, mapped.id)).cover.elements).toEqual([mapElement()]);
   });
 
   it('creates history/ when it is missing', async () => {

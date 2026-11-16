@@ -1,6 +1,6 @@
 import { access, mkdir, readFile, rm } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { BookFormatError, migrate, newBook, type Book } from '@travelbook/core';
+import { BookFormatError, bookSchemaVersion, migrate, newBook, type Book } from '@travelbook/core';
 import { writeFileAtomic } from './atomic-write';
 import { addRecentProject } from './recent';
 
@@ -53,9 +53,13 @@ async function noteRecent(dir: string, book: Book): Promise<void> {
   }
 }
 
-/** Replace `book.json` atomically: a failure leaves the previous file untouched. */
+/**
+ * Replace `book.json` atomically: a failure leaves the previous file untouched. The file carries
+ * the format version of what it holds (2 with a map, else 1), whatever the book in memory says.
+ */
 export function saveBook(dir: string, book: Book): Promise<void> {
-  return writeFileAtomic(join(dir, BOOK_FILE), JSON.stringify(book, null, 2) + '\n');
+  const stamped: Book = { ...book, schemaVersion: bookSchemaVersion(book) };
+  return writeFileAtomic(join(dir, BOOK_FILE), JSON.stringify(stamped, null, 2) + '\n');
 }
 
 export async function createProject(opts: {
