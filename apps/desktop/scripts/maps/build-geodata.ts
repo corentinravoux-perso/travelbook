@@ -63,6 +63,7 @@ import {
   rebuildPacks,
   rebuildSubjects,
   sizeReport,
+  subjectsToKeep,
   writeFileAtomic,
   type MapDirs,
 } from './outputs.ts';
@@ -70,7 +71,9 @@ import { appFileUrl } from './paths.ts';
 import { buildPlaces, skippedLines, type SkippedPlaces } from './places.ts';
 import {
   PERSPECTIVE_OVERRIDES,
+  filterWarning,
   keepOwnPerspective,
+  unmatchedOverrides,
   type PerspectiveFilter,
 } from './perspectives.ts';
 import {
@@ -93,6 +96,7 @@ import {
   isosOf,
   selectSubjects,
   subjectDefs,
+  viewersOf,
   type SubjectDef,
   type SubjectKind,
 } from './subjects.ts';
@@ -160,6 +164,8 @@ const regionsLevel = (def: SubjectDef): DivisionLevel => (def.part ? 'county' : 
 /**
  * The divisions of one level, as the subject's own country sees them: a division that only
  * another country's perspective accepts (see `perspectives.ts`) is left out. `left` lists them.
+ * Warns when the filter removes every division of the level or more than 20 % of them (a wrong
+ * perspective list, not a claim), and when a hand-written override matches none of them.
  */
 async function loadLevelWithLeft(
   def: SubjectDef,
@@ -167,7 +173,22 @@ async function loadLevelWithLeft(
 ): Promise<{ features: Feature[]; left: PerspectiveFilter['left'] }> {
   const rows = await fetchDivisions(def.country, level, def.part?.region);
   const known = [...(await fetchPerspectives()), ...PERSPECTIVE_OVERRIDES];
-  const { kept, left } = keepOwnPerspective(rows, def.country, known);
+  const { kept, left } = keepOwnPerspective(rows, def.country, known, viewersOf(def));
+  const suspicious = filterWarning(rows.length, left.length);
+  if (suspicious) {
+    console.warn(
+      `  ${def.id}: WARNING the perspective filter left out ${left.length} of ${rows.length} ${level} division(s): ${suspicious}`,
+    );
+  }
+  // a part of a country (US-AK) holds only some of its divisions: no override can be checked there
+  if (!def.part) {
+    for (const stale of unmatchedOverrides(rows, def.country, level, PERSPECTIVE_OVERRIDES)) {
+      console.warn(
+        `  ${def.id}: WARNING the perspective override for ${stale.id} matches no ${level} of ` +
+          `${def.country}: was the area given a new id? Update PERSPECTIVE_OVERRIDES.`,
+      );
+    }
+  }
   return { features: kept, left };
 }
 
@@ -184,7 +205,7 @@ async function loadRegions(def: SubjectDef): Promise<{ all: Feature[]; kept: Fea
   for (const { feature, perspectives } of left) {
     console.log(
       `  ${def.id}: ${String(feature.properties.name)} (${String(feature.properties.id)}) left out: ` +
-        `${perspectives.mode} ${perspectives.countries.join(',')}, not ${def.country}`,
+        `${perspectives.mode} ${perspectives.countries.join(',')}, not ${viewersOf(def).join('/')}`,
     );
   }
   const ids = new Set<string>();
@@ -312,9 +333,7 @@ export async function boundaries(only: string[] | undefined): Promise<void> {
   const all = await catalog();
   const defs = selectSubjects(subjectDefs(all), only);
   const lakes = await fetchLakes();
-  const previous = await readIndex();
-  const kept =
-    only !== undefined && previous?.overture === OVERTURE_RELEASE ? previous.subjects : [];
+  const kept = await subjectsToKeep(only, OVERTURE_RELEASE, readIndex);
   console.log(progressLine('boundaries', 0, defs.length, `${defs.length} subject(s) to build`));
   const { index, removed } = await rebuildSubjects({
     defs,

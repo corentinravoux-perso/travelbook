@@ -17,6 +17,7 @@ import {
   readIndexFile,
   rebuildPacks,
   rebuildSubjects,
+  subjectsToKeep,
   type MapDirs,
 } from './outputs.ts';
 import type { SubjectDef } from './subjects.ts';
@@ -145,6 +146,52 @@ describe('readIndexFile', () => {
     await rm(indexFile(dirs));
     await mkdir(indexFile(dirs)); // a directory: EISDIR, not ENOENT
     await expect(readIndexFile(dirs)).rejects.toThrow(/cannot read .*index\.json/);
+  });
+});
+
+describe('readIndexFile shape', () => {
+  it.each([
+    ['an empty object', '{}'],
+    ['an array', '[]'],
+    ['null', 'null'],
+    ['a list that is not one', '{"overture":"x","subjects":{}}'],
+    ['no release', '{"subjects":[]}'],
+  ])(
+    'rejects %s, which would make a partial run prune every other subject',
+    async (_name, body) => {
+      await write(indexFile(dirs), body);
+      await expect(readIndexFile(dirs)).rejects.toThrow(
+        /has no `overture` release and `subjects` list/,
+      );
+    },
+  );
+
+  it('accepts an index with no subjects yet', async () => {
+    await write(indexFile(dirs), '{"overture":"x","built":"d","subjects":[]}');
+    expect((await readIndexFile(dirs))?.subjects).toEqual([]);
+  });
+});
+
+describe('subjectsToKeep', () => {
+  const previous: MapIndex = {
+    overture: 'r1',
+    built: 'd',
+    subjects: [entry('A', 'a'), entry('B', 'b')],
+  };
+
+  it('does not read the index for a full run, so a corrupt one cannot block the rebuild', async () => {
+    const read = vi.fn().mockRejectedValue(new Error('index.json is not valid JSON'));
+    expect(await subjectsToKeep(undefined, 'r1', read)).toEqual([]);
+    expect(read).not.toHaveBeenCalled();
+  });
+
+  it('keeps the entries of a partial run from the same release, and fails on an unreadable index', async () => {
+    expect(await subjectsToKeep(['A'], 'r1', async () => previous)).toEqual(previous.subjects);
+    expect(await subjectsToKeep(['A'], 'r2', async () => previous)).toEqual([]);
+    expect(await subjectsToKeep(['A'], 'r1', async () => undefined)).toEqual([]);
+    await expect(
+      subjectsToKeep(['A'], 'r1', () => Promise.reject(new Error('not valid JSON'))),
+    ).rejects.toThrow('not valid JSON');
   });
 });
 
