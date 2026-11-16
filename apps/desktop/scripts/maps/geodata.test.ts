@@ -49,13 +49,15 @@ import {
   buildBestPack,
   buildPack,
   coverage,
-  dropCoveredRegions,
+  cutOverlappingRegions,
   dropSmallHoles,
   extentKm,
+  featureAreaKm2,
   mainBbox,
   minAreaKm2,
   pickLandLevel,
   pickPackMode,
+  polygonsOf,
   quantizationFor,
   ringAreaKm2,
   scaleBbox,
@@ -299,12 +301,14 @@ describe('resources/maps/index.json', () => {
     expect(drawn.sort()).toEqual(th.regions.map((r) => r.id).sort());
   });
 
-  it('draws no region twice: Alaska has no census area inside its Unorganized Borough', () => {
-    const names = entry('US-AK').regions.map((r) => r.name);
-    expect(names).toContain('Unorganized Borough');
-    expect(names).not.toContain('Prince of Wales-Hyder');
-    const drawn = topo('US-AK').objects.regions!.geometries.map((g) => g.properties?.name);
-    expect(drawn).not.toContain('Prince of Wales-Hyder');
+  it('keeps every region of Alaska, the census area inside the Unorganized Borough too', () => {
+    const ak = entry('US-AK');
+    expect(ak.regions).toHaveLength(21);
+    expect(ak.regions.map((r) => r.name)).toEqual(
+      expect.arrayContaining(['Unorganized Borough', 'Prince of Wales-Hyder']),
+    );
+    const drawn = topo('US-AK').objects.regions!.geometries.map((g) => g.properties?.id);
+    expect(drawn.sort()).toEqual(ak.regions.map((r) => r.id).sort());
   });
 
   it('keeps Réunion out of metropolitan France', () => {
@@ -1326,16 +1330,56 @@ const box = (id: string, x: number, y: number, size: number): Feature => ({
 
 describe('overlapping regions', () => {
   const ids = (features: Feature[]): string[] => features.map((f) => String(f.properties.id));
+  const find = (features: Feature[], id: string): Feature => {
+    const found = features.find((f) => f.properties.id === id);
+    if (!found) throw new Error(`no region ${id}`);
+    return found;
+  };
+  const holes = (f: Feature): number =>
+    polygonsOf(f.geometry).reduce((n, polygon) => n + polygon.length - 1, 0);
 
   it('leaves a clean tiling as it is', async () => {
     const tiling = [box('a', 0, 0, 1), box('b', 1, 0, 1), box('c', 0, 1, 1), box('d', 1, 1, 1)];
-    const result = await dropCoveredRegions(tiling);
-    expect(result.kept).toBe(tiling);
+    const result = await cutOverlappingRegions(tiling);
+    expect(result.regions).toBe(tiling);
+    expect(result.cuts).toEqual([]);
     expect(result.dropped).toEqual([]);
     expect(result.ratio).toBeCloseTo(1, 3);
   });
 
-  it('drops a parent that its children tile, and keeps the children', async () => {
+  it('cuts a region that lies inside another out of it, and keeps both (Alaska)', async () => {
+    const regions = [box('borough', 0, 0, 10), box('inside', 2, 2, 1), box('other', 20, 0, 4)];
+    const before = featureAreaKm2(find(regions, 'borough'));
+    const result = await cutOverlappingRegions(regions);
+    expect(ids(result.regions)).toEqual(['borough', 'inside', 'other']);
+    expect(result.dropped).toEqual([]);
+    expect(result.cuts).toHaveLength(1);
+    expect(result.cuts[0]).toMatchObject({ id: 'borough', by: [{ id: 'inside' }] });
+    // the container has a hole where the region lies, and lost exactly its area
+    const borough = find(result.regions, 'borough');
+    expect(holes(borough)).toBe(1);
+    const inside = featureAreaKm2(find(regions, 'inside'));
+    expect(featureAreaKm2(borough)).toBeCloseTo(before - inside, 0);
+    // the other regions are untouched, ids and names too
+    expect(find(result.regions, 'inside')).toBe(find(regions, 'inside'));
+    expect(borough.properties).toEqual({ id: 'borough', name: 'Région borough' });
+    expect(result.ratio).toBeGreaterThan(1.002);
+    expect(result.ratioAfter).toBeCloseTo(1, 3);
+  });
+
+  it('reduces a parent that its children only partly cover, and keeps the children', async () => {
+    const parent = box('parent', 0, 0, 10);
+    const children = [box('c1', 0, 0, 5), box('c2', 5, 0, 5)];
+    const result = await cutOverlappingRegions([parent, ...children]);
+    expect(ids(result.regions)).toEqual(['parent', 'c1', 'c2']);
+    expect(result.cuts[0]).toMatchObject({ id: 'parent' });
+    expect(result.cuts[0]?.by.map((c) => c.id)).toEqual(['c1', 'c2']);
+    expect(result.cuts[0]?.left).toBeCloseTo(0.5, 2);
+    expect(find(result.regions, 'c1')).toBe(children[0]);
+    expect(result.ratioAfter).toBeCloseTo(1, 3);
+  });
+
+  it('drops a parent that its children tile (under 1 % left), and says so', async () => {
     const parent = box('parent', 0, 0, 10);
     const children = [
       box('c1', 0, 0, 5),
@@ -1343,46 +1387,59 @@ describe('overlapping regions', () => {
       box('c3', 0, 5, 5),
       box('c4', 5, 5, 5),
     ];
-    const result = await dropCoveredRegions([parent, ...children]);
-    expect(ids(result.kept)).toEqual(['c1', 'c2', 'c3', 'c4']);
-    expect(result.dropped.map((d) => d.id)).toEqual(['parent']);
-    expect(result.dropped[0]?.covered).toBeGreaterThan(0.99);
+    const result = await cutOverlappingRegions([parent, ...children]);
+    expect(ids(result.regions)).toEqual(['c1', 'c2', 'c3', 'c4']);
+    expect(result.dropped).toEqual([
+      { id: 'parent', name: 'Région parent', left: expect.any(Number) },
+    ]);
+    expect(result.dropped[0]?.left).toBeLessThan(0.01);
+    expect(result.cuts).toEqual([]);
     expect(result.ratio).toBeCloseTo(2, 1);
     expect(result.ratioAfter).toBeCloseTo(1, 3);
   });
 
-  it('drops a region lying inside another (Alaska: Prince of Wales-Hyder in the Unorganized Borough)', async () => {
-    const regions = [box('borough', 0, 0, 10), box('inside', 2, 2, 1), box('other', 20, 0, 4)];
-    const result = await dropCoveredRegions(regions);
-    expect(ids(result.kept)).toEqual(['borough', 'other']);
-    expect(result.dropped.map((d) => d.id)).toEqual(['inside']);
-    expect(result.ratio).toBeGreaterThan(1.002);
+  it('cuts nested regions from the top: the container loses both the child and the grandchild', async () => {
+    const chain = [box('grand', 0, 0, 8), box('mid', 1, 1, 4), box('leaf', 2, 2, 1)];
+    const result = await cutOverlappingRegions(chain);
+    expect(ids(result.regions)).toEqual(['grand', 'mid', 'leaf']);
+    const area = (id: string): number => featureAreaKm2(find(result.regions, id));
+    const whole = (id: string): number => featureAreaKm2(find(chain, id));
+    expect(area('grand')).toBeCloseTo(whole('grand') - whole('mid'), 0);
+    expect(area('mid')).toBeCloseTo(whole('mid') - whole('leaf'), 0);
+    expect(area('leaf')).toBeCloseTo(whole('leaf'), 0);
     expect(result.ratioAfter).toBeCloseTo(1, 3);
   });
 
-  it('peels nested parents from the top, and never drops a duplicate twice', async () => {
-    const grand = box('grand', 0, 0, 4);
-    const mids = [box('m1', 0, 0, 2), box('m2', 2, 0, 2), box('m3', 0, 2, 2), box('m4', 2, 2, 2)];
-    const leaves = [box('l1', 0, 0, 1), box('l2', 1, 0, 1), box('l3', 0, 1, 1), box('l4', 1, 1, 1)];
-    const result = await dropCoveredRegions([grand, ...mids, ...leaves]);
-    expect(result.dropped.map((d) => d.id)).toEqual(['grand', 'm1']);
-    expect(ids(result.kept)).toEqual(['m2', 'm3', 'm4', 'l1', 'l2', 'l3', 'l4']);
-    const twins = await dropCoveredRegions([box('x', 0, 0, 2), box('y', 0, 0, 2)]);
-    expect(twins.kept).toHaveLength(1);
-    expect(twins.dropped).toHaveLength(1);
+  it('cuts a region only when it lies at least 90 % inside the other', async () => {
+    const container = box('container', 0, 0, 10);
+    // 1 x 1 squares: one 95 % inside (sticking out by 5 %), one 80 % inside
+    const mostly = box('mostly', 9.05, 4, 1);
+    const half = box('partly', 9.2, 6, 1);
+    const result = await cutOverlappingRegions([container, mostly, half]);
+    expect(result.cuts.map((c) => c.by.map((b) => b.id))).toEqual([['mostly']]);
+    // the squares themselves are not touched, the part of "mostly" that sticks out included
+    expect(find(result.regions, 'mostly')).toBe(mostly);
+    expect(find(result.regions, 'partly')).toBe(half);
   });
 
-  it('ignores an overlap within the 0.2 % tolerance, and one that no region is a parent of', async () => {
+  it('never drops a duplicate twice: one of the two goes', async () => {
+    const twins = await cutOverlappingRegions([box('x', 0, 0, 2), box('y', 0, 0, 2)]);
+    expect(ids(twins.regions)).toEqual(['x']);
+    expect(twins.dropped.map((d) => d.id)).toEqual(['y']);
+  });
+
+  it('ignores an overlap within the 0.2 % tolerance, and one that is no containment', async () => {
     const sliver = [box('a', 0, 0, 1), box('b', 0.9995, 0, 1)];
-    expect((await dropCoveredRegions(sliver)).dropped).toEqual([]);
-    const halves = await dropCoveredRegions([box('a', 0, 0, 2), box('b', 1, 0, 2)]);
+    expect((await cutOverlappingRegions(sliver)).cuts).toEqual([]);
+    const halves = await cutOverlappingRegions([box('a', 0, 0, 2), box('b', 1, 0, 2)]);
+    expect(halves.cuts).toEqual([]);
     expect(halves.dropped).toEqual([]);
     expect(halves.ratioAfter).toBeGreaterThan(1.002); // reported, not "fixed"
   });
 
   it('handles zero or one region', async () => {
-    expect((await dropCoveredRegions([])).kept).toEqual([]);
-    expect((await dropCoveredRegions([box('a', 0, 0, 1)])).kept).toHaveLength(1);
+    expect((await cutOverlappingRegions([])).regions).toEqual([]);
+    expect((await cutOverlappingRegions([box('a', 0, 0, 1)])).regions).toHaveLength(1);
   });
 });
 

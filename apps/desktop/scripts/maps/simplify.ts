@@ -145,91 +145,132 @@ export function coverage(land: Feature, features: Feature[]): number {
 
 /** Summed area of the regions may exceed the area of their union by this share (border noise). */
 export const OVERLAP_TOLERANCE = 0.002;
-/** A region at least this much covered by the other regions is a parent (or a duplicate). */
-export const PARENT_COVERED_MIN = 0.9;
+/** A region at least this much inside a larger one is cut out of it. */
+export const INSIDE_MIN = 0.9;
+/** A region with less than this share of its area left after the cuts is dropped. */
+export const LEFT_MIN = 0.01;
 
+export interface CutRegion {
+  /** The container that was cut. */
+  id: string;
+  name: string;
+  /** The regions that were cut out of it. */
+  by: { id: string; name: string }[];
+  /** Share of the container's area that is left. */
+  left: number;
+}
 export interface DroppedRegion {
   id: string;
   name: string;
-  /** Share of the region's area that lay under the other regions when it was dropped. */
-  covered: number;
-  areaKm2: number;
+  /** Share of the area that was left after the cuts (under `LEFT_MIN`). */
+  left: number;
 }
-
 export interface OverlapResult {
-  kept: Feature[];
+  /** The regions to draw, in the order given: same ids, containers cut. */
+  regions: Feature[];
+  cuts: CutRegion[];
   dropped: DroppedRegion[];
   /** Summed area of the regions over the area of their union, before and after. */
   ratio: number;
   ratioAfter: number;
 }
 
-/** Areas of the regions, of their union, and of the part of each that lies under another one. */
+/** Areas of the regions and of their union, and the area that each pair `i,j` (i < j) shares. */
 async function overlapOf(
   regions: Feature[],
-): Promise<{ union: number; own: number[]; covered: number[] }> {
+): Promise<{ union: number; own: number[]; shared: Map<string, number> }> {
   const own = regions.map(featureAreaKm2);
-  if (regions.length < 2) return { union: own[0] ?? 0, own, covered: own.map(() => 0) };
+  const shared = new Map<string, number>();
+  if (regions.length < 2) return { union: own[0] ?? 0, own, shared };
   const input = collection(regions.map((r, i) => ({ ...r, properties: { i } })));
   const out = await mapshaper.applyCommands(
     '-i regions.json -mosaic calc="ids=collect(i)" -o format=geojson tiles.json',
     { 'regions.json': input },
   );
   const tiles = (JSON.parse(String(out['tiles.json'])) as Collection).features;
-  const covered = regions.map(() => 0);
   let union = 0;
   for (const tile of tiles) {
     const area = featureAreaKm2(tile);
-    const ids = (tile.properties.ids ?? []) as number[];
+    const ids = ((tile.properties.ids ?? []) as number[]).slice().sort((x, y) => x - y);
     union += area;
-    if (ids.length < 2) continue;
-    for (const i of ids) covered[i] = (covered[i] ?? 0) + area;
+    for (const [n, i] of ids.entries()) {
+      for (const j of ids.slice(n + 1))
+        shared.set(`${i},${j}`, (shared.get(`${i},${j}`) ?? 0) + area);
+    }
   }
-  return { union, own, covered };
+  return { union, own, shared };
 }
 
+const ratioOf = (m: { union: number; own: number[] }): number =>
+  m.union > 0 ? m.own.reduce((a, b) => a + b, 0) / m.union : 1;
+
 /**
- * Overlapping regions are drawn twice: Alaska's "Unorganized Borough" holds "Prince of Wales-Hyder",
- * so the two sum to more than the land they cover. When the regions' summed area exceeds the area
- * of their union by more than `OVERLAP_TOLERANCE`, drop the region that is at least
- * `PARENT_COVERED_MIN` covered by the others, the largest first (a parent that its children tile
- * goes before the children, which the parent covers too), and measure again, until the summed
- * area is back within tolerance or no such region is left. A clean tiling is returned as it is.
+ * Overlapping regions are drawn twice: Alaska's "Unorganized Borough" holds "Prince of
+ * Wales-Hyder", so the two sum to more than the land they cover. When the regions' summed area
+ * exceeds the area of their union by more than `OVERLAP_TOLERANCE`, every region A that lies at
+ * least `INSIDE_MIN` inside a larger region B is cut out of B (B minus A, planar, by mapshaper's
+ * `-erase`): no region is lost and ids and names stay. A container with less than `LEFT_MIN` of its
+ * area left (a parent that its children tile, a duplicate) is dropped. Overlaps that are no
+ * containment are left, and show in `ratioAfter`. A clean tiling is returned as it is.
  */
-export async function dropCoveredRegions(regions: Feature[]): Promise<OverlapResult> {
-  let kept = regions;
-  const dropped: DroppedRegion[] = [];
-  let measured = await overlapOf(kept);
-  const ratioOf = (m: typeof measured): number =>
-    m.union > 0 ? m.own.reduce((a, b) => a + b, 0) / m.union : 1;
+export async function cutOverlappingRegions(regions: Feature[]): Promise<OverlapResult> {
+  const measured = await overlapOf(regions);
   const ratio = ratioOf(measured);
-  while (ratioOf(measured) > 1 + OVERLAP_TOLERANCE) {
-    const m = measured;
-    const candidates = kept
-      .map((region, i) => ({
-        region,
-        i,
-        area: m.own[i] ?? 0,
-        share: (m.covered[i] ?? 0) / (m.own[i] || 1),
-      }))
-      .filter((c) => c.share >= PARENT_COVERED_MIN)
-      .sort(
-        (a, b) =>
-          b.area - a.area ||
-          String(a.region.properties.id).localeCompare(String(b.region.properties.id)),
-      );
-    const parent = candidates[0];
-    if (!parent) break;
-    dropped.push({
-      id: String(parent.region.properties.id),
-      name: String(parent.region.properties.name),
-      covered: parent.share,
-      areaKm2: parent.area,
-    });
-    kept = kept.filter((_, i) => i !== parent.i);
-    measured = await overlapOf(kept);
+  if (ratio <= 1 + OVERLAP_TOLERANCE) {
+    return { regions, cuts: [], dropped: [], ratio, ratioAfter: ratio };
   }
-  return { kept, dropped, ratio, ratioAfter: ratioOf(measured) };
+  const idOf = (i: number): string => String(regions[i]?.properties.id);
+  // the order of "larger": by area, then by id, so that two duplicates are still told apart
+  const larger = (b: number, a: number): boolean =>
+    (measured.own[b] ?? 0) > (measured.own[a] ?? 0) ||
+    ((measured.own[b] ?? 0) === (measured.own[a] ?? 0) && idOf(b) > idOf(a));
+  const children = new Map<number, number[]>();
+  for (const [key, area] of measured.shared) {
+    const [i = 0, j = 0] = key.split(',').map(Number);
+    for (const [a, b] of [
+      [i, j],
+      [j, i],
+    ] as const) {
+      if (area / (measured.own[a] || 1) >= INSIDE_MIN && larger(b, a)) {
+        children.set(b, [...(children.get(b) ?? []), a]);
+      }
+    }
+  }
+  const cuts: CutRegion[] = [];
+  const dropped: DroppedRegion[] = [];
+  const result: Feature[] = [];
+  for (const [i, region] of regions.entries()) {
+    const inside = children.get(i);
+    if (!inside) {
+      result.push(region);
+      continue;
+    }
+    // one property, else mapshaper writes a bare GeometryCollection instead of features
+    const strip = (f: Feature): Feature => ({ ...f, properties: { k: 0 } });
+    const out = await mapshaper.applyCommands(
+      '-i b.json a.json combine-files -erase target=b source=a -o target=b format=geojson out.json',
+      {
+        'b.json': collection([strip(region)]),
+        'a.json': collection(inside.map((a) => strip(regions[a] as Feature))),
+      },
+    );
+    const [piece] = (JSON.parse(String(out['out.json'])) as Partial<Collection>).features ?? [];
+    const left = piece?.geometry ? featureAreaKm2(piece) / (measured.own[i] || 1) : 0;
+    const id = idOf(i);
+    const name = String(region.properties.name);
+    if (!piece?.geometry || left < LEFT_MIN) {
+      dropped.push({ id, name, left });
+      continue;
+    }
+    result.push({ ...region, geometry: piece.geometry });
+    cuts.push({
+      id,
+      name,
+      by: inside.map((a) => ({ id: idOf(a), name: String(regions[a]?.properties.name) })),
+      left,
+    });
+  }
+  return { regions: result, cuts, dropped, ratio, ratioAfter: ratioOf(await overlapOf(result)) };
 }
 
 /**
