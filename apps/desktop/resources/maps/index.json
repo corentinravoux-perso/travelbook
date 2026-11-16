@@ -53,6 +53,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -95,6 +96,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -248,6 +250,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -310,6 +313,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -573,6 +577,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -765,6 +770,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -827,6 +833,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -990,6 +997,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -1213,6 +1221,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -1486,6 +1495,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -2279,6 +2289,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -2298,7 +2309,7 @@
     "US"
    ],
    "file": "subjects/US.topo.json",
-   "sha256": "da01b1ce4b0bf78554f33a527c1d4d6f08e451552ebbd1df40bb042f95a57eb0",
+   "sha256": "dc3583dff3f86496aaf4b6b2be29f1752bd09109b603c5cf2ecdace8e04c85af",
    "regions": [
     {
      "id": "US-AK",
@@ -2811,6 +2822,7 @@
      ]
     }
    ],
+   "landSource": "region",
    "pack": null
   },
   {
@@ -2831,7 +2843,7 @@
     "US"
    ],
    "file": "subjects/US-AK.topo.json",
-   "sha256": "c0329f9330ce89d15da07614bef897a21e1a1fe4cc3f436efe66470bdf7d1afe",
+   "sha256": "6dcfe405734fb649e0a7542fde499c91e8061d0b160376d409ef70764edcd903",
    "regions": [
     {
      "id": "01352d78-757e-4eac-9997-8992d10dc5cc",
@@ -3044,6 +3056,7 @@
      ]
     }
    ],
+   "landSource": "county",
    "pack": null
   },
   {
@@ -3117,6 +3130,7 @@
      ]
     }
    ],
+   "landSource": "county",
    "pack": null
   }
  ]

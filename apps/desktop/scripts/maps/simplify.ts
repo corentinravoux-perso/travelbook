@@ -44,18 +44,25 @@ export function minAreaKm2(extent: number): number {
   return (smallMetres(extent) / 1000) ** 2;
 }
 
-/** Planar area of a ring in km2, longitudes scaled by cos(latitude): enough to rank small rings. */
+const EARTH_RADIUS_KM = 6371.0088;
+
+/**
+ * Spherical area of a ring in km2 (Chamberlain-Duquette). Each longitude step is wrapped to
+ * [-180, 180], so a ring that crosses the antimeridian is measured like any other, and the area
+ * of a large ring (Alaska) does not depend on one average latitude.
+ */
 export function ringAreaKm2(ring: number[][]): number {
+  const rad = Math.PI / 180;
   let sum = 0;
-  let lat = 0;
   for (let i = 0; i < ring.length - 1; i++) {
     const [x0 = 0, y0 = 0] = ring[i] ?? [];
     const [x1 = 0, y1 = 0] = ring[i + 1] ?? [];
-    sum += x0 * y1 - x1 * y0;
-    lat += y0;
+    let dx = x1 - x0;
+    if (dx > 180) dx -= 360;
+    else if (dx < -180) dx += 360;
+    sum += dx * rad * (2 + Math.sin(y0 * rad) + Math.sin(y1 * rad));
   }
-  const cos = Math.cos(((lat / Math.max(1, ring.length - 1)) * Math.PI) / 180);
-  return Math.abs(sum / 2) * KM_PER_DEG * 110.57 * cos;
+  return Math.abs((sum * EARTH_RADIUS_KM ** 2) / 2);
 }
 
 export function polygonsOf(geometry: Geometry): number[][][][] {
@@ -135,9 +142,9 @@ export function coverage(land: Feature, features: Feature[]): number {
 }
 
 /**
- * The finest level whose features cover at least 98 % of the country or dependency polygon,
- * trying the levels in the order given (coarse to fine, the finest accepted wins when its data is
- * fuller): Overture's polygon of a country is sometimes far coarser than its divisions.
+ * The first level, in the order given, whose features cover at least 98 % of the country or
+ * dependency polygon (callers pass region, county, locality): Overture's polygon of a country is
+ * sometimes far coarser than its divisions.
  * `null` when no level qualifies (the caller keeps the country polygon).
  */
 export async function pickLandLevel<L extends string>(

@@ -52,6 +52,8 @@ export interface MapSubjectEntry {
   file: string;
   sha256: string;
   regions: { id: string; name: string; bbox: Bbox }[];
+  /** Where the land outline comes from: a division level (dissolved) or the country polygon. */
+  landSource: DivisionLevel | 'country';
   pack: { file: string; sha256: string; bytes: number; bundled: boolean } | null;
 }
 export interface MapIndex {
@@ -172,6 +174,7 @@ export async function buildSubject(
         bbox: roundBox(bboxOf(r)),
       }))
       .sort((a, b) => a.id.localeCompare(b.id)),
+    landSource: level?.name ?? 'country',
     pack: null,
   };
   return { entry, json, extent };
@@ -202,7 +205,7 @@ export async function boundaries(only: string[] | undefined): Promise<void> {
     await writeFile(join(MAPS_DIR, entry.file), json);
     built.set(entry.id, entry);
     console.log(
-      `${def.id.padEnd(8)} ${String(Math.round(json.length / 1024)).padStart(6)} KB  ` +
+      `${def.id.padEnd(8)} ${entry.landSource.padEnd(8)} ${String(Math.round(json.length / 1024)).padStart(6)} KB  ` +
         `${entry.regions.length} regions  tol ${toleranceMetres(extent).toFixed(1)} m  ` +
         `${((Date.now() - started) / 1000).toFixed(1)} s`,
     );
