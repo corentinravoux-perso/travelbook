@@ -299,10 +299,20 @@
 }
 
 /* Tabs of the inspector: properties, layers, history. */
-.insp-tabs {
+.insp-head {
   flex: none;
   display: flex;
+  align-items: center;
   border-bottom: 1px solid var(--line);
+}
+.insp-tabs {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+}
+.insp-fold {
+  flex: none;
+  margin: 0 var(--s2);
 }
 .insp-tab {
   flex: 1;

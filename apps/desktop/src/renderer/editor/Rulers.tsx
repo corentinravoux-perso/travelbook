@@ -168,19 +168,21 @@ function drawRuler(d: DrawInput): void {
   ctx.strokeStyle = colors.tick;
   ctx.lineWidth = 1;
   ctx.fillStyle = colors.text;
-  ctx.font = `600 9.5px ${getComputedStyle(canvas).fontFamily}`;
+  // Everything scales with the thickness of the ruler (24 px: 9.5 px numbers, a 9 px long tick).
+  const k = thick / 24;
+  ctx.font = `600 ${(9.5 * k).toFixed(1)}px ${getComputedStyle(canvas).fontFamily}`;
   ctx.textBaseline = 'top';
   for (const t of rulerTicks(origin, scale, length, steps)) {
-    const len = t.kind === 'label' ? 9 : t.kind === 'half' ? 6 : 3.5;
+    const len = (t.kind === 'label' ? 9 : t.kind === 'half' ? 6 : 3.5) * k;
     across(t.px, thick - len, thick);
     if (t.kind !== 'label') continue;
     const text = rulerLabel(t.mm);
     if (horizontal) {
       ctx.textAlign = 'left';
-      ctx.fillText(text, Math.round(t.px) + 3, 3);
+      ctx.fillText(text, Math.round(t.px) + 3, 3 * k);
     } else {
       ctx.save();
-      ctx.translate(3, Math.round(t.px) + 3);
+      ctx.translate(3 * k, Math.round(t.px) + 3);
       ctx.rotate(-Math.PI / 2);
       ctx.textAlign = 'right';
       ctx.fillText(text, 0, 0);
@@ -203,16 +205,18 @@ function drawRuler(d: DrawInput): void {
   // Ruler guides: a small lagoon wedge pointing at the page.
   const guides = horizontal ? spread.guides?.x : spread.guides?.y;
   ctx.fillStyle = colors.accent;
+  const wing = 4 * k;
+  const depth = 6 * k;
   for (const g of guides ?? []) {
     const p = px(g);
     ctx.beginPath();
     if (horizontal) {
-      ctx.moveTo(p - 4, thick - 6);
-      ctx.lineTo(p + 4, thick - 6);
+      ctx.moveTo(p - wing, thick - depth);
+      ctx.lineTo(p + wing, thick - depth);
       ctx.lineTo(p, thick);
     } else {
-      ctx.moveTo(thick - 6, p - 4);
-      ctx.lineTo(thick - 6, p + 4);
+      ctx.moveTo(thick - depth, p - wing);
+      ctx.lineTo(thick - depth, p + wing);
       ctx.lineTo(thick, p);
     }
     ctx.fill();
@@ -230,9 +234,9 @@ function drawRuler(d: DrawInput): void {
   ctx.strokeStyle = colors.accent;
   across(p, 0, thick);
   const text = `${mmText(mark)} mm`;
-  ctx.font = `700 10px ${getComputedStyle(canvas).fontFamily}`;
-  const tw = ctx.measureText(text).width + 10;
-  const th = 15;
+  ctx.font = `700 ${(10 * k).toFixed(1)}px ${getComputedStyle(canvas).fontFamily}`;
+  const tw = ctx.measureText(text).width + 10 * k;
+  const th = 15 * k;
   // The tag sits after the line, or before it when the ruler ends.
   const start = p + 4 + tw > length ? p - 4 - tw : p + 4;
   ctx.fillStyle = colors.accent;

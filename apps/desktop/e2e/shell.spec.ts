@@ -156,3 +156,50 @@ test('panel and inspector widths follow their handles and survive a restart', as
     await app.close();
   }
 });
+
+test('the panel and the inspector fold away and open again, and stay so after a restart', async () => {
+  const userData = join(work, 'user data');
+  let app = await launchApp(userData);
+  try {
+    let page = await openShell(app);
+    const panel = page.getByRole('region', { name: 'Panneau Photos' });
+    const inspector = page.getByRole('complementary', { name: 'Inspecteur' });
+    const canvas = page.getByRole('main', { name: 'Plan de travail' });
+    const before = (await canvas.boundingBox())!.width;
+
+    // The panel's own button folds it; the canvas takes the room.
+    await panel.getByRole('button', { name: 'Réduire le panneau' }).click();
+    await expect(panel).toBeHidden();
+    await expect.poll(async () => (await canvas.boundingBox())!.width).toBeGreaterThan(before);
+    // A click on the open tool unfolds it; another click folds it again.
+    const rail = page.getByRole('navigation', { name: 'Outils' });
+    await rail.getByRole('button', { name: 'Photos' }).click();
+    await expect(panel).toBeVisible();
+    await rail.getByRole('button', { name: 'Photos' }).click();
+    await expect(panel).toBeHidden();
+    // Another tool opens its panel.
+    await rail.getByRole('button', { name: 'Texte' }).click();
+    await expect(page.getByRole('region', { name: 'Panneau Texte' })).toBeVisible();
+    await rail.getByRole('button', { name: 'Texte' }).click();
+
+    // The inspector folds to a strip with the button that opens it.
+    await inspector.getByRole('button', { name: "Réduire l'inspecteur" }).click();
+    await expect(inspector.getByRole('tablist')).toBeHidden();
+    expect((await inspector.boundingBox())!.width).toBeLessThan(40);
+
+    // Both stay folded after a restart.
+    const exited = app.waitForEvent('close');
+    await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close());
+    await exited;
+    app = await launchApp(userData);
+    page = await app.firstWindow();
+    await page.getByRole('button', { name: /Album de test/ }).click();
+    await expect(page.getByRole('banner', { name: 'Barre du haut' })).toBeVisible();
+    await expect(page.locator('#shell-panel')).toBeHidden();
+    const strip = page.getByRole('complementary', { name: 'Inspecteur' });
+    await strip.getByRole('button', { name: "Afficher l'inspecteur" }).click();
+    await expect(strip.getByRole('tablist')).toBeVisible();
+  } finally {
+    await app.close().catch(() => {});
+  }
+});
