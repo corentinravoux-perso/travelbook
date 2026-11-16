@@ -9,6 +9,7 @@ import {
 } from '@travelbook/core';
 import type { ReactElement, ReactNode } from 'react';
 import { Background } from './Background';
+import { MapView } from './elements/MapView';
 import { PhotoView } from './elements/PhotoView';
 import { ShapeView } from './elements/ShapeView';
 import { StickerView } from './elements/StickerView';
@@ -48,8 +49,15 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
     case 'text':
       return <TextView key={el.id} el={el} quality={p.quality} />;
     case 'map':
-      // Drawn by MapView, which comes after the model: no album holds a map until then.
-      return null;
+      return (
+        <MapView
+          key={el.id}
+          el={el}
+          geometry={p.mapGeometry?.(el.geometryAssetId) ?? null}
+          quality={p.quality}
+          assetUrl={p.assetUrl}
+        />
+      );
   }
 }
 
