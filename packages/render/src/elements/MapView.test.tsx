@@ -367,8 +367,8 @@ describe('MapView', () => {
       },
     });
     const { container, layer } = draw(el);
-    // a -> ghost and ghost -> d are skipped; d -> c is drawn; c -> a has no leg
-    expect(layer('route')?.querySelectorAll('path[data-leg]')).toHaveLength(1);
+    // a -> ghost, ghost -> d are skipped, c has no finite position (d -> c skipped), c -> a has no leg
+    expect(layer('route')?.querySelectorAll('path[data-leg]')).toHaveLength(0);
     expect(allAttributes(container).join(' ')).not.toMatch(/NaN|Infinity/);
     expect(container.textContent).not.toMatch(/NaN|Infinity/);
   });
@@ -395,5 +395,98 @@ describe('MapView', () => {
     expect(view(geometry).querySelector('[data-layer="land"]')).not.toBeNull();
     expect(calls).toEqual(['map-0123456789abcdef']);
     expect(view('missing').textContent).toContain('Carte introuvable');
+  });
+
+  it('measures labelOffset from the projected point for a tip-anchored marker', () => {
+    const textAt = (marker: 'pin' | 'point') => {
+      const el = mapEl({
+        places: [place('a', 0, 0, { marker, labelOffset: { dx: 4, dy: -3 } })],
+      });
+      const { layer } = draw(el);
+      const t = layer('labels')?.querySelector('text');
+      return { x: Number(t?.getAttribute('x')), y: Number(t?.getAttribute('y')) };
+    };
+    const pin = textAt('pin');
+    const point = textAt('point');
+    expect(pin.x).toBeCloseTo(point.x, 3);
+    expect(pin.y).toBeCloseTo(point.y, 3);
+    // the point is the centre of the 150 x 100 box (lon 0, lat 0)
+    expect(pin.x).toBeCloseTo(75 + 4, 1);
+    expect(pin.y).toBeCloseTo(50 - 3, 1);
+  });
+
+  it.each([
+    [300, 40],
+    [20, 20],
+  ])('fits the land inside a %i x %i mm box', (w, h) => {
+    const { layer } = draw(mapEl({}, w, h));
+    const group = layer('land')?.parentElement as Element;
+    const m = /translate\(([-\d.]+) ([-\d.]+)\) scale\(([-\d.e]+)\)/.exec(
+      group.getAttribute('transform') ?? '',
+    );
+    const [tx, ty, s] = [Number(m?.[1]), Number(m?.[2]), Number(m?.[3])];
+    const [[x0, y0], [x1, y1]] = geometry.bounds;
+    const eps = 0.01;
+    expect(x0 * s + tx).toBeGreaterThanOrEqual(-eps);
+    expect(y0 * s + ty).toBeGreaterThanOrEqual(-eps);
+    expect(x1 * s + tx).toBeLessThanOrEqual(w + eps);
+    expect(y1 * s + ty).toBeLessThanOrEqual(h + eps);
+  });
+
+  it('handles a one-stop itinerary and two places at the same coordinates', () => {
+    const el = mapEl({
+      places: [place('a', 0, 0), place('b', 0, 0)],
+      route: { stops: ['a'], legs: [], numbered: true },
+    });
+    const { container, layer } = draw(el);
+    expect(allAttributes(container).join(' ')).not.toMatch(/NaN|Infinity/);
+    expect(
+      Array.from(layer('badges')?.querySelectorAll('[data-badge]') ?? []).map((b) => b.textContent),
+    ).toEqual(['1']);
+    expect(layer('route')?.querySelectorAll('path[data-leg]')).toHaveLength(0);
+    const two = mapEl({
+      places: [place('a', 0, 0), place('b', 0, 0)],
+      route: {
+        stops: ['b', 'a'],
+        legs: [{ mode: 'train', curve: 'droit', bend: 0, icon: true }],
+        numbered: true,
+      },
+    });
+    const d = draw(two);
+    expect(allAttributes(d.container).join(' ')).not.toMatch(/NaN|Infinity/);
+    expect(
+      Array.from(d.layer('badges')?.querySelectorAll('[data-badge]') ?? []).map((b) => [
+        b.getAttribute('data-badge'),
+        b.textContent,
+      ]),
+    ).toEqual([
+      ['a', '2'],
+      ['b', '1'],
+    ]);
+  });
+
+  it('draws nothing for a place with a non-finite position', () => {
+    const el = mapEl({
+      places: [place('a', Number.NaN, 0), place('b', 5, Infinity), place('c', 1, 1)],
+      route: {
+        stops: ['a', 'b', 'c'],
+        legs: [
+          { mode: 'train', curve: 'droit', bend: 0, icon: true },
+          { mode: 'train', curve: 'droit', bend: 0, icon: true },
+        ],
+        numbered: true,
+      },
+    });
+    const { container, layer } = draw(el);
+    expect(layer('markers')?.querySelectorAll('[data-place]')).toHaveLength(1);
+    expect(layer('markers')?.querySelector('[data-place="c"]')).not.toBeNull();
+    expect(layer('labels')?.querySelectorAll('text')).toHaveLength(1);
+    expect(
+      Array.from(layer('badges')?.querySelectorAll('[data-badge]') ?? []).map((b) =>
+        b.getAttribute('data-badge'),
+      ),
+    ).toEqual(['c']);
+    expect(layer('route')?.querySelectorAll('path[data-leg]')).toHaveLength(0);
+    expect(allAttributes(container).join(' ')).not.toMatch(/NaN|Infinity/);
   });
 });

@@ -114,6 +114,8 @@ function Frame(p: { el: MapElement; children: ReactNode }): ReactElement {
  * A map, drawn as SVG in mm (like a shape). The geometry is fitted to the element's box, so a
  * resize shows more or less of the map; strokes stay in mm and labels in pt at any size.
  * Everything drawn is guarded against non-finite numbers: a bad spec skips, it never throws.
+ * SpreadView does not pass `missingLabel`: render cannot import the renderer's fr.ts, so the
+ * default is the French string itself.
  */
 export function MapView({
   el,
@@ -180,9 +182,11 @@ export function MapView({
     return d && d.some((n) => n > 0) ? d.map((n) => round(n, 6)).join(' ') : undefined;
   };
 
-  // The first place of an id is the place.
+  // A place with no finite position cannot be drawn; the first place of an id is the place.
   const seen = new Set<string>();
-  const places = el.places.filter((p) => !seen.has(p.id) && seen.add(p.id));
+  const places = el.places.filter(
+    (p) => Number.isFinite(p.lon) && Number.isFinite(p.lat) && !seen.has(p.id) && seen.add(p.id),
+  );
   const kindOf = (p: MapPlace): MapPlaceKind =>
     p.source.kind === 'custom' ? 'custom' : p.source.kind === 'sight' ? 'sight' : 'city';
   const markerOf = (p: MapPlace) => {
@@ -212,14 +216,19 @@ export function MapView({
     const cy = tip ? y - d / 2 : y;
     const badged = p.shown && numbers.has(p.id);
     const size = Math.max(p.shown ? d : 0, badged ? badgeD : 0);
-    if (size > 0) obstacles.push({ x: x - size / 2, y: cy - size / 2, w: size, h: size });
+    // The marker's glyph is centred on `cy`; a badge sits on the projected point.
+    if (p.shown && d > 0) obstacles.push({ x: x - d / 2, y: cy - d / 2, w: d, h: d });
+    if (badged && badgeD > 0) {
+      obstacles.push({ x: x - badgeD / 2, y: y - badgeD / 2, w: badgeD, h: badgeD });
+    }
     if (!p.shown || !p.labelShown) return;
     const text = cased(p.label, style.label.case);
     const chars = Array.from(text).length;
     labelBoxes.push({
       id: p.id,
+      // The true point: `labelOffset` is measured from it for every marker kind.
       x,
-      y: cy,
+      y,
       w: chars * labelPt * (GLYPH_EM + finite(style.label.letterSpacingEm)),
       h: labelPt * LABEL_LINE,
       rank: i,
@@ -324,6 +333,11 @@ export function MapView({
           const flip = Math.abs(finite(path.angle)) > VEHICLE_FLIP_ANGLE;
           const walker = seg.leg.mode === 'pied';
           const rotate = walker ? 0 : finite(path.angle);
+          const vd = f(vehicleD);
+          // The walker stays upright and turns to face left; the others turn with the leg and
+          // mirror vertically when heading left, so wheels and hulls stay down.
+          const sx = walker && flip ? -vd : vd;
+          const sy = !walker && flip ? -vd : vd;
           return (
             <g key={seg.index}>
               <path
@@ -343,7 +357,7 @@ export function MapView({
                   fillRule="evenodd"
                   stroke={style.badge.stroke ?? 'none'}
                   strokeWidth={style.badge.stroke ? 0.04 : undefined}
-                  transform={`translate(${f(path.mid[0])} ${f(path.mid[1])}) rotate(${f(rotate)}) scale(${walker ? (flip ? -1 : 1) * f(vehicleD) : f(vehicleD)} ${!walker && flip ? -f(vehicleD) : f(vehicleD)})`}
+                  transform={`translate(${f(path.mid[0])} ${f(path.mid[1])}) rotate(${f(rotate)}) scale(${sx} ${sy})`}
                 />
               ) : null}
             </g>
