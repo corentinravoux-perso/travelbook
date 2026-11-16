@@ -1225,7 +1225,26 @@ describe('fonts', () => {
 
 describe('maps', () => {
   const RESOURCES = join(import.meta.dirname, '../../resources');
-  const geometry = JSON.stringify({ v: 1, paths: ['M0 0L10 10Z'] });
+  const geometry = JSON.stringify({
+    version: 1,
+    projection: { kind: 'mercator', rotate: [0, 0, 0], k: 600, tx: 500, ty: 300 },
+    bounds: [
+      [0, 0],
+      [1000, 600],
+    ],
+    remoteBounds: [
+      [0, 0],
+      [1000, 600],
+    ],
+    paths: {
+      land: 'M0 0H1000V600H0Z',
+      outline: 'M0 0H1000V600H0Z',
+      regions: 'M500 0V600',
+      selected: 'M0 0H500V600H0Z',
+      neighbours: 'M-50 0H0V600H-50Z',
+      lakes: 'M400 200h50v50h-50Z',
+    },
+  });
 
   afterEach(() => setMapsResourcesDir(null));
 
@@ -1266,6 +1285,9 @@ describe('maps', () => {
       await expect(call(CHANNEL.mapsSaveGeometry, '[1]', { name: 'x' })).rejects.toThrow(
         /JSON object/,
       );
+      await expect(
+        call(CHANNEL.mapsSaveGeometry, JSON.stringify({ v: 1, paths: [] }), { name: 'x' }),
+      ).rejects.toThrow(/not a map geometry/);
     });
   });
 
