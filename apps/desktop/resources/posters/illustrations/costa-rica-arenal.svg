@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1100" data-tb-style="pixory">
+  <!-- Arenal: a steep perfect cone with a cloud cap -->
+  <path fill="#7a7068" d="M81 698C78 690 115 656 126 642C138 628 162 595 173 580C184 565 207 534 218 519C229 505 252 472 263 458C274 443 299 415 310 401C320 386 342 354 353 339C364 325 389 293 401 280C413 266 441 241 453 228C465 214 485 175 502 168C519 160 580 162 597 169C615 176 637 213 649 226C662 240 690 267 702 280C714 294 736 326 747 340C757 355 778 386 789 400C799 414 824 445 835 460C846 474 868 507 880 521C891 535 920 563 931 577C942 591 964 623 975 637C985 652 1022 690 1019 698C1016 706 967 701 950 701C933 701 895 698 878 698C860 698 822 701 804 701C787 702 748 703 731 702C713 702 676 699 659 699C642 698 605 700 587 700C570 700 530 701 512 701C494 701 456 700 439 700C422 699 386 697 370 697C353 697 315 697 298 698C281 698 243 698 226 699C208 700 167 703 149 703C132 703 84 705 81 698z"/>
+  <path fill="#4f4844" d="M597 168C606 159 638 210 650 223C662 237 689 266 700 280C712 294 735 326 746 340C757 354 779 384 790 398C801 413 827 445 838 460C849 474 873 508 883 522C893 537 915 565 926 579C937 592 963 623 975 637C986 652 1025 692 1022 699C1018 707 961 698 943 698C925 698 889 697 871 697C853 698 812 701 794 701C776 702 737 701 718 701C700 701 650 710 639 700C629 690 633 636 631 617C628 598 622 560 618 541C615 523 605 482 602 463C599 443 594 397 591 377C588 358 578 325 579 300C579 275 589 177 597 168z"/>
+  <path fill="none" stroke="#4f4844" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M470 200C430 380 330 560 250 700M490 200C460 380 385 560 325 700M510 200C490 380 440 560 400 700M530 200C520 380 495 560 475 700M550 200C550 380 550 560 550 700M570 200C580 380 605 560 625 700M590 200C610 380 660 560 700 700M610 200C640 380 715 560 775 700M630 200C670 380 770 560 850 700"/>
+  <path fill="#f4efe6" d="M375 201C380 185 419 163 449 148C480 134 507 124 543 121C578 119 612 124 645 134C677 143 713 161 724 174C734 188 734 202 703 210C673 218 606 215 556 219C505 224 454 238 421 235C389 231 370 216 375 201z"/>
+  <path fill="#f4efe6" d="M521 111C507 102 540 81 557 71C574 62 598 53 616 57C634 61 653 80 656 92C659 103 658 117 634 121C609 124 535 120 521 111z"/>
+  <!-- Rainforest canopy, layered, running off the foot -->
+  <path fill="#245a2a" d="M43 1098C-140 1009 32 682 42 599C51 516 73 639 95 639C117 638 143 598 165 598C187 598 197 631 217 638C237 645 252 634 275 638C297 641 320 663 344 657C367 650 383 611 404 602C425 593 438 603 460 606C481 608 501 618 522 616C543 615 555 589 576 595C597 601 618 641 639 648C661 655 674 643 696 634C718 625 739 602 761 599C783 597 796 622 817 621C838 620 855 586 876 592C897 598 913 650 936 654C959 658 981 627 1004 614C1027 602 1053 498 1063 585C1073 672 1244 1003 1060 1096C877 1188 226 1187 43 1098z"/>
+  <circle fill="#8cc65a" cx="575" cy="717" r="8"/>
+  <circle fill="#8cc65a" cx="977" cy="870" r="7"/>
+  <circle fill="#8cc65a" cx="540" cy="735" r="11"/>
+  <circle fill="#8cc65a" cx="446" cy="1020" r="10"/>
+  <circle fill="#8cc65a" cx="705" cy="900" r="10"/>
+  <circle fill="#8cc65a" cx="104" cy="993" r="10"/>
+  <circle fill="#8cc65a" cx="268" cy="844" r="12"/>
+  <circle fill="#8cc65a" cx="707" cy="872" r="9"/>
+  <circle fill="#8cc65a" cx="111" cy="843" r="9"/>
+  <circle fill="#8cc65a" cx="696" cy="775" r="7"/>
+  <circle fill="#8cc65a" cx="906" cy="717" r="7"/>
+  <circle fill="#8cc65a" cx="484" cy="1071" r="10"/>
+  <circle fill="#8cc65a" cx="184" cy="639" r="9"/>
+  <circle fill="#8cc65a" cx="103" cy="706" r="7"/>
+  <path fill="#3f7a3a" d="M38 1096C-145 1032 28 807 39 746C51 684 80 752 103 753C125 754 143 756 163 752C184 748 195 745 217 733C239 721 261 692 283 687C305 682 318 695 339 706C360 717 376 754 398 749C420 744 439 683 462 678C485 673 504 710 525 722C546 735 559 751 581 748C602 744 623 710 645 704C667 697 683 705 703 710C723 715 735 727 755 731C775 734 792 738 814 731C836 725 853 693 876 694C900 696 923 740 945 738C967 736 979 692 1001 684C1022 676 1056 617 1066 692C1076 768 1241 1029 1056 1102C871 1174 221 1161 38 1096z"/>
+  <circle fill="#8cc65a" cx="516" cy="899" r="9"/>
+  <circle fill="#8cc65a" cx="653" cy="737" r="8"/>
+  <circle fill="#8cc65a" cx="616" cy="1012" r="7"/>
+  <circle fill="#8cc65a" cx="426" cy="730" r="7"/>
+  <circle fill="#8cc65a" cx="1027" cy="988" r="6"/>
+  <circle fill="#8cc65a" cx="1042" cy="823" r="9"/>
+  <circle fill="#8cc65a" cx="846" cy="775" r="8"/>
+  <circle fill="#8cc65a" cx="363" cy="933" r="12"/>
+  <circle fill="#8cc65a" cx="200" cy="1088" r="9"/>
+  <circle fill="#8cc65a" cx="900" cy="796" r="11"/>
+  <circle fill="#8cc65a" cx="808" cy="837" r="8"/>
+  <circle fill="#8cc65a" cx="620" cy="877" r="8"/>
+  <circle fill="#8cc65a" cx="1053" cy="825" r="8"/>
+  <circle fill="#8cc65a" cx="798" cy="869" r="8"/>
+  <path fill="#245a2a" d="M36 1101C-148 1052 25 881 37 827C50 774 82 809 104 805C126 801 138 797 159 807C180 818 200 859 221 863C242 867 254 833 275 827C296 821 314 830 336 830C358 830 376 832 398 828C419 823 435 809 458 805C480 801 500 807 523 805C546 802 563 784 584 792C604 800 613 844 635 848C656 852 681 813 703 813C725 814 737 849 757 851C777 853 794 823 817 825C839 827 860 853 882 862C903 871 916 880 937 873C958 867 979 832 1001 827C1022 822 1048 796 1058 846C1068 895 1242 1054 1058 1100C874 1146 220 1150 36 1101z"/>
+  <circle fill="#8cc65a" cx="367" cy="866" r="9"/>
+  <circle fill="#8cc65a" cx="962" cy="1085" r="12"/>
+  <circle fill="#8cc65a" cx="401" cy="1086" r="7"/>
+  <circle fill="#8cc65a" cx="308" cy="856" r="10"/>
+  <circle fill="#8cc65a" cx="301" cy="882" r="7"/>
+  <circle fill="#8cc65a" cx="749" cy="986" r="9"/>
+  <circle fill="#8cc65a" cx="672" cy="1060" r="12"/>
+  <circle fill="#8cc65a" cx="263" cy="1055" r="10"/>
+  <circle fill="#8cc65a" cx="1026" cy="906" r="7"/>
+  <circle fill="#8cc65a" cx="568" cy="892" r="10"/>
+  <circle fill="#8cc65a" cx="686" cy="1045" r="11"/>
+  <circle fill="#8cc65a" cx="842" cy="905" r="9"/>
+  <circle fill="#8cc65a" cx="548" cy="1009" r="10"/>
+  <circle fill="#8cc65a" cx="640" cy="895" r="9"/>
+  <!-- Big leaves and a heliconia in front -->
+  <path fill="#3f7a3a" d="M120 1100Q257 958 243 762Q106 903 120 1100z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M120 1100Q257 958 243 762Q106 903 120 1100z"/>
+  <path fill="none" stroke="#245a2a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M120 1100L243 762"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M141 1044l38 -6M141 1044l-38 -34"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M161 987l38 -6M161 987l-38 -34"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M182 931l38 -6M182 931l-38 -34"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M202 874l38 -6M202 874l-38 -34"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M223 818l38 -6M223 818l-38 -34"/>
+  <path fill="#8cc65a" d="M240 1100Q398 1037 433 870Q275 934 240 1100z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M240 1100Q398 1037 433 870Q275 934 240 1100z"/>
+  <path fill="none" stroke="#245a2a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M240 1100L433 870"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M272 1062l31 6M272 1062l-31 -46"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M304 1023l31 6M304 1023l-31 -46"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M336 985l31 6M336 985l-31 -46"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M369 947l31 6M369 947l-31 -46"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M401 908l31 6M401 908l-31 -46"/>
+  <path fill="#3f7a3a" d="M960 1100Q974 903 837 762Q823 958 960 1100z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M960 1100Q974 903 837 762Q823 958 960 1100z"/>
+  <path fill="none" stroke="#245a2a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M960 1100L837 762"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M939 1044l38 -34M939 1044l-38 -6"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M919 987l38 -34M919 987l-38 -6"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M898 931l38 -34M898 931l-38 -6"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M878 874l38 -34M878 874l-38 -6"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M857 818l38 -34M857 818l-38 -6"/>
+  <path fill="#3f7a3a" d="M860 1100Q845 939 699 871Q714 1031 860 1100z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M860 1100Q845 939 699 871Q714 1031 860 1100z"/>
+  <path fill="none" stroke="#245a2a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M860 1100L699 871"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M833 1062l33 -43M833 1062l-33 3"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M806 1024l33 -43M806 1024l-33 3"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M780 985l33 -43M780 985l-33 3"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M753 947l33 -43M753 947l-33 3"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M726 909l33 -43M726 909l-33 3"/>
+  <path fill="#8cc65a" d="M60 1080Q213 1084 285 950Q133 946 60 1080z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M60 1080Q213 1084 285 950Q133 946 60 1080z"/>
+  <path fill="none" stroke="#245a2a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M60 1080L285 950"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M98 1058l20 15M98 1058l-20 -55"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M135 1037l20 15M135 1037l-20 -55"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M173 1015l20 15M173 1015l-20 -55"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M210 993l20 15M210 993l-20 -55"/>
+  <path fill="none" stroke="#245a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M248 972l20 15M248 972l-20 -55"/>
+  <path fill="#e8513a" d="M820 800l60 -30l-20 40z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M820 800l60 -30l-20 40z"/>
+  <path fill="#e8513a" d="M802 850l60 -30l-20 40z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M802 850l60 -30l-20 40z"/>
+  <path fill="#e8513a" d="M784 900l60 -30l-20 40z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M784 900l60 -30l-20 40z"/>
+  <path fill="#e8513a" d="M766 950l60 -30l-20 40z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M766 950l60 -30l-20 40z"/>
+  <path fill="#e8513a" d="M748 1000l60 -30l-20 40z"/>
+  <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M748 1000l60 -30l-20 40z"/>
+  <path fill="none" stroke="#245a2a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M840 780L740 1100"/>
+</svg>

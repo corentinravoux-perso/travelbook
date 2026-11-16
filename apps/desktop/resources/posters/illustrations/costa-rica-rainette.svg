@@ -12,29 +12,29 @@
   <!-- Blue and cream flanks -->
   <path fill="#3a6fc4" d="M372 560C380 620 410 670 450 690C420 650 404 610 400 560z"/>
   <path fill="#3a6fc4" d="M628 560C620 620 590 670 550 690C580 650 596 610 600 560z"/>
-  <path fill="#f3eac4" d="M382 600h8v14h-8z"/>
-  <path fill="#f3eac4" d="M392 630h8v14h-8z"/>
-  <path fill="#f3eac4" d="M610 600h8v14h-8z"/>
-  <path fill="#f3eac4" d="M600 630h8v14h-8z"/>
-  <!-- Front legs and orange toes -->
-  <path fill="#6cc24a" d="M392 640C380 700 370 740 360 770l18-6C360 730 380 690 428 640z"/>
-  <path fill="#f39a2a" d="M348 772L331 761l-4 6z"/>
-  <circle fill="#f39a2a" cx="329" cy="763" r="8"/>
-  <path fill="#f39a2a" d="M348 772L316 774l-4 6z"/>
-  <circle fill="#f39a2a" cx="314" cy="776" r="8"/>
-  <path fill="#f39a2a" d="M348 772L316 790l-4 6z"/>
-  <circle fill="#f39a2a" cx="314" cy="792" r="8"/>
-  <path fill="#f39a2a" d="M348 772L331 803l-4 6z"/>
-  <circle fill="#f39a2a" cx="329" cy="805" r="8"/>
-  <path fill="#6cc24a" d="M572 640C600 700 630 740 640 770l18-6C640 730 620 690 608 640z"/>
-  <path fill="#f39a2a" d="M652 772L669 761l4 6z"/>
-  <circle fill="#f39a2a" cx="671" cy="763" r="8"/>
-  <path fill="#f39a2a" d="M652 772L684 774l4 6z"/>
-  <circle fill="#f39a2a" cx="686" cy="776" r="8"/>
-  <path fill="#f39a2a" d="M652 772L684 790l4 6z"/>
-  <circle fill="#f39a2a" cx="686" cy="792" r="8"/>
-  <path fill="#f39a2a" d="M652 772L669 803l4 6z"/>
-  <circle fill="#f39a2a" cx="671" cy="805" r="8"/>
+  <path fill="#f3eac4" d="M380 586l10-2 6 24-10 2z"/>
+  <path fill="#f3eac4" d="M396 628l10-3 8 22-10 3z"/>
+  <path fill="#f3eac4" d="M620 586l-10-2-6 24 10 2z"/>
+  <path fill="#f3eac4" d="M604 628l-10-3-8 22 10 3z"/>
+  <!-- Front legs, the orange toes gripping the leaf rim -->
+  <path fill="#6cc24a" d="M392 640C380 700 370 740 360 770l18-6C360 730 380 690 428 640z" transform="translate(14 -74)"/>
+  <path fill="#f39a2a" d="M348 772L331 761l-4 6z" transform="translate(14 -74)"/>
+  <circle fill="#f39a2a" cx="329" cy="763" r="8" transform="translate(14 -74)"/>
+  <path fill="#f39a2a" d="M348 772L316 774l-4 6z" transform="translate(14 -74)"/>
+  <circle fill="#f39a2a" cx="314" cy="776" r="8" transform="translate(14 -74)"/>
+  <path fill="#f39a2a" d="M348 772L316 790l-4 6z" transform="translate(14 -74)"/>
+  <circle fill="#f39a2a" cx="314" cy="792" r="8" transform="translate(14 -74)"/>
+  <path fill="#f39a2a" d="M348 772L331 803l-4 6z" transform="translate(14 -74)"/>
+  <circle fill="#f39a2a" cx="329" cy="805" r="8" transform="translate(14 -74)"/>
+  <path fill="#6cc24a" d="M572 640C600 700 630 740 640 770l18-6C640 730 620 690 608 640z" transform="translate(-14 -74)"/>
+  <path fill="#f39a2a" d="M652 772L669 761l4 6z" transform="translate(-14 -74)"/>
+  <circle fill="#f39a2a" cx="671" cy="763" r="8" transform="translate(-14 -74)"/>
+  <path fill="#f39a2a" d="M652 772L684 774l4 6z" transform="translate(-14 -74)"/>
+  <circle fill="#f39a2a" cx="686" cy="776" r="8" transform="translate(-14 -74)"/>
+  <path fill="#f39a2a" d="M652 772L684 790l4 6z" transform="translate(-14 -74)"/>
+  <circle fill="#f39a2a" cx="686" cy="792" r="8" transform="translate(-14 -74)"/>
+  <path fill="#f39a2a" d="M652 772L669 803l4 6z" transform="translate(-14 -74)"/>
+  <circle fill="#f39a2a" cx="671" cy="805" r="8" transform="translate(-14 -74)"/>
   <!-- Head and red eyes -->
   <path fill="#6cc24a" d="M500 360C590 360 640 410 640 470C640 520 590 550 500 550S360 520 360 470C360 410 410 360 500 360z"/>
   <circle fill="#6cc24a" cx="402" cy="400" r="56"/>

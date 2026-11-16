@@ -79,5 +79,59 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "californie-surf",
+    "destination": "californie",
+    "name": "Californie, planches de surf",
+    "spec": {
+      "layout": "geant",
+      "title": "CALIFORNIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#ffe3c4",
+        "title": "#1f8f98",
+        "accent": "#f5843a",
+        "decor": "#fff0de",
+        "illustration": {
+          "main": "#1f8f98",
+          "shade": "#1f8f98"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "californie-surf"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "californie-brume",
+    "destination": "californie",
+    "name": "Californie, pont dans la brume",
+    "spec": {
+      "layout": "geant",
+      "title": "CALIFORNIE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#fbe3d0",
+        "title": "#d5502f",
+        "accent": "#4f86a8",
+        "decor": "#fbe3d0",
+        "illustration": {
+          "main": "#d5502f",
+          "shade": "#d5502f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "californie-brume"
+      },
+      "spine": true
+    }
   }
 ]

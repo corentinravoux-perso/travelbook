@@ -79,5 +79,59 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "ecosse-macareux",
+    "destination": "ecosse",
+    "name": "Écosse, macareux",
+    "spec": {
+      "layout": "geant",
+      "title": "ÉCOSSE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#cfe0e8",
+        "title": "#24364a",
+        "accent": "#f26a1e",
+        "decor": "#e5eff4",
+        "illustration": {
+          "main": "#24364a",
+          "shade": "#24364a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "ecosse-macareux"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "ecosse-glen",
+    "destination": "ecosse",
+    "name": "Écosse, cerf dans les Highlands",
+    "spec": {
+      "layout": "geant",
+      "title": "ÉCOSSE",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#ece3ef",
+        "title": "#9a5f8f",
+        "accent": "#3f5a3a",
+        "decor": "#f5f0f7",
+        "illustration": {
+          "main": "#9a5f8f",
+          "shade": "#9a5f8f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "ecosse-glen"
+      },
+      "spine": true
+    }
   }
 ]

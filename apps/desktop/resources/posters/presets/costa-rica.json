@@ -79,5 +79,86 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "costa-rica-cacao",
+    "destination": "costa-rica",
+    "name": "Costa Rica, cabosse de cacao",
+    "spec": {
+      "layout": "geant",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#d6ead2",
+        "title": "#6e3e28",
+        "accent": "#f39a1e",
+        "decor": "#e9f4e6",
+        "illustration": {
+          "main": "#6e3e28",
+          "shade": "#6e3e28"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-cacao"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "costa-rica-ara",
+    "destination": "costa-rica",
+    "name": "Costa Rica, ara rouge",
+    "spec": {
+      "layout": "geant",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f9e7c2",
+        "title": "#d8352a",
+        "accent": "#2f6fc0",
+        "decor": "#fcf2dd",
+        "illustration": {
+          "main": "#d8352a",
+          "shade": "#d8352a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-ara"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "costa-rica-arenal",
+    "destination": "costa-rica",
+    "name": "Costa Rica, volcan Arenal",
+    "spec": {
+      "layout": "geant",
+      "title": "COSTA RICA",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#dcefd8",
+        "title": "#245a2a",
+        "accent": "#e8513a",
+        "decor": "#dcefd8",
+        "illustration": {
+          "main": "#245a2a",
+          "shade": "#245a2a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "costa-rica-arenal"
+      },
+      "spine": true
+    }
   }
 ]
