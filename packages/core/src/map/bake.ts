@@ -44,8 +44,8 @@ const REMOTE_SHARE = 0.01;
 const MAIN_COVERAGE = 0.5;
 /** The side of the unit plane: the larger side of a subject's bounds. */
 const UNITS = 1000;
-/** A closed ring needs four points to enclose anything. */
-const MIN_RING_POINTS = 4;
+/** Rings whose box is under this many units on both sides stay clean even in rough: no wobble shows there. */
+const HAND_MIN_UNITS = 6;
 /** Context is drawn within this many selection extents (larger side of its bounds), centred on it. */
 const CONTEXT_EXTENTS = 8;
 
@@ -191,7 +191,7 @@ const ringKey = (ring: number[]): string => ring.join(',');
  * triangle with their neighbours (Visvalingam) is under tolerance squared go. Rings under the
  * build's islet size (0.3 mm on the page) times `factor` go too, holes included, except the largest
  * ring of each land or region geometry: a chosen region never vanishes. Rings that the
- * simplification collapsed (under four points) or turned inside out go whatever their size.
+ * simplification collapsed (no area) or turned inside out go whatever their size.
  */
 export function simplifyTopology(topology: Topology, extentKm: number, factor: number): Topology {
   if (!(extentKm > 0) || !(factor > 0)) return topology;
@@ -213,23 +213,23 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
     if (object) walk(object);
     return out;
   };
-  const infos = new Map<string, { area: number; points: number }>();
-  const infoOf = (ring: number[], interior: boolean): { area: number; points: number } => {
+  // topojson-client pads a ring of under four points, so a collapsed ring comes out here with no area
+  const areas = new Map<string, number>();
+  const areaOf = (ring: number[], interior: boolean): number => {
     const key = `${interior ? 'i' : 'e'}${ringKey(ring)}`;
-    let info = infos.get(key);
-    if (!info) {
+    let area = areas.get(key);
+    if (area === undefined) {
       const f = feature(simplified, { type: 'Polygon', arcs: [ring] } as never) as unknown as {
         geometry: { coordinates: number[][][] };
       };
       const coordinates = f.geometry.coordinates[0] ?? [];
-      let area = sphericalRingArea(coordinates as never, interior);
+      area = sphericalRingArea(coordinates as never, interior);
       // The simplification can leave a sliver inside out (anticlockwise): d3 reads it as the whole
       // sphere minus a speck, about 4 pi. No ring of a map is over a hemisphere: that one has no area.
       if (!(area <= 2 * Math.PI)) area = 0;
-      info = { area, points: coordinates.length };
-      infos.set(key, info);
+      areas.set(key, area);
     }
-    return info;
+    return area;
   };
   const keep = new Set<string>();
   const walkLargest = (g: GeometryObject): void => {
@@ -242,8 +242,8 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
     let most = 0;
     for (const [exterior] of polygons) {
       if (!exterior) continue;
-      const { area, points } = infoOf(exterior, false);
-      if (points >= MIN_RING_POINTS && area > most) [best, most] = [exterior, area];
+      const area = areaOf(exterior, false);
+      if (area > most) [best, most] = [exterior, area];
     }
     if (best) keep.add(ringKey(best));
   };
@@ -255,8 +255,7 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
   const neighbourRings = new Set(rings(simplified.objects.neighbours).flat().map(ringKey));
 
   return filter(simplified, ((ring: number[], interior: boolean) => {
-    const { area, points } = infoOf(ring, interior);
-    if (points < MIN_RING_POINTS) return false; // collapsed to a line or a point
+    const area = areaOf(ring, interior);
     const key = ringKey(ring);
     if (!interior && keep.has(key)) return true;
     return area >= (neighbourRings.has(key) ? 9 : 1) * isletArea;
@@ -266,8 +265,11 @@ export function simplifyTopology(topology: Topology, extentKm: number, factor: n
 const clampDetail = (detail: number): number =>
   Number.isFinite(detail) ? Math.max(0, Math.min(1, detail)) : 1;
 
-const tidy = (d: string): string =>
-  d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * 100) / 100));
+/** Rounds the numbers of a path to `digits` decimals. */
+const tidy = (d: string, digits: number): string => {
+  const f = 10 ** digits;
+  return d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * f) / f));
+};
 
 let generator: ReturnType<typeof rough.generator> | undefined;
 /** roughjs's generator, made when a map first needs it: core is imported everywhere. */
@@ -276,9 +278,8 @@ const handDrawn = (): NonNullable<typeof generator> => (generator ??= rough.gene
 /** roughjs treats the seed 0 as "no seed" and then draws at random: map any integer to 1..2^31-1. */
 const roughSeed = (seed: number): number => (Math.abs(Math.trunc(seed)) % (2 ** 31 - 1)) + 1;
 
-/** A seeded roughjs line along `d`: always the same wobble for the same seed. */
-function hand(d: string, seed: number, roughness: number): string {
-  if (d === '') return d;
+/** A seeded roughjs line along one subpath `d`. */
+function wobble(d: string, seed: number, roughness: number): string {
   const gen = handDrawn();
   const drawable = gen.path(d, {
     seed: roughSeed(seed),
@@ -289,12 +290,37 @@ function hand(d: string, seed: number, roughness: number): string {
     preserveVertices: true,
     fill: 'none',
   });
+  // a tenth of a unit is 0.04 mm on a 400 mm page: curves carry six numbers per vertex
   return tidy(
     gen
       .toPaths(drawable)
       .map((p) => p.d)
       .join(''),
+    1,
   );
+}
+
+/** Both sides of the box of a subpath's points are under `HAND_MIN_UNITS`. */
+function isSpeck(d: string): boolean {
+  const n = d.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+  const spans = [0, 1].map((k) => {
+    const v = n.filter((_, i) => i % 2 === k);
+    return Math.max(...v) - Math.min(...v);
+  });
+  return spans.every((span) => span < HAND_MIN_UNITS);
+}
+
+/**
+ * A seeded roughjs line along `d`: always the same wobble for the same seed. The subpaths that
+ * are specks (islets under 0.6 % of the frame) stay as they are: the wobble would not show, and
+ * a coast of thousands of islets would cost four times its size.
+ */
+function hand(d: string, seed: number, roughness: number): string {
+  if (d === '') return d;
+  return d
+    .split(/(?=M)/)
+    .map((sub, i) => (isSpeck(sub) ? sub : wobble(sub, seed + i, roughness)))
+    .join('');
 }
 
 const EMPTY_BOUNDS: Bounds = [
@@ -319,9 +345,11 @@ const EMPTY_BOUNDS: Bounds = [
  *   2^(6 x (1 - detail)) over the build's; 1 leaves it as it is.
  * - Context (the land around chosen regions, the neighbours, the lakes) is clipped to a window of
  *   8 selection extents around the selection, in unit space: enough for a pan, or a zoom out to
- *   an extreme box, without carrying a whole country at pack precision.
- * - `rough` draws the outline and the borders of the selection (all of them when no region is
- *   chosen) with roughjs, seeded; the fills and the context are always clean.
+ *   an extreme box, without carrying a whole country at pack precision. The window is built from
+ *   the bounds of all the parts of the selection, so that no part of it is ever clipped.
+ * - `rough` draws the outline and the borders of the chosen regions with roughjs, seeded; the fills
+ *   and the context are always clean, and so are the inner borders when no region is chosen (the
+ *   outline alone is the hand-drawn line then: all of them would cost over 8 MB for the US).
  */
 export function bakeGeometry(
   base: Topology,
@@ -379,7 +407,8 @@ export function bakeGeometry(
       : EMPTY_BOUNDS;
 
   const projected = d3Projection(params);
-  const window = unit(subject.includeRemote ? all : main);
+  // the selection is never clipped, remote parts included: the window holds all of its parts
+  const window = unit(all);
   const reach =
     (CONTEXT_EXTENTS * Math.max(window[1][0] - window[0][0], window[1][1] - window[0][1])) / 2;
   if (reach > 0) {
@@ -422,7 +451,8 @@ export function bakeGeometry(
   if (subject.showRegions && regions.length > 0) {
     if (!roughStyle) borders = bordersOf(null);
     else if (chosenSet.size === 0) {
-      borders = hand(bordersOf(null), roughStyle.seed + 1, roughStyle.roughness);
+      // the whole subject is the selection, but its inner borders alone would be a country of lines
+      borders = bordersOf(null);
     } else {
       borders = bordersOf(false) + hand(bordersOf(true), roughStyle.seed + 1, roughStyle.roughness);
     }
