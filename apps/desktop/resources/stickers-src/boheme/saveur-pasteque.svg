@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300">
+<path d="M40 70A180 180 0 0 0 400 70Z" fill="#2a6b4c"/>
+<path d="M56 70A164 164 0 0 0 384 70Z" fill="#7cbf7a"/>
+<path d="M70 70A150 150 0 0 0 370 70Z" fill="#ee6b7d"/>
+<g transform="translate(303.4 103.7) rotate(112)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(321 151.8) rotate(129)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(270.3 144.6) rotate(146)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(258 194.3) rotate(163)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(220 160) rotate(180)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(182 194.3) rotate(197)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(169.7 144.6) rotate(214)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(119 151.8) rotate(231)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<g transform="translate(136.6 103.7) rotate(248)"><path d="M-5 0a5 10 0 1 0 10 0a5 10 0 1 0 -10 0Z" fill="#2d3b36"/></g>
+<path d="M400 218Q402.6 227.4 412 230Q402.6 232.6 400 242Q397.4 232.6 388 230Q397.4 227.4 400 218Z" fill="#1d1b1a"/>
+</svg>

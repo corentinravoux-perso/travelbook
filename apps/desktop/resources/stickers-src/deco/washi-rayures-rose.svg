@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-rayures-rose"><path d="M6 0L5 7L9 14L6 21L4 28L4 35L1 42L2 49L4 56L4 63L3 70L0 77L5 84L420 84L411 77L417 70L414 63L411 56L416 49L416 42L419 35L419 28L413 21L418 14L416 7L413 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-rayures-rose)" opacity="0.92">
+<path d="M6 0L5 7L9 14L6 21L4 28L4 35L1 42L2 49L4 56L4 63L3 70L0 77L5 84L420 84L411 77L417 70L414 63L411 56L416 49L416 42L419 35L419 28L413 21L418 14L416 7L413 0Z" fill="#f6c1cc"/>
+<path d="M-84 84L0 0L12 0L-72 84Z" fill="#e0587a"/>
+<path d="M-56 84L28 0L40 0L-44 84Z" fill="#e0587a"/>
+<path d="M-28 84L56 0L68 0L-16 84Z" fill="#e0587a"/>
+<path d="M0 84L84 0L96 0L12 84Z" fill="#e0587a"/>
+<path d="M28 84L112 0L124 0L40 84Z" fill="#e0587a"/>
+<path d="M56 84L140 0L152 0L68 84Z" fill="#e0587a"/>
+<path d="M84 84L168 0L180 0L96 84Z" fill="#e0587a"/>
+<path d="M112 84L196 0L208 0L124 84Z" fill="#e0587a"/>
+<path d="M140 84L224 0L236 0L152 84Z" fill="#e0587a"/>
+<path d="M168 84L252 0L264 0L180 84Z" fill="#e0587a"/>
+<path d="M196 84L280 0L292 0L208 84Z" fill="#e0587a"/>
+<path d="M224 84L308 0L320 0L236 84Z" fill="#e0587a"/>
+<path d="M252 84L336 0L348 0L264 84Z" fill="#e0587a"/>
+<path d="M280 84L364 0L376 0L292 84Z" fill="#e0587a"/>
+<path d="M308 84L392 0L404 0L320 84Z" fill="#e0587a"/>
+<path d="M336 84L420 0L432 0L348 84Z" fill="#e0587a"/>
+<path d="M364 84L448 0L460 0L376 84Z" fill="#e0587a"/>
+<path d="M392 84L476 0L488 0L404 84Z" fill="#e0587a"/>
+<path d="M420 84L504 0L516 0L432 84Z" fill="#e0587a"/>
+<path d="M448 84L532 0L544 0L460 84Z" fill="#e0587a"/>
+<path d="M476 84L560 0L572 0L488 84Z" fill="#e0587a"/>
+</g>
+</svg>

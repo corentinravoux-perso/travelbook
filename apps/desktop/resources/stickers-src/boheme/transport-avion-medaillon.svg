@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<path d="M354 237C343.5 268.2 317 302.7 291 320C265 337.3 230.7 341.8 198 341C165.3 340.2 119 335.3 95 315C71 294.7 58.3 249.3 54 219C49.7 188.7 54.8 161.2 69 133C83.2 104.8 108.2 59.2 139 50C169.8 40.8 218.2 64.2 254 78C289.8 91.8 337.3 106.5 354 133C370.7 159.5 364.5 205.8 354 237Z" fill="#f3dcae"/>
+<path d="M80 200 C79.4 292.2, 180.5 349.9, 260 303.9 M260 303.9 C296.8 282.1, 319.7 243.4, 320 200 M320 200 C320.3 107.6, 219.8 50.6, 140 96.1 M140 96.1 C102.9 118.1, 79.5 156.5, 80 200 M80 200 C80 200, 80 200, 80 200" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M80 200 C129.3 199.5, 179.8 199.5, 320 200 M200 80 C200.7 140.4, 200.6 201.9, 200 320" fill="none" stroke="#1d1b1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M110 130 C169.4 150, 229.4 150.4, 290 130 M110 270 C170.4 249.4, 230.5 250.2, 290 270" fill="none" stroke="#1d1b1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 80 C159.4 160.2, 160.2 240, 200 320 M200 80 C240 160, 240.2 240.7, 200 320" fill="none" stroke="#1d1b1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60 300Q20 200 90 110Q160 40 260 60" fill="none" stroke="#1d1b1a" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="8 9"/>
+<g transform="translate(300 74) rotate(14) scale(1.1)"><path d="M-34 4L-6 0L10 -26L18 -26L10 0L28 0L36 -10L42 -10L38 4L42 18L36 18L28 8L10 8L18 34L10 34L-6 8L-34 4Z" fill="#f26d5b"/></g>
+<path d="M350 318Q352.6 327.4 362 330Q352.6 332.6 350 342Q347.4 332.6 338 330Q347.4 327.4 350 318Z" fill="#1d1b1a"/>
+<path d="M50 52Q51.8 58.2 58 60Q51.8 61.8 50 68Q48.2 61.8 42 60Q48.2 58.2 50 52Z" fill="#1d1b1a"/>
+</svg>

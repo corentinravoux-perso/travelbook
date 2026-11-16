@@ -135,7 +135,14 @@ export interface StickerSearchQuery {
   category?: string;
   mono?: boolean;
   noAttribution?: boolean;
+  /** Offline only: the sets of one panel tab ("travelbook": our own drawings; "library": the rest). */
+  group?: StickerGroup;
+  /** Offline only: just the recommended stickers of the library (in their order on an empty search). */
+  recommended?: boolean;
 }
+
+/** Which panel tab an offline set belongs to. */
+export type StickerGroup = 'travelbook' | 'library';
 
 export interface StickerSearchResult {
   items: StickerHit[];
@@ -150,6 +157,7 @@ export interface StickerSetInfo {
   count: number;
   licence: Licence;
   mono: boolean;
+  group: StickerGroup;
 }
 
 export interface StickerSourceInfo {

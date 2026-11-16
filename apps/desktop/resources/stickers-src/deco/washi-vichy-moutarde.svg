@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 84">
+<defs><clipPath id="c-washi-vichy-moutarde"><path d="M1 0L6 7L3 14L5 21L7 28L6 35L1 42L8 49L7 56L4 63L9 70L8 77L2 84L419 84L417 77L418 70L411 63L420 56L418 49L411 42L416 35L420 28L414 21L418 14L418 7L413 0Z"/></clipPath></defs>
+<g clip-path="url(#c-washi-vichy-moutarde)" opacity="0.92">
+<path d="M1 0L6 7L3 14L5 21L7 28L6 35L1 42L8 49L7 56L4 63L9 70L8 77L2 84L419 84L417 77L418 70L411 63L420 56L418 49L411 42L416 35L420 28L414 21L418 14L418 7L413 0Z" fill="#f7d98b"/>
+<rect x="0" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="28" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="56" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="84" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="112" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="140" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="168" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="196" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="224" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="252" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="280" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="308" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="336" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="364" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="392" y="0" width="14" height="84" fill="#c07f1f" opacity="0.45"/>
+<rect x="0" y="0" width="420" height="14" fill="#c07f1f" opacity="0.45"/>
+<rect x="0" y="28" width="420" height="14" fill="#c07f1f" opacity="0.45"/>
+<rect x="0" y="56" width="420" height="14" fill="#c07f1f" opacity="0.45"/>
+</g>
+</svg>

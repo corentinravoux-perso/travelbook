@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<path d="M32 200a168 168 0 1 0 336 0a168 168 0 1 0 -336 0Z" fill="#f9cfae"/>
+<path d="M32 200 C31.6 330, 172 409.5, 284 345.5 M284 345.5 C335.3 315.3, 367.9 259.9, 368 200 M368 200 C367.3 70.8, 228.1 -10.4, 116 54.5 M116 54.5 C63.9 84.1, 32 140.2, 32 200 M32 200 C32 200, 32 200, 32 200" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M110 200 C140 200.4, 169.7 199.7, 230 200 M230 200 C227.7 259.4, 207.8 291.5, 170 296 M170 296 C133.9 292.4, 114.5 260.3, 110 200 M110 200 C110 200, 110 200, 110 200" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M226 220 C249.6 218.1, 261 227.3, 258 246 M258 246 C255.3 260.3, 242.7 265.5, 222 262" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M80 306 C139.6 321.6, 199.7 321.5, 260 306" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150 180 C141.6 169.7, 142.6 160.5, 150 150 M150 150 C158.7 139.4, 158.1 130.5, 150 120" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M186 176 C177.6 165.2, 178 154.8, 186 144 M186 144 C194.3 133.3, 193.8 122.3, 186 112" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M250 300Q256 250 310 240Q350 250 340 300Q320 290 300 296Q280 280 266 300Z" fill="#f7c85c"/>
+<path d="M250 300 C253.6 266.6, 273.5 246.4, 310 240 M310 240 C336.6 247.2, 346.2 266.8, 340 300 M340 300 C326.6 293.2, 312.8 292.7, 300 296 M300 296 C286.9 285.3, 275.5 286.6, 266 300 M266 300 C259.9 299.6, 253.6 299.9, 250 300" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M300 88Q302.6 97.4 312 100Q302.6 102.6 300 112Q297.4 102.6 288 100Q297.4 97.4 300 88Z" fill="#1d1b1a"/>
+<path d="M90 113Q91.5 118.5 97 120Q91.5 121.5 90 127Q88.5 121.5 83 120Q88.5 118.5 90 113Z" fill="#1d1b1a"/>
+</svg>

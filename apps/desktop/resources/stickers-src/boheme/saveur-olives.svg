@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 340">
+<path d="M391 191C383.7 215.8 332.7 252.3 306 272C279.3 291.7 259.7 307.2 231 309C202.3 310.8 165 298.3 134 283C103 267.7 55 247 45 217C35 187 53.5 129 74 103C94.5 77 137.8 67.2 168 61C198.2 54.8 224.7 55.7 255 66C285.3 76.3 327.3 102.2 350 123C372.7 143.8 398.3 166.2 391 191Z" fill="#a9c3b4"/>
+<path d="M40 260 C119.3 233.7, 193.8 186.7, 260 120" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M80 248 C68.5 233.8, 54.7 224.6, 36.7 223 M36.7 223 C47.1 238, 62.6 245.5, 80 248 M80 248 C80 248, 80 248, 80 248" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M120 234 C134 223.8, 142.4 209.4, 145 190.7 M145 190.7 C131 200.9, 122.4 215.8, 120 234 M120 234 C120 234, 120 234, 120 234" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M160 214 C151.3 198.3, 139.4 187.2, 121.7 181.9 M121.7 181.9 C130 198.3, 142.6 209.3, 160 214 M160 214 C160 214, 160 214, 160 214" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M200 182 C215.7 173.3, 226.7 161, 232.1 143.7 M232.1 143.7 C215.8 152.4, 204.9 164, 200 182 M200 182 C200 182, 200 182, 200 182" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M230 152 C224.2 134, 214.7 121.1, 197.9 113.7 M197.9 113.7 C202.5 131, 213.2 144, 230 152 M230 152 C230 152, 230 152, 230 152" fill="none" stroke="#1d1b1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M126 250a14 14 0 1 0 28 0a14 14 0 1 0 -28 0Z" fill="#2a6b4c"/>
+<path d="M197 206a13 13 0 1 0 26 0a13 13 0 1 0 -26 0Z" fill="#2a6b4c"/>
+<path d="M167 196a11 14 0 1 0 22 0a11 14 0 1 0 -22 0Z" fill="#5c2346"/>
+<path d="M320 300 C320.5 280.2, 320.5 259.8, 320 200 M320 200 C307.3 179.4, 305 159.7, 316 140 M316 140 C316.2 128.9, 315.6 118.2, 316 110 M316 110 C323.2 110.3, 330.3 110.1, 340 110 M340 110 C340.3 122, 340.2 133.9, 340 140 M340 140 C350.1 160.5, 349.8 180.2, 336 200 M336 200 C336.3 232.2, 336 264.9, 336 300 M336 300 C331.9 299.8, 328 300.1, 320 300" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M322 300L322 230L334 230L334 300Z" fill="#e2c25a"/>
+<path d="M312 300 C318.5 300.3, 324.7 300.4, 344 300" fill="none" stroke="#1d1b1a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M380 68Q382.6 77.4 392 80Q382.6 82.6 380 92Q377.4 82.6 368 80Q377.4 77.4 380 68Z" fill="#1d1b1a"/>
+</svg>

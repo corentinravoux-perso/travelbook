@@ -14,7 +14,8 @@
  * `resources/stickers/fr-keywords.json` (French word to English icon words), used backwards: an
  * icon whose name contains `suitcase` gets `valise`.
  *
- * One local set comes first: `affiches`, the poster illustrations of `resources/posters/` (our own
+ * The drawn sets of `resources/stickers-src/` come first (our own drawings, MIT, see
+ * `scripts/stickers/local-sets.ts`). Then comes `affiches`, the poster illustrations of `resources/posters/` (our own
  * drawings, see `scripts/posters/affiches-set.ts`). It is skipped while that folder is empty.
  */
 import { createHash } from 'node:crypto';
@@ -35,12 +36,15 @@ import {
   illustrationFiles,
   readAffichesSet,
 } from './posters/affiches-set.ts';
+import { LOCAL_LICENCE, localSetFiles, readLocalSets } from './stickers/local-sets.ts';
 
 const require = createRequire(import.meta.url);
 
 export const STICKERS_DIR = join(import.meta.dirname, '../resources/stickers');
 export const PACKS_DIR = join(STICKERS_DIR, 'packs');
 export const KEYWORDS_FILE = join(STICKERS_DIR, 'fr-keywords.json');
+/** The library's recommended stickers: `["<set>/<id>", …]`, from the open packs, in order. */
+export const RECOMMENDED_FILE = join(STICKERS_DIR, 'recommended.json');
 const MANIFEST_VERSION = 1;
 
 /** The coloured sets: emoji (matched to CLDR) first, then flags, weather and pictogram packs. */
@@ -69,6 +73,9 @@ const FLAG_SETS = new Set(['flag', 'circle-flags']);
  * rule like the others.
  */
 const MONO_SETS = [
+  'doodle-icons',
+  'streamline-freehand',
+  'pepicons-pencil',
   'tabler',
   'maki',
   'gis',
@@ -122,12 +129,16 @@ export interface ManifestSet {
   mono: boolean;
   pack: string;
   index: string;
+  /** The Stickers panel tab: our own drawings ("travelbook") or the open packs ("library"). */
+  group: 'travelbook' | 'library';
 }
 export interface Manifest {
   version: number;
   inputs: string;
   total: number;
   sets: ManifestSet[];
+  /** `<set>/<id>` of the library's recommended stickers, in display order. */
+  recommended: string[];
   dropped: { id: string; licence: string }[];
 }
 
@@ -392,6 +403,7 @@ async function buildSet(
       mono,
       pack: `${id}.pack.json`,
       index: `${id}.index.json`,
+      group: 'library',
     },
   };
 }
@@ -413,7 +425,57 @@ async function buildAffiches(): Promise<ManifestSet | null> {
     mono: false,
     pack: `${id}.pack.json`,
     index: `${id}.index.json`,
+    group: 'travelbook',
   };
+}
+
+/** The drawn sets of `resources/stickers-src/`. */
+async function buildLocalSets(): Promise<ManifestSet[]> {
+  const sets = await readLocalSets();
+  const out: ManifestSet[] = [];
+  for (const set of sets) {
+    if (set.docs.length === 0) continue;
+    const index = new MiniSearch<StickerDoc>(INDEX_OPTIONS);
+    index.addAll(set.docs);
+    await writeFile(join(PACKS_DIR, `${set.id}.pack.json`), JSON.stringify(set.pack));
+    await writeFile(join(PACKS_DIR, `${set.id}.index.json`), JSON.stringify(index));
+    out.push({
+      id: set.id,
+      name: set.name,
+      count: set.docs.length,
+      licence: LOCAL_LICENCE,
+      mono: false,
+      pack: `${set.id}.pack.json`,
+      index: `${set.id}.index.json`,
+      group: 'travelbook',
+    });
+  }
+  return out;
+}
+
+/**
+ * The recommended stickers, checked: each one must be in a built "library" set (our own drawings
+ * have their own tab), and none twice.
+ */
+async function readRecommended(sets: ManifestSet[]): Promise<string[]> {
+  const list = await readJson<string[]>(RECOMMENDED_FILE).catch(() => [] as string[]);
+  const icons = new Map<string, Set<string>>();
+  const seen = new Set<string>();
+  for (const key of list) {
+    const [setId, id] = key.split('/') as [string, string | undefined];
+    const set = sets.find((s) => s.id === setId);
+    if (set === undefined || set.group !== 'library' || id === undefined) {
+      throw new Error(`stickers: recommended.json: ${key} is not in a library set`);
+    }
+    if (!icons.has(setId)) {
+      const pack = await readJson<Pack>(join(PACKS_DIR, set.pack));
+      icons.set(setId, new Set(Object.keys(pack.icons)));
+    }
+    if (!icons.get(setId)!.has(id)) throw new Error(`stickers: recommended.json: no ${key}`);
+    if (seen.has(key)) throw new Error(`stickers: recommended.json: ${key} twice`);
+    seen.add(key);
+  }
+  return list;
 }
 
 /** Hash of everything the packs are made from; a matching manifest means nothing to rebuild. */
@@ -423,7 +485,10 @@ async function inputsHash(): Promise<string> {
     import.meta.filename,
     join(import.meta.dirname, '../src/main/library/stickers/indexConfig.ts'),
     KEYWORDS_FILE,
+    RECOMMENDED_FILE,
     join(import.meta.dirname, 'posters/affiches-set.ts'),
+    join(import.meta.dirname, 'stickers/local-sets.ts'),
+    ...(await localSetFiles()),
     join(POSTERS_DIR, 'keywords.json'),
     join(POSTERS_DIR, 'destinations.json'),
     ...(await illustrationFiles()).map((name) => join(POSTERS_DIR, 'illustrations', name)),
@@ -475,6 +540,10 @@ export async function buildStickerPacks(
   const reverse = await reverseKeywords();
   const sets: ManifestSet[] = [];
   const dropped: Manifest['dropped'] = [];
+  for (const set of await buildLocalSets()) {
+    log(`stickers: ${set.id}: ${set.count} drawings (MIT)`);
+    sets.push(set);
+  }
   const affiches = await buildAffiches();
   if (affiches === null) log('stickers: affiches: no illustration, skipped');
   else {
@@ -502,6 +571,7 @@ export async function buildStickerPacks(
     inputs,
     total: sets.reduce((sum, s) => sum + s.count, 0),
     sets,
+    recommended: await readRecommended(sets),
     dropped,
   };
   await writeFile(join(PACKS_DIR, 'manifest.json'), JSON.stringify(manifest, null, 1));
