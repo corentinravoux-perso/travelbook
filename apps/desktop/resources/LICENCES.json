@@ -576,6 +576,14 @@
     {
       "files": [
         "maps/index.json",
+        "maps/places-overrides.json",
+        "maps/places/FR.json",
+        "maps/places/GB.json",
+        "maps/places/GR.json",
+        "maps/places/IT.json",
+        "maps/places/PE.json",
+        "maps/places/TH.json",
+        "maps/places/US.json",
         "maps/subjects/FR-GF.topo.json",
         "maps/subjects/FR-GP.topo.json",
         "maps/subjects/FR-MET.topo.json",
@@ -596,7 +604,7 @@
       "licence": "ODbL 1.0",
       "url": "https://docs.overturemaps.org/attribution/",
       "requiresAttribution": true,
-      "note": "Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector)."
+      "note": "Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector). The places files (maps/places/) combine Natural Earth populated places, public domain, with Wikidata, CC0 (sights, https://www.wikidata.org/wiki/Wikidata:Licensing), and, for countries where Natural Earth lists fewer than 8 cities, GeoNames, CC BY 4.0 (https://www.geonames.org/, attribution required)."
     }
   ]
 }

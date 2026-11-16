@@ -5,11 +5,16 @@
  *
  * `boundaries` writes `resources/maps/subjects/<id>.topo.json` for every subject and merges it into
  * `resources/maps/index.json`. Without `--only` it rebuilds every subject and the index from
- * scratch. Raw downloads are cached in `scripts/maps/.cache/` (git-ignored); nothing raw is
- * committed. Needs network access to Overture's public S3 bucket and to GitHub (Natural Earth).
+ * scratch.
+ *
+ *   npm run maps -w @travelbook/desktop -- places [--only=TH,PE]
+ *
+ * `places` writes `resources/maps/places/<iso>.json` (cities from Natural Earth, sights from
+ * Wikidata) for every ISO of `index.json`, so run `boundaries` first. Raw downloads are cached in `scripts/maps/.cache/` (git-ignored); nothing raw is
+ * committed. Needs network access to Overture's public S3 bucket, GitHub (Natural Earth) and Wikidata.
  */
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
   OVERTURE_RELEASE,
@@ -21,6 +26,7 @@ import {
   type CatalogEntry,
 } from './overture.ts';
 import { appFileUrl } from './paths.ts';
+import { buildPlaces } from './places.ts';
 import {
   bboxOf,
   bboxesOverlap,
@@ -222,19 +228,25 @@ export async function boundaries(only: string[] | undefined): Promise<void> {
 
 /** Keep the `maps/` entry of `resources/LICENCES.json` in step with the files the index lists. */
 export async function writeLicences(index: MapIndex): Promise<void> {
+  const places = await readdir(join(MAPS_DIR, 'places')).catch(() => [] as string[]);
   const file = join(MAPS_DIR, '../LICENCES.json');
   const licences = JSON.parse(await readFile(file, 'utf8')) as {
     entries: { files: string[] }[];
   };
   licences.entries = licences.entries.filter((e) => !e.files.every((f) => f.startsWith('maps/')));
   licences.entries.push({
-    files: ['maps/index.json', ...index.subjects.map((s) => `maps/${s.file}`)].sort(),
+    files: [
+      'maps/index.json',
+      'maps/places-overrides.json',
+      ...index.subjects.map((s) => `maps/${s.file}`),
+      ...places.map((f) => `maps/places/${f}`),
+    ].sort(),
     source: 'Overture Maps Foundation, divisions theme',
     author: '© OpenStreetMap contributors, Overture Maps Foundation',
     licence: 'ODbL 1.0',
     url: 'https://docs.overturemaps.org/attribution/',
     requiresAttribution: true,
-    note: 'Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector).',
+    note: 'Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector). The places files (maps/places/) combine Natural Earth populated places, public domain, with Wikidata, CC0 (sights, https://www.wikidata.org/wiki/Wikidata:Licensing), and, for countries where Natural Earth lists fewer than 8 cities, GeoNames, CC BY 4.0 (https://www.geonames.org/, attribution required).',
   } as (typeof licences.entries)[number]);
   await writeFile(file, `${JSON.stringify(licences, null, 2)}\n`);
 }
@@ -244,12 +256,21 @@ function parseOnly(args: string[]): string[] | undefined {
   return flag ? flag.slice('--only='.length).split(',') : undefined;
 }
 
+export async function places(only: string[] | undefined): Promise<void> {
+  const index = await readIndex();
+  if (!index) throw new Error('no resources/maps/index.json: run `boundaries` first');
+  await buildPlaces(index.subjects, only);
+  await writeLicences(index);
+}
+
 const [command, ...args] = process.argv.slice(2);
 if (process.argv[1]?.endsWith('build-geodata.ts')) {
   if (command === 'boundaries') {
     await boundaries(parseOnly(args));
+  } else if (command === 'places') {
+    await places(parseOnly(args));
   } else {
-    console.error('usage: npm run maps -- boundaries [--only=TH,PE]');
+    console.error('usage: npm run maps -- boundaries|places [--only=TH,PE]');
     process.exitCode = 1;
   }
 }

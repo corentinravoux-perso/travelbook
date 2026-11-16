@@ -25,6 +25,12 @@ export interface SubjectDef {
 /** French overseas departments: Overture holds each as its own dependency. */
 const FRENCH_OVERSEAS = ['GF', 'GP', 'MQ', 'RE', 'YT'];
 
+/**
+ * The ISO code a places file is named after: the overseas departments of France share `FR`'s file,
+ * like their subjects (`FR-MQ`); every other code is its own.
+ */
+export const placesIso = (code: string): string => (FRENCH_OVERSEAS.includes(code) ? 'FR' : code);
+
 /** Parts of a country that are subjects too, besides the country itself. */
 const PARTS: SubjectDef[] = [
   {
