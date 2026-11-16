@@ -40,6 +40,11 @@ export interface MapGeometry {
     selected: string;
     /** The neighbouring countries around the subject. Empty when they are off. */
     neighbours: string;
+    /**
+     * The coasts and borders of the neighbours, stroked: only real lines, none along the frame the
+     * build clipped them to. Absent in older assets (the fill path is then stroked).
+     */
+    neighbourLines?: string;
     /** The major lakes. Empty when there are none, or when lakes are off. */
     lakes: string;
   };

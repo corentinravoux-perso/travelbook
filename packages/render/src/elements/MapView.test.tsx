@@ -183,6 +183,27 @@ describe('MapView', () => {
     expect(layer('outline')?.querySelector('path')?.getAttribute('d')).toBe(geometry.paths.outline);
   });
 
+  it('draws the neighbours fill without a stroke and their lines apart, when the geometry has lines', () => {
+    const lined = { ...geometry, paths: { ...geometry.paths, neighbourLines: 'M-50 0V600' } };
+    const { layer } = draw(mapEl(), lined);
+    const paths = Array.from(layer('neighbours')?.querySelectorAll('path') ?? []);
+    expect(paths).toHaveLength(2);
+    expect(paths[0]?.getAttribute('d')).toBe(geometry.paths.neighbours);
+    expect(paths[0]?.getAttribute('stroke')).toBe('none');
+    expect(paths[0]?.getAttribute('fill')).not.toBe('none');
+    expect(paths[1]?.getAttribute('d')).toBe('M-50 0V600');
+    expect(paths[1]?.getAttribute('fill')).toBe('none');
+    expect(paths[1]?.getAttribute('stroke')).not.toBe('none');
+    expect(paths[1]?.getAttribute('stroke-width')).toBeTruthy();
+  });
+
+  it('strokes the neighbours fill itself when the geometry has no lines (old assets)', () => {
+    const { layer } = draw(mapEl());
+    const paths = Array.from(layer('neighbours')?.querySelectorAll('path') ?? []);
+    expect(paths).toHaveLength(1);
+    expect(paths[0]?.getAttribute('stroke')).not.toBe('none');
+  });
+
   it('draws the lakes above the land, only when showLakes is on', () => {
     const { container, layer } = draw(mapEl());
     expect(layer('lakes')?.querySelector('path')?.getAttribute('d')).toBe(geometry.paths.lakes);

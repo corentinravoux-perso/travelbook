@@ -1,4 +1,5 @@
 import { geoArea, geoBounds, geoPath, type GeoPermissibleObjects } from 'd3-geo';
+import { difference } from 'polygon-clipping';
 import rough from 'roughjs';
 import { feature, merge, mesh } from 'topojson-client';
 import {
@@ -48,6 +49,18 @@ const UNITS = 1000;
 const HAND_MIN_UNITS = 6;
 /** Context is drawn within this many selection extents (larger side of its bounds), centred on it. */
 const CONTEXT_EXTENTS = 8;
+
+/**
+ * The edges of the erased rectangle get a vertex every so many degrees, so that they stay
+ * parallels.
+ */
+const ERASE_STEP_DEG = 1;
+
+/**
+ * The far context is simplified this many times coarser than the subject itself (see
+ * `simplifyTopology`).
+ */
+const FAR_FACTOR = 20;
 
 const wrapDelta = (d: number): number => Math.abs(((((d + 180) % 360) + 360) % 360) - 180);
 
@@ -154,6 +167,132 @@ function framing(parts: PolygonCoords[]): Framing {
     });
   }
   return { main, all: polygons, mainBox: boxOf(main), allBox: boxOf(polygons) };
+}
+
+/** `[west, south, east, north]` of the polygons' points, planar and in the file's longitudes. */
+function planarBox(polygons: PolygonCoords[]): Box | null {
+  let box: Box | null = null;
+  for (const polygon of polygons) {
+    for (const [x, y] of polygon[0] ?? []) {
+      if (x === undefined || y === undefined) continue;
+      if (!box) box = [x, y, x, y];
+      else
+        box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)];
+    }
+  }
+  return box;
+}
+
+/**
+ * The rectangle that the build clipped the neighbours to, read from the neighbours themselves: the
+ * planar bbox of the subject's `neighbours` object. It is exact on every side that the clip cut,
+ * and smaller than the build's frame on an open-sea side, where the fine layer has nothing and the
+ * coarse far land may show. Null when there are no neighbours.
+ */
+const neighboursFrame = (topology: Topology): Box | null =>
+  planarBox(polygonsOf(topology, geometriesOf(topology, 'neighbours')));
+
+/**
+ * The rectangle the far land must not enter: the neighbours' bbox, else (a subject with no
+ * neighbours, such as an island) the bbox of its own land, which then holds the only land of the
+ * build's empty clip.
+ */
+const erasedBox = (topology: Topology): Box | null =>
+  neighboursFrame(topology) ?? planarBox(polygonsOf(topology, geometriesOf(topology, 'land')));
+
+/** Slack of the frame edges: two quantization steps of the topology, which rounds its points. */
+function frameEps(topology: Topology): number {
+  const scale = (topology as { transform?: { scale?: number[] } }).transform?.scale;
+  const step = scale ? Math.max(...scale.filter(Number.isFinite)) : NaN;
+  return Number.isFinite(step) && step > 0 ? 2 * step : 0.005;
+}
+
+/**
+ * The lines of `mesh` without the segments that lie along a side of `frame`: the cut that the build
+ * made, which is no coast and no border. Runs of kept segments stay one line.
+ */
+function realLines(lines: number[][][], frame: Box | null, eps: number): number[][][] {
+  if (!frame) return lines;
+  const on = (a: number[], b: number[], i: 0 | 1, edge: number): boolean =>
+    Math.abs((a[i] ?? NaN) - edge) < eps && Math.abs((b[i] ?? NaN) - edge) < eps;
+  const cut = (a: number[], b: number[]): boolean =>
+    on(a, b, 0, frame[0]) ||
+    on(a, b, 0, frame[2]) ||
+    on(a, b, 1, frame[1]) ||
+    on(a, b, 1, frame[3]);
+  const out: number[][][] = [];
+  for (const line of lines) {
+    let run: number[][] = [];
+    for (let i = 1; i < line.length; i++) {
+      const a = line[i - 1] as number[];
+      const b = line[i] as number[];
+      if (cut(a, b)) {
+        if (run.length > 1) out.push(run);
+        run = [];
+      } else {
+        if (run.length === 0) run.push(a);
+        run.push(b);
+      }
+    }
+    if (run.length > 1) out.push(run);
+  }
+  return out;
+}
+
+/** A ring around the box with a vertex at least every `ERASE_STEP_DEG`. */
+function boxRing([west, south, east, north]: Box): [number, number][] {
+  const edge = (x0: number, y0: number, x1: number, y1: number): [number, number][] => {
+    const n = Math.max(
+      1,
+      Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / ERASE_STEP_DEG),
+    );
+    return Array.from({ length: n }, (_, i) => [
+      x0 + ((x1 - x0) * i) / n,
+      y0 + ((y1 - y0) * i) / n,
+    ]);
+  };
+  const ring = [
+    ...edge(west, south, east, south),
+    ...edge(east, south, east, north),
+    ...edge(east, north, west, north),
+    ...edge(west, north, west, south),
+  ] as [number, number][];
+  return [...ring, ring[0] as [number, number]];
+}
+
+/**
+ * The world land without the rectangle `erase` (planar, in lon/lat): the far context, which starts
+ * where the subject's own neighbours stop. Polygons clear of the rectangle are kept as they are.
+ * Rings come out clockwise like the topology's (d3's exterior winding).
+ */
+export function farLand(
+  world: Topology,
+  erase: Box | null,
+  clip: typeof difference = difference,
+): PolygonCoords[] {
+  const polygons = polygonsOf(world, geometriesOf(world, 'land'));
+  if (!erase) return polygons;
+  const hole = boxRing(erase);
+  const out: PolygonCoords[] = [];
+  for (const polygon of polygons) {
+    const box = planarBox([polygon]);
+    const clear =
+      !box || box[2] <= erase[0] || box[0] >= erase[2] || box[3] <= erase[1] || box[1] >= erase[3];
+    if (clear) {
+      out.push(polygon);
+      continue;
+    }
+    try {
+      for (const piece of clip(polygon as [number, number][][], [hole])) {
+        out.push(piece.map((ring) => ring.slice().reverse()));
+      }
+    } catch {
+      // polygon-clipping can throw on a degenerate ring: keep the polygon whole, it is drawn under
+      // the neighbours, and the map is still baked
+      out.push(polygon);
+    }
+  }
+  return out;
 }
 
 interface Sources {
@@ -347,6 +486,13 @@ const EMPTY_BOUNDS: Bounds = [
  *   8 selection extents around the selection, in unit space: enough for a pan, or a zoom out to
  *   an extreme box, without carrying a whole country at pack precision. The window is built from
  *   the bounds of all the parts of the selection, so that no part of it is ever clipped.
+ * - `paths.neighbourLines` holds the coasts and borders of the neighbours alone (the far land has
+ *   no lines), without the segments along the frame the build clipped them to: stroke these, and
+ *   fill `paths.neighbours` with no stroke.
+ * - `world` (optional, the shared coarse world land) is the far context: with `showNeighbours`, its
+ *   land beyond the rectangle the build clipped the neighbours to (1.3 x the main bbox of the
+ *   subject's own land) is drawn in front of them in `paths.neighbours`, always clean. Without it
+ *   the output is what it was before.
  * - `rough` draws the outline and the borders of the chosen regions with roughjs, seeded; the fills
  *   and the context are always clean, and so are the inner borders when no region is chosen (the
  *   outline alone is the hand-drawn line then: all of them would cost over 8 MB for the US).
@@ -358,6 +504,7 @@ export function bakeGeometry(
   projection: 'auto' | 'mercator',
   roughStyle: { seed: number; roughness: number } | null,
   detail: number,
+  world: Topology | null = null,
 ): MapGeometry {
   const wanted = new Set(subject.regions);
   const level = clampDetail(detail);
@@ -463,6 +610,30 @@ export function bakeGeometry(
     return show && object ? draw(feature(src.base, object)) : '';
   };
 
+  // the neighbours' coasts and borders, apart from their fill: without the build's clip rectangle
+  // (its sides are those of the neighbours' bbox, within two quantization steps; the window's own
+  // edges cut a line short, they never add a segment to it)
+  let neighbourLines = '';
+  const neighboursObject = src.base.objects.neighbours;
+  if (subject.showNeighbours && neighboursObject) {
+    const lines = (mesh(src.base, neighboursObject) as unknown as { coordinates: number[][][] })
+      .coordinates;
+    const kept = realLines(lines, neighboursFrame(base), frameEps(base));
+    // a tenth of a unit is 0.04 mm on a 400 mm page: lines need no more, and they cost a second
+    // path
+    const lineString = geoPath(projected).digits(1);
+    neighbourLines =
+      kept.length > 0 ? (lineString({ type: 'MultiLineString', coordinates: kept }) ?? '') : '';
+  }
+
+  // the far context, first: the coarse world land beyond the frame the neighbours were clipped to
+  let far = '';
+  if (world && subject.showNeighbours) {
+    const coarse = simplifyTopology(world, extentKm(framed), FAR_FACTOR);
+    const pieces = farLand(coarse, erasedBox(base));
+    far = pieces.length > 0 ? draw(multi(pieces)) : '';
+  }
+
   return {
     version: 1,
     projection: params,
@@ -473,7 +644,8 @@ export function bakeGeometry(
       outline,
       regions: borders,
       selected: chosenOnes.length > 0 ? draw(merge(regionsTopo, chosenOnes)) : '',
-      neighbours: layer(subject.showNeighbours, 'neighbours'),
+      neighbours: far + layer(subject.showNeighbours, 'neighbours'),
+      neighbourLines,
       lakes: layer(subject.showLakes, 'lakes'),
     },
   };
