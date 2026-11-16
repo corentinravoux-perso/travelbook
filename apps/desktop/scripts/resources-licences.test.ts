@@ -93,7 +93,9 @@ describe('the licences of resources/', () => {
   it('record our own files as the author and under the licence of the repository', () => {
     const own = read<{ entries: ({ files: string[] } & Licence)[] }>(LICENCES_FILE);
     expect(own.entries.length).toBeGreaterThan(0);
-    for (const entry of own.entries) {
+    // The map outlines are not our own work: Overture data, ODbL (checked in maps/geodata.test.ts).
+    const ours = own.entries.filter((e) => !e.files.every((f) => f.startsWith('maps/')));
+    for (const entry of ours) {
       expect(entry).toMatchObject({
         source: 'travelbook',
         author: 'Corentin Ravoux',

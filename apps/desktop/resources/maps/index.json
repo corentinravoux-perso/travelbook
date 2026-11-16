@@ -1,0 +1,2618 @@
+{
+ "overture": "2026-10-21.0",
+ "built": "2026-11-16",
+ "subjects": [
+  {
+   "id": "FR-GF",
+   "iso": "GF",
+   "name": "Guyane",
+   "kind": "overseas",
+   "bbox": [
+    -54.6027,
+    2.1109,
+    -51.6147,
+    5.7762
+   ],
+   "keywords": [
+    "Guyane",
+    "French Guiana",
+    "FR-GF",
+    "GF"
+   ],
+   "file": "subjects/FR-GF.topo.json",
+   "sha256": "3e0a1315926d991c3aba2d8a71ff21af7cb96941dd40da9c86aff62dd1f0e549",
+   "regions": [],
+   "pack": null
+  },
+  {
+   "id": "FR-GP",
+   "iso": "GP",
+   "name": "Guadeloupe",
+   "kind": "overseas",
+   "bbox": [
+    -61.8098,
+    15.832,
+    -61.0017,
+    16.5145
+   ],
+   "keywords": [
+    "Guadeloupe",
+    "FR-GP",
+    "GP"
+   ],
+   "file": "subjects/FR-GP.topo.json",
+   "sha256": "e4ed12b74e0243cfd90ef55101f1153f67cf5c23608d3655da0cf72881c0785a",
+   "regions": [],
+   "pack": null
+  },
+  {
+   "id": "FR-MET",
+   "iso": "FR",
+   "name": "France métropolitaine",
+   "kind": "overseas",
+   "bbox": [
+    -5.1413,
+    41.3334,
+    9.56,
+    51.089
+   ],
+   "keywords": [
+    "France métropolitaine",
+    "France",
+    "FR-MET",
+    "FR"
+   ],
+   "file": "subjects/FR-MET.topo.json",
+   "sha256": "fd6447b4c0a4695b6908afa6cedc25bdb4884d8f92a967d80d98d033530f90ce",
+   "regions": [
+    {
+     "id": "FR-20R",
+     "name": "Corse",
+     "bbox": [
+      8.5347,
+      41.3332,
+      9.56,
+      43.0277
+     ]
+    },
+    {
+     "id": "FR-ARA",
+     "name": "Auvergne-Rhône-Alpes",
+     "bbox": [
+      2.0629,
+      44.1152,
+      7.1859,
+      46.8042
+     ]
+    },
+    {
+     "id": "FR-BFC",
+     "name": "Bourgogne-Franche-Comté",
+     "bbox": [
+      2.8445,
+      46.156,
+      7.1433,
+      48.4001
+     ]
+    },
+    {
+     "id": "FR-BRE",
+     "name": "Bretagne",
+     "bbox": [
+      -5.144,
+      47.2778,
+      -1.0157,
+      49.1133
+     ]
+    },
+    {
+     "id": "FR-CVL",
+     "name": "Centre-Val de Loire",
+     "bbox": [
+      0.0528,
+      46.3472,
+      3.1286,
+      48.941
+     ]
+    },
+    {
+     "id": "FR-GES",
+     "name": "Grand Est",
+     "bbox": [
+      3.3836,
+      47.4203,
+      8.2326,
+      50.1693
+     ]
+    },
+    {
+     "id": "FR-HDF",
+     "name": "Hauts-de-France",
+     "bbox": [
+      1.3798,
+      48.8372,
+      4.2557,
+      51.089
+     ]
+    },
+    {
+     "id": "FR-IDF",
+     "name": "Île-de-France",
+     "bbox": [
+      1.4462,
+      48.1201,
+      3.5592,
+      49.2414
+     ]
+    },
+    {
+     "id": "FR-NAQ",
+     "name": "Nouvelle-Aquitaine",
+     "bbox": [
+      -1.791,
+      42.7775,
+      2.6115,
+      47.1759
+     ]
+    },
+    {
+     "id": "FR-NOR",
+     "name": "Normandie",
+     "bbox": [
+      -1.9551,
+      48.1794,
+      1.8029,
+      50.0722
+     ]
+    },
+    {
+     "id": "FR-OCC",
+     "name": "Occitanie",
+     "bbox": [
+      -0.3273,
+      42.3328,
+      4.8455,
+      45.0466
+     ]
+    },
+    {
+     "id": "FR-PAC",
+     "name": "Provence-Alpes-Côte d'Azur",
+     "bbox": [
+      4.2301,
+      42.982,
+      7.719,
+      45.1266
+     ]
+    },
+    {
+     "id": "FR-PDL",
+     "name": "Pays de la Loire",
+     "bbox": [
+      -2.6282,
+      46.2665,
+      0.9166,
+      48.5683
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "FR-MQ",
+   "iso": "MQ",
+   "name": "Martinique",
+   "kind": "overseas",
+   "bbox": [
+    -61.2273,
+    14.3947,
+    -60.8097,
+    14.8776
+   ],
+   "keywords": [
+    "Martinique",
+    "FR-MQ",
+    "MQ"
+   ],
+   "file": "subjects/FR-MQ.topo.json",
+   "sha256": "342315f2081270820c526dc3a498577790288e5ce53060273100f1d0568c516f",
+   "regions": [],
+   "pack": null
+  },
+  {
+   "id": "FR-RE",
+   "iso": "RE",
+   "name": "La Réunion",
+   "kind": "overseas",
+   "bbox": [
+    55.2169,
+    -21.3897,
+    55.8367,
+    -20.8718
+   ],
+   "keywords": [
+    "La Réunion",
+    "Réunion",
+    "FR-RE",
+    "RE"
+   ],
+   "file": "subjects/FR-RE.topo.json",
+   "sha256": "b812cac7243e17858d1f5dafad46e301253ed2a74909b8c6e4c9ecf467324ea0",
+   "regions": [],
+   "pack": null
+  },
+  {
+   "id": "FR-YT",
+   "iso": "YT",
+   "name": "Mayotte",
+   "kind": "overseas",
+   "bbox": [
+    45.0215,
+    -12.9995,
+    45.2997,
+    -12.6365
+   ],
+   "keywords": [
+    "Mayotte",
+    "FR-YT",
+    "YT"
+   ],
+   "file": "subjects/FR-YT.topo.json",
+   "sha256": "744e1e33225877f7be9278a55fb2f6fd66378eb6971758a1ae2d2268cefb1d86",
+   "regions": [],
+   "pack": null
+  },
+  {
+   "id": "GB",
+   "iso": "GB",
+   "name": "Royaume-Uni",
+   "kind": "country",
+   "bbox": [
+    -8.65,
+    49.8832,
+    1.7632,
+    60.8564
+   ],
+   "keywords": [
+    "Royaume-Uni",
+    "United Kingdom",
+    "GB"
+   ],
+   "file": "subjects/GB.topo.json",
+   "sha256": "db5e983a2157558aa788d3ac0af57f3923db73c565b4b7857b65ed0d93d78fa3",
+   "regions": [
+    {
+     "id": "GB-ENG",
+     "name": "Angleterre",
+     "bbox": [
+      -6.3783,
+      49.8832,
+      1.7632,
+      55.8103
+     ]
+    },
+    {
+     "id": "GB-NIR",
+     "name": "Irlande du Nord",
+     "bbox": [
+      -8.1775,
+      54.0229,
+      -5.4326,
+      55.313
+     ]
+    },
+    {
+     "id": "GB-SCT",
+     "name": "Écosse",
+     "bbox": [
+      -8.65,
+      54.6338,
+      -0.7337,
+      60.8564
+     ]
+    },
+    {
+     "id": "GB-WLS",
+     "name": "Pays de Galles",
+     "bbox": [
+      -5.4795,
+      51.3758,
+      -2.6499,
+      53.4301
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "GR",
+   "iso": "GR",
+   "name": "Grèce",
+   "kind": "country",
+   "bbox": [
+    19.3743,
+    34.8016,
+    29.6452,
+    41.7489
+   ],
+   "keywords": [
+    "Grèce",
+    "Ελλάς",
+    "Greece",
+    "GR"
+   ],
+   "file": "subjects/GR.topo.json",
+   "sha256": "27ed2ebaeb07a079205045d9210153d0b28467387a56193ce1867efebdd8c8af",
+   "regions": [
+    {
+     "id": "GR-69",
+     "name": "République monastique du mont Athos",
+     "bbox": [
+      23.9932,
+      40.1154,
+      24.3984,
+      40.4503
+     ]
+    },
+    {
+     "id": "GR-A",
+     "name": "Macédoine-Orientale-et-Thrace",
+     "bbox": [
+      23.6235,
+      40.394,
+      26.6356,
+      41.7489
+     ]
+    },
+    {
+     "id": "GR-B",
+     "name": "Macédoine-Centrale",
+     "bbox": [
+      21.7042,
+      39.9076,
+      24.1179,
+      41.4066
+     ]
+    },
+    {
+     "id": "GR-C",
+     "name": "Macédoine-Occidentale",
+     "bbox": [
+      20.7754,
+      39.8304,
+      22.1953,
+      40.9435
+     ]
+    },
+    {
+     "id": "GR-D",
+     "name": "Épire",
+     "bbox": [
+      20.0085,
+      38.9447,
+      21.43,
+      40.3766
+     ]
+    },
+    {
+     "id": "GR-E",
+     "name": "Thessalie",
+     "bbox": [
+      21.1204,
+      38.9696,
+      24.333,
+      40.1967
+     ]
+    },
+    {
+     "id": "GR-F",
+     "name": "Îles Ioniennes",
+     "bbox": [
+      19.3743,
+      37.24,
+      21.1178,
+      39.8987
+     ]
+    },
+    {
+     "id": "GR-G",
+     "name": "Grèce-Occidentale",
+     "bbox": [
+      20.7277,
+      37.3746,
+      22.3781,
+      39.1745
+     ]
+    },
+    {
+     "id": "GR-H",
+     "name": "Grèce-Centrale",
+     "bbox": [
+      21.3739,
+      37.9315,
+      24.686,
+      39.2732
+     ]
+    },
+    {
+     "id": "GR-I",
+     "name": "Attique",
+     "bbox": [
+      22.891,
+      35.8225,
+      24.0996,
+      38.341
+     ]
+    },
+    {
+     "id": "GR-J",
+     "name": "Région du Péloponnèse",
+     "bbox": [
+      21.5389,
+      36.3853,
+      23.4546,
+      38.1426
+     ]
+    },
+    {
+     "id": "GR-K",
+     "name": "Égée-Septentrionale",
+     "bbox": [
+      24.9707,
+      37.5035,
+      27.0686,
+      40.0343
+     ]
+    },
+    {
+     "id": "GR-L",
+     "name": "Égée-Méridionale",
+     "bbox": [
+      24.1047,
+      35.3396,
+      29.6452,
+      37.9996
+     ]
+    },
+    {
+     "id": "GR-M",
+     "name": "Crète",
+     "bbox": [
+      23.4757,
+      34.8016,
+      26.3528,
+      35.6958
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "IT",
+   "iso": "IT",
+   "name": "Italie",
+   "kind": "country",
+   "bbox": [
+    6.6273,
+    35.493,
+    18.5188,
+    47.0921
+   ],
+   "keywords": [
+    "Italie",
+    "Italia",
+    "Italy",
+    "IT"
+   ],
+   "file": "subjects/IT.topo.json",
+   "sha256": "650d6f87d0cd522fe4f98fe3f002aa3d2318c5c78dba8cd78248ebac618dccb2",
+   "regions": [
+    {
+     "id": "IT-21",
+     "name": "Piémont",
+     "bbox": [
+      6.6273,
+      44.0597,
+      9.2142,
+      46.4643
+     ]
+    },
+    {
+     "id": "IT-23",
+     "name": "Vallée d'Aoste",
+     "bbox": [
+      6.8015,
+      45.467,
+      7.9395,
+      45.9877
+     ]
+    },
+    {
+     "id": "IT-25",
+     "name": "Lombardie",
+     "bbox": [
+      8.4979,
+      44.6799,
+      11.4276,
+      46.6354
+     ]
+    },
+    {
+     "id": "IT-32",
+     "name": "Trentin-Haut-Adige",
+     "bbox": [
+      10.3818,
+      45.6729,
+      12.478,
+      47.0921
+     ]
+    },
+    {
+     "id": "IT-34",
+     "name": "Vénétie",
+     "bbox": [
+      10.6231,
+      44.7923,
+      13.1021,
+      46.6806
+     ]
+    },
+    {
+     "id": "IT-36",
+     "name": "Frioul-Vénétie julienne",
+     "bbox": [
+      12.3214,
+      45.5809,
+      13.9187,
+      46.648
+     ]
+    },
+    {
+     "id": "IT-42",
+     "name": "Ligurie",
+     "bbox": [
+      7.4952,
+      43.7757,
+      10.0715,
+      44.6764
+     ]
+    },
+    {
+     "id": "IT-45",
+     "name": "Émilie-Romagne",
+     "bbox": [
+      9.1979,
+      43.7308,
+      12.7559,
+      45.1395
+     ]
+    },
+    {
+     "id": "IT-52",
+     "name": "Toscane",
+     "bbox": [
+      9.6868,
+      42.2376,
+      12.3723,
+      44.4725
+     ]
+    },
+    {
+     "id": "IT-55",
+     "name": "Ombrie",
+     "bbox": [
+      11.892,
+      42.3648,
+      13.2642,
+      43.6173
+     ]
+    },
+    {
+     "id": "IT-57",
+     "name": "Marches",
+     "bbox": [
+      12.1855,
+      42.6872,
+      13.9163,
+      43.9716
+     ]
+    },
+    {
+     "id": "IT-62",
+     "name": "Latium",
+     "bbox": [
+      11.4492,
+      40.7849,
+      14.0276,
+      42.8387
+     ]
+    },
+    {
+     "id": "IT-65",
+     "name": "Abruzzes",
+     "bbox": [
+      13.019,
+      41.682,
+      14.7839,
+      42.8951
+     ]
+    },
+    {
+     "id": "IT-67",
+     "name": "Molise",
+     "bbox": [
+      13.9411,
+      41.3641,
+      15.1617,
+      42.0703
+     ]
+    },
+    {
+     "id": "IT-72",
+     "name": "Campanie",
+     "bbox": [
+      13.7624,
+      39.9905,
+      15.8064,
+      41.5081
+     ]
+    },
+    {
+     "id": "IT-75",
+     "name": "Pouilles",
+     "bbox": [
+      14.9342,
+      39.7896,
+      18.5205,
+      42.2265
+     ]
+    },
+    {
+     "id": "IT-77",
+     "name": "Basilicate",
+     "bbox": [
+      15.335,
+      39.8958,
+      16.867,
+      41.1395
+     ]
+    },
+    {
+     "id": "IT-78",
+     "name": "Calabre",
+     "bbox": [
+      15.6298,
+      37.9158,
+      17.2064,
+      40.1449
+     ]
+    },
+    {
+     "id": "IT-82",
+     "name": "Sicile",
+     "bbox": [
+      11.9259,
+      35.493,
+      15.6531,
+      38.8177
+     ]
+    },
+    {
+     "id": "IT-88",
+     "name": "Sardaigne",
+     "bbox": [
+      8.1308,
+      38.8591,
+      9.8293,
+      41.3131
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "PE",
+   "iso": "PE",
+   "name": "Pérou",
+   "kind": "country",
+   "bbox": [
+    -81.3284,
+    -18.3501,
+    -68.652,
+    -0.0393
+   ],
+   "keywords": [
+    "Pérou",
+    "Perú",
+    "Peru",
+    "PE"
+   ],
+   "file": "subjects/PE.topo.json",
+   "sha256": "709c82d2fcea10444335a22990fefece7722e4c9eecb2b2f8f9fffbe90b0e844",
+   "regions": [
+    {
+     "id": "PE-AMA",
+     "name": "Département de Amazonas",
+     "bbox": [
+      -78.7122,
+      -6.9868,
+      -77.1323,
+      -2.9861
+     ]
+    },
+    {
+     "id": "PE-ANC",
+     "name": "Département de Áncash",
+     "bbox": [
+      -78.6585,
+      -10.7873,
+      -76.7257,
+      -8.0497
+     ]
+    },
+    {
+     "id": "PE-APU",
+     "name": "Département de Apurímac",
+     "bbox": [
+      -73.8474,
+      -14.8427,
+      -72.0512,
+      -13.1707
+     ]
+    },
+    {
+     "id": "PE-ARE",
+     "name": "Département de Arequipa",
+     "bbox": [
+      -75.072,
+      -17.285,
+      -70.8041,
+      -14.6327
+     ]
+    },
+    {
+     "id": "PE-AYA",
+     "name": "Département de Ayacucho",
+     "bbox": [
+      -75.1398,
+      -15.6301,
+      -72.8468,
+      -12.1675
+     ]
+    },
+    {
+     "id": "PE-CAJ",
+     "name": "Département de Cajamarca",
+     "bbox": [
+      -79.4585,
+      -7.7635,
+      -77.7413,
+      -4.6239
+     ]
+    },
+    {
+     "id": "PE-CAL",
+     "name": "Province constitucional del Callao",
+     "bbox": [
+      -77.2516,
+      -12.1207,
+      -77.0767,
+      -11.8178
+     ]
+    },
+    {
+     "id": "PE-CUS",
+     "name": "Département de Cusco",
+     "bbox": [
+      -73.9811,
+      -15.4583,
+      -70.3451,
+      -11.1834
+     ]
+    },
+    {
+     "id": "PE-HUC",
+     "name": "Département de Huánuco",
+     "bbox": [
+      -77.3175,
+      -10.4889,
+      -74.5254,
+      -8.3143
+     ]
+    },
+    {
+     "id": "PE-HUV",
+     "name": "Département de Huancavelica",
+     "bbox": [
+      -75.8097,
+      -14.1299,
+      -74.2699,
+      -11.9838
+     ]
+    },
+    {
+     "id": "PE-ICA",
+     "name": "Département de Ica",
+     "bbox": [
+      -76.3984,
+      -15.4438,
+      -74.6462,
+      -12.9649
+     ]
+    },
+    {
+     "id": "PE-JUN",
+     "name": "Département de Junín",
+     "bbox": [
+      -76.5192,
+      -12.6837,
+      -73.3551,
+      -10.6534
+     ]
+    },
+    {
+     "id": "PE-LAL",
+     "name": "Département de La Libertad",
+     "bbox": [
+      -79.6909,
+      -8.9709,
+      -76.9012,
+      -6.9415
+     ]
+    },
+    {
+     "id": "PE-LAM",
+     "name": "Département de Lambayeque",
+     "bbox": [
+      -80.6271,
+      -7.1775,
+      -79.1208,
+      -5.4804
+     ]
+    },
+    {
+     "id": "PE-LIM",
+     "name": "Département de Lima",
+     "bbox": [
+      -77.8863,
+      -13.3242,
+      -75.5075,
+      -10.2742
+     ]
+    },
+    {
+     "id": "PE-LOR",
+     "name": "Département de Loreto",
+     "bbox": [
+      -77.826,
+      -8.7161,
+      -69.9381,
+      -0.0393
+     ]
+    },
+    {
+     "id": "PE-MDD",
+     "name": "Département de Madre de Dios",
+     "bbox": [
+      -72.4287,
+      -13.3414,
+      -68.652,
+      -9.9069
+     ]
+    },
+    {
+     "id": "PE-MOQ",
+     "name": "Département de Moquegua",
+     "bbox": [
+      -71.4908,
+      -17.8215,
+      -69.9951,
+      -15.976
+     ]
+    },
+    {
+     "id": "PE-PAS",
+     "name": "Département de Pasco",
+     "bbox": [
+      -76.7302,
+      -11.1558,
+      -74.132,
+      -9.4457
+     ]
+    },
+    {
+     "id": "PE-PIU",
+     "name": "Département de Piura",
+     "bbox": [
+      -81.3284,
+      -6.3721,
+      -79.21,
+      -4.0793
+     ]
+    },
+    {
+     "id": "PE-PUN",
+     "name": "Département de Puno",
+     "bbox": [
+      -71.1181,
+      -17.2953,
+      -68.7955,
+      -13.0041
+     ]
+    },
+    {
+     "id": "PE-SAM",
+     "name": "Département de San Martín",
+     "bbox": [
+      -77.7757,
+      -8.7963,
+      -75.4988,
+      -5.4065
+     ]
+    },
+    {
+     "id": "PE-TAC",
+     "name": "Département de Tacna",
+     "bbox": [
+      -71.1394,
+      -18.3501,
+      -69.4684,
+      -16.7704
+     ]
+    },
+    {
+     "id": "PE-TUM",
+     "name": "Département de Tumbes",
+     "bbox": [
+      -81.0439,
+      -4.2319,
+      -80.1264,
+      -3.3923
+     ]
+    },
+    {
+     "id": "PE-UCA",
+     "name": "Département de Ucayali",
+     "bbox": [
+      -75.9458,
+      -11.4484,
+      -70.4942,
+      -7.262
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "TH",
+   "iso": "TH",
+   "name": "Thaïlande",
+   "kind": "country",
+   "bbox": [
+    97.3438,
+    5.6129,
+    105.6368,
+    20.4648
+   ],
+   "keywords": [
+    "Thaïlande",
+    "ประเทศไทย",
+    "Thailand",
+    "TH"
+   ],
+   "file": "subjects/TH.topo.json",
+   "sha256": "bd5967cdafb637e31640183b0789ae47558570260e29f9ebde9ad2da1fdbb53c",
+   "regions": [
+    {
+     "id": "TH-10",
+     "name": "Bangkok",
+     "bbox": [
+      100.3279,
+      13.4935,
+      100.9386,
+      13.9552
+     ]
+    },
+    {
+     "id": "TH-11",
+     "name": "Samut Prakan",
+     "bbox": [
+      100.4444,
+      13.4821,
+      100.9639,
+      13.7185
+     ]
+    },
+    {
+     "id": "TH-12",
+     "name": "Nonthaburi",
+     "bbox": [
+      100.2633,
+      13.7891,
+      100.5676,
+      14.1407
+     ]
+    },
+    {
+     "id": "TH-13",
+     "name": "Pathum Thani",
+     "bbox": [
+      100.3316,
+      13.9163,
+      100.9521,
+      14.276
+     ]
+    },
+    {
+     "id": "TH-14",
+     "name": "Phra Nakhon Si Ayutthaya",
+     "bbox": [
+      100.2126,
+      14.1074,
+      100.8233,
+      14.6785
+     ]
+    },
+    {
+     "id": "TH-15",
+     "name": "Ang Thong",
+     "bbox": [
+      100.1916,
+      14.4373,
+      100.5083,
+      14.8024
+     ]
+    },
+    {
+     "id": "TH-16",
+     "name": "Lopburi",
+     "bbox": [
+      100.4206,
+      14.6507,
+      101.4141,
+      15.7561
+     ]
+    },
+    {
+     "id": "TH-17",
+     "name": "Singburi",
+     "bbox": [
+      100.1819,
+      14.7216,
+      100.4893,
+      15.1188
+     ]
+    },
+    {
+     "id": "TH-18",
+     "name": "Chainat",
+     "bbox": [
+      99.7197,
+      14.9051,
+      100.3548,
+      15.4178
+     ]
+    },
+    {
+     "id": "TH-19",
+     "name": "Saraburi",
+     "bbox": [
+      100.5728,
+      14.2434,
+      101.4547,
+      15.047
+     ]
+    },
+    {
+     "id": "TH-20",
+     "name": "Chonburi",
+     "bbox": [
+      100.6477,
+      12.5106,
+      101.7197,
+      13.5894
+     ]
+    },
+    {
+     "id": "TH-21",
+     "name": "Rayong",
+     "bbox": [
+      100.9844,
+      12.5218,
+      101.8311,
+      13.1636
+     ]
+    },
+    {
+     "id": "TH-22",
+     "name": "Chanthaburi",
+     "bbox": [
+      101.6847,
+      12.2865,
+      102.5359,
+      13.3362
+     ]
+    },
+    {
+     "id": "TH-23",
+     "name": "Trat",
+     "bbox": [
+      102.2439,
+      11.5615,
+      102.9142,
+      12.7572
+     ]
+    },
+    {
+     "id": "TH-24",
+     "name": "Chachoengsao",
+     "bbox": [
+      100.8495,
+      13.1785,
+      101.9901,
+      13.9767
+     ]
+    },
+    {
+     "id": "TH-25",
+     "name": "Prachinburi",
+     "bbox": [
+      101.1374,
+      13.5823,
+      102.1263,
+      14.4625
+     ]
+    },
+    {
+     "id": "TH-26",
+     "name": "Nakhon Nayok",
+     "bbox": [
+      100.9136,
+      13.9612,
+      101.5055,
+      14.5128
+     ]
+    },
+    {
+     "id": "TH-27",
+     "name": "Sa Kaeo",
+     "bbox": [
+      101.8734,
+      13.2367,
+      102.941,
+      14.1958
+     ]
+    },
+    {
+     "id": "TH-30",
+     "name": "Nakhon Ratchasima",
+     "bbox": [
+      101.181,
+      14.1204,
+      103.0126,
+      15.8082
+     ]
+    },
+    {
+     "id": "TH-31",
+     "name": "Buriram",
+     "bbox": [
+      102.4326,
+      14.13,
+      103.5054,
+      15.7958
+     ]
+    },
+    {
+     "id": "TH-32",
+     "name": "Surin",
+     "bbox": [
+      103.0896,
+      14.3267,
+      104.0921,
+      15.4829
+     ]
+    },
+    {
+     "id": "TH-33",
+     "name": "Sisaket",
+     "bbox": [
+      103.902,
+      14.3439,
+      104.9085,
+      15.5684
+     ]
+    },
+    {
+     "id": "TH-34",
+     "name": "Ubon Ratchathani",
+     "bbox": [
+      104.3716,
+      14.2096,
+      105.6368,
+      16.0981
+     ]
+    },
+    {
+     "id": "TH-35",
+     "name": "Yasothon",
+     "bbox": [
+      103.9975,
+      15.2893,
+      104.825,
+      16.3489
+     ]
+    },
+    {
+     "id": "TH-36",
+     "name": "Chaiyaphum",
+     "bbox": [
+      101.3176,
+      15.3314,
+      102.4589,
+      16.7288
+     ]
+    },
+    {
+     "id": "TH-37",
+     "name": "Amnat Charoen",
+     "bbox": [
+      104.4189,
+      15.5371,
+      105.0603,
+      16.2844
+     ]
+    },
+    {
+     "id": "TH-38",
+     "name": "Bueng Kan",
+     "bbox": [
+      103.2433,
+      17.7709,
+      104.19,
+      18.4486
+     ]
+    },
+    {
+     "id": "TH-39",
+     "name": "Nongboualamphou",
+     "bbox": [
+      101.9817,
+      16.772,
+      102.6792,
+      17.6922
+     ]
+    },
+    {
+     "id": "TH-40",
+     "name": "Khon Kaen",
+     "bbox": [
+      101.7496,
+      15.6326,
+      103.1845,
+      17.0882
+     ]
+    },
+    {
+     "id": "TH-41",
+     "name": "Udon Thani",
+     "bbox": [
+      102.0157,
+      16.8031,
+      103.6681,
+      18.0864
+     ]
+    },
+    {
+     "id": "TH-42",
+     "name": "Loei",
+     "bbox": [
+      100.8333,
+      16.7536,
+      102.1554,
+      18.2203
+     ]
+    },
+    {
+     "id": "TH-43",
+     "name": "Nong Khai",
+     "bbox": [
+      102.0551,
+      17.5938,
+      103.4128,
+      18.3052
+     ]
+    },
+    {
+     "id": "TH-44",
+     "name": "Maha Sarakham",
+     "bbox": [
+      102.8431,
+      15.4059,
+      103.504,
+      16.6436
+     ]
+    },
+    {
+     "id": "TH-45",
+     "name": "Roi Et",
+     "bbox": [
+      103.2669,
+      15.405,
+      104.348,
+      16.4728
+     ]
+    },
+    {
+     "id": "TH-46",
+     "name": "Kalasin",
+     "bbox": [
+      103.0968,
+      16.1817,
+      104.2406,
+      17.102
+     ]
+    },
+    {
+     "id": "TH-47",
+     "name": "Sakon Nakhon",
+     "bbox": [
+      103.2507,
+      16.7723,
+      104.4353,
+      18.0889
+     ]
+    },
+    {
+     "id": "TH-48",
+     "name": "Nakhon Phanom",
+     "bbox": [
+      103.9815,
+      16.7871,
+      104.8066,
+      18.0237
+     ]
+    },
+    {
+     "id": "TH-49",
+     "name": "Mukdahan",
+     "bbox": [
+      104.0701,
+      16.1852,
+      104.9783,
+      16.9068
+     ]
+    },
+    {
+     "id": "TH-50",
+     "name": "Chiang Mai",
+     "bbox": [
+      98.008,
+      17.2423,
+      99.5729,
+      20.1476
+     ]
+    },
+    {
+     "id": "TH-51",
+     "name": "Lamphun",
+     "bbox": [
+      98.6708,
+      17.4257,
+      99.3215,
+      18.7084
+     ]
+    },
+    {
+     "id": "TH-52",
+     "name": "Lampang",
+     "bbox": [
+      98.88,
+      17.2055,
+      100.126,
+      19.4177
+     ]
+    },
+    {
+     "id": "TH-53",
+     "name": "Uttaradit",
+     "bbox": [
+      99.8945,
+      17.1385,
+      101.1927,
+      18.3813
+     ]
+    },
+    {
+     "id": "TH-54",
+     "name": "Phrae",
+     "bbox": [
+      99.3676,
+      17.6876,
+      100.5513,
+      18.8355
+     ]
+    },
+    {
+     "id": "TH-55",
+     "name": "Nan",
+     "bbox": [
+      100.3359,
+      18.013,
+      101.3572,
+      19.6341
+     ]
+    },
+    {
+     "id": "TH-56",
+     "name": "Phayao",
+     "bbox": [
+      99.6825,
+      18.806,
+      100.629,
+      19.7361
+     ]
+    },
+    {
+     "id": "TH-57",
+     "name": "Chiang Rai",
+     "bbox": [
+      99.258,
+      18.9999,
+      100.5785,
+      20.4648
+     ]
+    },
+    {
+     "id": "TH-58",
+     "name": "Mae Hong Son",
+     "bbox": [
+      97.3438,
+      17.637,
+      98.6522,
+      19.8143
+     ]
+    },
+    {
+     "id": "TH-60",
+     "name": "Nakhon Sawan",
+     "bbox": [
+      99.0861,
+      15.0665,
+      100.8482,
+      16.1913
+     ]
+    },
+    {
+     "id": "TH-61",
+     "name": "Uthai Thani",
+     "bbox": [
+      98.984,
+      14.9419,
+      100.1067,
+      15.7983
+     ]
+    },
+    {
+     "id": "TH-62",
+     "name": "Kamphaeng Phet",
+     "bbox": [
+      99.0163,
+      15.8553,
+      100.0471,
+      16.9106
+     ]
+    },
+    {
+     "id": "TH-63",
+     "name": "Tak",
+     "bbox": [
+      97.7422,
+      15.18,
+      99.467,
+      17.8679
+     ]
+    },
+    {
+     "id": "TH-64",
+     "name": "Sukhothai",
+     "bbox": [
+      99.3122,
+      16.6827,
+      100.1118,
+      17.8217
+     ]
+    },
+    {
+     "id": "TH-65",
+     "name": "Phitsanulok",
+     "bbox": [
+      99.8534,
+      16.3187,
+      101.11,
+      17.743
+     ]
+    },
+    {
+     "id": "TH-66",
+     "name": "Phichit",
+     "bbox": [
+      99.9837,
+      15.919,
+      100.7993,
+      16.6484
+     ]
+    },
+    {
+     "id": "TH-67",
+     "name": "Phetchabun",
+     "bbox": [
+      100.633,
+      15.3183,
+      101.7972,
+      17.178
+     ]
+    },
+    {
+     "id": "TH-70",
+     "name": "Ratchaburi",
+     "bbox": [
+      99.1636,
+      13.1488,
+      100.0715,
+      13.9576
+     ]
+    },
+    {
+     "id": "TH-71",
+     "name": "Kanchanaburi",
+     "bbox": [
+      98.1817,
+      13.7261,
+      99.8793,
+      15.6607
+     ]
+    },
+    {
+     "id": "TH-72",
+     "name": "Suphanburi",
+     "bbox": [
+      99.276,
+      14.0639,
+      100.29,
+      15.0809
+     ]
+    },
+    {
+     "id": "TH-73",
+     "name": "Nakhon Pathom",
+     "bbox": [
+      99.8167,
+      13.6486,
+      100.3376,
+      14.1791
+     ]
+    },
+    {
+     "id": "TH-74",
+     "name": "Samut Sakhon",
+     "bbox": [
+      100.0269,
+      13.4231,
+      100.4201,
+      13.7246
+     ]
+    },
+    {
+     "id": "TH-75",
+     "name": "Samut Songkhram",
+     "bbox": [
+      99.8523,
+      13.242,
+      100.0797,
+      13.5163
+     ]
+    },
+    {
+     "id": "TH-76",
+     "name": "Phetchaburi",
+     "bbox": [
+      99.0994,
+      12.5632,
+      100.1061,
+      13.3434
+     ]
+    },
+    {
+     "id": "TH-77",
+     "name": "Prachuap Khiri Khan",
+     "bbox": [
+      99.1474,
+      10.9547,
+      100.0321,
+      12.6446
+     ]
+    },
+    {
+     "id": "TH-80",
+     "name": "Nakhon Si Thammarat",
+     "bbox": [
+      99.2344,
+      7.838,
+      100.7372,
+      9.3262
+     ]
+    },
+    {
+     "id": "TH-81",
+     "name": "Krabi",
+     "bbox": [
+      98.6197,
+      7.1973,
+      99.415,
+      8.6818
+     ]
+    },
+    {
+     "id": "TH-82",
+     "name": "Phang Nga",
+     "bbox": [
+      97.6311,
+      7.888,
+      98.7078,
+      9.4776
+     ]
+    },
+    {
+     "id": "TH-83",
+     "name": "Phuket",
+     "bbox": [
+      98.2581,
+      7.4623,
+      98.4816,
+      8.2006
+     ]
+    },
+    {
+     "id": "TH-84",
+     "name": "Surat Thani",
+     "bbox": [
+      98.4431,
+      8.3008,
+      100.0884,
+      10.1262
+     ]
+    },
+    {
+     "id": "TH-85",
+     "name": "Ranong",
+     "bbox": [
+      98.3309,
+      9.3038,
+      98.9649,
+      10.7884
+     ]
+    },
+    {
+     "id": "TH-86",
+     "name": "Chumphon",
+     "bbox": [
+      98.6276,
+      9.6009,
+      99.5194,
+      11.0339
+     ]
+    },
+    {
+     "id": "TH-90",
+     "name": "Songkhla",
+     "bbox": [
+      100.0546,
+      6.2901,
+      101.1052,
+      7.9389
+     ]
+    },
+    {
+     "id": "TH-91",
+     "name": "Satun",
+     "bbox": [
+      99.1553,
+      6.4226,
+      100.2206,
+      7.2037
+     ]
+    },
+    {
+     "id": "TH-92",
+     "name": "Trang",
+     "bbox": [
+      99.2346,
+      7.0218,
+      99.9491,
+      8.0129
+     ]
+    },
+    {
+     "id": "TH-93",
+     "name": "Phatthalung",
+     "bbox": [
+      99.7327,
+      7.0903,
+      100.4287,
+      7.9057
+     ]
+    },
+    {
+     "id": "TH-94",
+     "name": "Pattani",
+     "bbox": [
+      101.0174,
+      6.5499,
+      101.7273,
+      6.9518
+     ]
+    },
+    {
+     "id": "TH-95",
+     "name": "Yala",
+     "bbox": [
+      100.8347,
+      5.6129,
+      101.609,
+      6.6832
+     ]
+    },
+    {
+     "id": "TH-96",
+     "name": "Narathiwat",
+     "bbox": [
+      101.3711,
+      5.7329,
+      102.0933,
+      6.6354
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "US",
+   "iso": "US",
+   "name": "États-Unis d'Amérique",
+   "kind": "country",
+   "bbox": [
+    -179.1479,
+    18.9107,
+    179.7726,
+    71.3868
+   ],
+   "keywords": [
+    "États-Unis d'Amérique",
+    "United States",
+    "US"
+   ],
+   "file": "subjects/US.topo.json",
+   "sha256": "da01b1ce4b0bf78554f33a527c1d4d6f08e451552ebbd1df40bb042f95a57eb0",
+   "regions": [
+    {
+     "id": "US-AK",
+     "name": "Alaska",
+     "bbox": [
+      -179.1479,
+      51.2142,
+      179.7726,
+      71.3868
+     ]
+    },
+    {
+     "id": "US-AL",
+     "name": "Alabama",
+     "bbox": [
+      -88.4731,
+      30.2256,
+      -84.8883,
+      35.0081
+     ]
+    },
+    {
+     "id": "US-AR",
+     "name": "Arkansas",
+     "bbox": [
+      -94.6179,
+      33.0042,
+      -89.6425,
+      36.4996
+     ]
+    },
+    {
+     "id": "US-AZ",
+     "name": "Arizona",
+     "bbox": [
+      -114.8184,
+      31.3322,
+      -109.0451,
+      37.0039
+     ]
+    },
+    {
+     "id": "US-CA",
+     "name": "California",
+     "bbox": [
+      -124.4097,
+      32.5343,
+      -114.1308,
+      42.0095
+     ]
+    },
+    {
+     "id": "US-CO",
+     "name": "Colorado",
+     "bbox": [
+      -109.0602,
+      36.9925,
+      -102.0416,
+      41.0034
+     ]
+    },
+    {
+     "id": "US-CT",
+     "name": "Connecticut",
+     "bbox": [
+      -73.7278,
+      40.9806,
+      -71.7872,
+      42.0506
+     ]
+    },
+    {
+     "id": "US-DC",
+     "name": "District of Columbia",
+     "bbox": [
+      -77.1198,
+      38.7916,
+      -76.9094,
+      38.996
+     ]
+    },
+    {
+     "id": "US-DE",
+     "name": "Delaware",
+     "bbox": [
+      -75.789,
+      38.4512,
+      -75.0504,
+      39.8395
+     ]
+    },
+    {
+     "id": "US-FL",
+     "name": "Florida",
+     "bbox": [
+      -87.6349,
+      24.5231,
+      -80.0309,
+      31.0008
+     ]
+    },
+    {
+     "id": "US-GA",
+     "name": "Georgia",
+     "bbox": [
+      -85.6052,
+      30.3557,
+      -80.8404,
+      35.0007
+     ]
+    },
+    {
+     "id": "US-HI",
+     "name": "Hawaii",
+     "bbox": [
+      -178.3009,
+      18.9107,
+      -154.807,
+      28.4015
+     ]
+    },
+    {
+     "id": "US-IA",
+     "name": "Iowa",
+     "bbox": [
+      -96.6397,
+      40.3756,
+      -90.1401,
+      43.5012
+     ]
+    },
+    {
+     "id": "US-ID",
+     "name": "Idaho",
+     "bbox": [
+      -117.243,
+      41.9888,
+      -111.0436,
+      49.0008
+     ]
+    },
+    {
+     "id": "US-IL",
+     "name": "Illinois",
+     "bbox": [
+      -91.5131,
+      36.9701,
+      -87.0199,
+      42.5084
+     ]
+    },
+    {
+     "id": "US-IN",
+     "name": "Indiana",
+     "bbox": [
+      -88.0972,
+      37.7717,
+      -84.7846,
+      41.7614
+     ]
+    },
+    {
+     "id": "US-KS",
+     "name": "Kansas",
+     "bbox": [
+      -102.0518,
+      36.9931,
+      -94.5882,
+      40.0032
+     ]
+    },
+    {
+     "id": "US-KY",
+     "name": "Kentucky",
+     "bbox": [
+      -89.5715,
+      36.4971,
+      -81.9645,
+      39.1478
+     ]
+    },
+    {
+     "id": "US-LA",
+     "name": "Louisiana",
+     "bbox": [
+      -94.0432,
+      28.9297,
+      -88.8226,
+      33.0196
+     ]
+    },
+    {
+     "id": "US-MA",
+     "name": "Massachusetts",
+     "bbox": [
+      -73.5082,
+      41.2393,
+      -69.9291,
+      42.8868
+     ]
+    },
+    {
+     "id": "US-MD",
+     "name": "Maryland",
+     "bbox": [
+      -79.4873,
+      37.8915,
+      -75.0498,
+      39.723
+     ]
+    },
+    {
+     "id": "US-ME",
+     "name": "Maine",
+     "bbox": [
+      -71.0842,
+      42.9811,
+      -66.9497,
+      47.4598
+     ]
+    },
+    {
+     "id": "US-MI",
+     "name": "Michigan",
+     "bbox": [
+      -90.4185,
+      41.6961,
+      -82.1228,
+      48.3061
+     ]
+    },
+    {
+     "id": "US-MN",
+     "name": "Minnesota",
+     "bbox": [
+      -97.2393,
+      43.4994,
+      -89.4833,
+      49.3845
+     ]
+    },
+    {
+     "id": "US-MO",
+     "name": "Missouri",
+     "bbox": [
+      -95.7741,
+      35.9957,
+      -89.0988,
+      40.6136
+     ]
+    },
+    {
+     "id": "US-MS",
+     "name": "Mississippi",
+     "bbox": [
+      -91.655,
+      30.1745,
+      -88.0978,
+      34.996
+     ]
+    },
+    {
+     "id": "US-MT",
+     "name": "Montana",
+     "bbox": [
+      -116.0492,
+      44.3579,
+      -104.0396,
+      49.0011
+     ]
+    },
+    {
+     "id": "US-NC",
+     "name": "North Carolina",
+     "bbox": [
+      -84.3218,
+      33.8429,
+      -75.461,
+      36.5882
+     ]
+    },
+    {
+     "id": "US-ND",
+     "name": "North Dakota",
+     "bbox": [
+      -104.0489,
+      45.935,
+      -96.5544,
+      49.0006
+     ]
+    },
+    {
+     "id": "US-NE",
+     "name": "Nebraska",
+     "bbox": [
+      -104.0534,
+      39.9999,
+      -95.3081,
+      43.0015
+     ]
+    },
+    {
+     "id": "US-NH",
+     "name": "New Hampshire",
+     "bbox": [
+      -72.5572,
+      42.6972,
+      -70.6103,
+      45.3058
+     ]
+    },
+    {
+     "id": "US-NJ",
+     "name": "New Jersey",
+     "bbox": [
+      -75.5599,
+      38.9297,
+      -73.8936,
+      41.3573
+     ]
+    },
+    {
+     "id": "US-NM",
+     "name": "New Mexico",
+     "bbox": [
+      -109.0502,
+      31.3322,
+      -103.0022,
+      37.0002
+     ]
+    },
+    {
+     "id": "US-NV",
+     "name": "Nevada",
+     "bbox": [
+      -120.0065,
+      35.0019,
+      -114.0403,
+      42.0003
+     ]
+    },
+    {
+     "id": "US-NY",
+     "name": "New York",
+     "bbox": [
+      -79.762,
+      40.496,
+      -71.8563,
+      45.0159
+     ]
+    },
+    {
+     "id": "US-OH",
+     "name": "Ohio",
+     "bbox": [
+      -84.8203,
+      38.4031,
+      -80.519,
+      42.3247
+     ]
+    },
+    {
+     "id": "US-OK",
+     "name": "Oklahoma",
+     "bbox": [
+      -103.0024,
+      33.6192,
+      -94.4312,
+      37.0023
+     ]
+    },
+    {
+     "id": "US-OR",
+     "name": "Oregon",
+     "bbox": [
+      -124.5664,
+      41.9926,
+      -116.4631,
+      46.2911
+     ]
+    },
+    {
+     "id": "US-PA",
+     "name": "Pennsylvania",
+     "bbox": [
+      -80.5211,
+      39.7198,
+      -74.6897,
+      42.5161
+     ]
+    },
+    {
+     "id": "US-RI",
+     "name": "Rhode Island",
+     "bbox": [
+      -71.8925,
+      41.1466,
+      -71.1206,
+      42.0189
+     ]
+    },
+    {
+     "id": "US-SC",
+     "name": "South Carolina",
+     "bbox": [
+      -83.354,
+      32.0343,
+      -78.5416,
+      35.2155
+     ]
+    },
+    {
+     "id": "US-SD",
+     "name": "South Dakota",
+     "bbox": [
+      -104.0578,
+      42.4799,
+      -96.4363,
+      45.9453
+     ]
+    },
+    {
+     "id": "US-TN",
+     "name": "Tennessee",
+     "bbox": [
+      -90.3103,
+      34.9832,
+      -81.6472,
+      36.6781
+     ]
+    },
+    {
+     "id": "US-TX",
+     "name": "Texas",
+     "bbox": [
+      -106.6458,
+      25.8371,
+      -93.5078,
+      36.5005
+     ]
+    },
+    {
+     "id": "US-UT",
+     "name": "Utah",
+     "bbox": [
+      -114.0529,
+      36.9978,
+      -109.0416,
+      42.002
+     ]
+    },
+    {
+     "id": "US-VA",
+     "name": "Virginia",
+     "bbox": [
+      -83.6754,
+      36.5408,
+      -75.2427,
+      39.466
+     ]
+    },
+    {
+     "id": "US-VT",
+     "name": "Vermont",
+     "bbox": [
+      -73.4377,
+      42.727,
+      -71.4654,
+      45.0167
+     ]
+    },
+    {
+     "id": "US-WA",
+     "name": "Washington",
+     "bbox": [
+      -124.7544,
+      45.5437,
+      -116.916,
+      49.0024
+     ]
+    },
+    {
+     "id": "US-WI",
+     "name": "Wisconsin",
+     "bbox": [
+      -92.8893,
+      42.492,
+      -86.2495,
+      47.3097
+     ]
+    },
+    {
+     "id": "US-WV",
+     "name": "West Virginia",
+     "bbox": [
+      -82.6447,
+      37.2014,
+      -77.719,
+      40.6388
+     ]
+    },
+    {
+     "id": "US-WY",
+     "name": "Wyoming",
+     "bbox": [
+      -111.0553,
+      40.9948,
+      -104.0523,
+      45.0058
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "US-AK",
+   "iso": "US",
+   "name": "Alaska",
+   "kind": "overseas",
+   "bbox": [
+    -179.1479,
+    51.2142,
+    179.7726,
+    71.3868
+   ],
+   "keywords": [
+    "Alaska",
+    "United States",
+    "US-AK",
+    "US"
+   ],
+   "file": "subjects/US-AK.topo.json",
+   "sha256": "c0329f9330ce89d15da07614bef897a21e1a1fe4cc3f436efe66470bdf7d1afe",
+   "regions": [
+    {
+     "id": "01352d78-757e-4eac-9997-8992d10dc5cc",
+     "name": "Yakutat",
+     "bbox": [
+      -143.8933,
+      58.8022,
+      -137.5,
+      60.5219
+     ]
+    },
+    {
+     "id": "0ac33a82-9715-452e-9000-192d8c524927",
+     "name": "Wrangell",
+     "bbox": [
+      -133.0697,
+      55.6366,
+      -130.9979,
+      56.9033
+     ]
+    },
+    {
+     "id": "1399262e-4acc-4e64-abae-0ccc23d00a63",
+     "name": "Lake and Peninsula Borough",
+     "bbox": [
+      -159.9037,
+      55.6423,
+      -153.3932,
+      60.9085
+     ]
+    },
+    {
+     "id": "29a7b5e0-5270-461d-bf2c-cb11461eb6df",
+     "name": "Northwest Arctic Borough",
+     "bbox": [
+      -165.3515,
+      65.4359,
+      -154.1323,
+      68.301
+     ]
+    },
+    {
+     "id": "48d21de5-74db-413a-8b6e-4b5a9dbc7d52",
+     "name": "Matanuska-Susitna Borough",
+     "bbox": [
+      -153.0051,
+      61.192,
+      -146.424,
+      63.4797
+     ]
+    },
+    {
+     "id": "523330a1-cde3-44a6-a9c1-fc7881cd4c90",
+     "name": "Ketchikan Gateway Borough",
+     "bbox": [
+      -132.202,
+      54.7188,
+      -129.9941,
+      56.406
+     ]
+    },
+    {
+     "id": "6bca4c94-4a9d-498a-ae18-6606c4e9b705",
+     "name": "Sitka",
+     "bbox": [
+      -136.4223,
+      56.1621,
+      -134.6158,
+      58.0013
+     ]
+    },
+    {
+     "id": "7228a73c-e73e-44bf-b1d4-eb424d1efaf6",
+     "name": "Denali Borough",
+     "bbox": [
+      -153.0013,
+      62.723,
+      -146.972,
+      64.3651
+     ]
+    },
+    {
+     "id": "73d12de6-767c-46c6-b631-0cc19a1563c4",
+     "name": "Unorganized Borough",
+     "bbox": [
+      -179.1479,
+      51.2142,
+      179.7726,
+      68.5073
+     ]
+    },
+    {
+     "id": "75603e8e-75b3-457c-94c3-3f3d1994f6d0",
+     "name": "Kenai Peninsula Borough",
+     "bbox": [
+      -154.7488,
+      58.645,
+      -148.563,
+      61.4282
+     ]
+    },
+    {
+     "id": "a3a590e2-5c86-434d-a4f3-f9cca7e4b978",
+     "name": "North Slope Borough",
+     "bbox": [
+      -166.8415,
+      67.9989,
+      -141.0006,
+      71.3868
+     ]
+    },
+    {
+     "id": "a6dfea63-c0f5-4249-bda5-f8c276b04fa2",
+     "name": "Petersburg Borough",
+     "bbox": [
+      -134.6666,
+      55.826,
+      -132.0452,
+      57.4269
+     ]
+    },
+    {
+     "id": "b952334f-872e-49d2-ad69-299f9d463da1",
+     "name": "Fairbanks North Star Borough",
+     "bbox": [
+      -148.6672,
+      64.2579,
+      -143.8848,
+      65.4545
+     ]
+    },
+    {
+     "id": "bcca15ab-2bc8-4327-b154-44ee57ddb291",
+     "name": "Skagway",
+     "bbox": [
+      -135.7231,
+      59.3406,
+      -134.9897,
+      59.798
+     ]
+    },
+    {
+     "id": "bd8ad0c2-0657-43b9-93fd-fefd33e26e63",
+     "name": "Prince of Wales-Hyder",
+     "bbox": [
+      -133.9448,
+      54.6634,
+      -130.0035,
+      56.3574
+     ]
+    },
+    {
+     "id": "ca8ee943-2147-48e8-84e7-da3065950b98",
+     "name": "Juneau",
+     "bbox": [
+      -135.1755,
+      57.795,
+      -133.1723,
+      58.9739
+     ]
+    },
+    {
+     "id": "e296370f-1a63-4a0f-845d-bc1849b27b8b",
+     "name": "Aleutians East Borough",
+     "bbox": [
+      -166.1996,
+      53.9522,
+      -158.8908,
+      56.8804
+     ]
+    },
+    {
+     "id": "ef8b306c-f99a-4319-b9dd-2a3de2380fba",
+     "name": "Anchorage",
+     "bbox": [
+      -150.2857,
+      60.733,
+      -148.4624,
+      61.4839
+     ]
+    },
+    {
+     "id": "f35bc98d-7426-4076-82be-c7d47ea2a2f8",
+     "name": "Kodiak Island Borough",
+     "bbox": [
+      -156.8093,
+      55.7569,
+      -151.7895,
+      58.9708
+     ]
+    },
+    {
+     "id": "f3dffe6d-8055-4ad7-b265-7d780bf6075c",
+     "name": "Bristol Bay Borough",
+     "bbox": [
+      -158.001,
+      58.6166,
+      -156.3172,
+      58.8949
+     ]
+    },
+    {
+     "id": "fff02422-8112-4218-b85b-31f98887321c",
+     "name": "Haines Borough",
+     "bbox": [
+      -136.4958,
+      58.1754,
+      -134.3135,
+      59.7284
+     ]
+    }
+   ],
+   "pack": null
+  },
+  {
+   "id": "US-HI",
+   "iso": "US",
+   "name": "Hawaï",
+   "kind": "overseas",
+   "bbox": [
+    -178.3009,
+    18.9107,
+    -154.807,
+    28.4015
+   ],
+   "keywords": [
+    "Hawaï",
+    "United States",
+    "US-HI",
+    "US"
+   ],
+   "file": "subjects/US-HI.topo.json",
+   "sha256": "f63e6894577776f8aa1ba0a4da02570aad60f2e97af71b71e994bfbd543f18aa",
+   "regions": [
+    {
+     "id": "0da365a8-6973-41be-a156-2345a7d0f706",
+     "name": "Comté de Honolulu",
+     "bbox": [
+      -178.3009,
+      21.2549,
+      -157.6488,
+      28.4015
+     ]
+    },
+    {
+     "id": "109cfa53-bb13-4e37-aeb0-14f9a08c737d",
+     "name": "Kauaʻi County",
+     "bbox": [
+      -160.5452,
+      21.6496,
+      -159.2927,
+      22.2327
+     ]
+    },
+    {
+     "id": "45a3d442-ef6d-46bd-84e8-ac083287b9c2",
+     "name": "Comté de Maui",
+     "bbox": [
+      -157.3103,
+      20.5012,
+      -155.9791,
+      21.2238
+     ]
+    },
+    {
+     "id": "7e1f6a22-131b-4573-bf4f-8f6a46279e06",
+     "name": "Kalawao County",
+     "bbox": [
+      -157.0201,
+      21.1263,
+      -156.8928,
+      21.215
+     ]
+    },
+    {
+     "id": "bd2e8ef4-aaa7-40b5-a6c7-fbc6068f1439",
+     "name": "Hawaiʻi County",
+     "bbox": [
+      -156.0618,
+      18.9107,
+      -154.807,
+      20.2672
+     ]
+    }
+   ],
+   "pack": null
+  }
+ ]
+}

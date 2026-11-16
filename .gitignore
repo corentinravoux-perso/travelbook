@@ -8,3 +8,6 @@ playwright-report/
 .superpowers/
 # Built by `npm run stickers` (Task 6.1); fr-keywords.json next to it is committed.
 apps/desktop/resources/stickers/packs/
+# Map geodata: raw downloads and scratch output of `npm run maps` (never committed).
+apps/desktop/scripts/maps/.cache/
+apps/desktop/scripts/maps/out/

@@ -572,6 +572,31 @@
       "author": "Corentin Ravoux",
       "licence": "MIT",
       "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "maps/index.json",
+        "maps/subjects/FR-GF.topo.json",
+        "maps/subjects/FR-GP.topo.json",
+        "maps/subjects/FR-MET.topo.json",
+        "maps/subjects/FR-MQ.topo.json",
+        "maps/subjects/FR-RE.topo.json",
+        "maps/subjects/FR-YT.topo.json",
+        "maps/subjects/GB.topo.json",
+        "maps/subjects/GR.topo.json",
+        "maps/subjects/IT.topo.json",
+        "maps/subjects/PE.topo.json",
+        "maps/subjects/TH.topo.json",
+        "maps/subjects/US-AK.topo.json",
+        "maps/subjects/US-HI.topo.json",
+        "maps/subjects/US.topo.json"
+      ],
+      "source": "Overture Maps Foundation, divisions theme",
+      "author": "© OpenStreetMap contributors, Overture Maps Foundation",
+      "licence": "ODbL 1.0",
+      "url": "https://docs.overturemaps.org/attribution/",
+      "requiresAttribution": true,
+      "note": "Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector)."
     }
   ]
 }
