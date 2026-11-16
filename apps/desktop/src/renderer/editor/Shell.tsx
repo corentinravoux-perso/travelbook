@@ -200,6 +200,7 @@ function TopBar() {
             disabled={book === null}
             onClick={() => setExportOpen(true)}
           >
+            <Icon name="file-export" />
             {fr.shell.export}
           </button>
           <span className="shell-sep" />

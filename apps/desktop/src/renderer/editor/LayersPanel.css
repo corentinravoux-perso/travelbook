@@ -56,7 +56,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--ink);
+  background: var(--accent);
 }
 .layer[data-selected][data-drop]::before,
 .layer[data-selected][data-drop]::after {
