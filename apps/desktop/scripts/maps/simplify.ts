@@ -249,3 +249,81 @@ export async function buildTopology(input: TopologyInput): Promise<Topology> {
   if (landGeometry) landGeometry.properties = input.landProperties;
   return { ...topology, objects };
 }
+
+/** How the regions of a pack share their borders (see `buildPack`). */
+export type PackMode = 'per-region' | 'finest';
+
+/** TopoJSON quantization that resolves `metres` over the larger side (degrees) of `box`. */
+export function quantizationFor(box: Bbox, metres: number): number {
+  const span = Math.max(box[2] - box[0], box[3] - box[1], 1e-6);
+  return Math.min(1e9, Math.max(QUANTIZATION, Math.ceil((span * 111_320) / metres)));
+}
+
+const regionExtent = (feature: Feature): number => extentKm(mainBbox(feature));
+
+/**
+ * The fine pack of one country: one TopoJSON whose only object `regions` holds every region.
+ *
+ * A province is drawn on a page of its own size, so it deserves the tolerance of its own extent
+ * (`toleranceMetres(extent)`, islets and holes under `minAreaKm2(extent)` dropped).
+ *
+ * - `finest` (default): one mapshaper dataset simplified at the finest tolerance of the set. Every
+ *   region is at least as fine as its own tolerance asks, and the border of two neighbours stays
+ *   one shared arc, so they meet exactly. The file is as large as the smallest region allows:
+ *   measured at 1.0 to 1.8 x the `per-region` size on the dev countries.
+ * - `per-region`: every region is simplified and cleaned alone at its own tolerance, then the
+ *   results are merged. Smaller for a country of very unequal regions, but the shared border of two
+ *   neighbours is simplified twice, differently: it becomes many short arcs and may show slivers.
+ */
+export async function buildPack(regions: Feature[], mode: PackMode = 'finest'): Promise<Topology> {
+  if (regions.length === 0) throw new Error('a pack needs at least one region');
+  const extents = regions.map(regionExtent);
+  const tolerances = extents.map(toleranceMetres);
+  const finest = Math.min(...tolerances);
+  let union: Bbox = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const region of regions) {
+    const [a, b, c, d] = bboxOf(region);
+    union = [
+      Math.min(union[0], a),
+      Math.min(union[1], b),
+      Math.max(union[2], c),
+      Math.max(union[3], d),
+    ];
+  }
+  const quantization = quantizationFor(union, Math.max(finest / 2, 0.5));
+  const toTopology = async (files: Record<string, string>, commands: string): Promise<Topology> => {
+    const out = await mapshaper.applyCommands(commands, files);
+    return JSON.parse(String(out['out.topo.json'])) as Topology;
+  };
+  let topology: Topology;
+  if (mode === 'finest') {
+    const minArea = Math.min(...extents.map(minAreaKm2));
+    const features = regions.map((r) => dropSmallHoles(r, minArea));
+    topology = await toTopology(
+      { 'regions.json': collection(features) },
+      `-i regions.json -simplify dp interval=${finest}m keep-shapes ` +
+        `-filter-islands min-area=${minArea}km2 remove-empty ` +
+        `-o format=topojson quantization=${quantization} target=* out.topo.json`,
+    );
+  } else {
+    const parts: Record<string, string> = {};
+    for (const [i, region] of regions.entries()) {
+      const extent = extents[i] ?? 0;
+      const minArea = minAreaKm2(extent);
+      const out = await mapshaper.applyCommands(
+        `-i in.json -simplify dp interval=${toleranceMetres(extent)}m keep-shapes ` +
+          `-filter-islands min-area=${minArea}km2 remove-empty -o format=geojson out.json`,
+        { 'in.json': collection([dropSmallHoles(region, minArea)]) },
+      );
+      parts[`r${i}.json`] = String(out['out.json']);
+    }
+    topology = await toTopology(
+      parts,
+      `-i ${Object.keys(parts).join(' ')} combine-files -merge-layers name=regions ` +
+        `-o format=topojson quantization=${quantization} target=* out.topo.json`,
+    );
+  }
+  const object = topology.objects.regions;
+  if (!object) throw new Error('pack: mapshaper produced no regions object');
+  return { ...topology, objects: { regions: object } };
+}
