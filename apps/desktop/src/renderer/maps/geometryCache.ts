@@ -4,6 +4,9 @@ import { useCallback, useSyncExternalStore } from 'react';
 /** What a map reads: the geometry, `null` while it loads, `'missing'` when it cannot be read. */
 export type GeometryState = MapGeometry | null | 'missing';
 
+/** Longest a geometry file may take to read: a stalled read becomes `'missing'`. */
+export const GEOMETRY_TIMEOUT_MS = 15_000;
+
 export interface GeometryCache {
   /** The geometry of an asset. Never rejects: a geometry that cannot be read is `'missing'`. */
   load(assetId: string): Promise<MapGeometry | 'missing'>;
@@ -14,6 +17,8 @@ export interface GeometryCache {
    * (a re-bake) so the next read fetches the file again.
    */
   invalidate(assetId: string): void;
+  /** Forget everything: another album may hold the same id with another content. */
+  clear(): void;
   subscribe(listener: () => void): () => void;
   /** Changes at every settled load or invalidation. */
   version(): number;
@@ -43,13 +48,30 @@ export function createGeometryCache(options: {
   };
 
   async function read(assetId: string): Promise<MapGeometry | 'missing'> {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stalled = new Promise<'missing'>((resolve) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        resolve('missing');
+      }, GEOMETRY_TIMEOUT_MS);
+    });
+    const reading = (async (): Promise<MapGeometry | 'missing'> => {
+      try {
+        const response = await (options.fetch ?? fetch)(options.urlOf(assetId), {
+          signal: controller.signal,
+        });
+        if (!response.ok) return 'missing';
+        const parsed = MapGeometrySchema.safeParse(await response.json());
+        return parsed.success ? parsed.data : 'missing';
+      } catch {
+        return 'missing';
+      }
+    })();
     try {
-      const response = await (options.fetch ?? fetch)(options.urlOf(assetId));
-      if (!response.ok) return 'missing';
-      const parsed = MapGeometrySchema.safeParse(await response.json());
-      return parsed.success ? parsed.data : 'missing';
-    } catch {
-      return 'missing';
+      return await Promise.race([reading, stalled]);
+    } finally {
+      clearTimeout(timer);
     }
   }
 
@@ -80,6 +102,11 @@ export function createGeometryCache(options: {
     },
     invalidate(assetId) {
       if (entries.delete(assetId)) bump();
+    },
+    clear() {
+      if (entries.size === 0) return;
+      entries.clear();
+      bump();
     },
     subscribe(listener) {
       listeners.add(listener);

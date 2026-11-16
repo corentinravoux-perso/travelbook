@@ -41,8 +41,8 @@ import {
 import { DRAG_SLOP_PX, useTransform } from './useTransform';
 import { useZoomPan } from './useZoomPan';
 import type { Element, PhotoElement, Rect } from '@travelbook/core';
-import './PhotoEditing.css';
 import { useMapGeometryLookup } from '../maps/geometryCache';
+import './PhotoEditing.css';
 
 /** How long a notice stays up, in ms. */
 const NOTICE_MS = 5000;
