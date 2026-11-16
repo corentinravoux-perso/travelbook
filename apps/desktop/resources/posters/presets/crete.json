@@ -79,5 +79,32 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "crete-nazar",
+    "destination": "crete",
+    "name": "Crète, œil bleu",
+    "spec": {
+      "layout": "geant",
+      "title": "CRÈTE",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#cfe3f7",
+        "title": "#1f47b8",
+        "accent": "#d9a520",
+        "decor": "#e6f1fb",
+        "illustration": {
+          "main": "#1f47b8",
+          "shade": "#1f47b8"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "crete-nazar"
+      },
+      "spine": true
+    }
   }
 ]

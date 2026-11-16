@@ -19,9 +19,18 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   front and spine: the place in large letters at the top, the year under it, and a drawing
   centred below, in five layouts (Classique, Empilé, Arche, Soleil, Horizon), with a live
   preview, applied in one undoable step as ordinary elements.
-- 43 original flat drawings for 13 destinations, with one preset each; they are also the
+- 62 original drawings for 13 destinations, with one preset each; they are also the
   sticker set "Affiches", usable on any page. Recolourable drawings follow the title colour on
   request.
+- Affiches: a sixth layout, **Géant**: the title set word by word, as large as the front
+  allows, the year at almost twice its usual size, the drawing edge to edge and standing on
+  the foot of the page (a wide drawing is centred under the title instead).
+- Affiches: "Voir le livre en volume" shows the preview and the preset gallery as a closed
+  hard-cover book seen from the left (CSS 3D), the flat view one click away.
+- Affiches: 19 new drawings and their presets, all in the Géant layout but the koi (Soleil):
+  13 modelled in volume (the new "relief" family, with gradients and highlights), one per
+  destination, and 6 hand-drawn scenes with ink linework and hatching (Amalfi coast, Highland
+  stag, scarlet macaw, rhinoceros, koi pond, Lake Titicaca reed boat).
 - Lilita One, the posters' title face, among the bundled fonts (42 families).
 
 ## [0.1.0] - 2026-11-15

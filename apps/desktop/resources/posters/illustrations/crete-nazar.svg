@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1034" data-tb-style="relief">
+  <defs><radialGradient id="g1" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#081540" stop-opacity="0.35"/><stop offset="1" stop-color="#081540" stop-opacity="0"/></radialGradient><linearGradient id="g2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a6008"/><stop offset="0.4" stop-color="#ffe08a"/><stop offset="1" stop-color="#8a6008"/></linearGradient><radialGradient id="g3" cx="0.36" cy="0.3" r="0.75"><stop offset="0" stop-color="#4f7fe6"/><stop offset="0.55" stop-color="#1f47b8"/><stop offset="0.92" stop-color="#0f2466"/><stop offset="1" stop-color="#081540"/></radialGradient><linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081540" stop-opacity="0"/><stop offset="0.6" stop-color="#4f7fe6" stop-opacity="0"/><stop offset="1" stop-color="#4f7fe6" stop-opacity="0.7"/></linearGradient><radialGradient id="g5" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#ffffff"/><stop offset="0.75" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e0ec"/></radialGradient><radialGradient id="g6" cx="0.38" cy="0.32" r="0.8"><stop offset="0" stop-color="#9edcff"/><stop offset="0.6" stop-color="#3aa0de"/><stop offset="1" stop-color="#1f6fb0"/></radialGradient><radialGradient id="g7" cx="0.38" cy="0.32" r="0.8"><stop offset="0" stop-color="#3a3d4a"/><stop offset="0.7" stop-color="#0a0a12"/><stop offset="1" stop-color="#0a0a12"/></radialGradient><radialGradient id="g8" cx="0.4" cy="0.36" r="0.66"><stop offset="0" stop-color="#081540" stop-opacity="0"/><stop offset="0.7" stop-color="#081540" stop-opacity="0"/><stop offset="1" stop-color="#081540" stop-opacity="0.45"/></radialGradient><radialGradient id="g9" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#4f7fe6"/><stop offset="0.45" stop-color="#1f47b8"/><stop offset="1" stop-color="#0f2466"/></radialGradient><radialGradient id="g10" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffe08a"/><stop offset="0.5" stop-color="#d9a520"/><stop offset="1" stop-color="#8a6008"/></radialGradient></defs>
+  <!-- Contact shadow under the bracelet and the eye -->
+  <ellipse fill="url(#g1)" cx="500" cy="1010" rx="480" ry="32"/>
+  <!-- Cord loop at the top -->
+  <circle fill="none" cx="500" cy="44" r="30" stroke="#8a6008" stroke-width="16"/>
+  <circle fill="none" cx="497" cy="41" r="30" stroke="#d9a520" stroke-width="9"/>
+  <rect fill="url(#g2)" x="484" y="62" width="32" height="22" rx="6"/>
+  <!-- Glass disc, dark blue -->
+  <circle fill="url(#g3)" cx="500" cy="500" r="440"/>
+  <!-- Bevel: lighter rim on the lower right, where light passes through -->
+  <circle fill="none" cx="500" cy="500" r="422" stroke="url(#g4)" stroke-width="10"/>
+  <!-- White ring -->
+  <circle fill="url(#g5)" cx="492" cy="494" r="272.8"/>
+  <!-- Sky blue ring -->
+  <circle fill="url(#g6)" cx="488" cy="491" r="180.4"/>
+  <!-- Pupil -->
+  <circle fill="url(#g7)" cx="486" cy="489" r="88"/>
+  <!-- Rounded glass: shade toward the lower right -->
+  <circle fill="url(#g8)" cx="500" cy="500" r="440"/>
+  <!-- Highlights: a long crescent on the upper left, glints -->
+  <path fill="#ffffff" opacity="0.55" d="M134.8 420.8C148.0 227.2 302.0 104.0 491.2 90.79999999999995C324.0 139.20000000000005 200.79999999999995 253.59999999999997 134.8 420.8z"/>
+  <ellipse fill="#ffffff" opacity="0.9" cx="280" cy="258" rx="34" ry="20" transform="rotate(-40 280.0 258.0)"/>
+  <circle fill="#ffffff" opacity="0.85" cx="227.2" cy="350.4" r="12"/>
+  <ellipse fill="#ffffff" opacity="0.85" cx="433.2" cy="440.6" rx="22" ry="14"/>
+  <path fill="#9edcff" opacity="0.55" d="M742.0 772.8C816.8 698.0 860.8 610.0 878.4 522.0C896.0 632.0 843.2 728.8 742.0 772.8z"/>
+  <!-- Bracelet beads, a loop lying around the foot of the eye -->
+  <circle fill="url(#g9)" cx="53.1" cy="922.8" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="41.1" cy="908.8" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="78.5" cy="940.8" r="19"/>
+  <circle fill="url(#g9)" cx="120.3" cy="957.3" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="108.3" cy="943.3" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="176.8" cy="971.9" r="19"/>
+  <circle fill="url(#g9)" cx="245.9" cy="983.8" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="233.9" cy="969.8" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="324.9" cy="992.7" r="19"/>
+  <circle fill="url(#g9)" cx="410.7" cy="998.2" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="398.7" cy="984.2" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="500" cy="1000" r="19"/>
+  <circle fill="url(#g9)" cx="589.3" cy="998.2" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="577.3" cy="984.2" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="675.1" cy="992.7" r="19"/>
+  <circle fill="url(#g9)" cx="754.1" cy="983.8" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="742.1" cy="969.8" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="823.2" cy="971.9" r="19"/>
+  <circle fill="url(#g9)" cx="879.7" cy="957.3" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="867.7" cy="943.3" rx="11" ry="7"/>
+  <circle fill="url(#g10)" cx="921.5" cy="940.8" r="19"/>
+  <circle fill="url(#g9)" cx="946.9" cy="922.8" r="36"/>
+  <ellipse fill="#ffffff" opacity="0.7" cx="934.9" cy="908.8" rx="11" ry="7"/>
+</svg>

@@ -79,5 +79,59 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "kenya-bouclier",
+    "destination": "kenya",
+    "name": "Kenya, bouclier massaï",
+    "spec": {
+      "layout": "geant",
+      "title": "KENYA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6d7b8",
+        "title": "#c02418",
+        "accent": "#3a2a1a",
+        "decor": "#fbe9d8",
+        "illustration": {
+          "main": "#c02418",
+          "shade": "#c02418"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "kenya-bouclier"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "kenya-rhinoceros",
+    "destination": "kenya",
+    "name": "Kenya, rhinocéros",
+    "spec": {
+      "layout": "geant",
+      "title": "KENYA",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f4dcc0",
+        "title": "#8a5a3a",
+        "accent": "#6e6860",
+        "decor": "#f9ebda",
+        "illustration": {
+          "main": "#8a5a3a",
+          "shade": "#8a5a3a"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "kenya-rhinoceros"
+      },
+      "spine": true
+    }
   }
 ]
