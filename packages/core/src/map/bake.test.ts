@@ -224,6 +224,44 @@ describe('bakeGeometry, chosen regions', () => {
       expect(hand.bounds).toEqual(clean.bounds);
       expect(hand.projection).toEqual(clean.projection);
     });
+
+    it('leaves the borders of the context states byte for byte as in the clean bake', () => {
+      // the context borders come first, clean; the borders of California follow, by hand
+      const cleanPart = (g: MapGeometry): string => {
+        const firstCurve = g.paths.regions.indexOf('C');
+        return g.paths.regions.slice(0, g.paths.regions.lastIndexOf('M', firstCurve));
+      };
+      const other = bakeGeometry(us, pack, chosen, 'auto', { seed: 77, roughness: 2.5 }, 1);
+      const context = cleanPart(hand);
+      expect(context.length).toBeGreaterThan(1_000_000);
+      expect(context).not.toMatch(/C/);
+      // not a function of the seed or of the roughness
+      expect(cleanPart(other)).toBe(context);
+      // and made of the clean bake's own vertices
+      const vertices = new Set(points(clean.paths.regions).map(([x, y]) => `${x},${y}`));
+      for (const [x, y] of points(context)) expect(vertices.has(`${x},${y}`)).toBe(true);
+    });
+  });
+
+  describe('with a pack, the whole US and no region chosen', () => {
+    const us = subjectTopology('US');
+    const pack = packTopology('US');
+    const whole = subject('US');
+    const clean = bakeGeometry(us, pack, whole, 'auto', null, 1);
+    const hand = bakeGeometry(us, pack, whole, 'auto', { seed: 1, roughness: 1 }, 1);
+    const total = (g: MapGeometry): number => Object.values(g.paths).join('').length;
+
+    it('stays under 8 M characters with rough (measured 15.1 M with every border by hand)', () => {
+      expect(total(hand)).toBeLessThan(8_000_000);
+    });
+
+    it('draws the outline by hand and everything else clean', () => {
+      expect(hand.paths.outline).not.toBe(clean.paths.outline);
+      expect(hand.paths.outline).toMatch(/C/);
+      for (const name of ['land', 'regions', 'selected', 'neighbours', 'lakes'] as const) {
+        expect(hand.paths[name]).toBe(clean.paths[name]);
+      }
+    });
   });
 
   it('treats a pack without regions as no pack', () => {
@@ -342,6 +380,30 @@ describe('bakeGeometry, slivers that collapse inside out', () => {
     expect((land.geometries[0] as { arcs: unknown[] }).arcs).toHaveLength(1);
   });
 
+  it('drops a ring that collapsed to two points whatever its size', () => {
+    // a ring of two 2-point arcs: topojson pads it to four points, and it has no area
+    const flat: Topology = {
+      type: 'Topology',
+      arcs: [box(0, 0, 10, 10), [A, B], [B, A]],
+      objects: {
+        land: {
+          type: 'GeometryCollection',
+          geometries: [{ type: 'MultiPolygon', arcs: [[[0]], [[1, 2]]], properties: { id: 'X' } }],
+        },
+        regions: { type: 'GeometryCollection', geometries: [] },
+        neighbours: { type: 'GeometryCollection', geometries: [] },
+        lakes: { type: 'GeometryCollection', geometries: [] },
+      },
+    };
+    for (const factor of [1e-9, 1, 8]) {
+      const out = simplifyTopology(flat, 1100, factor);
+      const land = out.objects.land as GeometryCollection;
+      expect((land.geometries[0] as { arcs: unknown[] }).arcs).toHaveLength(1);
+    }
+    const g = bakeGeometry(flat, null, subject('X'), 'auto', null, 0.5);
+    expect(g.paths.land).not.toMatch(/NaN|Infinity/);
+  });
+
   it('frames a subject whose raw data holds an inside-out ring as if it were not there', () => {
     const inside = JSON.parse(JSON.stringify(crescent)) as Topology;
     // walk the crescent's ring the other way round: anticlockwise, the complement to d3
@@ -362,7 +424,8 @@ describe('bakeGeometry, hand-drawn', () => {
   it('draws only the lines by hand, and only when rough is set', () => {
     const g = hand(3);
     expect(g.paths.outline).not.toBe(clean.paths.outline);
-    expect(g.paths.regions).not.toBe(clean.paths.regions);
+    // nothing chosen: only the outline is by hand, the inner borders stay clean
+    expect(g.paths.regions).toBe(clean.paths.regions);
     expect(g.paths.land).toBe(clean.paths.land);
     expect(g.paths.selected).toBe(clean.paths.selected);
     expect(g.paths.neighbours).toBe(clean.paths.neighbours);
@@ -446,6 +509,65 @@ describe('bakeGeometry, remote parts', () => {
     expect(all.remoteBounds[1][0] - all.remoteBounds[0][0]).toBeGreaterThan(
       0.9 * (g.remoteBounds[1][0] - g.remoteBounds[0][0]),
     );
+  });
+});
+
+describe('bakeGeometry, the window never clips the selection', () => {
+  // region R: a 10 degree square and a 1 degree islet 100 degrees east, far beyond eight extents
+  // of the main bounds; the islet is remote (under 1 % of the area, farther than one width)
+  const islet = box(100, 0, 101, 1);
+  const world: Topology = {
+    type: 'Topology',
+    arcs: [box(0, 0, 10, 10), islet, box(-30, -30, -20, -20)],
+    objects: {
+      land: {
+        type: 'GeometryCollection',
+        geometries: [
+          { type: 'MultiPolygon', arcs: [[[0]], [[1]], [[2]]], properties: { id: 'W' } },
+        ],
+      },
+      regions: {
+        type: 'GeometryCollection',
+        geometries: [
+          { type: 'MultiPolygon', arcs: [[[0]], [[1]]], properties: { id: 'W-R' } },
+          { type: 'Polygon', arcs: [[2]], properties: { id: 'W-S' } },
+        ],
+      },
+      neighbours: { type: 'GeometryCollection', geometries: [] },
+      lakes: { type: 'GeometryCollection', geometries: [] },
+    },
+  };
+
+  it.each([false, true])(
+    'keeps a chosen remote part beyond the window (includeRemote %s)',
+    (includeRemote) => {
+      const g = bakeGeometry(
+        world,
+        null,
+        subject('W', { regions: ['W-R'], includeRemote }),
+        'auto',
+        null,
+        1,
+      );
+      const [west, east] = [g.bounds[0][0], g.bounds[1][0]];
+      expect(east - west).toBeGreaterThan(0);
+      const reach = Math.max(...points(g.paths.selected).map(([x]) => x));
+      // the islet lies about ten main widths east, past the 4 widths that the main bounds would allow
+      expect(reach).toBeGreaterThan(east + 4000);
+      expect(reach).toBeGreaterThan(g.remoteBounds[1][0] - 20);
+      expect(Math.max(...points(g.paths.land).map(([x]) => x))).toBeGreaterThan(east + 4000);
+    },
+  );
+
+  it('still clips the context that is not selected', () => {
+    const g = bakeGeometry(world, null, subject('W', { regions: ['W-R'] }), 'auto', null, 1);
+    // the other square is far west of the islet, beyond the window, and not selected
+    const wanted = points(g.paths.regions).concat(points(g.paths.land));
+    expect(wanted.length).toBeGreaterThan(0);
+    const [cx0, cx1] = [g.remoteBounds[0][0], g.remoteBounds[1][0]];
+    const reach = (4 * (cx1 - cx0)) / 1; // eight extents wide: four each side of the centre
+    const centre = (cx0 + cx1) / 2;
+    for (const [x] of wanted) expect(Math.abs(x - centre)).toBeLessThanOrEqual(reach + 0.01);
   });
 });
 
