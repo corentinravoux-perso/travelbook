@@ -129,6 +129,19 @@ set on `<html>` before the first render (`theme/theme.ts`). The user's choice is
   `#f2f2f2` text at `--t-xxs` weight 500, with a 7 px dot in `--good`, `--fair` or `--low`.
   It sits over the photo, so it keeps the same colours in both themes.
 
+## Rulers and guides
+
+- Two 24 px rulers (`--ruler`) along the top and the left of the canvas, with a `mm` corner. They
+  are drawn on a canvas in the tokens: `--sunken` outside the pages, the pages in `--chrome`
+  with their safe margins tinted (as a word processor shows its margins), `--ink-3` ticks and
+  `--ink-2` numbers in Nunito 600 at 9.5 px, a number every 10 to 500 mm depending on the zoom.
+  The left ruler's numbers are turned a quarter left.
+- The selection is a `--accent-soft` band ended by two `--accent` lines. The pointer is an
+  `--accent` line with a pill giving its position ("123,5 mm") in `--on-accent`.
+- Ruler guides are 1 px `--accent` lines with a half-pixel white edge, so they read on any
+  photo, in a 7 px band to grab; a guide being laid or leaving is at 55 % opacity. A guide shows
+  on its ruler as a small `--accent` wedge.
+
 ## Icons
 
 Tabler Icons (MIT), outline style, from `@iconify-json/tabler`. The SVG bodies the UI uses are

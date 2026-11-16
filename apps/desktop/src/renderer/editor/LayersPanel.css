@@ -111,6 +111,17 @@
 .layer[data-selected] .layer__fold {
   color: inherit;
 }
+/* The bin is quiet until its row is pointed at, and turns red under the pointer. */
+.layer__remove {
+  opacity: 0.45;
+}
+.layer:hover .layer__remove,
+.layer__remove:focus-visible {
+  opacity: 1;
+}
+.layer__remove:hover:not(:disabled) {
+  color: var(--low);
+}
 /* An eye or padlock that is off is quiet; a hidden or locked layer shows it is on. */
 .layer__toggle[aria-pressed='false'] {
   opacity: 0.45;

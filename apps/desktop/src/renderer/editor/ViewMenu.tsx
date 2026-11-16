@@ -5,7 +5,7 @@ import { fr } from '../strings/fr';
 const ENTRIES: (keyof Guides)[] = ['bleed', 'trim', 'safe', 'gutter'];
 
 /**
- * The View menu: one checkbox per print overlay of the canvas. An in-app menu, not the Electron
+ * The View menu: one checkbox per print overlay of the canvas, then the rulers. An in-app menu, not the Electron
  * application menu: the app has no menu bar, labels stay in `fr.ts`, and it works the same on
  * every platform.
  */
@@ -44,13 +44,15 @@ export function ViewMenu() {
       </button>
       {open && (
         <div className="view-menu__list" role="menu" aria-label={fr.canvas.viewMenu}>
-          {ENTRIES.map((key) => (
+          {[...ENTRIES, 'rulers' as const].map((key) => (
             <button
               key={key}
               type="button"
               role="menuitemcheckbox"
               aria-checked={guides[key]}
-              className="view-menu__item"
+              className={
+                key === 'rulers' ? 'view-menu__item view-menu__item--group' : 'view-menu__item'
+              }
               onClick={() => editorStore.getState().setGuide(key, !guides[key])}
             >
               <span className="view-menu__check" aria-hidden="true">

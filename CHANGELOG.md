@@ -24,6 +24,16 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   request.
 - Lilita One, the posters' title face, among the bundled fonts (42 families).
 
+- Photos: remove photos imported by mistake: the bin on a thumbnail, or tick photos and
+  "Supprimer…" in the bar under the tray. The question says how many are placed; their frames
+  become empty frames. One undo step brings everything back.
+- Rulers in millimetres along the top and the left of the canvas (as in a word processor), in
+  the inspector's coordinates: they mark the pointer with its position, the extent of the
+  selection and the safe margins. A drag from a ruler lays a guide that elements snap to; guides
+  are saved with the spread and never printed. "Règles et repères" in Affichage hides them.
+- Calques: a bin at the end of each row deletes its element, and the bin of a group's row the
+  whole group, in one undo step.
+
 ### Changed
 
 - Interface: new visual direction B, "Carnet de route" (`docs/design/visual-direction.md`). White

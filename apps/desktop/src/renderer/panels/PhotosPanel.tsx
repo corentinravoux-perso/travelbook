@@ -1,8 +1,8 @@
-import { assetUsage, type AssetRef, type Book } from '@travelbook/core';
-import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { assetUsage, removePhotos, type AssetRef, type Book } from '@travelbook/core';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { PHOTO_DRAG_TYPE, encodePhotoDrag } from '../editor/PhotoDrop';
 import { droppedPaths, photoImporter } from '../editor/photoImport';
-import { useEditor } from '../store/editor';
+import { editorStore, useEditor } from '../store/editor';
 import { trayStore, useTray } from '../store/tray';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
@@ -113,6 +113,8 @@ function Tray({ book }: { book: Book }) {
   const selectedIds = useTray((s) => s.selected);
   const pickerOpen = useEditor((s) => s.pickerId !== null);
   const [dropping, setDropping] = useState(false);
+  /** Photos waiting for the confirmation of their removal, or `null`. */
+  const [removing, setRemoving] = useState<string[] | null>(null);
 
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
   const groups = useMemo(() => trayGroups(book, { sort, filter }), [book, sort, filter]);
@@ -125,6 +127,20 @@ function Tray({ book }: { book: Book }) {
     const gone = selectedIds.filter((id) => book.assets[id] === undefined);
     if (gone.length > 0) trayStore.getState().setMany(gone, false);
   }, [book, selectedIds]);
+
+  // A photo that left the book (an undo of its import) cannot wait for its removal either.
+  const asking = useMemo(() => {
+    const left = removing?.filter((id) => book.assets[id] !== undefined) ?? [];
+    return left.length > 0 ? left : null;
+  }, [book, removing]);
+
+  const cancelRemove = useCallback(() => setRemoving(null), []);
+  const remove = (ids: string[]) => {
+    editorStore.getState().apply((b) => removePhotos(b, ids), fr.photos.undoRemove);
+    trayStore.getState().setMany(ids, false);
+    setRemoving(null);
+    editorStore.getState().notify(fr.photos.removed(ids.length));
+  };
 
   const importFiles = async () => {
     const paths = await window.tb.photos.pick();
@@ -200,15 +216,28 @@ function Tray({ book }: { book: Book }) {
           groups={groups}
           header={(group) => <DayHeader group={group} selected={selected} />}
           thumb={(asset) => (
-            <PhotoThumb
-              asset={asset}
-              uses={usage[asset.id] ?? 0}
-              selected={selected.has(asset.id)}
-              onActivate={(e) =>
-                trayStore.getState().pick(asset.id, e.ctrlKey || e.metaKey || e.shiftKey)
-              }
-              onDragStart={dragStart(asset)}
-            />
+            <div className="photo-cell">
+              <PhotoThumb
+                asset={asset}
+                uses={usage[asset.id] ?? 0}
+                selected={selected.has(asset.id)}
+                onActivate={(e) =>
+                  trayStore.getState().pick(asset.id, e.ctrlKey || e.metaKey || e.shiftKey)
+                }
+                onDragStart={dragStart(asset)}
+              />
+              {/* A shortcut for the pointer; the keyboard ticks photos and uses the bar below. */}
+              <button
+                type="button"
+                className="photo-cell__remove"
+                tabIndex={-1}
+                aria-label={fr.photos.removeOne(asset.originalName)}
+                title={fr.photos.removeTitle}
+                onClick={() => setRemoving([asset.id])}
+              >
+                <Icon name="trash" />
+              </button>
+            </div>
           )}
         />
       ) : (
@@ -225,12 +254,116 @@ function Tray({ book }: { book: Book }) {
         </div>
       )}
 
+      {(asking !== null || selectedIds.length > 0) && (
+        <SelectionBar
+          book={book}
+          usage={usage}
+          selected={selectedIds}
+          removing={asking}
+          onAsk={() => setRemoving(selectedIds)}
+          onCancel={cancelRemove}
+          onConfirm={remove}
+        />
+      )}
+
       {dropping && (
         <div className="photos__drop" aria-hidden="true">
           {fr.photos.dropHere}
         </div>
       )}
       {pickerOpen && <PhotoPicker book={book} />}
+    </div>
+  );
+}
+
+/**
+ * Under the tray while photos are ticked: how many, and the way to take them out of the album.
+ * Removing asks first, in place, and says what happens to the frames that show them.
+ */
+function SelectionBar({
+  book,
+  usage,
+  selected,
+  removing,
+  onAsk,
+  onCancel,
+  onConfirm,
+}: {
+  book: Book;
+  usage: Record<string, number>;
+  selected: string[];
+  removing: string[] | null;
+  onAsk(): void;
+  onCancel(): void;
+  onConfirm(ids: string[]): void;
+}) {
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const asking = removing !== null;
+  useEffect(() => {
+    if (!asking) return;
+    confirmRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      onCancel();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [asking, onCancel]);
+
+  if (removing !== null) {
+    const placed = removing.filter((id) => (usage[id] ?? 0) > 0).length;
+    const name = removing.length === 1 ? book.assets[removing[0]!]?.originalName : undefined;
+    return (
+      <div
+        className="photos__selection photos__selection--asking"
+        role="alertdialog"
+        aria-label={fr.photos.removeQuestion(removing.length)}
+      >
+        <p className="photos__selection-text">
+          <strong>{fr.photos.removeQuestion(removing.length)}</strong>
+          {name !== undefined && <span className="photos__selection-name">{name}</span>}
+          <span>
+            {fr.photos.removeUsed(removing.length, placed)}
+            {fr.photos.removeSafe}
+          </span>
+        </p>
+        <div className="photos__selection-actions">
+          <button type="button" className="button" onClick={onCancel}>
+            {fr.photos.removeCancel}
+          </button>
+          <button
+            ref={confirmRef}
+            type="button"
+            className="button button--danger"
+            onClick={() => onConfirm(removing)}
+          >
+            <Icon name="trash" />
+            {fr.photos.removeConfirm}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="photos__selection" role="region" aria-label={fr.photos.selectionBar}>
+      <span className="photos__selection-count" aria-live="polite">
+        {fr.photos.selectedCount(selected.length)}
+      </span>
+      <div className="photos__selection-actions">
+        <button
+          type="button"
+          className="button button--quiet"
+          onClick={() => trayStore.getState().clearSelection()}
+        >
+          {fr.photos.clearSelection}
+        </button>
+        <button type="button" className="button button--danger-outline" onClick={onAsk}>
+          <Icon name="trash" />
+          {fr.photos.remove}
+        </button>
+      </div>
     </div>
   );
 }

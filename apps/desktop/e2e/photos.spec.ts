@@ -663,3 +663,64 @@ test('importing the same photo again puts a missing original back', async () => 
     await app.close().catch(() => {});
   }
 });
+
+test('photos imported by mistake are removed from the album, frames emptied, and can come back', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await openAlbum(page, 'Oups', [slot('f', 20, 20, 100, 70)]);
+    await importPhotos(app, page, ['landscape.jpg', 'small.jpg', 'day1.jpg']);
+    await dropOnPage(page, 'small.jpg', 70, 55);
+    const placed = await savedBook(page, 'oups');
+    expect(frames(placed)[0]!.assetId).toBe(assetIdOf(placed, 'small.jpg'));
+
+    // Tick two photos: the bar counts them and asks before removing.
+    await page.locator('.photo-thumb[title="small.jpg"]').click();
+    await page.locator('.photo-thumb[title="day1.jpg"]').click({ modifiers: ['Control'] });
+    const bar = page.getByRole('region', { name: 'Photos sélectionnées' });
+    await expect(bar).toContainText('2 photos sélectionnées');
+    await bar.getByRole('button', { name: 'Supprimer…', exact: true }).click();
+    const ask = page.getByRole('alertdialog', { name: "Supprimer 2 photos de l'album ?" });
+    await expect(ask).toContainText('1 est placée dans le livre : son cadre sera vidé.');
+    // Escape answers no.
+    await page.keyboard.press('Escape');
+    await expect(ask).toBeHidden();
+    await expect(page.locator('.photo-thumb')).toHaveCount(3);
+
+    await bar.getByRole('button', { name: 'Supprimer…', exact: true }).click();
+    await ask.getByRole('button', { name: "Supprimer de l'album", exact: true }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(1);
+    await expect(page.getByRole('status').filter({ hasText: 'supprimées' })).toContainText(
+      "2 photos supprimées de l'album.",
+    );
+    await expect
+      .poll(async () => {
+        const book = await savedBook(page, 'oups');
+        return [Object.keys(book.assets).length, frames(book)[0]!.assetId];
+      })
+      .toEqual([1, null]);
+
+    // One undo step puts both back, and the photo back in its frame.
+    await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(3);
+    await expect
+      .poll(async () => frames(await savedBook(page, 'oups'))[0]!.assetId)
+      .toBe(assetIdOf(placed, 'small.jpg'));
+
+    // The shortcut on a thumbnail asks for that photo alone; once removed, it can be imported again.
+    await page
+      .locator('.photo-cell')
+      .filter({ has: page.locator('[title="day1.jpg"]') })
+      .hover();
+    await page.getByRole('button', { name: "Supprimer day1.jpg de l'album…" }).click();
+    const one = page.getByRole('alertdialog', { name: "Supprimer 1 photo de l'album ?" });
+    await one.getByRole('button', { name: "Supprimer de l'album", exact: true }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(2);
+    await pickFiles(app, ['day1.jpg']);
+    await page.getByRole('button', { name: 'Importer des photos' }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(3);
+  } finally {
+    await app.close();
+  }
+});

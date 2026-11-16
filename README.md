@@ -62,11 +62,17 @@ the front.
 2. **Import photos.** "Importer des photos" in the Photos panel, or drag files and folders from the
    file manager onto the window. Photos are grouped by day (from their EXIF date). Importing a
    photo the album already holds does nothing, except that a missing original is copied back.
+   A photo imported by mistake goes with the bin on its thumbnail, or by ticking photos (a click,
+   Ctrl+click, or a day's checkbox) and "Supprimer…" in the bar under the tray. The frames that
+   showed it become empty; Ctrl+Z brings it back. The files on your computer are not touched.
 3. **Lay out the spreads.** Drag a photo onto a page, or pick a layout in the Modèles panel
    (273 templates for 1 to 16 photos, covers, chapter openings, text pages and whole spreads;
    "Mise en page aléatoire" tries another layout with the same number of photos). Crop, rotate,
    mask, add borders and shadows, and adjust the look of a photo in the inspector. A page can be
-   saved as your own template.
+   saved as your own template. Rulers in millimetres run along the top and the left of the page,
+   in the inspector's coordinates; they mark the pointer and the selection. Drag from a ruler onto
+   the page to lay a guide that elements snap to; drag it back onto its ruler, or double-click
+   it, to remove it. Guides are kept with the album and never printed. "Affichage" hides them.
 4. **Add text, stickers, shapes and backgrounds.** The Texte panel has five ready styles and the
    fonts (42 bundled families, your own TTF, OTF or WOFF2 files, and a search in the Fontsource
    catalogue). The Stickers panel searches 51 000 bundled stickers in French or English, online
@@ -82,7 +88,9 @@ the front.
 
 The album saves itself a second after every change. The Historique tab keeps versions, one every
 ten minutes while you work and one with Ctrl+S, so an earlier state can be restored. Undo and redo
-cover the whole session. The overview (the grid button in the top bar) reorders the double pages.
+cover the whole session. The overview (the grid button in the top bar) reorders the double pages. The Calques tab of the
+inspector lists the elements of the double page: it hides, locks, renames, reorders and, with the
+bin of a row, deletes them.
 "Crédits des images" lists the licence of every sticker and background that needs one, and can
 insert the credits as text on a page.
 
@@ -118,7 +126,8 @@ An album is a folder you can copy, back up or send as a whole:
 ```
 Islande-2026.travelbook/
   book.json     the album: pages, elements, asset list (written atomically)
-  originals/    your photos, byte for byte, named by hash
+  originals/    your photos, byte for byte, named by hash (a photo removed from the album
+                keeps its file here, so an undo can show it again)
   assets/       stickers, backgrounds and fonts the album uses, with their licences
   cache/        thumbnails and previews, rebuilt when missing
   history/      the saved versions

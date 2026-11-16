@@ -81,3 +81,25 @@ export function unusedAssets(book: Book): string[] {
     .filter((a) => a.kind !== 'font' && !usage[a.id])
     .map((a) => a.id);
 }
+
+/**
+ * Take photos out of the album: their assets leave `book.assets`, and every frame that showed
+ * one of them, on the cover or on a spread, becomes an empty frame (its crop back to the
+ * default; its mask, border and look kept). Only photo assets are removed; other ids, and
+ * unknown ones, are ignored. The files stay in the album folder, so an undo shows them again.
+ */
+export function removePhotos(book: Book, assetIds: readonly string[]): Book {
+  const gone = new Set(assetIds.filter((id) => book.assets[id]?.kind === 'photo'));
+  if (gone.size === 0) return book;
+  return produce(book, (draft) => {
+    for (const id of gone) delete draft.assets[id];
+    for (const spread of [draft.cover, ...draft.spreads]) {
+      for (const el of spread.elements) {
+        if (el.type === 'photo' && el.assetId !== null && gone.has(el.assetId)) {
+          el.assetId = null;
+          el.crop = defaultCrop();
+        }
+      }
+    }
+  });
+}
