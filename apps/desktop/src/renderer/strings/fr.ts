@@ -104,6 +104,11 @@ export const fr = {
     insert: 'Insérer une double page ici',
   },
   // Cover editing: the spine zone.
+  maps: {
+    undoCreate: 'Créer une carte',
+    undoUpdate: 'Modifier la carte',
+    applyFailed: "La carte n'a pas pu être créée.",
+  },
   poster: {
     open: 'Créer une affiche…',
     title: 'Créer une affiche',
