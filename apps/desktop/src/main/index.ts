@@ -16,6 +16,7 @@ import { setBundledResourcesDir } from './library/templates';
 import { setFontsResourcesDir } from './library/fonts';
 import { setBackgroundsResourcesDir } from './library/backgrounds';
 import { setStickersResourcesDir, stickerSvg } from './library/stickers/offline';
+import { setMapsResourcesDir } from './maps/packs';
 import { getStickerService } from './library/stickers/service';
 import { LIBRARY_FOLDER, libraryFile, primeLibraryLookup } from './library/userLibrary';
 import { exportJobLookup } from './export/images';
@@ -95,6 +96,7 @@ void app.whenReady().then(async () => {
   setBackgroundsResourcesDir(resourcesDir);
   setStickersResourcesDir(resourcesDir);
   setFontsResourcesDir(resourcesDir);
+  setMapsResourcesDir(resourcesDir);
 
   // tb://library/<id> is answered from the library index, which is read once before any window.
   setLibraryFileLookup(libraryFile);

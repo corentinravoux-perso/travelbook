@@ -90,6 +90,14 @@ const tb: TbApi = {
       delete: (templateId) => ipcRenderer.invoke(CHANNEL.libraryTemplateDelete, templateId),
     },
   },
+  maps: {
+    saveGeometry: (json, meta) => ipcRenderer.invoke(CHANNEL.mapsSaveGeometry, json, meta),
+    loadPack: (subjectId) => ipcRenderer.invoke(CHANNEL.mapsLoadPack, subjectId),
+    listStyles: () => ipcRenderer.invoke(CHANNEL.mapsListStyles),
+    saveStyle: (name, style) => ipcRenderer.invoke(CHANNEL.mapsSaveStyle, name, style),
+    renameStyle: (id, name) => ipcRenderer.invoke(CHANNEL.mapsRenameStyle, id, name),
+    deleteStyle: (id) => ipcRenderer.invoke(CHANNEL.mapsDeleteStyle, id),
+  },
   clipboard: {
     writeElements: (payload) => ipcRenderer.invoke(CHANNEL.clipboardWrite, payload),
     readElements: () => ipcRenderer.invoke(CHANNEL.clipboardRead),
