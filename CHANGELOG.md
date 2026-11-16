@@ -5,6 +5,20 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Déco: 122 new labels ("Étiquettes") in 41 new shapes, simple and elaborate: oval, pill,
+  round badge, pennant, swallowtail flag, heart, cloud, shield, hexagon, apothecary,
+  diamond, star, arch, scroll, curved ribbon, rosette, wax seal, sunburst, price tag, gift
+  tag, jam-jar label, school label, cartouche, index tab, flower, raffle ticket, pinned
+  note, paper clip, taped sheet, torn paper, wooden signpost, stitched leather tag,
+  chalkboard, envelope, beaded medallion, brace banner, airport luggage tag, bow, scroll
+  ornaments and two hand-drawn sketch labels. The set grows from 175 to 297 stickers.
+- Déco: 66 torn-paper labels: plain rectangles torn on one side (right or bottom), two sides
+  (left and right, top and bottom), a corner or all four, in five tear styles (fine, chunky,
+  teeth, soft wave, fibre with a pale paper fringe), plus notebook pages torn from a pad
+  (Seyès, squared, lined) in white and yellow. The set grows to 363 stickers.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added
