@@ -9,9 +9,10 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
-import { editorStore, findSpread, useEditor } from '../store/editor';
+import { RULER_SIZES, editorStore, findSpread, useEditor } from '../store/editor';
 import { MissingNotice } from './MissingNotice';
 import { fr } from '../strings/fr';
 import { assetUrl } from './assetUrl';
@@ -64,6 +65,7 @@ export function Canvas() {
   const selection = useEditor((s) => s.selection);
   const showGuides = useEditor((s) => s.guides);
   const showRulers = showGuides.rulers;
+  const rulerSize = useEditor((s) => s.rulerSize);
   const zoom = useEditor((s) => s.zoom);
   const notice = useEditor((s) => s.notice);
   const tool = useEditor((s) => s.tool);
@@ -281,6 +283,7 @@ export function Canvas() {
       className="shell-canvas"
       aria-label={fr.shell.canvas}
       data-rulers={(showRulers && book !== null && spread !== undefined) || undefined}
+      style={{ '--ruler': `${RULER_SIZES[rulerSize]}px` } as CSSProperties}
     >
       <MissingNotice />
       {showRulers && book && spread && (

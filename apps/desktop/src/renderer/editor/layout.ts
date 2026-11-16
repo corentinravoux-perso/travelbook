@@ -41,3 +41,30 @@ export function writeWidths(storage: Pick<Storage, 'setItem'>, widths: PanelWidt
     // Storage refused (quota, policy): the widths still apply for this session.
   }
 }
+
+/** Which of the two side columns are folded away. Kept across sessions like the widths. */
+export type PanelsFolded = Record<PanelSide, boolean>;
+
+export const FOLDED_KEY = 'travelbook.panelsFolded';
+
+/** Width of a folded inspector: a strip with the button that opens it again, in CSS px. */
+export const FOLDED_INSPECTOR_W = 36;
+
+export function readFolded(storage: Pick<Storage, 'getItem'>): PanelsFolded {
+  let saved: Partial<Record<PanelSide, unknown>> = {};
+  try {
+    const parsed: unknown = JSON.parse(storage.getItem(FOLDED_KEY) ?? '{}');
+    if (parsed && typeof parsed === 'object') saved = parsed;
+  } catch {
+    // Unreadable: both columns open.
+  }
+  return { panel: saved.panel === true, inspector: saved.inspector === true };
+}
+
+export function writeFolded(storage: Pick<Storage, 'setItem'>, folded: PanelsFolded): void {
+  try {
+    storage.setItem(FOLDED_KEY, JSON.stringify(folded));
+  } catch {
+    // Storage refused: the columns stay as they are for this session.
+  }
+}

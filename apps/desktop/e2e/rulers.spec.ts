@@ -97,8 +97,15 @@ test('rulers lay guides that elements snap to; a guide dragged back onto its rul
     await page.mouse.dblclick(v.x + v.width / 2, (await client(page, 0, 120)).y);
     await expect.poll(() => guidesOf(page)).toBeNull();
 
-    // The View menu hides the rulers.
+    // The View menu sets their size, kept across sessions.
     await page.getByRole('button', { name: 'Affichage' }).click();
+    await page.getByRole('menuitemradio', { name: 'Grande' }).click();
+    await expect.poll(async () => (await top.boundingBox())!.height).toBe(32);
+    await page.getByRole('menuitemradio', { name: 'Petite' }).click();
+    await expect.poll(async () => (await left.boundingBox())!.width).toBe(20);
+    expect(await page.evaluate(() => localStorage.getItem('travelbook.rulerSize'))).toBe('small');
+
+    // The View menu hides the rulers.
     await page.getByRole('menuitemcheckbox', { name: 'Règles et repères' }).click();
     await expect(top).toBeHidden();
     await expect(left).toBeHidden();

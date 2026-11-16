@@ -35,6 +35,10 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   or in a frame of its own) or takes it off; the photos on the double page in view are framed
   in lagoon. A double-click shows the photo large, with its date, size and use; the arrows go
   through the tray. Ticking photos is now Ctrl or Shift + click.
+- The panel and the inspector fold away (the button at their top, or a click on the open tool
+  of the rail) to give the page the room; they stay folded across sessions.
+- Rulers come in three sizes (Petite, Moyenne, Grande) under Affichage; numbers and marks scale
+  with them.
 - Calques: a bin at the end of each row deletes its element, and the bin of a group's row the
   whole group, in one undo step.
 
