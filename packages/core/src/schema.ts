@@ -159,6 +159,11 @@ export interface Spread {
   background: { left?: Background; right?: Background; spread?: Background };
   /** Array order is stacking order (last is on top). */
   elements: Element[];
+  /**
+   * Ruler guides placed by the user, in spread coordinates: `x` are vertical lines, `y`
+   * horizontal ones. Elements snap to them; they are never printed. Absent when there are none.
+   */
+  guides?: { x: Mm[]; y: Mm[] };
 }
 
 export interface Book {
@@ -339,6 +344,7 @@ export const SpreadSchema = z.object({
     spread: BackgroundSchema.optional(),
   }),
   elements: z.array(ElementSchema),
+  guides: z.object({ x: z.array(mm), y: z.array(mm) }).optional(),
 });
 
 export const BookSchema = z

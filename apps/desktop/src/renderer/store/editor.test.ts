@@ -34,7 +34,7 @@ describe('editor store', () => {
     expect(s.tool).toBe('select');
     expect(s.panel).toBe('photos');
     expect(s.activePage).toBe('left');
-    expect(s.guides).toEqual({ bleed: true, trim: true, safe: true, gutter: true });
+    expect(s.guides).toEqual({ bleed: true, trim: true, safe: true, gutter: true, rulers: true });
     expect(s.history).toEqual({ canUndo: false, canRedo: false, labels: [] });
     expect(s.saveStatus).toBe('saved');
     expect(s.opening).toBe(false);
@@ -361,7 +361,13 @@ describe('editor store', () => {
     store.getState().select(['a', 'b']);
     expect(store.getState().selection).toBe(before);
     store.getState().setGuide('bleed', false);
-    expect(store.getState().guides).toEqual({ bleed: false, trim: true, safe: true, gutter: true });
+    expect(store.getState().guides).toEqual({
+      bleed: false,
+      trim: true,
+      safe: true,
+      gutter: true,
+      rulers: true,
+    });
   });
 
   describe('current spread', () => {
