@@ -28,7 +28,13 @@ describe('Home: duplicate an album', () => {
     (window as unknown as { tb: unknown }).tb = {
       project: { recent: () => Promise.resolve(list), duplicate },
     };
-    projectStore.setState({ recent: [], busy: false, error: null, view: 'home' });
+    projectStore.setState({
+      recent: [],
+      busy: false,
+      duplicating: null,
+      error: null,
+      view: 'home',
+    });
   });
 
   it('calls the IPC and shows the copy in the list without opening it', async () => {
@@ -38,6 +44,32 @@ describe('Home: duplicate an album', () => {
     await screen.findByText('Islande (copie)');
     expect(duplicate).toHaveBeenCalledWith('/albums/islande.travelbook');
     expect(projectStore.getState().view).toBe('home');
+  });
+
+  it('shows "Duplication…" on the album being copied and disables every "Dupliquer"', async () => {
+    list = [...list, album('Japon', '/albums/japon.travelbook')];
+    let finish: () => void = () => undefined;
+    duplicate.mockImplementation(
+      (dir: string) =>
+        new Promise((resolve) => {
+          finish = () =>
+            resolve({ dir: `${dir}-copie`, book: newBook({ title: 'Islande (copie)' }) });
+        }),
+    );
+    render(<Home />);
+    await screen.findByText('Japon');
+    const islande = screen.getByRole('button', { name: fr.home.duplicate('Islande') });
+    const japon = screen.getByRole('button', { name: fr.home.duplicate('Japon') });
+    fireEvent.click(islande);
+    await waitFor(() => expect(islande.textContent).toBe(fr.home.duplicating));
+    expect(japon.textContent).toBe(fr.home.duplicateLabel);
+    expect((islande as HTMLButtonElement).disabled).toBe(true);
+    expect((japon as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(japon);
+    expect(duplicate).toHaveBeenCalledTimes(1);
+    await act(async () => finish());
+    await waitFor(() => expect(islande.textContent).toBe(fr.home.duplicateLabel));
+    expect((japon as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('shows an error when the copy fails', async () => {

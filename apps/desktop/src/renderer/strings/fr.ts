@@ -1327,6 +1327,7 @@ export const fr = {
     createFailed: "Le livre n'a pas pu être créé. Vérifiez le dossier choisi et réessayez.",
     duplicate: (title: string) => `Dupliquer ${title}`,
     duplicateLabel: 'Dupliquer',
+    duplicating: 'Duplication…',
     duplicateFailed:
       "L'album n'a pas pu être dupliqué. Vérifiez l'espace disponible et que son dossier existe encore.",
     openFailed:
