@@ -2,7 +2,16 @@ import type { MapLegMode, MapPlace, MapRoute } from '@travelbook/core';
 import { useState } from 'react';
 import { fr } from '../strings/fr';
 import { updateSpec, type MapSpec } from './dialogModel';
-import { DEFAULT_LEG, addStop, moveStop, removeStop, repairRoute, setLeg } from './routeModel';
+import {
+  DEFAULT_LEG,
+  addStop,
+  moveStop,
+  removeStop,
+  repairRoute,
+  setLeg,
+  setStopNumbered,
+  stopNumbered,
+} from './routeModel';
 
 const t = fr.maps.route;
 
@@ -10,15 +19,21 @@ const MODES: MapLegMode[] = ['voiture', 'bus', 'train', 'avion', 'bateau', 'pied
 
 const setRoute = (route: MapRoute | null) => void updateSpec({ route });
 
-/** One stop: its number, its place (marked when hidden or gone), reorder and remove buttons. */
+/**
+ * One stop: its number on the map (a dash when it has none), its place (marked when hidden or
+ * gone), whether it is numbered, reorder and remove buttons.
+ */
 function StopRow({
   route,
   index,
+  badge,
   place,
   drag,
 }: {
   route: MapRoute;
   index: number;
+  /** The number the map shows for this stop, `null` for none. */
+  badge: number | null;
   place: MapPlace | undefined;
   drag: {
     from: number | null;
@@ -50,12 +65,20 @@ function StopRow({
       onDragEnd={drag.end}
     >
       <span className="map-stop__n" aria-hidden="true">
-        {n}
+        {badge ?? t.noNumber}
       </span>
       <span className="map-stop__name" title={t.stop(n, name)}>
         {name}
         {place && !place.shown && <em className="map-stop__mark"> ({t.hidden})</em>}
       </span>
+      <input
+        type="checkbox"
+        aria-label={t.stopNumbered(n, name)}
+        title={t.stopNumberedHint}
+        checked={stopNumbered(route, index)}
+        disabled={!route.numbered}
+        onChange={(e) => setRoute(setStopNumbered(route, index, e.target.checked))}
+      />
       <button
         type="button"
         className="button map-place__btn"
@@ -155,6 +178,11 @@ export function RoutePanel({ spec }: { spec: MapSpec }) {
   const shown = spec.places.filter((p) => p.shown);
   // legs as displayed: the same repair as an edit, without writing it
   const view = route ? repairRoute(route) : null;
+  // the number each stop shows: the numbered ones count, from 1
+  let count = 0;
+  const badges = (route?.stops ?? []).map((_, i) =>
+    route?.numbered && view && stopNumbered(view, i) ? ++count : null,
+  );
   return (
     <fieldset className="map-places map-route" aria-label={t.title}>
       <legend>{t.title}</legend>
@@ -167,6 +195,7 @@ export function RoutePanel({ spec }: { spec: MapSpec }) {
                 key={`s${i}`}
                 route={route}
                 index={i}
+                badge={badges[i] ?? null}
                 place={byId.get(id)}
                 drag={{ from: dragFrom, start: setDragFrom, end: () => setDragFrom(null) }}
               />,

@@ -54,6 +54,7 @@ const MapRouteSchema = z.object({
   stops: z.array(id),
   legs: z.array(MapLegSchema),
   numbered: z.boolean(),
+  unnumbered: z.array(z.boolean()).optional(),
 });
 
 /** A fill or a stroke: a colour, or `null` for not painted. */
