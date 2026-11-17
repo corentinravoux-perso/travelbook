@@ -1,4 +1,11 @@
-import { normalizeStyle, type MapGeometry, type MapPreset, type MapStyle } from '@travelbook/core';
+import {
+  normalizeStyle,
+  templateLook,
+  withTemplateLook,
+  type MapGeometry,
+  type MapPreset,
+  type MapStyle,
+} from '@travelbook/core';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -168,8 +175,9 @@ function useBuiltInStyles(): Record<string, MapStyle> {
 }
 
 /**
- * The six built-in styles, then the user's own. A chip copies the style into the map; the chip
- * whose style equals the map's current one is pressed, none once it was edited.
+ * The six built-in styles, then the user's own. A chip copies the template's look into the map
+ * (`templateLook`: colours, fonts, marker shapes) and keeps the user's other choices (sizes,
+ * widths, dashes, case, hand-drawn); the chip whose look equals the map's is pressed.
  */
 function Presets({ style }: { style: MapStyle | null }) {
   const mine = useStyleTemplates((s) => s.mine);
@@ -180,7 +188,13 @@ function Presets({ style }: { style: MapStyle | null }) {
   const same = (candidate: unknown): boolean =>
     style !== null &&
     candidate !== undefined &&
-    JSON.stringify(style) === JSON.stringify(normalizeStyle(candidate));
+    JSON.stringify(templateLook(style)) === JSON.stringify(templateLook(normalizeStyle(candidate)));
+  const apply = (template: unknown) => {
+    const now = mapDialogStore.getState().spec?.style ?? null;
+    void updateSpec({
+      style: now ? withTemplateLook(now, template) : normalizeStyle(template),
+    });
+  };
   return (
     <div className="map-chips" role="group" aria-label={t.presetsGroup}>
       {BUILT_IN.map((id) => (
@@ -190,7 +204,7 @@ function Presets({ style }: { style: MapStyle | null }) {
           className="map-chip"
           aria-pressed={same(builtIn[id])}
           disabled={builtIn[id] === undefined}
-          onClick={() => void updateSpec({ style: normalizeStyle(builtIn[id]) })}
+          onClick={() => apply(builtIn[id])}
         >
           {t.presetNames[id]}
         </button>
@@ -201,7 +215,7 @@ function Presets({ style }: { style: MapStyle | null }) {
           type="button"
           className="map-chip"
           aria-pressed={same(p.style)}
-          onClick={() => void updateSpec({ style: normalizeStyle(p.style) })}
+          onClick={() => apply(p.style)}
         >
           {p.name}
         </button>
@@ -337,15 +351,22 @@ function MapForm() {
   const box = useMapBox();
   const { geometry, busy, failed } = usePreviewGeometry(spec);
   const applying = state.status === 'applying';
+  // the preview enlarged: the search, the templates and the layers make room for it
+  const [wide, setWide] = useState(false);
+  const large = wide && spec !== null;
   return (
-    <div className="map-dialog">
+    <div className={large ? 'map-dialog map-dialog--wide' : 'map-dialog'}>
       <header className="map-dialog__head">
         <h2 id="map-title" className="dialog__title">
           {state.target ? t.titleEdit : t.title}
         </h2>
-        <SubjectSearch />
-        {spec && <SubjectLine spec={spec} />}
-        <Presets style={spec?.style ?? null} />
+        {!large && (
+          <>
+            <SubjectSearch />
+            {spec && <SubjectLine spec={spec} />}
+            <Presets style={spec?.style ?? null} />
+          </>
+        )}
       </header>
 
       {spec ? (
@@ -353,7 +374,18 @@ function MapForm() {
           <div className="map-dialog__stage">
             <figure className="map-dialog__preview">
               <MapPreview spec={spec} box={box} geometry={geometry} busy={busy} />
-              <figcaption className="field__help">{t.previewHint}</figcaption>
+              <figcaption className="map-dialog__caption">
+                <span className="field__help">{t.previewHint}</span>
+                <button
+                  type="button"
+                  className="button"
+                  aria-pressed={large}
+                  title={t.enlargeHint}
+                  onClick={() => setWide(!large)}
+                >
+                  {large ? t.shrink : t.enlarge}
+                </button>
+              </figcaption>
             </figure>
             {failed && (
               <p className="dialog__error" role="alert">
@@ -370,17 +402,19 @@ function MapForm() {
                 {t.packFallback[state.packFallback]}
               </p>
             )}
-            <div className="map-dialog__options">
-              <Layers spec={spec} />
-              <button
-                type="button"
-                className="button"
-                disabled={spec.frame === null}
-                onClick={() => void updateSpec({ frame: null })}
-              >
-                {t.recenter}
-              </button>
-            </div>
+            {!large && (
+              <div className="map-dialog__options">
+                <Layers spec={spec} />
+                <button
+                  type="button"
+                  className="button"
+                  disabled={spec.frame === null}
+                  onClick={() => void updateSpec({ frame: null })}
+                >
+                  {t.recenter}
+                </button>
+              </div>
+            )}
           </div>
           <Sections spec={spec} geometry={geometry} box={box} />
         </div>

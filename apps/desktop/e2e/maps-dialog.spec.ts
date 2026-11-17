@@ -178,6 +178,9 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await expect(medallion).toHaveCount(1);
       await expect(preview.locator('[data-medallion] image')).toHaveCount(1);
       const before = (await medallion.boundingBox())!;
+      // the land must stay put: a drag that pans the map would move the medallion too
+      const land = preview.locator('[data-layer="land"] path').first();
+      const landBefore = (await land.boundingBox())!;
       await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
       await page.mouse.down();
       await page.mouse.move(before.x + before.width / 2 + 25, before.y + before.height / 2 + 15, {
@@ -186,6 +189,9 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await page.mouse.up();
       const after = (await medallion.boundingBox())!;
       expect(Math.round(after.x - before.x)).toBeGreaterThan(15);
+      const landAfter = (await land.boundingBox())!;
+      expect(Math.abs(landAfter.x - landBefore.x)).toBeLessThan(1);
+      expect(Math.abs(landAfter.y - landBefore.y)).toBeLessThan(1);
       await page.screenshot({ path: shot('task20-medallion') });
       await places.getByRole('button', { name: 'Retirer la photo de Bangkok' }).click();
       await expect(medallion).toHaveCount(0);

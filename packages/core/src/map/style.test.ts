@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MapStyleSchema } from './schema';
-import { DEFAULT_MAP_STYLE, normalizeStyle } from './style';
+import { DEFAULT_MAP_STYLE, normalizeStyle, templateLook, withTemplateLook } from './style';
 
 /** A style edited by key, as a test breaks or removes one token of a valid style. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,8 +19,8 @@ describe('DEFAULT_MAP_STYLE', () => {
     expect(DEFAULT_MAP_STYLE.styleVersion).toBe(1);
   });
 
-  it('sizes the marks 3, 5 and 6 mm, with the full outline detail and clean lines', () => {
-    expect(DEFAULT_MAP_STYLE.sizes).toEqual({ marker: 3, badge: 5, vehicle: 6 });
+  it('sizes the marks 4, 6.5 and 8 mm, with the full outline detail and clean lines', () => {
+    expect(DEFAULT_MAP_STYLE.sizes).toEqual({ marker: 4, badge: 6.5, vehicle: 8 });
     expect(DEFAULT_MAP_STYLE.outline.detail).toBe(1);
     expect(DEFAULT_MAP_STYLE.rough).toBeNull();
   });
@@ -65,7 +65,7 @@ describe('normalizeStyle', () => {
     expect(style['route'].voiture.dash).toEqual([2.2, 1.5]);
     const again = normalizeStyle({});
     again.sizes.marker = 9;
-    expect(normalizeStyle({}).sizes.marker).toBe(3);
+    expect(normalizeStyle({}).sizes.marker).toBe(4);
   });
 
   it('is idempotent', () => {
@@ -206,5 +206,46 @@ describe('normalizeStyle', () => {
       const out = normalizeStyle({ land: { width: -3 }, outline: { detail: 7 }, sizes: [1] });
       expect(MapStyleSchema.safeParse(out).success).toBe(true);
     });
+  });
+});
+
+describe('withTemplateLook', () => {
+  const template = {
+    ...structuredClone(DEFAULT_MAP_STYLE),
+    land: { fill: '#000001', stroke: null, width: 3 },
+    label: { ...DEFAULT_MAP_STYLE.label, color: '#000002', font: 'Inter', sizePt: 20 },
+    markers: {
+      ...DEFAULT_MAP_STYLE.markers,
+      city: { kind: 'flag' as const, color: '#000003', stroke: '#000004', scale: 3 },
+    },
+    sizes: { marker: 9, badge: 9, vehicle: 9 },
+    rough: { seed: 1, roughness: 1 },
+  };
+
+  it('takes every paint, the fonts and the marker shapes of the template', () => {
+    const out = withTemplateLook(DEFAULT_MAP_STYLE, template);
+    expect(templateLook(out)).toEqual(templateLook(normalizeStyle(template)));
+    expect(out.land.fill).toBe('#000001');
+    expect(out.land.stroke).toBeNull();
+    expect(out.label.color).toBe('#000002');
+    expect(out.markers.city.color).toBe('#000003');
+    expect(out.label.font).toBe('Inter');
+    expect(out.markers.city.kind).toBe('flag');
+  });
+
+  it('keeps everything else of the map', () => {
+    const out = withTemplateLook(DEFAULT_MAP_STYLE, template);
+    expect(out.land.width).toBe(DEFAULT_MAP_STYLE.land.width);
+    expect(out.label.sizePt).toBe(DEFAULT_MAP_STYLE.label.sizePt);
+    expect(out.markers.city.scale).toBe(DEFAULT_MAP_STYLE.markers.city.scale);
+    expect(out.sizes).toEqual(DEFAULT_MAP_STYLE.sizes);
+    expect(out.rough).toBeNull();
+    expect(MapStyleSchema.safeParse(out).success).toBe(true);
+  });
+
+  it('edits neither input', () => {
+    const before = structuredClone(DEFAULT_MAP_STYLE);
+    withTemplateLook(DEFAULT_MAP_STYLE, template);
+    expect(DEFAULT_MAP_STYLE).toEqual(before);
   });
 });
