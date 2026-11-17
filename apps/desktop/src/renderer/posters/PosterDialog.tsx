@@ -3,6 +3,7 @@ import {
   POSTER_LAYOUTS,
   SPINE_TEXT_MIN,
   recolorIllustration,
+  setBookSettings,
   type Book,
   type PosterFont,
   type PosterLayout,
@@ -12,6 +13,7 @@ import { useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
 import { createStore, useStore } from 'zustand';
 import type { LibraryItem } from '../../shared/api';
 import { ColorField } from '../editor/inspector/controls';
+import { SpineChoice } from '../editor/SpineChoice';
 import { useSeen } from '../editor/SpreadThumb';
 import { svgRatio } from '../panels/stickers/model';
 import { editorStore, useEditor } from '../store/editor';
@@ -89,11 +91,13 @@ function PresetTile({
   book,
   preset,
   pressed,
+  volume,
   onPick,
 }: {
   book: Book;
   preset: PosterPreset;
   pressed: boolean;
+  volume: boolean;
   onPick(): void;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -117,6 +121,7 @@ function PresetTile({
             svgUrl={url}
             ratio={svg.ratio}
             height={132}
+            volume={volume}
           />
         )}
       </button>
@@ -173,13 +178,20 @@ function colorOf(state: PosterDialogState, role: ColorRole): string {
   return c[role];
 }
 
-function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
+function PosterForm({ book: current, onDone }: { book: Book; onDone(): void }) {
+  // The spine chosen here is previewed at once and applied with the poster, in one undo step.
+  const [spineWidth, setSpineWidth] = useState(current.spineWidth);
+  const book = useMemo(
+    () => (spineWidth === current.spineWidth ? current : setBookSettings(current, { spineWidth })),
+    [current, spineWidth],
+  );
   const [state, dispatch] = useReducer(posterReducer, book.title, initialPosterState);
   const [origin, setOrigin] = useState<IllustrationOrigin>({ licence: AFFICHES_LICENCE });
   const [failed, setFailed] = useState(false);
   const [asking, setAsking] = useState(false);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [volume, setVolume] = useState(true);
   const ids = { place: useId(), subtitle: useId(), year: useId(), font: useId() };
   const { spec } = state;
 
@@ -203,7 +215,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
     setAsking(false);
     setFailed(false);
     setBusy(true);
-    const ok = await applyPosterToCover(spec, origin);
+    const ok = await applyPosterToCover(spec, origin, spineWidth);
     setBusy(false);
     setFailed(!ok);
     if (ok) {
@@ -239,6 +251,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
               book={book}
               preset={p}
               pressed={state.presetId === p.id}
+              volume={volume}
               onPick={() => {
                 setOrigin({ licence: AFFICHES_LICENCE });
                 dispatch({ type: 'pickPreset', id: p.id });
@@ -257,8 +270,13 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
               svgUrl={previewUrl}
               ratio={svg.ratio}
               height={420}
+              volume={volume}
             />
           )}
+          <label className="check poster-dialog__view">
+            <input type="checkbox" checked={volume} onChange={(e) => setVolume(e.target.checked)} />
+            {t.volume}
+          </label>
         </figure>
 
         <div className="poster-dialog__form">
@@ -408,6 +426,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
             )}
           </div>
 
+          <SpineChoice book={book} value={spineWidth} onChange={setSpineWidth} />
           <label className="check">
             <input
               type="checkbox"
@@ -417,7 +436,7 @@ function PosterForm({ book, onDone }: { book: Book; onDone(): void }) {
             />
             {t.spine}
           </label>
-          {!spineOk && <p className="field__help">{t.spineNone}</p>}
+          {!spineOk && <p className="field__help">{spineWidth > 0 ? t.spineNone : t.spineOff}</p>}
         </div>
       </div>
 

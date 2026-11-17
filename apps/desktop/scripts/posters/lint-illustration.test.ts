@@ -101,4 +101,46 @@ describe('lintIllustration', () => {
   it('rejects an unknown family', () => {
     failsWith(svg('').replace('<svg ', '<svg data-tb-style="cartoon" '), 'data-tb-style');
   });
+
+  describe('relief family', () => {
+    const relief = (body: string) =>
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" data-tb-style="relief">${body}</svg>`;
+    const grad =
+      '<defs><radialGradient id="g" cx="0.3" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#c98b00"/></radialGradient></defs>';
+
+    it('passes gradients, url fills and highlight opacity, with no colour role', () => {
+      expect(
+        lintIllustration(
+          relief(
+            `${grad}<circle fill="url(#g)" cx="5" cy="5" r="5"/><ellipse fill="#ffffff" opacity="0.5" cx="3" cy="3" rx="1" ry="1"/>`,
+          ),
+        ),
+      ).toEqual([]);
+    });
+
+    it('rejects a url to a gradient the file does not define', () => {
+      failsWith(relief(`${grad}<circle fill="url(#nope)" cx="5" cy="5" r="5"/>`), 'url(#nope)');
+    });
+
+    it('still rejects filters, masks and clip paths', () => {
+      failsWith(relief('<filter id="f"/>'), 'filter');
+      failsWith(relief('<mask id="m"/>'), 'mask');
+      failsWith(relief('<clipPath id="c"/>'), 'clipPath');
+    });
+
+    it('keeps gradients and opacity out of the flat families', () => {
+      failsWith(svg(grad), 'Gradient');
+      failsWith(svg('<rect fill="#ffffff" opacity="0.5" width="1" height="1"/>'), 'relief');
+    });
+
+    it('allows sixteen colours, not seventeen', () => {
+      const shapes = (n: number) =>
+        Array.from(
+          { length: n },
+          (_, i) => `<rect fill="#0000${(i + 16).toString(16)}" width="1" height="1"/>`,
+        ).join('');
+      expect(lintIllustration(relief(shapes(16)))).toEqual([]);
+      failsWith(relief(shapes(17)), '17 colours');
+    });
+  });
 });

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1050" data-tb-style="relief">
+  <defs><radialGradient id="g1" cx="0.35" cy="0.2" r="0.9"><stop offset="0" stop-color="#b9b2a6"/><stop offset="0.6" stop-color="#7d766a"/><stop offset="1" stop-color="#4a443c"/></radialGradient><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb46a"/><stop offset="1" stop-color="#a83a08"/></linearGradient><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb46a"/><stop offset="1" stop-color="#a83a08"/></linearGradient><radialGradient id="g4" cx="0.35" cy="0.25" r="0.85"><stop offset="0" stop-color="#5a5e6a"/><stop offset="0.5" stop-color="#24262e"/><stop offset="1" stop-color="#0c0d12"/></radialGradient><radialGradient id="g5" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#ffffff"/><stop offset="0.7" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dae2"/></radialGradient><radialGradient id="g6" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#5a5e6a"/><stop offset="0.5" stop-color="#24262e"/><stop offset="1" stop-color="#0c0d12"/></radialGradient><radialGradient id="g7" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#ffffff"/><stop offset="0.7" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dae2"/></radialGradient><radialGradient id="g8" cx="0.3" cy="0.3" r="0.9"><stop offset="0" stop-color="#ffb46a"/><stop offset="0.6" stop-color="#f26a1e"/><stop offset="1" stop-color="#a83a08"/></radialGradient></defs>
+  <!-- Rock with a tuft of sea pink -->
+  <path fill="url(#g1)" d="M80 1050C-49.6 1023 80.4 937.8 120 900C159.6 862.2 220.8 849 300 840C379.2 831 473.6 839.2 560 850C646.4 860.8 729.6 864 780 900C830.4 936 966 1023 840 1050C714 1077 209.6 1077 80 1050z"/>
+  <path fill="none" d="M120 960C220 930 300 950 380 935" stroke="#4a443c" stroke-width="8" opacity="0.5"/>
+  <path fill="none" d="M520 990C600 960 700 975 760 950" stroke="#4a443c" stroke-width="8" opacity="0.5"/>
+  <path fill="none" d="M660 905Q650 850 646 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M676 905Q668 850 665 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M692 905Q686 850 684 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M708 905Q704 850 703 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M724 905Q722 850 722 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M740 905Q740 850 741 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M756 905Q758 850 760 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M772 905Q776 850 779 820" stroke="#7a9a4a" stroke-width="6"/>
+  <path fill="none" d="M788 905Q794 850 798 820" stroke="#7a9a4a" stroke-width="6"/>
+  <circle fill="#f28ab0" cx="650" cy="822" r="13"/>
+  <circle fill="#f28ab0" cx="672" cy="806" r="13"/>
+  <circle fill="#f28ab0" cx="700" cy="800" r="13"/>
+  <circle fill="#f28ab0" cx="726" cy="810" r="13"/>
+  <circle fill="#f28ab0" cx="744" cy="828" r="13"/>
+  <!-- Feet on the rock -->
+  <path fill="url(#g2)" d="M340 870Q380 850 420 870L410 884H350z"/>
+  <rect fill="#f26a1e" x="370" y="790" width="20" height="70"/>
+  <path fill="url(#g3)" d="M460 870Q500 850 540 870L530 884H470z"/>
+  <rect fill="#f26a1e" x="490" y="790" width="20" height="70"/>
+  <!-- Body: black back, white breast, standing upright -->
+  <path fill="url(#g4)" d="M440 300C494 298.2 562.2 313.2 600 360C637.8 406.8 648.2 488 650 560C651.8 632 637 709.6 610 760C583 810.4 541.4 825.6 500 840C458.6 854.4 417.8 852.6 380 840C342.2 827.4 313.4 820.4 290 770C266.6 719.6 248.2 632 250 560C251.8 488 265.8 416.8 300 370C334.2 323.2 386 301.8 440 300z"/>
+  <path fill="url(#g5)" d="M440 470C474.2 470 514.8 469.4 540 500C565.2 530.6 580 587.8 580 640C580 692.2 563.4 755.8 540 790C516.6 824.2 482.4 830 450 830C417.6 830 383.4 824.2 360 790C336.6 755.8 321.8 692.2 320 640C318.2 587.8 328.4 530.6 350 500C371.6 469.4 405.8 470 440 470z"/>
+  <!-- Wing folded on the side -->
+  <path fill="#0c0d12" d="M560 420C640 480 660 640 610 770C590 700 560 600 530 520z"/>
+  <path fill="none" d="M560 420C600 470 615 540 610 600" stroke="#5a5e6a" stroke-width="6" opacity="0.6"/>
+  <!-- Head: black cap, white face, the great striped beak -->
+  <circle fill="url(#g6)" cx="450" cy="250" r="150"/>
+  <path fill="url(#g7)" d="M380 170C403.4 157.4 437.6 142.8 470 150C502.4 157.2 540.2 183 560 210C579.8 237 587.2 273 580 300C572.8 327 548.8 349.2 520 360C491.2 370.8 450.6 370.8 420 360C389.4 349.2 364.4 325.2 350 300C335.6 274.8 334.6 243.4 340 220C345.4 196.6 356.6 182.6 380 170z"/>
+  <!-- Beak -->
+  <path fill="url(#g8)" d="M560 220C640 215 700 255 720 300C690 330 620 345 560 330C548 290 548 250 560 220z"/>
+  <path fill="#4a6a8a" d="M560 220C575 250 578 300 560 330L590 335C602 300 600 255 588 222z"/>
+  <path fill="none" d="M605 230C618 260 620 300 606 334" stroke="#ffd84a" stroke-width="7"/>
+  <path fill="none" d="M640 248C650 270 652 300 642 330" stroke="#a83a08" stroke-width="5"/>
+  <path fill="none" d="M560 285C620 290 680 296 720 300" stroke="#a83a08" stroke-width="4"/>
+  <!-- Eye with its red rim and grey mark -->
+  <path fill="#a83a08" d="M470 240L500 228L530 238L500 252z"/>
+  <circle fill="#0c0d12" cx="500" cy="240" r="12"/>
+  <circle fill="#ffffff" cx="496" cy="236" r="4"/>
+  <path fill="none" d="M500 252L480 290" stroke="#d6dae2" stroke-width="6" stroke-linecap="round"/>
+  <!-- Sheen on the cap -->
+  <path fill="#ffffff" opacity="0.35" d="M340 200C360 150 400 120 440 110C405 150 385 190 380 230z"/>
+</svg>

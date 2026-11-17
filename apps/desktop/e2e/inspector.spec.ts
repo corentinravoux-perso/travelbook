@@ -169,6 +169,19 @@ test('Layers: drag reorders the stack, the eye and padlock toggle, a name can be
         )
       )?.name,
     ).toBe('Fond bleu');
+
+    // The bin of a row deletes its element, in one undo step.
+    await layers
+      .locator('[data-layer="b"]')
+      .getByRole('button', { name: /^Supprimer / })
+      .click();
+    await expect(rows).toHaveCount(2);
+    expect(await ids(page)).toEqual(['c', 'a']);
+    expect(await evalEditor(page, (e) => e.getState().history.labels.at(-1), null)).toBe(
+      'Supprimer un élément',
+    );
+    await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    await expect(rows).toHaveCount(3);
   } finally {
     await app.close();
   }

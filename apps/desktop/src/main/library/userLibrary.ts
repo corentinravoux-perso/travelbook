@@ -268,8 +268,8 @@ const matchesText = (item: LibraryItem, words: readonly string[]): boolean => {
 
 /**
  * The items of one kind, newest first (items added within the same millisecond keep the later
- * one first). `text` and `favourite` filter; `recent: n` then keeps the `n` items used most
- * recently, most recent first, and drops the ones never used.
+ * one first). `text` and `favourite` filter; `recent: n` then keeps the `n` items used, or added
+ * when never used, most recently, most recent first.
  */
 export async function listLibrary(
   kind: LibraryItemKind,
@@ -290,10 +290,9 @@ export async function listLibrary(
     );
   if (query.recent !== undefined) {
     found = found
-      .filter(({ item }) => item.lastUsedAt !== undefined)
       .sort(
         (a, b) =>
-          compare(b.item.lastUsedAt as string, a.item.lastUsedAt as string) ||
+          compare(b.item.lastUsedAt ?? b.item.addedAt, a.item.lastUsedAt ?? a.item.addedAt) ||
           b.position - a.position,
       )
       .slice(0, Math.max(0, query.recent));

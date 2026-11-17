@@ -5,7 +5,7 @@
   <path fill="#7fc0d6" d="M300 748h600v8h-600z"/>
   <path fill="#7fc0d6" d="M400 766h400v8h-400z"/>
   <!-- Mast and furled sail -->
-  <path fill="#a8723f" d="M596 200h10v360h-10z"/>
+  <path fill="#a8723f" d="M596 200h10v450h-10z"/>
   <path fill="#fbf5ea" d="M606 220C680 260 720 360 730 520H606z"/>
   <path fill="#fbf5ea" d="M606 220C640 250 660 330 664 520H606z"/>
   <path fill="#a8723f" d="M606 260h120v8H606zM606 340h124v8H606zM606 420h128v8H606z"/>

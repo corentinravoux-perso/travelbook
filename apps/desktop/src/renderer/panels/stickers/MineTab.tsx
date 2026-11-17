@@ -11,13 +11,12 @@ import { NO_FILTERS, applyFilters, tileOfItem, type Filters, type Tile } from '.
 
 const t = fr.stickers;
 
-export type LibraryView = 'mine' | 'favourites' | 'recent';
+export type LibraryView = 'favourites' | 'recent';
 
-/** How many recently placed stickers the "Récents" tab shows. */
+/** How many recently placed or imported stickers the "Récents" tab shows. */
 export const RECENT_COUNT = 60;
 
 const EMPTY: Record<LibraryView, string> = {
-  mine: t.emptyMine,
   favourites: t.emptyFavourites,
   recent: t.emptyRecent,
 };
@@ -35,8 +34,9 @@ async function unbackedImages(
 }
 
 /**
- * The user's own stickers (drop files or a folder, paste, or an image dragged out of a browser),
- * their favourites, and the ones placed most recently. All three are items of the user library.
+ * The stickers of the user library: "Récents", the ones placed or imported most recently (images
+ * are imported here: drop files or a folder, paste, or drag an image out of a browser), and
+ * "Favoris". Both are items of the user library.
  */
 export function MineTab({ view }: { view: LibraryView }) {
   const [loaded, setLoaded] = useState<{ view: LibraryView; items: LibraryItem[] } | null>(null);
@@ -45,9 +45,10 @@ export function MineTab({ view }: { view: LibraryView }) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [error, setError] = useState<string | null>(null);
   const [over, setOver] = useState(false);
+  /** Only "Récents" takes new images and removes them. */
+  const own = view === 'recent';
 
-  const query =
-    view === 'favourites' ? { favourite: true } : view === 'recent' ? { recent: RECENT_COUNT } : {};
+  const query = view === 'favourites' ? { favourite: true } : { recent: RECENT_COUNT };
   const queryKey = JSON.stringify(query);
 
   /** Read the list again (after an add, a star, a removal). */
@@ -90,7 +91,7 @@ export function MineTab({ view }: { view: LibraryView }) {
   };
 
   const onDrop = (e: DragEvent) => {
-    if (view !== 'mine' || !e.dataTransfer.types.includes('Files')) return;
+    if (!own || !e.dataTransfer.types.includes('Files')) return;
     e.preventDefault();
     setOver(false);
     setError(null);
@@ -103,7 +104,7 @@ export function MineTab({ view }: { view: LibraryView }) {
       .catch(fail);
   };
   const onPaste = (e: ClipboardEvent) => {
-    if (view !== 'mine' || e.clipboardData.files.length === 0) return;
+    if (!own || e.clipboardData.files.length === 0) return;
     e.preventDefault();
     setError(null);
     addBlobs(e.clipboardData.files).catch(fail);
@@ -124,7 +125,7 @@ export function MineTab({ view }: { view: LibraryView }) {
     <div
       className={over ? 'stk-tab stk-tab--over' : 'stk-tab'}
       onDragOver={(e) => {
-        if (view === 'mine' && e.dataTransfer.types.includes('Files')) {
+        if (own && e.dataTransfer.types.includes('Files')) {
           e.preventDefault();
           setOver(true);
         }
@@ -133,10 +134,10 @@ export function MineTab({ view }: { view: LibraryView }) {
       onDrop={onDrop}
       onPaste={onPaste}
       // Focusable so that Ctrl+V reaches the tab after a click on it.
-      tabIndex={view === 'mine' ? 0 : undefined}
+      tabIndex={own ? 0 : undefined}
     >
       <div className="stk-controls">
-        {view === 'mine' && (
+        {own && (
           <button
             type="button"
             className="button"
@@ -149,7 +150,7 @@ export function MineTab({ view }: { view: LibraryView }) {
             {t.import}
           </button>
         )}
-        {view === 'mine' && <p className="stk-hint">{t.dropHint}</p>}
+        {own && <p className="stk-hint">{t.dropHint}</p>}
         <FilterBar filters={filters} onChange={setFilters} />
         {error !== null && (
           <p className="stk-state stk-state--error" role="alert">
@@ -171,7 +172,7 @@ export function MineTab({ view }: { view: LibraryView }) {
               favourite={tile.favourite === true}
               onFavourite={favourite}
               onPlace={(chosen) => void placeSticker(chosen.ref).then(() => reload())}
-              {...(view === 'mine' ? { onRemove: remove } : {})}
+              {...(own ? { onRemove: remove } : {})}
             />
           )}
         />

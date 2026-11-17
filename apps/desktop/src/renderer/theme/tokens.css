@@ -1,31 +1,37 @@
-/* The display face: titles, the app name and book titles (bundled, latin subset, OFL 1.1). */
-@import '@fontsource/source-serif-4/latin-400.css';
-@import '@fontsource/source-serif-4/latin-600.css';
+/* The interface face (Nunito) and the hand of the brand (Caveat): bundled, latin subset, OFL 1.1. */
+@import '@fontsource/nunito/latin-400.css';
+@import '@fontsource/nunito/latin-600.css';
+@import '@fontsource/nunito/latin-700.css';
+@import '@fontsource/nunito/latin-800.css';
+@import '@fontsource/caveat/latin-700.css';
 
 /*
- * Design tokens of direction A, "Gris neutre" (docs/design/visual-direction.md, taken from
- * docs/design/sketches/a-gris-neutre.html). The chrome has no hue: the only colours of the
- * interface are the three resolution states. Use these tokens; do not add colours or spacings.
- * The theme is chosen by `data-theme` on <html> (see theme.ts); light is the base.
+ * Design tokens of direction B, "Carnet de route" (docs/design/visual-direction.md). A travel
+ * notebook: white pages docked round a sky-mist desk with a faint dot grid, navy ink, and one
+ * lagoon teal for what can be done (the primary action, the open tool, the selected choice).
+ * The palette comes from the app's own Bohème drawings. Use these tokens; do not add colours or
+ * spacings. The theme is chosen by `data-theme` on <html> (see theme.ts); light is the base.
  */
 :root {
-  /* Type: IBM Plex Sans, major-second scale around a 13 px base. */
-  --f-ui: 'IBM Plex Sans', 'Noto Sans', 'DejaVu Sans', system-ui, sans-serif;
-  /* Display: a book face for the app name, headings, dialog titles and the book's own title. */
-  --f-display: 'Source Serif 4', 'Noto Serif', 'DejaVu Serif', Georgia, serif;
+  /* Type: Nunito, rounded and open at small sizes; its figures are tabular by default. */
+  --f-ui: 'Nunito', 'Noto Sans', 'DejaVu Sans', system-ui, sans-serif;
+  /* Titles: the same face, heavier. The hand (Caveat) signs the app and greets on the home screen. */
+  --f-display: var(--f-ui);
+  --f-hand: 'Caveat', 'Comic Neue', cursive;
   --t-display: 30px; /* the home heading */
   --t-title: 20px; /* dialog titles */
   --t-panel: 17px; /* panel titles */
   --t-xxs: 10.5px; /* rail labels, badges, meter scales */
-  --t-xs: 11px;
-  --t-sm: 12px;
-  --t-md: 13px;
-  --t-lg: 14.5px;
+  --t-xs: 11.5px;
+  --t-sm: 12.5px;
+  --t-md: 13.5px;
+  --t-lg: 15px;
   --t-xl: 16px;
-  --lh: 1.35;
+  --lh: 1.4;
   --w-regular: 400;
-  --w-medium: 500;
-  --w-semibold: 600;
+  --w-medium: 600;
+  --w-semibold: 700;
+  --w-heavy: 800;
 
   /* Spacing: 4 px base. */
   --s1: 2px;
@@ -37,52 +43,69 @@
   --s7: 24px;
   --s8: 32px;
 
-  /* Radii: controls, then cards and floating panels, then dialogs. Paper and photos stay square. */
-  --r1: 4px;
-  --r2: 6px;
-  --r3: 10px;
+  /*
+   * Radii by rank: controls, then cards and floating panels, then dialogs; a pill for the
+   * primary action and the chips. Paper and photos stay square.
+   */
+  --r1: 7px;
+  --r2: 10px;
+  --r3: 16px;
+  --pill: 999px;
 
   /* Motion: hover and press, then panel swaps and dialogs. Nothing moves by itself. */
   --fast: 120ms;
   --swap: 180ms;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
-  /* Icons: Tabler outline, redrawn at stroke 1.5. */
+  /* Icons: Tabler outline, redrawn at stroke 1.6. */
   --icon: 18px;
   --icon-sm: 15px;
-  --icon-stroke: 1.5;
+  --icon-stroke: 1.6;
 
   /* Shell sizes. The panel and inspector widths are the user's, within these bounds. */
-  --top-h: 44px;
-  --rail-w: 60px;
-  --strip-h: 96px;
-  --control-h: 28px;
+  --top-h: 52px;
+  --rail-w: 72px;
+  --strip-h: 104px;
+  --control-h: 30px;
 
   /* Colour roles, light theme. */
   color-scheme: light;
-  --ground: #9b9b9b; /* workspace surround, around the page */
-  --chrome: #f0f0f0; /* bars, rail, panels */
-  --surface: #fafafa; /* fields, cards, hover */
-  --sunken: #e6e6e6; /* tracks: the segmented controls, the home shelf */
-  --line: #dcdcdc; /* hairlines between regions */
-  --line-strong: #c4c4c4; /* borders of fields and buttons */
-  --ink: #1a1a1a; /* primary text */
-  --ink-2: #585858; /* secondary text, idle icons */
-  --ink-3: #868686; /* tertiary text, counts, placeholders */
-  --invert-bg: var(--ink); /* active and primary fill */
-  --invert-fg: #fafafa;
-  --halo: rgba(26, 26, 26, 0.12); /* soft ring round a focused field */
+  --ground: #e6eef1; /* the desk round the page: sky mist */
+  --ground-dot: rgba(30, 43, 55, 0.11); /* the dot grid on the desk */
+  --chrome: #ffffff; /* bars, rail, panels */
+  --surface: #ffffff; /* fields, cards, dialogs */
+  --sunken: #eff4f6; /* tracks, hover fill, wells */
+  --line: #e1e8eb; /* hairlines between regions */
+  --line-strong: #cbd5da; /* borders of fields and buttons */
+  --ink: #1e2b37; /* primary text: navy ink */
+  --ink-2: #4e5c68; /* secondary text, idle icons */
+  --ink-3: #7d8a95; /* tertiary text, counts, placeholders */
 
-  /* Elevation, neutral only: a hairline lift, a floating menu, a dialog, paper on the grey. */
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.1);
-  --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.1), 0 24px 64px rgba(0, 0, 0, 0.22);
+  /* The one hue of the chrome: lagoon teal, from the passport of the Bohème set. */
+  --accent: #1f6f78;
+  --accent-hover: #185a62;
+  --accent-soft: #e0f0f0; /* the open tool, the selected choice */
+  --accent-ink: #155961; /* text and icons on --accent-soft */
+  --on-accent: #ffffff;
+  /* Decoration only (never text): the coral and sand of the drawings. */
+  --coral: #f2a488;
+  --sand: #f5d79a;
+
+  /* Selected states: a soft lagoon fill, the deep lagoon on it. */
+  --invert-bg: var(--accent-soft);
+  --invert-fg: var(--accent-ink);
+  --halo: rgba(31, 111, 120, 0.16); /* soft ring round a focused field */
+
+  /* Elevation, tinted with the ink: a hairline lift, a floating menu, a dialog, paper on the desk. */
+  --shadow-1: 0 1px 2px rgba(30, 43, 55, 0.08);
+  --shadow-2: 0 2px 6px rgba(30, 43, 55, 0.07), 0 10px 28px rgba(30, 43, 55, 0.1);
+  --shadow-3: 0 4px 14px rgba(30, 43, 55, 0.1), 0 28px 70px rgba(30, 43, 55, 0.22);
   --shadow-paper:
-    0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 18px rgba(0, 0, 0, 0.16),
-    0 24px 48px -12px rgba(0, 0, 0, 0.22);
-  --good: #3f7f52; /* resolution >= 250 ppp */
-  --fair: #a8741a; /* resolution 150-250 ppp */
-  --low: #b0413e; /* resolution < 150 ppp */
+    0 1px 2px rgba(30, 43, 55, 0.14), 0 8px 22px rgba(30, 43, 55, 0.12),
+    0 28px 56px -16px rgba(30, 43, 55, 0.22);
+  --good: #2f7d4f; /* resolution >= 250 ppp */
+  --fair: #a2700f; /* resolution 150-250 ppp */
+  --low: #b23d3a; /* resolution < 150 ppp */
   --paper: #ffffff;
 
   /* Selection on the canvas: the same in both themes, so it reads on any photo. */
@@ -94,9 +117,9 @@
    * both themes, since the photo behind them does not follow the theme. The dots are the dark
    * theme's resolution colours, the ones that read on the dark chip.
    */
-  --badge-bg: rgba(20, 20, 20, 0.82);
-  --badge-fg: #f2f2f2;
-  --badge-ring: rgba(255, 255, 255, 0.7);
+  --badge-bg: rgba(22, 32, 41, 0.8);
+  --badge-fg: #f2f6f8;
+  --badge-ring: rgba(255, 255, 255, 0.75);
   --badge-good: #6fb283;
   --badge-fair: #d6a24a;
   --badge-low: #e07a76;
@@ -104,23 +127,30 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --ground: #474747;
-  --chrome: #222222;
-  --surface: #2c2c2c;
-  --sunken: #1a1a1a;
-  --line: #333333;
-  --line-strong: #474747;
-  --ink: #ececec;
-  --ink-2: #a6a6a6;
-  --ink-3: #7a7a7a;
-  --invert-fg: #1a1a1a;
-  --halo: rgba(236, 236, 236, 0.16);
+  --ground: #141d24;
+  --ground-dot: rgba(232, 238, 241, 0.07);
+  --chrome: #1d2730;
+  --surface: #24303a;
+  --sunken: #182129;
+  --line: #2b3843;
+  --line-strong: #3b4a56;
+  --ink: #e8eef1;
+  --ink-2: #a9b6bf;
+  --ink-3: #7b8994;
+  --accent: #5fb7be;
+  --accent-hover: #7cc7cd;
+  --accent-soft: rgba(95, 183, 190, 0.16);
+  --accent-ink: #94d6db;
+  --on-accent: #0f1a20;
+  --coral: #c9826a;
+  --sand: #c9ad73;
+  --halo: rgba(95, 183, 190, 0.22);
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.4), 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 4px 14px rgba(0, 0, 0, 0.4), 0 28px 70px rgba(0, 0, 0, 0.55);
   --shadow-paper:
-    0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.3),
-    0 24px 48px -12px rgba(0, 0, 0, 0.4);
+    0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.3),
+    0 28px 56px -16px rgba(0, 0, 0, 0.45);
   --good: #6fb283;
   --fair: #d6a24a;
   --low: #e07a76;

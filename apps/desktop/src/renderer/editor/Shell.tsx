@@ -16,7 +16,16 @@ import { TextPanel } from '../panels/TextPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
-import { readWidths, writeWidths, type PanelSide, type PanelWidths } from './layout';
+import {
+  FOLDED_INSPECTOR_W,
+  readFolded,
+  readWidths,
+  writeFolded,
+  writeWidths,
+  type PanelSide,
+  type PanelWidths,
+  type PanelsFolded,
+} from './layout';
 import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { PosterDialog } from '../posters/PosterDialog';
@@ -61,9 +70,14 @@ export function Shell() {
   const resize = (side: PanelSide) => (width: number) =>
     setWidths((w) => (w[side] === width ? w : { ...w, [side]: width }));
 
+  const [folded, setFolded] = useState<PanelsFolded>(() => readFolded(localStorage));
+  useEffect(() => writeFolded(localStorage, folded), [folded]);
+  const fold = (side: PanelSide, on: boolean) =>
+    setFolded((f) => (f[side] === on ? f : { ...f, [side]: on }));
+
   const style = {
-    '--panel-w': `${widths.panel}px`,
-    '--inspector-w': `${widths.inspector}px`,
+    '--panel-w': folded.panel ? '0px' : `${widths.panel}px`,
+    '--inspector-w': folded.inspector ? `${FOLDED_INSPECTOR_W}px` : `${widths.inspector}px`,
   } as CSSProperties;
 
   const overview = useEditor((s) => s.overview);
@@ -73,18 +87,44 @@ export function Shell() {
     <>
       <div className="shell" style={style} inert={overview || preview || undefined}>
         <TopBar />
-        <Rail />
-        <Panel width={widths.panel} onResize={resize('panel')} />
+        <Rail folded={folded.panel} onFold={(on) => fold('panel', on)} />
+        <Panel
+          width={widths.panel}
+          onResize={resize('panel')}
+          folded={folded.panel}
+          onFold={() => fold('panel', true)}
+        />
         <Canvas />
-        <aside id="shell-inspector" className="shell-inspector" aria-label={fr.shell.inspector}>
-          <ResizeHandle
-            side="inspector"
-            width={widths.inspector}
-            label={fr.shell.resizeInspector}
-            controls="shell-inspector"
-            onResize={resize('inspector')}
-          />
-          <Inspector />
+        <aside
+          id="shell-inspector"
+          className="shell-inspector"
+          aria-label={fr.shell.inspector}
+          data-folded={folded.inspector || undefined}
+        >
+          {folded.inspector ? (
+            <button
+              type="button"
+              className="icon-button shell-unfold"
+              aria-label={fr.shell.unfoldInspector}
+              title={fr.shell.unfoldInspector}
+              aria-expanded={false}
+              aria-controls="shell-inspector"
+              onClick={() => fold('inspector', false)}
+            >
+              <Icon name="layout-sidebar-right-expand" />
+            </button>
+          ) : (
+            <>
+              <ResizeHandle
+                side="inspector"
+                width={widths.inspector}
+                label={fr.shell.resizeInspector}
+                controls="shell-inspector"
+                onResize={resize('inspector')}
+              />
+              <Inspector onFold={() => fold('inspector', true)} />
+            </>
+          )}
         </aside>
         <SpreadStrip />
         <CoverStage />
@@ -204,6 +244,7 @@ function TopBar() {
             disabled={book === null}
             onClick={() => setExportOpen(true)}
           >
+            <Icon name="file-export" />
             {fr.shell.export}
           </button>
           <span className="shell-sep" />
@@ -220,7 +261,11 @@ function TopBar() {
   );
 }
 
-function Rail() {
+/**
+ * The tools. A click on a tool opens its panel, and unfolds the panel if it was folded; it never
+ * folds it (a click to make sure a panel is open must not hide it). The panel's own button folds.
+ */
+function Rail({ folded, onFold }: { folded: boolean; onFold(on: boolean): void }) {
   const panel = useEditor((s) => s.panel);
   const { setPanel } = editorStore.getState();
   return (
@@ -232,7 +277,12 @@ function Rail() {
           className="shell-rail__item"
           aria-pressed={panel === id}
           aria-controls="shell-panel"
-          onClick={() => setPanel(id)}
+          data-folded={(panel === id && folded) || undefined}
+          title={panel === id && folded ? fr.shell.unfoldPanel : undefined}
+          onClick={() => {
+            setPanel(id);
+            onFold(false);
+          }}
         >
           <Icon name={PANEL_ICONS[id]} />
           {fr.panels[id]}
@@ -242,12 +292,40 @@ function Rail() {
   );
 }
 
-function Panel({ width, onResize }: { width: number; onResize(width: number): void }) {
+function Panel({
+  width,
+  onResize,
+  folded,
+  onFold,
+}: {
+  width: number;
+  onResize(width: number): void;
+  folded: boolean;
+  onFold(): void;
+}) {
   const panel = useEditor((s) => s.panel);
   const name = fr.panels[panel];
   return (
-    <section id="shell-panel" className="shell-panel" aria-label={fr.shell.panel(name)}>
-      <h2 className="shell-panel__title">{name}</h2>
+    <section
+      id="shell-panel"
+      className="shell-panel"
+      aria-label={fr.shell.panel(name)}
+      hidden={folded}
+    >
+      <div className="shell-panel__head">
+        <h2 className="shell-panel__title">{name}</h2>
+        <button
+          type="button"
+          className="icon-button"
+          aria-label={fr.shell.foldPanel}
+          title={fr.shell.foldPanel}
+          aria-expanded={true}
+          aria-controls="shell-panel"
+          onClick={onFold}
+        >
+          <Icon name="layout-sidebar-left-collapse" />
+        </button>
+      </div>
       <ImportStatus />
       {panel === 'photos' ? (
         <PhotosPanel />

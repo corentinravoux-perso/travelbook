@@ -18,6 +18,10 @@ export const fr = {
     inspector: 'Inspecteur',
     spreads: 'Doubles pages',
     resizePanel: 'Largeur du panneau',
+    foldPanel: 'Réduire le panneau',
+    unfoldPanel: 'Afficher le panneau',
+    foldInspector: "Réduire l'inspecteur",
+    unfoldInspector: "Afficher l'inspecteur",
     resizeInspector: "Largeur de l'inspecteur",
     home: 'Accueil',
     coverName: 'Couverture',
@@ -49,6 +53,9 @@ export const fr = {
     trim: 'Coupe',
     safe: 'Marge de sécurité',
     gutter: 'Pli central',
+    rulers: 'Règles et repères',
+    rulerSize: 'Taille des règles',
+    rulerSizes: { small: 'Petite', medium: 'Moyenne', large: 'Grande' },
     nothingToPaste: 'Rien à coller : le presse-papiers ne contient aucun élément.',
     pasteFailed: "Le collage a échoué : les fichiers de l'album d'origine sont introuvables.",
     copyFailed: "La copie a échoué : le presse-papiers n'est pas accessible.",
@@ -309,6 +316,7 @@ export const fr = {
     all: 'Toutes',
     gallery: "Modèles d'affiche",
     preview: 'Aperçu de la couverture',
+    volume: 'Voir le livre en volume',
     place: 'Lieu',
     subtitle: 'Sous-titre',
     year: 'Année',
@@ -319,6 +327,7 @@ export const fr = {
       arche: 'Arche',
       soleil: 'Soleil',
       horizon: 'Horizon',
+      geant: 'Géant',
     },
     font: 'Police',
     colorsTitle: 'Couleurs',
@@ -336,7 +345,8 @@ export const fr = {
     otherSticker: 'Autre sticker…',
     mineEmpty: 'Votre bibliothèque de stickers est vide : ajoutez-en depuis le panneau Stickers.',
     spine: 'Titre sur le dos',
-    spineNone: 'Le dos est trop étroit pour un titre.',
+    spineNone: 'Le dos est trop étroit pour un titre (6 mm au moins).',
+    spineOff: 'Sans tranche, pas de titre sur le dos.',
     contrast: 'Le titre se lit mal sur ce fond.',
     cancel: 'Annuler',
     apply: 'Appliquer à la couverture',
@@ -351,8 +361,22 @@ export const fr = {
     tools: 'Outils de la couverture',
     spineZone: 'Dos du livre',
     spineText: 'Texte sur le dos',
-    spineNone: 'Définissez la largeur du dos dans les réglages du livre pour y placer du texte.',
+    spineNone: 'Choisissez « Avec tranche » pour placer du texte sur le dos.',
     undoSpineText: 'Ajouter un texte sur le dos',
+  },
+  // The spine choice, on the cover toolbar and in the poster dialog.
+  spine: {
+    label: 'Tranche du livre',
+    with: 'Avec tranche',
+    without: 'Sans tranche',
+    width: 'Largeur',
+    helpWith:
+      'Livre relié à dos carré (format BD) : la tranche se place entre le dos et la face avant. Votre imprimeur vous donne sa largeur exacte.',
+    helpWithout:
+      'Couverture sans tranche (agrafée, spirale) : le dos et la face avant se rejoignent au pli.',
+    invalid: (min: number, max: number) => `Une largeur entre ${min} et ${max} mm.`,
+    undoWith: (mm: string) => `Tranche de ${mm} mm`,
+    undoWithout: 'Couverture sans tranche',
   },
   // Export dialog (spec §10).
   exporter: {
@@ -501,6 +525,17 @@ export const fr = {
     apply: 'Appliquer',
     undo: 'Modifier les réglages du livre',
   },
+  // Rulers round the canvas and ruler guides.
+  rulers: {
+    unit: 'Règles en millimètres, depuis le coin haut gauche de la double page',
+    topHint: 'Glissez vers la page pour poser un repère horizontal',
+    leftHint: 'Glissez vers la page pour poser un repère vertical',
+    guide: (axis: 'x' | 'y', at: string) =>
+      `Repère ${axis === 'x' ? 'vertical' : 'horizontal'} à ${at} mm. Glissez-le pour le déplacer, sur sa règle ou par un double-clic pour le retirer.`,
+    undoAdd: 'Poser un repère',
+    undoMove: 'Déplacer un repère',
+    undoRemove: 'Retirer un repère',
+  },
   // Photos panel (the tray), the photo picker, drops on the page.
   photos: {
     import: 'Importer des photos',
@@ -510,7 +545,8 @@ export const fr = {
     importFailed: "L'importation a échoué. Réessayez.",
     dropHere: 'Déposez pour importer',
     emptyTitle: 'Aucune photo pour le moment',
-    emptyHint: 'Glissez des photos ou un dossier ici, ou utilisez le bouton Importer des photos.',
+    emptyHint:
+      'Glissez des photos ou un dossier ici, ou utilisez le bouton Importer des photos au-dessus.',
     sort: 'Tri',
     sortLabel: 'Trier les photos',
     sortDate: 'Date',
@@ -526,8 +562,50 @@ export const fr = {
     noDate: 'Sans date',
     selectDay: (label: string) => `Sélectionner les photos du ${label}`,
     selectNoDate: 'Sélectionner les photos sans date',
-    photoLabel: (name: string, uses: number) =>
-      uses === 0 ? name : `${name}, placée ${uses === 1 ? '1 fois' : `${uses} fois`}`,
+    /** The chevron of a day header; `label` is `null` for the photos without a date. */
+    fold: (label: string | null, folded: boolean) =>
+      `${folded ? 'Déplier' : 'Replier'} les photos ${label === null ? 'sans date' : `du ${label}`}`,
+    selectedCount: (n: number) => (n === 1 ? '1 photo sélectionnée' : `${n} photos sélectionnées`),
+    selectionBar: 'Photos sélectionnées',
+    clearSelection: 'Désélectionner',
+    remove: 'Supprimer…',
+    removeOne: (name: string) => `Supprimer ${name} de l'album…`,
+    removeTitle: "Supprimer de l'album",
+    removeQuestion: (n: number) =>
+      n === 1 ? "Supprimer 1 photo de l'album ?" : `Supprimer ${n} photos de l'album ?`,
+    removeUsed: (total: number, placed: number) =>
+      placed === 0
+        ? ''
+        : total === 1
+          ? 'Elle est placée dans le livre : son cadre sera vidé. '
+          : placed === 1
+            ? '1 est placée dans le livre : son cadre sera vidé. '
+            : `${placed} sont placées dans le livre : leurs cadres seront vidés. `,
+    removeSafe: 'Les fichiers sur votre ordinateur ne sont pas touchés.',
+    removeConfirm: "Supprimer de l'album",
+    removeCancel: 'Annuler',
+    undoRemove: 'Supprimer des photos',
+    undoPutOn: 'Mettre une photo sur la page',
+    undoTakeOff: 'Retirer une photo de la page',
+    onThisPage: 'sur cette double page',
+    trayHint: 'Clic : sur la page ou retirée. Double-clic : en grand. Ctrl + clic : sélectionner.',
+    viewer: (name: string) => `Photo ${name}`,
+    viewerClose: 'Fermer',
+    viewerPrev: 'Photo précédente',
+    viewerNext: 'Photo suivante',
+    viewerPosition: (at: number, count: number) => `${at} sur ${count}`,
+    viewerPutOn: 'Mettre sur la page',
+    viewerTakeOff: 'Retirer de la page',
+    viewerUses: (n: number) =>
+      n === 0 ? 'Pas encore dans le livre' : n === 1 ? 'Placée 1 fois' : `Placée ${n} fois`,
+    viewerPixels: (w: number, h: number) => `${w} × ${h} px`,
+    removed: (n: number) =>
+      n === 1
+        ? "1 photo supprimée de l'album. Ctrl+Z pour annuler."
+        : `${n} photos supprimées de l'album. Ctrl+Z pour annuler.`,
+    photoLabel: (name: string, uses: number, here = false) =>
+      (uses === 0 ? name : `${name}, placée ${uses === 1 ? '1 fois' : `${uses} fois`}`) +
+      (here ? ', sur cette double page' : ''),
     failedTitle: (n: number) =>
       n === 1 ? "1 fichier n'a pas pu être importé" : `${n} fichiers n'ont pas pu être importés`,
     failedLine: (name: string, why: string) => `${name} : ${why}`,
@@ -872,7 +950,7 @@ export const fr = {
   layers: {
     title: 'Calques de cette double page',
     empty: "Cette double page n'a pas encore d'élément.",
-    hint: 'Le calque du haut est devant. Glissez un calque pour le déplacer.',
+    hint: 'Le calque du haut est devant. Glissez un calque pour le déplacer, la corbeille le supprime.',
     group: (count: number) => `Groupe de ${count} éléments`,
     expand: 'Déplier le groupe',
     collapse: 'Replier le groupe',
@@ -892,6 +970,10 @@ export const fr = {
     undoShow: 'Afficher un élément',
     undoLock: 'Verrouiller un élément',
     undoUnlock: 'Déverrouiller un élément',
+    remove: (name: string) => `Supprimer ${name}`,
+    removeGroup: 'Supprimer le groupe',
+    undoRemove: 'Supprimer un élément',
+    undoRemoveGroup: 'Supprimer un groupe',
   },
   // History tab: the snapshots of the project.
   history: {
@@ -928,6 +1010,12 @@ export const fr = {
     page: (n: number) => `Page ${n}`,
     pages: (a: number, b: number) => `Pages ${a}–${b}`,
     position: (label: string, n: number, total: number) => `${label}, ${n} sur ${total}`,
+    cut: 'Zones rognées',
+    cutHelp:
+      'Montrer ce que la coupe retire : le fond perdu hachuré, le pli et la tranche en pointillés.',
+    cutLegend: (mm: string) => `Hachuré : rogné à la coupe (${mm} mm)`,
+    foldLegend: 'Pointillés : pli',
+    spineLegend: (mm: string) => `Tranche ${mm} mm`,
   },
   // Backgrounds panel (Fonds).
   backgrounds: {
@@ -1081,7 +1169,6 @@ export const fr = {
       travelbook: 'travelbook',
       library: 'Bibliothèque',
       online: 'En ligne',
-      mine: 'Mes stickers',
       favourites: 'Favoris',
       recent: 'Récents',
     },
@@ -1104,10 +1191,9 @@ export const fr = {
     more: 'Afficher plus',
     empty: 'Aucun sticker ne correspond à cette recherche.',
     emptyOnline: 'Saisissez un mot pour chercher en ligne.',
-    emptyMine:
-      'Déposez des images ici, collez-en une depuis le presse-papiers, ou importez des fichiers.',
     emptyFavourites: "Cliquez sur l'étoile d'un sticker pour le retrouver ici.",
-    emptyRecent: 'Les stickers que vous placez dans un album apparaissent ici.',
+    emptyRecent:
+      'Les stickers que vous placez ou importez apparaissent ici. Déposez des images, collez-en une depuis le presse-papiers, ou importez des fichiers.',
     unavailable: 'Les stickers fournis avec le logiciel sont introuvables.',
     // Online failures, by kind of SourceError.
     error: {
@@ -1127,7 +1213,7 @@ export const fr = {
     opaqueHelp: 'Cette image a un fond qui restera visible sur la page.',
     licenceTitle: (licence: string, author: string | undefined, source: string) =>
       `${licence}${author ? `, ${author}` : ''} (${source})`,
-    // Mes stickers.
+    // Récents : import des images de l'utilisateur.
     import: 'Importer des images',
     dropHint: 'Déposez des fichiers, un dossier ou une image du navigateur',
     importFailed: "Cette image n'a pas pu être ajoutée. Formats acceptés : PNG, JPEG, WebP et SVG.",
@@ -1215,8 +1301,9 @@ export const fr = {
     newBook: 'Nouveau livre',
     open: 'Ouvrir',
     recent: 'Albums récents',
-    emptyTitle: 'Aucun album récent',
-    emptyHint: 'Créez un livre, ou ouvrez un dossier .travelbook déjà existant.',
+    emptyTitle: 'Aucun album pour le moment',
+    emptyHint:
+      'Créez un livre pour votre prochain voyage, ou ouvrez un dossier .travelbook déjà existant.',
     openedOn: (date: string) => `Ouvert le ${date}`,
     coverAlt: (title: string) => `Couverture de ${title}`,
     createFailed: "Le livre n'a pas pu être créé. Vérifiez le dossier choisi et réessayez.",

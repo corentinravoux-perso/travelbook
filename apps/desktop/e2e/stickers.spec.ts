@@ -73,8 +73,9 @@ test('search avion, place the first result and tint it; import alpha.png, place 
       await expect.poll(async () => (await stickers())[0]!.flipH).toBe(true);
     });
 
-    await test.step('alpha.png goes into Mes stickers and is placed', async () => {
-      await page.getByRole('tab', { name: 'Mes stickers' }).click();
+    await test.step('alpha.png goes into Récents and is placed', async () => {
+      await expect(page.getByRole('tab', { name: 'Mes stickers' })).toHaveCount(0);
+      await page.getByRole('tab', { name: 'Récents' }).click();
       await expect(page.getByText('Aucun sticker')).toHaveCount(0);
       await app.evaluate(
         ({ dialog }, files) => {
@@ -110,8 +111,9 @@ test('search avion, place the first result and tint it; import alpha.png, place 
         },
         null,
       );
-      expect(dropped.x + dropped.w / 2).toBeCloseTo(size.w * 0.2, 0);
-      expect(dropped.y + dropped.h / 2).toBeCloseTo(size.h * 0.25, 0);
+      // Within a millimetre: at the fit zoom of a small window (CI) one pixel is about 0.6 mm.
+      expect(Math.abs(dropped.x + dropped.w / 2 - size.w * 0.2)).toBeLessThan(1);
+      expect(Math.abs(dropped.y + dropped.h / 2 - size.h * 0.25)).toBeLessThan(1);
     });
 
     await test.step('the credits dialog lists both, and inserts them as text', async () => {

@@ -35,6 +35,33 @@ export interface Guides {
   trim: boolean;
   safe: boolean;
   gutter: boolean;
+  /** The rulers round the canvas and the ruler guides on the page. Kept across sessions. */
+  rulers: boolean;
+}
+
+/** Thickness of the rulers: a bigger ruler has bigger numbers. */
+export type RulerSize = 'small' | 'medium' | 'large';
+export const RULER_SIZES: Record<RulerSize, number> = { small: 20, medium: 24, large: 32 };
+export const RULER_SIZE_KEY = 'travelbook.rulerSize';
+
+function storedRulerSize(): RulerSize {
+  try {
+    const v = globalThis.localStorage?.getItem(RULER_SIZE_KEY);
+    return v === 'small' || v === 'large' ? v : 'medium';
+  } catch {
+    return 'medium';
+  }
+}
+
+/** Where the choice of showing the rulers is kept (renderer `localStorage`). */
+export const RULERS_KEY = 'travelbook.rulers';
+
+function rulersShown(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(RULERS_KEY) !== 'off';
+  } catch {
+    return true;
+  }
 }
 
 /** `pending`: a change waits for the debounce; `error`: the last save failed. */
@@ -76,6 +103,7 @@ export interface EditorState {
    */
   activePage: Side;
   guides: Guides;
+  rulerSize: RulerSize;
   /** True while the full-screen overview of the spreads is open. */
   overview: boolean;
   /** True while the full-window preview of the album (spec §8) is open. */
@@ -150,6 +178,8 @@ export interface EditorState {
   closePicker(): void;
   /** Show or hide one overlay of the canvas. */
   setGuide(guide: keyof Guides, on: boolean): void;
+  /** Make the rulers thinner or thicker; kept across sessions. */
+  setRulerSize(size: RulerSize): void;
 }
 
 export interface EditorStoreDeps {
@@ -297,7 +327,8 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       shapeKind: 'rect',
       panel: 'photos',
       activePage: 'left',
-      guides: { bleed: true, trim: true, safe: true, gutter: true },
+      guides: { bleed: true, trim: true, safe: true, gutter: true, rulers: rulersShown() },
+      rulerSize: storedRulerSize(),
       overview: false,
       preview: false,
       notice: null,
@@ -403,8 +434,23 @@ export function createEditorStore(deps: EditorStoreDeps): EditorStore {
       closePicker() {
         if (get().pickerId !== null) set({ pickerId: null });
       },
+      setRulerSize(size) {
+        set({ rulerSize: size });
+        try {
+          globalThis.localStorage?.setItem(RULER_SIZE_KEY, size);
+        } catch {
+          // No storage: the size lasts for the session.
+        }
+      },
       setGuide(guide, on) {
         set({ guides: { ...get().guides, [guide]: on } });
+        if (guide === 'rulers') {
+          try {
+            globalThis.localStorage?.setItem(RULERS_KEY, on ? 'on' : 'off');
+          } catch {
+            // No storage (a test, a locked profile): the choice lasts for the session.
+          }
+        }
       },
     };
   });

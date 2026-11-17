@@ -22,13 +22,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Native checkboxes, radios and sliders take the ink, never the system blue. */
+/* Native checkboxes, radios and sliders take the lagoon, never the system blue. */
 :root {
-  accent-color: var(--ink);
+  accent-color: var(--accent);
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
 /* Thin neutral scrollbars, in both themes. */
@@ -59,7 +59,7 @@ p {
 }
 
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

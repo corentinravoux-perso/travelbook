@@ -770,7 +770,7 @@ describe('assets', () => {
     it('marks the item as used, each time', async () => {
       await create();
       const item = await stickerItem();
-      expect(await listLibrary('sticker', { recent: 5 })).toEqual([]);
+      expect((await listLibrary('sticker', { recent: 5 }))[0]?.lastUsedAt).toBeUndefined();
       await call(CHANNEL.assetsFromLibrary, item.id);
       const [used] = await listLibrary('sticker', { recent: 5 });
       expect(used?.id).toBe(item.id);
@@ -809,7 +809,7 @@ describe('assets', () => {
     it('needs an open project', async () => {
       const item = await stickerItem();
       await expect(call(CHANNEL.assetsFromLibrary, item.id)).rejects.toThrow(/No project is open/);
-      expect(await listLibrary('sticker', { recent: 5 })).toEqual([]);
+      expect((await listLibrary('sticker', { recent: 5 }))[0]?.lastUsedAt).toBeUndefined();
     });
 
     it('rejects an item the library does not hold, and indexes nothing', async () => {
@@ -962,7 +962,8 @@ describe('library', () => {
       await call(CHANNEL.librarySetFavourite, a?.id, true);
       expect((await list('sticker', { text: 'OPAQ' })).map((i) => i.id)).toEqual([b?.id]);
       expect((await list('sticker', { favourite: true })).map((i) => i.id)).toEqual([a?.id]);
-      expect(await list('sticker', { recent: 3 })).toEqual([]);
+      // Never used: the newest added comes first.
+      expect((await list('sticker', { recent: 3 })).map((i) => i.id)).toEqual([b?.id, a?.id]);
       expect(await list('sticker', undefined)).toHaveLength(2);
       expect(await list('sticker', {})).toHaveLength(2);
     });

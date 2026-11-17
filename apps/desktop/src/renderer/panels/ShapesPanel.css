@@ -37,7 +37,7 @@
   color: var(--ink);
 }
 .shapes-panel__tile[aria-pressed='true'] {
-  border-color: var(--invert-bg);
+  border-color: var(--accent);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
