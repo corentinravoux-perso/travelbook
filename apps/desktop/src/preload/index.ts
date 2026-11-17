@@ -24,6 +24,10 @@ ipcRenderer.on(CLOSE_REQUEST_CHANNEL, (_event: IpcRendererEvent, id: number) => 
 });
 
 const tb: TbApi = {
+  settings: {
+    menuLanguage: () => ipcRenderer.invoke(CHANNEL.settingsMenuLanguage),
+    setMenuLanguage: (language) => ipcRenderer.invoke(CHANNEL.settingsSetMenuLanguage, language),
+  },
   project: {
     create: (options) => ipcRenderer.invoke(CHANNEL.projectCreate, options),
     open: (dir) => ipcRenderer.invoke(CHANNEL.projectOpen, dir),

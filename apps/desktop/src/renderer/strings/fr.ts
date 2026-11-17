@@ -1266,6 +1266,9 @@ export const fr = {
     save: 'Enregistrer',
     close: 'Fermer',
     loadFailed: 'Les sources sont introuvables.',
+    menuLanguage: 'Langue des menus',
+    menuLanguageHelp: "Seule la barre de menus change de langue : l'interface reste en français.",
+    menuLanguageFailed: "La langue des menus n'a pas pu être enregistrée.",
   },
   // Rail entries, in rail order; also the panel titles.
   panels: {

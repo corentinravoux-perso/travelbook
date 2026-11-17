@@ -11,6 +11,8 @@ export const CHANNEL = {
   projectListSnapshots: 'project:listSnapshots',
   projectReadSnapshot: 'project:readSnapshot',
   projectDuplicate: 'project:duplicate',
+  settingsMenuLanguage: 'settings:menuLanguage',
+  settingsSetMenuLanguage: 'settings:setMenuLanguage',
   projectReveal: 'project:reveal',
   projectPickFolder: 'project:pickFolder',
   projectCaptureCover: 'project:captureCover',

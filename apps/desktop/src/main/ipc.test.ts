@@ -78,6 +78,7 @@ beforeEach(async () => {
     openExternal: vi.fn<Host['openExternal']>(async () => undefined),
     showInFolder: vi.fn<Host['showInFolder']>(),
     version: vi.fn<Host['version']>(() => '1.2.3'),
+    applyMenu: vi.fn<Host['applyMenu']>(),
     captureJpeg: vi.fn<Host['captureJpeg']>(async () => new Uint8Array([0xff, 0xd8, 0xff, 0xd9])),
     openExportRenderer: vi.fn<Host['openExportRenderer']>(async () => {
       throw new Error('no export window in this test');
@@ -385,6 +386,25 @@ describe('project', () => {
     const b = await create('B');
     const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
     expect(recent.map((r) => r.dir)).toEqual([b.dir, a.dir]);
+  });
+
+  describe('menu language', () => {
+    it('is French by default', async () => {
+      expect(await call(CHANNEL.settingsMenuLanguage)).toBe('fr');
+    });
+
+    it('persists the choice and rebuilds the menu at once', async () => {
+      await call(CHANNEL.settingsSetMenuLanguage, 'en');
+      expect(host.applyMenu).toHaveBeenCalledExactlyOnceWith('en');
+      expect(await call(CHANNEL.settingsMenuLanguage)).toBe('en');
+    });
+
+    it.each([['de'], [1], [undefined]])('rejects %j', async (bad) => {
+      await expect(call(CHANNEL.settingsSetMenuLanguage, bad)).rejects.toThrow(
+        /settings:setMenuLanguage/,
+      );
+      expect(host.applyMenu).not.toHaveBeenCalled();
+    });
   });
 
   describe('duplicate', () => {
