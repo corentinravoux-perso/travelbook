@@ -45,6 +45,27 @@ const titleOf = (asset: AssetRef): string =>
     ? fr.credits.mapTitle
     : asset.originalName.replace(/\.[A-Za-z0-9]{1,5}$/, '');
 
+/** GeoNames (CC BY 4.0) names the cities of countries Natural Earth covers thinly: credited once. */
+const GEONAMES_ENTRY: CreditEntry = {
+  assetId: 'geonames',
+  title: 'GeoNames',
+  licence: 'CC BY 4.0',
+  source: 'https://www.geonames.org/',
+  url: 'https://www.geonames.org/',
+  requiresAttribution: true,
+};
+
+/** Whether a map of the album (cover included) has a place taken from GeoNames (`ref` `gn:…`). */
+function usesGeoNames(book: Book): boolean {
+  return [book.cover, ...book.spreads].some((spread) =>
+    spread.elements.some(
+      (el) =>
+        el.type === 'map' &&
+        el.places.some((p) => p.source.kind !== 'custom' && p.source.ref.startsWith('gn:')),
+    ),
+  );
+}
+
 /**
  * The licences of every asset the book uses. Photos are left out unless they carry licence data
  * (a photo of the user's own has none); any other asset is listed, as the user's own file when it
@@ -79,6 +100,7 @@ export function creditEntries(book: Book): CreditEntry[] {
       requiresAttribution: licence?.requiresAttribution ?? false,
     });
   }
+  if (usesGeoNames(book)) entries.push(GEONAMES_ENTRY);
   return entries.sort(
     (a, b) => a.title.localeCompare(b.title, 'fr') || a.assetId.localeCompare(b.assetId),
   );

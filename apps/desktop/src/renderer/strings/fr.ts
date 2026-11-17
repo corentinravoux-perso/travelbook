@@ -167,7 +167,6 @@ export const fr = {
       add: 'Ajouter un lieu',
       addLabel: 'Lieu à ajouter',
       addSearch: 'Rechercher un lieu…',
-      addOption: (name: string) => `Ajouter ${name}`,
       outOfRegion: 'hors des régions choisies',
       none: 'Aucun lieu trouvé.',
       newPlace: 'Nouveau lieu',

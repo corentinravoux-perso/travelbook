@@ -403,7 +403,12 @@ export function createHandlers(host: Host): IpcHandlers {
 
     [CHANNEL.projectReadSnapshot]: async (_ctx, ...args) => {
       const [id] = parseArgs(CHANNEL.projectReadSnapshot, schemas.snapshotId, args);
-      return readSnapshot(requireSession().dir, id);
+      const session = requireSession();
+      const book = await readSnapshot(session.dir, id);
+      // Assets pruned from book.json since (an unreferenced map geometry) still sit in assets/:
+      // index them so the preview and a restore can load them through tb://asset.
+      recordAssets(session, Object.values(book.assets));
+      return book;
     },
 
     [CHANNEL.projectReveal]: async (_ctx, ...args) => {
