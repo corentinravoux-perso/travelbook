@@ -101,7 +101,8 @@ export function unusedAssets(book: Book): string[] {
 /**
  * Take photos out of the album: their assets leave `book.assets`, and every frame that showed
  * one of them, on the cover or on a spread, becomes an empty frame (its crop back to the
- * default; its mask, border and look kept). Only photo assets are removed; other ids, and
+ * default; its mask, border and look kept), and every map medallion that showed one loses its
+ * photo (the place stays). Only photo assets are removed; other ids, and
  * unknown ones, are ignored. The files stay in the album folder, so an undo shows them again.
  */
 export function removePhotos(book: Book, assetIds: readonly string[]): Book {
@@ -114,6 +115,10 @@ export function removePhotos(book: Book, assetIds: readonly string[]): Book {
         if (el.type === 'photo' && el.assetId !== null && gone.has(el.assetId)) {
           el.assetId = null;
           el.crop = defaultCrop();
+        } else if (el.type === 'map') {
+          for (const place of el.places) {
+            if (place.photo && gone.has(place.photo.assetId)) place.photo = null;
+          }
         }
       }
     }
