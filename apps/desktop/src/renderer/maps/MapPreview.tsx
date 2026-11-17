@@ -247,6 +247,45 @@ export function MapPreview({
     window.addEventListener('pointercancel', end);
   };
 
+  /** A medallion is dragged: its offset (mm from the point) follows the pointer. */
+  const dragMedallion = (node: Element, e: React.PointerEvent<HTMLDivElement>) => {
+    const placeId = node.getAttribute('data-medallion') ?? '';
+    const first = mapDialogStore.getState().spec?.places.find((p) => p.id === placeId);
+    if (!first?.photo) return;
+    const start = first.photo.offset;
+    const from = { x: e.clientX, y: e.clientY };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - from.x;
+      const dy = ev.clientY - from.y;
+      if (!moved && Math.hypot(dx, dy) < DRAG_SLOP_PX) return;
+      moved = true;
+      const s = mapDialogStore.getState().spec;
+      const at = s?.places.findIndex((p) => p.id === placeId) ?? -1;
+      const photo = s?.places[at]?.photo;
+      if (!s || !photo) return;
+      void updateSpec({
+        places: patchPlace(s.places, at, {
+          photo: {
+            ...photo,
+            offset: {
+              dx: start.dx + dx / live.current.pxPerMm,
+              dy: start.dy + dy / live.current.pxPerMm,
+            },
+          },
+        }),
+      });
+    };
+    const end = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  };
+
   /** A click (no drag) puts a place under the pointer. */
   const addPlaceAt = (clientX: number, clientY: number) => {
     const { geometry: g, box: b, pxPerMm: k } = live.current;
@@ -264,6 +303,11 @@ export function MapPreview({
     const label = (e.target as Element).closest?.('[data-label]');
     if (label) {
       dragLabel(label, e);
+      return;
+    }
+    const medallion = (e.target as Element).closest?.('[data-medallion]');
+    if (medallion) {
+      dragMedallion(medallion, e);
       return;
     }
     let last = { x: e.clientX, y: e.clientY };

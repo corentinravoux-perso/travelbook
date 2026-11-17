@@ -1,5 +1,5 @@
 import { assetUsage, fillSlot, type AssetRef, type Book } from '@travelbook/core';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { editorStore, findSpread, useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
@@ -19,8 +19,6 @@ const SECTION_TITLE: Record<string, string> = {
 export function PhotoPicker({ book }: { book: Book }) {
   const pickerId = useEditor((s) => s.pickerId);
   const spreadId = useEditor((s) => s.currentSpreadId);
-  const sections = useMemo(() => pickerSections(book), [book]);
-  const usage = useMemo(() => assetUsage(book), [book]);
   const frame = findSpread(book, spreadId)?.elements.find((el) => el.id === pickerId);
 
   // The frame can disappear while the picker is open (undo, delete): nothing left to fill.
@@ -29,17 +27,6 @@ export function PhotoPicker({ book }: { book: Book }) {
     if (gone) editorStore.getState().closePicker();
   }, [gone]);
 
-  // Escape closes the picker first, before it can clear the selection of the frame.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      editorStore.getState().closePicker();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, []);
-
   const choose = (asset: AssetRef) => {
     const store = editorStore.getState();
     if (frame?.type === 'photo' && spreadId !== null && frame.assetId !== asset.id) {
@@ -47,6 +34,48 @@ export function PhotoPicker({ book }: { book: Book }) {
     }
     store.closePicker();
   };
+  return (
+    <PhotoChoice
+      book={book}
+      hint={fr.photos.pickerHint}
+      onChoose={choose}
+      onClose={() => editorStore.getState().closePicker()}
+    />
+  );
+}
+
+/**
+ * The photos of the album to choose one from (unused first), with its close button and Escape,
+ * which closes it before anything under it can react. The caller decides what a choice does.
+ */
+export function PhotoChoice({
+  book,
+  hint,
+  onChoose,
+  onClose,
+}: {
+  book: Book;
+  hint: string;
+  onChoose(asset: AssetRef): void;
+  onClose(): void;
+}) {
+  const sections = useMemo(() => pickerSections(book), [book]);
+  const usage = useMemo(() => assetUsage(book), [book]);
+
+  // Escape closes the chooser first, before it can clear a selection or close a dialog.
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      close.current();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
 
   return (
     <section className="photo-picker" aria-label={fr.photos.pickerTitle}>
@@ -57,7 +86,7 @@ export function PhotoPicker({ book }: { book: Book }) {
           className="icon-button"
           aria-label={fr.photos.pickerClose}
           title={fr.photos.pickerClose}
-          onClick={() => editorStore.getState().closePicker()}
+          onClick={onClose}
         >
           <Icon name="x" />
         </button>
@@ -66,7 +95,7 @@ export function PhotoPicker({ book }: { book: Book }) {
         <p className="shell-empty">{fr.photos.pickerEmpty}</p>
       ) : (
         <>
-          <p className="photo-picker__hint">{fr.photos.pickerHint}</p>
+          <p className="photo-picker__hint">{hint}</p>
           <PhotoGrid
             groups={sections}
             header={(group: PhotoGroup) => (
@@ -79,7 +108,7 @@ export function PhotoPicker({ book }: { book: Book }) {
               <PhotoThumb
                 asset={asset}
                 uses={usage[asset.id] ?? 0}
-                onActivate={() => choose(asset)}
+                onActivate={() => onChoose(asset)}
               />
             )}
           />

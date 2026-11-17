@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { ensureFixtures, fixturePath } from '../../../tests/fixtures/make-fixtures';
 import { createFromHome, pickFolders } from './home';
 import { launchApp } from './launch';
 
@@ -10,6 +11,9 @@ test.describe.configure({ timeout: 120_000 });
 let work: string;
 let albums: string;
 
+test.beforeAll(async () => {
+  await ensureFixtures();
+});
 test.beforeEach(async () => {
   work = await mkdtemp(join(tmpdir(), 'travelbook-e2e-maps-'));
   albums = join(work, 'albums');
@@ -49,6 +53,13 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
     await pickFolders(app, albums);
     await createFromHome(page, 'Voyage');
     await expect(page.getByRole('img', { name: /Double page/ })).toBeVisible();
+
+    // one album photo for the medallion of the dialog
+    await app.evaluate(({ dialog }, file) => {
+      dialog.showOpenDialog = () => Promise.resolve({ canceled: false, filePaths: [file] });
+    }, fixturePath('landscape.jpg'));
+    await page.getByRole('button', { name: 'Importer des photos' }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(1);
 
     const dialog = page.getByRole('dialog', { name: 'Créer une carte' });
     await page.getByRole('button', { name: 'Cartes', exact: true }).click();
@@ -154,6 +165,34 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       // back to the carnet look for the rest
       await chips.getByRole('button', { name: 'Carnet' }).click();
       await dialog.getByRole('tab', { name: 'Lieux' }).click();
+    });
+
+    await test.step('medallions: switch on, a photo for Bangkok, dragged, removed', async () => {
+      const places = dialog.getByRole('group', { name: 'Lieux' });
+      const preview = dialog.getByLabel('Aperçu de la carte');
+      await expect(places.getByRole('button', { name: /^Photo de Bangkok/ })).toHaveCount(0);
+      await places.getByRole('checkbox', { name: 'Médaillons' }).check();
+      await places.getByRole('button', { name: 'Photo de Bangkok…' }).click();
+      await dialog.locator('.photo-picker .photo-thumb').first().click();
+      const medallion = preview.locator('[data-medallion] [data-ring]');
+      await expect(medallion).toHaveCount(1);
+      await expect(preview.locator('[data-medallion] image')).toHaveCount(1);
+      const before = (await medallion.boundingBox())!;
+      await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(before.x + before.width / 2 + 25, before.y + before.height / 2 + 15, {
+        steps: 5,
+      });
+      await page.mouse.up();
+      const after = (await medallion.boundingBox())!;
+      expect(Math.round(after.x - before.x)).toBeGreaterThan(15);
+      await page.screenshot({ path: shot('task20-medallion') });
+      await places.getByRole('button', { name: 'Retirer la photo de Bangkok' }).click();
+      await expect(medallion).toHaveCount(0);
+      // keep one for the placed map
+      await places.getByRole('button', { name: 'Photo de Bangkok…' }).click();
+      await dialog.locator('.photo-picker .photo-thumb').first().click();
+      await expect(medallion).toHaveCount(1);
     });
 
     await test.step('wheel zooms, drag pans, Recentrer goes back', async () => {
