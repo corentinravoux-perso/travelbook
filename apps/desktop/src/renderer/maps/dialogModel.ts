@@ -6,7 +6,6 @@ import {
   regionAssigner,
   type Book,
   type MapElement,
-  type MapLeg,
   type MapPlace,
   type Mm,
   type Rect,
@@ -28,6 +27,7 @@ import {
 } from './subjects';
 import { stopBakeWorker } from './bakeClient';
 import { forgetBake } from './previewBake';
+import { DEFAULT_LEG } from './routeModel';
 
 /** What the dialog edits: the map element without its box, its name and its baked geometry. */
 export type MapSpec = Pick<
@@ -208,8 +208,6 @@ const newSpec = (subject: IndexSubject): MapSpec => ({
   medallions: false,
   background: null,
 });
-
-const DEFAULT_LEG: MapLeg = { mode: 'voiture', curve: 'droit', bend: 0, icon: false };
 
 /**
  * The spec of a stored map, made safe to edit: the schema has no cross-field checks, so places
