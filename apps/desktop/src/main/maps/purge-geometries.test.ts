@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newBook, type AssetRef, type Book } from '@travelbook/core';
 import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { writeSnapshot } from '../project/snapshots';
-import { purgeGeometries } from './purge-geometries';
+import { noteGeometryWritten, purgeGeometries } from './purge-geometries';
 
 const USED = 'aaaaaaaaaaaaaaaa';
 const IN_SNAPSHOT = 'bbbbbbbbbbbbbbbb';
@@ -84,13 +84,28 @@ describe('purgeGeometries', () => {
     expect(await assets()).toHaveLength(3);
   });
 
-  it('keeps a geometry written after the purge started', async () => {
-    await writeFile(join(project, 'assets', 'dddddddddddddddd.json'), '{}');
-    const future = new Date(Date.now() + 60_000);
-    await utimes(join(project, 'assets', 'dddddddddddddddd.json'), future, future);
-    expect(await purgeGeometries(project, bookWithMap(USED))).not.toContain(
-      'dddddddddddddddd.json',
-    );
+  it('keeps a geometry saved or reused while the purge runs, whatever its date', async () => {
+    const running = purgeGeometries(project, bookWithMap(USED));
+    noteGeometryWritten(project, `${ORPHAN}.json`);
+    expect(await running).toEqual([`${IN_SNAPSHOT}.json`]);
+    expect(await assets()).toEqual([`${USED}.json`, `${ORPHAN}.json`].sort());
+  });
+
+  it('a purge that has ended keeps no list: the next one deletes the file', async () => {
+    await purgeGeometries(project, bookWithMap(USED));
+    noteGeometryWritten(project, `${USED}.json`);
+    await writeFile(join(project, 'assets', `${ORPHAN}.json`), '{}');
+    expect(await purgeGeometries(project, bookWithMap(USED))).toEqual([`${ORPHAN}.json`]);
+  });
+
+  it("reads no snapshot when every geometry is the book's", async () => {
+    await rm(join(project, 'assets', `${IN_SNAPSHOT}.json`));
+    await rm(join(project, 'assets', `${ORPHAN}.json`));
+    await mkdir(join(project, 'history'), { recursive: true });
+    // unreadable, but never read: nothing could be deleted anyway
+    await writeFile(join(project, 'history', '2026-01-02T03-04-05-006Z-auto.json'), '{ broken');
+    expect(await purgeGeometries(project, bookWithMap(USED))).toEqual([]);
+    expect(await assets()).toEqual([`${USED}.json`]);
   });
 
   it('does nothing for a project without assets or history', async () => {
