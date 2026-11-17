@@ -3,7 +3,7 @@ import { newBook, type Book, type MapGeometry } from '@travelbook/core';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
 
@@ -430,5 +430,143 @@ describe('places of a region subject', () => {
     expect(rOption.textContent).toContain(t.places.outOfRegion);
     fireEvent.click(rOption);
     expect(spec().places.some((p) => p.label === 'Rome')).toBe(true);
+  });
+});
+
+describe('photo medallions', () => {
+  // jsdom has no layout: give the photo grid a size (and a ResizeObserver) so it draws its rows
+  beforeAll(() => {
+    globalThis.ResizeObserver ??= class {
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    } as unknown as typeof ResizeObserver;
+    for (const side of ['clientWidth', 'clientHeight'] as const) {
+      Object.defineProperty(HTMLElement.prototype, side, {
+        configurable: true,
+        get(this: HTMLElement) {
+          return this.classList.contains('photo-grid') ? 400 : 0;
+        },
+      });
+    }
+  });
+  afterAll(() => {
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>)['clientWidth'];
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>)['clientHeight'];
+  });
+  const bangkok = () => spec().places.find((p) => p.label === 'Bangkok')!;
+  const addPhoto = () =>
+    act(() =>
+      editorStore.getState().apply(
+        (b) => ({
+          ...b,
+          assets: {
+            ...b.assets,
+            'ph-1': {
+              id: 'ph-1',
+              kind: 'photo',
+              file: 'originals/ph-1.jpg',
+              originalName: 'temple.jpg',
+              sha256: 'x',
+            },
+          },
+        }),
+        'Photo',
+      ),
+    );
+  const photoButton = () =>
+    within(places()).queryByRole('button', { name: t.places.photo('Bangkok') });
+  async function pickPhoto() {
+    addPhoto();
+    fireEvent.click(photoButton()!);
+    fireEvent.click(await within(dialog()).findByRole('button', { name: /temple\.jpg/ }));
+  }
+
+  it('hides "Photo…" until the Médaillons switch is on', async () => {
+    await ready();
+    expect(photoButton()).toBeNull();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    expect(spec().medallions).toBe(true);
+    expect(photoButton()).not.toBeNull();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    expect(photoButton()).toBeNull();
+  });
+
+  it('picking a photo sets 28 mm, offset (0, -30), crop centred; no bake', async () => {
+    await ready();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    await pickPhoto();
+    expect(bangkok().photo).toEqual({
+      assetId: 'ph-1',
+      offset: { dx: 0, dy: -30 },
+      diameter: 28,
+      crop: { scale: 1, cx: 0.5, cy: 0.5 },
+    });
+    // the picker closed, and the preview draws the medallion
+    expect(within(dialog()).queryByRole('button', { name: /temple\.jpg/ })).toBeNull();
+    expect(dialog().querySelector(`[data-medallion="${bangkok().id}"]`)).not.toBeNull();
+    await settle();
+    expect(vi.mocked(bake)).not.toHaveBeenCalled();
+  });
+
+  it('changing the photo keeps the offset and the diameter', async () => {
+    await ready();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    await pickPhoto();
+    await updateSpec({
+      places: spec().places.map((p) =>
+        p.label === 'Bangkok' ? { ...p, photo: { ...p.photo!, offset: { dx: 5, dy: 6 } } } : p,
+      ),
+    });
+    fireEvent.click(
+      within(places()).getByRole('button', { name: t.places.photoChange('Bangkok') }),
+    );
+    fireEvent.click(await within(dialog()).findByRole('button', { name: /temple\.jpg/ }));
+    expect(bangkok().photo!.offset).toEqual({ dx: 5, dy: 6 });
+  });
+
+  it('dragging the medallion updates its offset in mm; the frame does not move', async () => {
+    await ready();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    await pickPhoto();
+    const node = dialog().querySelector(`[data-medallion="${bangkok().id}"]`)!;
+    const s = editorStore.getState();
+    const box = newMapBox(s.book!, s.currentSpreadId!, s.activePage)!;
+    const k = parseFloat(preview().style.width) / box.w;
+    fireEvent.pointerDown(node, { clientX: 100, clientY: 100, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 120, clientY: 90, pointerId: 1 });
+    fireEvent.pointerUp(window, { clientX: 120, clientY: 90, pointerId: 1 });
+    expect(bangkok().photo!.offset.dx).toBeCloseTo(20 / k, 1);
+    expect(bangkok().photo!.offset.dy).toBeCloseTo(-30 - 10 / k, 1);
+    expect(spec().frame).toBeNull();
+    // a press that does not move is neither a drag nor a new place
+    const count = spec().places.length;
+    fireEvent.pointerDown(node, { clientX: 100, clientY: 100, pointerId: 1, button: 0 });
+    fireEvent.pointerUp(window, { clientX: 100, clientY: 100, pointerId: 1 });
+    expect(spec().places.length).toBe(count);
+  });
+
+  it('arrow keys nudge the medallion by 0.5 mm (Shift 2 mm)', async () => {
+    await ready();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    await pickPhoto();
+    const nudge = within(places()).getByRole('button', { name: t.places.photoNudge('Bangkok') });
+    fireEvent.keyDown(nudge, { key: 'ArrowRight' });
+    expect(bangkok().photo!.offset).toEqual({ dx: 0.5, dy: -30 });
+    fireEvent.keyDown(nudge, { key: 'ArrowDown', shiftKey: true });
+    expect(bangkok().photo!.offset).toEqual({ dx: 0.5, dy: -28 });
+  });
+
+  it('"Retirer la photo" clears it', async () => {
+    await ready();
+    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
+    await pickPhoto();
+    fireEvent.click(
+      within(places()).getByRole('button', { name: t.places.photoRemove('Bangkok') }),
+    );
+    expect(bangkok().photo).toBeNull();
+    expect(
+      within(places()).queryByRole('button', { name: t.places.photoRemove('Bangkok') }),
+    ).toBeNull();
   });
 });

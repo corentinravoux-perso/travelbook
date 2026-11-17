@@ -219,6 +219,13 @@ describe('dashes, typed numbers and colours', () => {
     expect(spec().style.route.voiture.dash).toBeNull();
   });
 
+  it('the number fields keep the style editor class', async () => {
+    await ready();
+    const size = within(panel()).getByLabelText(s.sizePt);
+    expect(size.classList.contains('map-style__number')).toBe(true);
+    expect(size.classList.contains('input')).toBe(true);
+  });
+
   it('typing "12" into a field whose minimum is 4 is not rewritten on the way', async () => {
     await ready();
     const size = within(panel()).getByLabelText(s.sizePt) as HTMLInputElement;
