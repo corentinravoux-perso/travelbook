@@ -4,6 +4,7 @@ import { projectStore, useProject } from '../store/project';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import { ThemeToggle } from '../editor/ThemeToggle';
+import { DeleteAlbumDialog } from './DeleteAlbumDialog';
 import { NewProjectDialog } from './NewProjectDialog';
 import { SettingsDialog } from './SettingsDialog';
 import './Home.css';
@@ -49,7 +50,9 @@ export function Home() {
   const error = useProject((s) => s.error);
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { refreshRecent, openProject, createProject, duplicateProject } = projectStore.getState();
+  const [deleting, setDeleting] = useState<RecentProject | null>(null);
+  const { refreshRecent, openProject, createProject, duplicateProject, deleteProject } =
+    projectStore.getState();
 
   useEffect(() => {
     void refreshRecent();
@@ -147,24 +150,54 @@ export function Home() {
                       {fr.home.openedOn(formatDate(project.openedAt))}
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    className="button album__duplicate"
-                    disabled={busy}
-                    aria-label={fr.home.duplicate(project.title)}
-                    aria-busy={duplicating === project.dir}
-                    title={fr.home.duplicate(project.title)}
-                    onClick={() => void duplicateProject(project.dir)}
-                  >
-                    <Icon name="copy" />
-                    {duplicating === project.dir ? fr.home.duplicating : fr.home.duplicateLabel}
-                  </button>
+                  <div className="album__actions">
+                    <button
+                      type="button"
+                      className="button album__duplicate"
+                      disabled={busy}
+                      aria-label={fr.home.duplicate(project.title)}
+                      aria-busy={duplicating === project.dir}
+                      title={fr.home.duplicate(project.title)}
+                      onClick={() => void duplicateProject(project.dir)}
+                    >
+                      <Icon name="copy" />
+                      {duplicating === project.dir ? fr.home.duplicating : fr.home.duplicateLabel}
+                    </button>
+                    <button
+                      type="button"
+                      className="button button--danger-outline album__delete"
+                      disabled={busy}
+                      aria-label={fr.home.delete(project.title)}
+                      title={fr.home.delete(project.title)}
+                      onClick={() => {
+                        projectStore.setState({ error: null });
+                        setDeleting(project);
+                      }}
+                    >
+                      <Icon name="trash" />
+                      {fr.home.deleteLabel}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           </section>
         )}
       </main>
+
+      {deleting && (
+        <DeleteAlbumDialog
+          project={deleting}
+          busy={busy}
+          failed={error === 'delete'}
+          onClose={() => setDeleting(null)}
+          onConfirm={() =>
+            void deleteProject(deleting.dir).then((done) => {
+              if (done) setDeleting(null);
+            })
+          }
+        />
+      )}
 
       {creating && (
         <NewProjectDialog

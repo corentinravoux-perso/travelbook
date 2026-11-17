@@ -24,6 +24,7 @@ function setup(flushCover?: () => Promise<void>) {
     open: vi.fn<(dir?: string) => Promise<OpenedProject | null>>(),
     recent: vi.fn(() => Promise.resolve([])),
     duplicate: vi.fn<(dir: string) => Promise<ProjectInfo>>(),
+    delete: vi.fn<(dir: string) => Promise<void>>(),
     snapshot: vi.fn((label: SnapshotInfo['label']) => Promise.resolve(info(label))),
   };
   const store = createProjectStore({ editor, api, flushCover });
@@ -235,6 +236,26 @@ describe('project store and the geometry cache', () => {
     clear.mockClear();
     await store.getState().goHome();
     expect(clear).toHaveBeenCalledTimes(1);
+  });
+
+  describe('deleteProject', () => {
+    it('trashes through the api and refreshes the list', async () => {
+      const { store, api } = setup();
+      api.delete.mockResolvedValue(undefined);
+      expect(await store.getState().deleteProject('/albums/x.travelbook')).toBe(true);
+      expect(api.delete).toHaveBeenCalledWith('/albums/x.travelbook');
+      expect(api.recent).toHaveBeenCalled();
+      expect(store.getState().busy).toBe(false);
+    });
+
+    it('records a "delete" error when the trash fails', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { store, api } = setup();
+      api.delete.mockRejectedValue(new Error('no trash'));
+      expect(await store.getState().deleteProject('/albums/x.travelbook')).toBe(false);
+      expect(store.getState().error).toBe('delete');
+      expect(store.getState().busy).toBe(false);
+    });
   });
 
   describe('duplicateProject', () => {

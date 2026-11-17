@@ -64,6 +64,7 @@ export function createElectronHost(
     },
     openExternal: (url) => shell.openExternal(url),
     showInFolder: (path) => shell.showItemInFolder(path),
+    trashItem: (path) => shell.trashItem(path),
     version: () => app.getVersion(),
     applyMenu: applyAppMenu,
     captureJpeg: async (rect, longEdge) => {
