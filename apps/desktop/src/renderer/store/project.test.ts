@@ -252,6 +252,25 @@ describe('project store and the geometry cache', () => {
       expect(store.getState().error).toBeNull();
     });
 
+    it('names the album being copied and refuses a second copy meanwhile', async () => {
+      const { store, api } = setup();
+      let finish: () => void = () => undefined;
+      api.duplicate.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finish = () =>
+              resolve({ dir: '/albums/x-copie.travelbook', book: newBook({ title: 'X (copie)' }) });
+          }),
+      );
+      const first = store.getState().duplicateProject('/albums/x.travelbook');
+      expect(store.getState().duplicating).toBe('/albums/x.travelbook');
+      expect(await store.getState().duplicateProject('/albums/y.travelbook')).toBe(false);
+      expect(api.duplicate).toHaveBeenCalledTimes(1);
+      finish();
+      expect(await first).toBe(true);
+      expect(store.getState().duplicating).toBeNull();
+    });
+
     it('records a "duplicate" error when the copy fails', async () => {
       vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const { store, api } = setup();
@@ -259,6 +278,7 @@ describe('project store and the geometry cache', () => {
       expect(await store.getState().duplicateProject('/albums/x.travelbook')).toBe(false);
       expect(store.getState().error).toBe('duplicate');
       expect(store.getState().busy).toBe(false);
+      expect(store.getState().duplicating).toBeNull();
     });
   });
 });

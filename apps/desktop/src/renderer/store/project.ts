@@ -25,8 +25,10 @@ export interface ProjectState {
   view: View;
   /** Most recent first; loaded by `refreshRecent`. */
   recent: RecentProject[];
-  /** True while a create or open is running (including its folder dialog). */
+  /** True while a create, an open (including its folder dialog) or a duplication is running. */
   busy: boolean;
+  /** The folder of the album being duplicated, `null` when none is. */
+  duplicating: string | null;
   error: ProjectError | null;
   /** Ids of the assets whose original file was missing when the book was opened. */
   missing: string[];
@@ -116,6 +118,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
     return {
       view: 'home',
       recent: [],
+      duplicating: null,
       busy: false,
       error: null,
       missing: [],
@@ -136,7 +139,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
       },
       async duplicateProject(dir) {
         if (get().busy) return false;
-        set({ busy: true, error: null });
+        set({ busy: true, duplicating: dir, error: null });
         try {
           await api.duplicate(dir);
         } catch (error) {
@@ -144,7 +147,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
           set({ error: 'duplicate' });
           return false;
         } finally {
-          set({ busy: false });
+          set({ busy: false, duplicating: null });
         }
         await get().refreshRecent();
         return true;

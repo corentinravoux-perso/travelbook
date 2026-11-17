@@ -45,6 +45,7 @@ function CoverThumb({ project }: { project: RecentProject }) {
 export function Home() {
   const recent = useProject((s) => s.recent);
   const busy = useProject((s) => s.busy);
+  const duplicating = useProject((s) => s.duplicating);
   const error = useProject((s) => s.error);
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -151,11 +152,12 @@ export function Home() {
                     className="button album__duplicate"
                     disabled={busy}
                     aria-label={fr.home.duplicate(project.title)}
+                    aria-busy={duplicating === project.dir}
                     title={fr.home.duplicate(project.title)}
                     onClick={() => void duplicateProject(project.dir)}
                   >
                     <Icon name="copy" />
-                    {fr.home.duplicateLabel}
+                    {duplicating === project.dir ? fr.home.duplicating : fr.home.duplicateLabel}
                   </button>
                 </li>
               ))}
