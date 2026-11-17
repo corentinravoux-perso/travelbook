@@ -241,7 +241,7 @@ describe('dashes, typed numbers and colours', () => {
     const size = within(panel()).getByLabelText(s.sizePt) as HTMLInputElement;
     fireEvent.change(size, { target: { value: '1' } });
     expect(size.value).toBe('1');
-    expect(spec().style.label.sizePt).toBe(9.5);
+    expect(spec().style.label.sizePt).toBe(11.5);
     fireEvent.change(size, { target: { value: '12' } });
     expect(size.value).toBe('12');
     expect(spec().style.label.sizePt).toBe(12);
@@ -266,7 +266,7 @@ describe('dashes, typed numbers and colours', () => {
     await ready();
     const size = within(panel()).getByLabelText(s.sizePt) as HTMLInputElement;
     fireEvent.change(size, { target: { value: '99' } });
-    expect(spec().style.label.sizePt).toBe(9.5);
+    expect(spec().style.label.sizePt).toBe(11.5);
     fireEvent.blur(size);
     expect(size.value).toBe('40');
     expect(spec().style.label.sizePt).toBe(40);
@@ -406,7 +406,7 @@ describe('user templates', () => {
     fireEvent.click(within(chips).getByRole('button', { name: 'Vieux' }));
     // its colours come in, completed from the defaults; the map's sizes and case stay
     await waitFor(() => expect(spec().style.label.color).toBe('#123456'));
-    expect(spec().style.label.sizePt).toBe(9.5);
+    expect(spec().style.label.sizePt).toBe(11.5);
     expect(spec().style.label.case).toBe('none');
     expect(spec().style.land.width).toBeGreaterThan(0);
   });
