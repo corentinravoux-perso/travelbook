@@ -27,6 +27,7 @@ export const DEFAULT_MAP_STYLE: MapStyle = {
     color: '#4a2f1a',
     case: 'none',
     letterSpacingEm: 0,
+    wordSpacingEm: -0.1,
     halo: { color: '#fbf4e2', width: 0.8 },
   },
   markers: {

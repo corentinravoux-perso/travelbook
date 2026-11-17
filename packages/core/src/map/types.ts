@@ -102,6 +102,11 @@ export interface MapStyle {
     case: 'none' | 'upper' | 'lower';
     /** In em. */
     letterSpacingEm: number;
+    /**
+     * Added to the font's space between words, in em; negative tightens (the default, -0.1:
+     * the fonts' spaces look wide at map sizes).
+     */
+    wordSpacingEm: number;
     /** A stroke under the text; width 0 draws none. */
     halo: { color: string; width: Mm };
   };

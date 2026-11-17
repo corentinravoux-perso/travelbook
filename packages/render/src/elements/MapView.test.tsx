@@ -186,6 +186,15 @@ describe('MapView', () => {
     }
   });
 
+  it('sets the word spacing of the labels from the style', () => {
+    const spacing = (el: MapElement) =>
+      draw(el).layer('labels')?.querySelector('[data-label]')?.getAttribute('word-spacing');
+    expect(spacing(mapEl())).toBe('-0.1em');
+    const base = mapEl();
+    const wide = { ...base.style, label: { ...base.style.label, wordSpacingEm: 0.2 } };
+    expect(spacing(mapEl({ style: wide }))).toBe('0.2em');
+  });
+
   it('takes the missing label as a prop', () => {
     const { container } = render(
       <MapView

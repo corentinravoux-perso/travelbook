@@ -68,6 +68,15 @@ describe('normalizeStyle', () => {
     expect(normalizeStyle({}).sizes.marker).toBe(4);
   });
 
+  it('gives a style saved before the word spacing token the tighter default', () => {
+    const old = JSON.parse(JSON.stringify(DEFAULT_MAP_STYLE));
+    delete old.label.wordSpacingEm;
+    old.label.letterSpacingEm = 0.05;
+    const style = normalizeStyle(old);
+    expect(style.label.wordSpacingEm).toBe(-0.1);
+    expect(style.label.letterSpacingEm).toBe(0.05);
+  });
+
   it('is idempotent', () => {
     const messy = stored((s) => {
       delete s['lakes'];
