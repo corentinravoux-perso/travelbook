@@ -3,6 +3,7 @@ import {
   newId,
   normalizeStyle,
   pageBox,
+  regionAssigner,
   type Book,
   type MapElement,
   type MapLeg,
@@ -25,6 +26,8 @@ import {
   type PackFallback,
   type FinePack,
 } from './subjects';
+import { stopBakeWorker } from './bakeClient';
+import { forgetBake } from './previewBake';
 
 /** What the dialog edits: the map element without its box, its name and its baked geometry. */
 export type MapSpec = Pick<
@@ -116,6 +119,47 @@ export function defaultPlaces(places: BundledPlace[], frameAreaMm2: number): Map
   ].map(placeFromBundled);
 }
 
+/** The place-to-region assignment of a base file, computed once per base (a dialog session). */
+const assigners = new WeakMap<MapTopology, ReturnType<typeof regionAssigner>>();
+const assignerOf = (base: MapTopology) => {
+  if (!assigners.has(base)) assigners.set(base, regionAssigner(base));
+  return assigners.get(base) ?? null;
+};
+
+/**
+ * The candidates of a subject limited to its chosen regions. With the base topology each place is
+ * assigned to ONE region (`regionAssigner`): the one whose polygon holds it, else the nearest
+ * within 10 km by distance to polygon edges, else none (dropped); nearest-wins keeps Reggio di
+ * Calabria out of Sicily. A chosen region the base has no polygon for, or no base, is judged by
+ * the index bbox of the region. No region chosen: all places.
+ */
+export function placesInRegions(
+  places: BundledPlace[],
+  subject: IndexSubject | null,
+  regionIds: string[],
+  base: MapTopology | null = null,
+): BundledPlace[] {
+  const chosen = (subject?.regions ?? []).filter((r) => regionIds.includes(r.id));
+  if (chosen.length === 0) return places;
+  const assign = base ? assignerOf(base) : null;
+  const byBox = chosen.filter((r) => !assign?.has(r.id));
+  const wanted = new Set(chosen.map((r) => r.id));
+  return places.filter((p) => {
+    const region = assign?.regionOf(p.lon, p.lat);
+    if (region && wanted.has(region)) return true;
+    return byBox.some(
+      ({ bbox: [w, s, e, n] }) => p.lat >= s && p.lat <= n && p.lon >= w && p.lon <= e,
+    );
+  });
+}
+
+/** A place list without ids, to tell whether the user changed the defaults. */
+const placesSignature = (places: MapPlace[]): string =>
+  JSON.stringify(places.map((p) => ({ ...p, id: null })));
+
+/** The signature of the defaults last derived; `null` for a reopened map (never re-derived). */
+let derivedPlaces: string | null = null;
+
 /**
  * Where a new map goes: the page in view (the other one when it has none) inset by the album's
  * safe margin. `null` when the spread does not exist.
@@ -204,6 +248,10 @@ export function specOf(el: MapElement, subject: IndexSubject | null): MapSpec {
   });
 }
 
+/** The base file of a subject, or `null` when it cannot be read (the bbox test is used then). */
+const baseOrNull = (subjectId: string): Promise<MapTopology | null> =>
+  subjectBase(subjectId).catch(() => null);
+
 /** Ignore the answer of a subject loaded before a newer choice. Bumped by open, pick and close. */
 let choice = 0;
 
@@ -267,6 +315,9 @@ export function closeMapDialog(): void {
   choice += 1;
   loadedBase = null;
   loadedPack = null;
+  derivedPlaces = null;
+  stopBakeWorker();
+  forgetBake();
   mapDialogStore.setState(idle(), true);
 }
 
@@ -276,6 +327,7 @@ export function closeMapDialog(): void {
  */
 export async function openMapDialog(target?: MapTarget): Promise<void> {
   const mine = ++choice;
+  derivedPlaces = null;
   const index = await loadSubjectIndex();
   if (mine !== choice) return;
   const book = editorStore.getState().book;
@@ -315,6 +367,13 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
   const base = newSpec(subject);
   if (regionId !== undefined) base.subject.regions = [regionId];
   const previous = mapDialogStore.getState().spec;
+  const topology = base.subject.regions.length > 0 ? await baseOrNull(subject.id) : null;
+  if (mine !== choice) return;
+  const places = defaultPlaces(
+    placesInRegions(bundled, subject, base.subject.regions, topology),
+    area,
+  );
+  derivedPlaces = placesSignature(places);
   mapDialogStore.setState({
     name: subject.name,
     bundled,
@@ -329,7 +388,7 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
             background: previous.background,
           }
         : {}),
-      places: defaultPlaces(bundled, area),
+      places,
     },
     packFallback: null,
     status: 'idle',
@@ -340,9 +399,38 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
 
 /** Change fields of the spec. No effect before a subject is picked. */
 export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
+  const first = mapDialogStore.getState().spec;
+  if (!first) return;
+  const mine = choice;
+  const rederives = (spec: MapSpec): boolean =>
+    patch.subject !== undefined &&
+    patch.places === undefined &&
+    [...patch.subject.regions].sort().join() !== [...spec.subject.regions].sort().join() &&
+    derivedPlaces !== null &&
+    placesSignature(spec.places) === derivedPlaces;
+  // the region polygons come from the base file: wait for it only when the defaults change
+  const topology =
+    rederives(first) && patch.subject!.regions.length > 0
+      ? await baseOrNull(first.subject.id)
+      : null;
+  if (mine !== choice) return;
   const { spec } = mapDialogStore.getState();
   if (!spec) return;
-  mapDialogStore.setState({ spec: { ...spec, ...patch } });
+  const next = { ...spec, ...patch };
+  // the regions changed and the places are still the defaults: derive the defaults again
+  if (rederives(spec)) {
+    next.places = defaultPlaces(
+      placesInRegions(
+        mapDialogStore.getState().bundled,
+        getSubject(spec.subject.id),
+        next.subject.regions,
+        topology,
+      ),
+      reopenedArea() ?? frameArea(),
+    );
+    derivedPlaces = placesSignature(next.places);
+  }
+  mapDialogStore.setState({ spec: next });
   // settles once the fine pack of the chosen regions is in (when the regions changed)
   if (patch.subject) await syncPackFallback();
 }

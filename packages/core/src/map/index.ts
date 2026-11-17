@@ -13,10 +13,12 @@ export {
   chooseProjection,
   fitFrame,
   projectPlace,
+  unprojectPlace,
   type Bounds,
   type MapGeometry,
   type ProjectionParams,
 } from './projection';
+export { regionAssigner, NEAREST_REGION_KM, type RegionAssigner } from './regions';
 export { bakeGeometry, simplifyTopology, type Topology as MapTopology } from './bake';
 export { legPath, routeNumbers, routeSegments, type RouteSegment } from './route';
 export { placeLabels, type LabelBox, type Obstacle as LabelObstacle } from './labels';

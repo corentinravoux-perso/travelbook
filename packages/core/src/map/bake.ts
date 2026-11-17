@@ -1,5 +1,5 @@
 import { geoArea, geoBounds, geoPath, type GeoPermissibleObjects } from 'd3-geo';
-import { difference } from 'polygon-clipping';
+import * as polygonClipping from 'polygon-clipping';
 import rough from 'roughjs';
 import { feature, merge, mesh } from 'topojson-client';
 import {
@@ -25,6 +25,14 @@ import {
   type ProjectionParams,
 } from './projection';
 import type { MapElement } from './types';
+
+/**
+ * The ESM build of polygon-clipping has a default export only, its CommonJS build has named ones:
+ * take `difference` from whichever the bundler or Node gives.
+ */
+const difference: typeof polygonClipping.difference = (
+  (polygonClipping as unknown as { default?: typeof polygonClipping }).default ?? polygonClipping
+).difference;
 
 /** A TopoJSON topology, as the `topojson-*` functions take it (properties are not typed). */
 export type Topology = TopoJson<Objects>;

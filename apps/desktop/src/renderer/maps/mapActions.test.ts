@@ -31,7 +31,8 @@ import {
   updateSpec,
 } from './dialogModel';
 import { geometryCache } from './geometryCache';
-import { applyMap, resetWorldCache } from './mapActions';
+import { applyMap, resetWorldCache, worldLand } from './mapActions';
+import { forgetBake, geometryKey, rememberBake } from './previewBake';
 import { setSubjectIndex, type SubjectIndex } from './subjects';
 
 const RESOURCES = join(import.meta.dirname, '../../../resources/maps');
@@ -458,5 +459,69 @@ describe('applyMap, reopened map', () => {
     );
     await applyMap(mapDialogStore.getState());
     expect(maps(editorStore.getState().book!)).toHaveLength(1);
+  });
+});
+
+describe('applyMap reuses the preview bake', () => {
+  afterEach(() => forgetBake());
+
+  it('does not bake again when the preview baked the same inputs', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const spec = mapDialogStore.getState().spec!;
+    const world = await worldLand();
+    const geometry = bakeGeometry(
+      JSON.parse(read('subjects/TH.topo.json')),
+      null,
+      spec.subject,
+      spec.projection,
+      spec.style.rough,
+      spec.style.outline.detail,
+      world,
+    );
+    rememberBake(geometryKey(spec, false, world !== null), geometry);
+    vi.mocked(bakeGeometry).mockClear();
+    await applyMap(mapDialogStore.getState());
+    expect(bakeGeometry).not.toHaveBeenCalled();
+    expect(saved).toHaveLength(1);
+    expect(JSON.parse(saveGeometry.mock.calls.at(-1)![0])).toEqual(geometry);
+  });
+
+  it('bakes when a geometry input changed since the preview', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const spec = mapDialogStore.getState().spec!;
+    const world = await worldLand();
+    const geometry = bakeGeometry(
+      JSON.parse(read('subjects/TH.topo.json')),
+      null,
+      spec.subject,
+      spec.projection,
+      spec.style.rough,
+      spec.style.outline.detail,
+      world,
+    );
+    rememberBake(geometryKey(spec, false, world !== null), geometry);
+    await updateSpec({ subject: { ...spec.subject, showNeighbours: false } });
+    vi.mocked(bakeGeometry).mockClear();
+    await applyMap(mapDialogStore.getState());
+    expect(bakeGeometry).toHaveBeenCalledTimes(1);
+  });
+
+  it('a style colour does not count as a geometry input', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const spec = mapDialogStore.getState().spec!;
+    const recoloured = {
+      ...spec,
+      style: { ...spec.style, land: { ...spec.style.land, fill: '#123456' } },
+    };
+    expect(geometryKey(recoloured, false, true)).toBe(geometryKey(spec, false, true));
+    expect(geometryKey({ ...spec, frame: { center: [1, 2], scale: 2 } }, false, true)).toBe(
+      geometryKey(spec, false, true),
+    );
+    expect(geometryKey({ ...spec, projection: 'mercator' }, false, true)).not.toBe(
+      geometryKey(spec, false, true),
+    );
   });
 });
