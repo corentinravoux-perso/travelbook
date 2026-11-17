@@ -430,3 +430,14 @@
 .settings-empty {
   margin: 0;
 }
+
+/* The duplicate action sits under its album card, out of the way of the open click. */
+.home__grid > li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s1);
+}
+.album__duplicate {
+  margin-inline: var(--s4);
+}

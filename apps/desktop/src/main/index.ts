@@ -10,7 +10,8 @@ import {
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { guardWindowClose } from './close-guard';
-import { askCloseChoice, createElectronHost } from './host';
+import { menuLanguage } from './app-settings';
+import { applyAppMenu, askCloseChoice, createElectronHost } from './host';
 import { isTrustedPage, registerIpc, type AppPage } from './ipc';
 import { setBundledResourcesDir } from './library/templates';
 import { setFontsResourcesDir } from './library/fonts';
@@ -127,6 +128,7 @@ void app.whenReady().then(async () => {
     isTrustedSender,
   );
 
+  applyAppMenu(await menuLanguage().catch(() => 'fr' as const));
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

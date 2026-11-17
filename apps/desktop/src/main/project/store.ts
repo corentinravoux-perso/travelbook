@@ -45,7 +45,7 @@ async function makeProjectFolder(parentDir: string, name: string): Promise<strin
 }
 
 /** The recent list is a convenience: failing to update it must not fail the project operation. */
-async function noteRecent(dir: string, book: Book): Promise<void> {
+export async function noteRecent(dir: string, book: Book): Promise<void> {
   try {
     await addRecentProject({ dir, title: book.title });
   } catch (error) {
@@ -75,7 +75,7 @@ export async function createProject(opts: {
   return { dir, book };
 }
 
-async function readBook(dir: string): Promise<Book> {
+export async function readBook(dir: string): Promise<Book> {
   let text: string;
   try {
     text = await readFile(join(dir, BOOK_FILE), 'utf8');
