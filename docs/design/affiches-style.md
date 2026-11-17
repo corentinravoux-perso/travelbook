@@ -11,21 +11,20 @@ the rest is judged on the contact sheet (`render-sheet.ts`).
 
 - **Découpé** (default): the rules below; recolourable through `tb-main` / `tb-shade`; at most
   five colours. Torii, Fuji, château.
-- **Pixory** (`<svg data-tb-style="pixory">`): the subject in its natural colours, up to eight,
+- **Naturel** (`<svg data-tb-style="naturel">`): the subject in its natural colours, up to eight,
   more detail, a darker tone per colour allowed; no colour role required (not recoloured).
-  Maneki-neko, ramen, safari 4×4. Inspired by the level of craft and the palettes of the
-  Pixory covers, never by their drawings.
+  Maneki-neko, ramen, safari 4×4.
 - **Relief** (`<svg data-tb-style="relief">`, added 2026-11-16): the subject modelled in
   volume, like a painted object on a printed travel poster. Linear and radial gradients,
   `fill="url(#id)"` to a gradient of the same file, `opacity` / `fill-opacity` for highlights,
   shades and contact shadows; up to sixteen hex colours, gradient stops included; still no
   filter, mask or clip path. Not recoloured. Daruma, nazar, blood oranges, macareux.
-- **Pixory à trait** (still `data-tb-style="pixory"`, added 2026-11-16): flat colours with a
+- **Naturel à trait** (still `data-tb-style="naturel"`, added 2026-11-16): flat colours with a
   hand-drawn edge and ink linework: wobbly outlines (jittered points through a smooth curve,
   never a ruler line), ink outlines of 3 to 5 units, hatching and dot textures clipped to the
   shapes, ripples and grass strokes. Scenes may run off the foot (sea, moor, lake). Amalfi
   coast, Highland stag, koi pond, Lake Titicaca.
-- Each destination gets several drawings, one or two of them in the pixory family, and the
+- Each destination gets several drawings, one or two of them in the naturel family, and the
   set as a whole includes animals.
 - Presets show every drawing in its own colours; recolouring is left to the user.
 

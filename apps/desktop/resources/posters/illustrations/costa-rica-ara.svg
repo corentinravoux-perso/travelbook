@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 60 760 1040" data-tb-style="pixory">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 60 760 1040" data-tb-style="naturel">
   <!-- Long tail feathers, hanging to the bottom edge -->
   <path fill="#2f6fc0" d="M379 560C380 547 412 547 419 560C427 574 444 666 450 693C455 720 470 804 476 831C482 858 500 937 506 964C512 991 538 1086 538 1100C538 1113 512 1114 505 1100C499 1086 480 990 474 964C467 937 449 858 443 831C436 805 417 723 411 696C405 669 378 574 379 560z"/>
   <path fill="none" stroke="#2b2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M400 570L520 1100"/>

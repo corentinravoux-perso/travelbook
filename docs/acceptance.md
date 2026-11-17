@@ -84,7 +84,7 @@ tests with `npm test`.
         opens the app. **Not run**: this task must not install the package. To do by hand once.
   - [ ] The `.exe` installs on Windows 10/11. **Not run**: there is no Windows machine here, and
         the installer is built by `.github/workflows/release.yml` on a version tag, which is not
-        pushed without Corentin's go-ahead. To check on the first release.
+        pushed without the owner's go-ahead. To check on the first release.
 
 ## Anti-goals
 
@@ -99,10 +99,9 @@ None of these may happen. Each line is ticked when the test that would catch it 
       effects).** `e2e/export-pdf.spec.ts` compares every PDF page with the image route
       (under 2 %), `e2e/derivatives.spec.ts` the baked photo with its CSS look, `e2e/render.spec.ts`
       the three render qualities; the manual check under G3 looked at it.
-- [x] **Any flexilivre code, template file, sticker, background, font or icon ends up in the
-      repository or in the app.** `CLEANROOM.md` states the rules. `git grep -il flexilivre`
-      lists only `CLEANROOM.md`, `README.md` and files of `docs/` (this one and
-      `docs/reference/flexilivre-behaviour.md`, which records behaviour in our own words). Every
+- [x] **Any code, template file, sticker, background, font or icon of another editor ends up
+      in the repository or in the app.** `CLEANROOM.md` states the rules, and
+      `scripts/cleanroom.test.ts` checks that no tracked file names the editor studied. Every
       file of `apps/desktop/resources/` carries `{source, author, licence, url}`, and
       `scripts/resources-licences.test.ts` fails for one that does not: the sticker packs
       (`offline.test.ts`), the fonts (`fonts.test.ts`: OFL or Apache, author, page), the patterns

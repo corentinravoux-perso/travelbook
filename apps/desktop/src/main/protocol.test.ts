@@ -24,16 +24,16 @@ interface Layout {
 const POSIX: Layout = {
   flavour: 'posix',
   sep: '/',
-  projectDir: '/home/corentin/Albums/Été 2026/mon livre.travelbook',
-  libraryDir: '/home/corentin/.config/travelbook/library',
+  projectDir: '/home/user/Albums/Été 2026/mon livre.travelbook',
+  libraryDir: '/home/user/.config/travelbook/library',
   resourcesDir: '/opt/travelbook/resources',
 };
 
 const WINDOWS: Layout = {
   flavour: 'win32',
   sep: '\\',
-  projectDir: 'C:\\Users\\Corentin\\Documents\\Été 2026\\mon livre.travelbook',
-  libraryDir: 'C:\\Users\\Corentin\\AppData\\Roaming\\travelbook\\library',
+  projectDir: 'C:\\Users\\User\\Documents\\Été 2026\\mon livre.travelbook',
+  libraryDir: 'C:\\Users\\User\\AppData\\Roaming\\travelbook\\library',
   resourcesDir: 'C:\\Program Files\\travelbook\\resources',
 };
 
@@ -45,7 +45,7 @@ const UNC: Layout = {
 /** A macOS folder name: "É" stored as E + combining acute, as HFS+/APFS hand it back. */
 const NFD: Layout = {
   ...POSIX,
-  projectDir: `/Users/corentin/${'Été 2026'.normalize('NFD')}/mon livre.travelbook`,
+  projectDir: `/Users/user/${'Été 2026'.normalize('NFD')}/mon livre.travelbook`,
 };
 
 const ASSETS: Record<string, TbAssetEntry> = {

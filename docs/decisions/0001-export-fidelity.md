@@ -1,6 +1,6 @@
 # 0001. Export fidelity: vector or raster print PDF
 
-Status: decided by Corentin on 2026-11-15 — **vector route, with photo adjustments baked into the export derivative** (see "Gate outcome" at the end). Spike date: 2026-11-14. Task 7.3 implements this route.
+Status: decided by the owner on 2026-11-15 — **vector route, with photo adjustments baked into the export derivative** (see "Gate outcome" at the end). Spike date: 2026-11-14. Task 7.3 implements this route.
 
 ## Context
 
@@ -109,7 +109,7 @@ this alternative has not been tested with a pdf-lib MediaBox rewrite or a baked 
 
 ## Gate outcome (2026-11-15)
 
-Corentin chose the alternative: **vector PDF route with adjustments baked into the derivative.**
+The owner chose the alternative: **vector PDF route with adjustments baked into the derivative.**
 
 - Task 7.1 applies `adjust` (brightness, contrast, saturation, grayscale, sepia) to the export
   derivative with sharp. In `export` quality, `SpreadView` then draws the photo with no CSS
