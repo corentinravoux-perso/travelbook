@@ -61,7 +61,20 @@ export interface MapDialogState {
   packLoading: boolean;
   status: 'idle' | 'applying' | 'failed';
   error: string | null;
+  /** Specs before the last edits, oldest first (Ctrl+Z); emptied by a new subject. */
+  past: MapSpec[];
+  /** Specs undone, the next one to redo first (Ctrl+Maj+Z, Ctrl+Y). */
+  future: MapSpec[];
 }
+
+/** Undo steps the dialog keeps. */
+const HISTORY_LIMIT = 100;
+/**
+ * Edits of the same fields closer together than this make one undo step: a drag, a slider, the
+ * wheel zoom, typing a name.
+ */
+export const UNDO_MERGE_MS = 700;
+let lastEdit: { keys: string; at: number } | null = null;
 
 const idle = (): MapDialogState => ({
   open: false,
@@ -73,6 +86,8 @@ const idle = (): MapDialogState => ({
   packLoading: false,
   status: 'idle',
   error: null,
+  past: [],
+  future: [],
 });
 
 export const mapDialogStore = createStore<MapDialogState>(idle);
@@ -321,6 +336,7 @@ export function closeMapDialog(): void {
   derivedPlaces = null;
   stopBakeWorker();
   forgetBake();
+  lastEdit = null;
   mapDialogStore.setState(idle(), true);
 }
 
@@ -331,6 +347,7 @@ export function closeMapDialog(): void {
 export async function openMapDialog(target?: MapTarget): Promise<void> {
   const mine = ++choice;
   derivedPlaces = null;
+  lastEdit = null;
   const index = await loadSubjectIndex();
   if (mine !== choice) return;
   const book = editorStore.getState().book;
@@ -397,7 +414,11 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
     packLoading: false,
     status: 'idle',
     error: null,
+    // another map: the edits of the previous subject cannot be undone into it
+    past: [],
+    future: [],
   });
+  lastEdit = null;
   await syncPackFallback();
 }
 
@@ -434,9 +455,49 @@ export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
     );
     derivedPlaces = placesSignature(next.places);
   }
-  mapDialogStore.setState({ spec: next });
+  const keys = Object.keys(patch).sort().join();
+  const now = Date.now();
+  const merge = lastEdit !== null && lastEdit.keys === keys && now - lastEdit.at < UNDO_MERGE_MS;
+  lastEdit = { keys, at: now };
+  const { past } = mapDialogStore.getState();
+  mapDialogStore.setState({
+    spec: next,
+    past: merge ? past : [...past, spec].slice(-HISTORY_LIMIT),
+    future: [],
+  });
   // settles once the fine pack of the chosen regions is in (when the regions changed)
   if (patch.subject) await syncPackFallback();
+}
+
+const regionsKey = (spec: MapSpec): string => [...spec.subject.regions].sort().join();
+
+/** Go back to `to`; the fine pack follows when the regions differ. */
+async function restoreSpec(
+  to: MapSpec,
+  history: Pick<MapDialogState, 'past' | 'future'>,
+): Promise<void> {
+  const { spec } = mapDialogStore.getState();
+  lastEdit = null;
+  mapDialogStore.setState({ spec: to, ...history });
+  if (spec && regionsKey(spec) !== regionsKey(to)) await syncPackFallback();
+}
+
+/** Ctrl+Z in the dialog: the spec before the last edit. False when there is nothing to undo. */
+export async function undoMapEdit(): Promise<boolean> {
+  const { spec, past, future, status } = mapDialogStore.getState();
+  const previous = past.at(-1);
+  if (!spec || !previous || status === 'applying') return false;
+  await restoreSpec(previous, { past: past.slice(0, -1), future: [spec, ...future] });
+  return true;
+}
+
+/** Ctrl+Maj+Z or Ctrl+Y in the dialog: the edit undone last. False when there is none. */
+export async function redoMapEdit(): Promise<boolean> {
+  const { spec, past, future, status } = mapDialogStore.getState();
+  const next = future[0];
+  if (!spec || !next || status === 'applying') return false;
+  await restoreSpec(next, { past: [...past, spec].slice(-HISTORY_LIMIT), future: future.slice(1) });
+  return true;
 }
 
 export const setMapName = (name: string): void => mapDialogStore.setState({ name });

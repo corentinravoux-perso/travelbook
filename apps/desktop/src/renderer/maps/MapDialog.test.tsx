@@ -575,6 +575,25 @@ describe('the sections of the dialog', () => {
     expect(within(dialog()).queryByRole('group', { name: t.places.title })).toBeNull();
   });
 
+  it('Ctrl+Z undoes the last edit of the dialog, Ctrl+Y redoes it; a text field keeps its keys', async () => {
+    await thai();
+    const box = () =>
+      within(dialog()).getByRole('checkbox', {
+        name: t.places.show('Bangkok'),
+      }) as HTMLInputElement;
+    expect(box().checked).toBe(true);
+    fireEvent.click(box());
+    expect(box().checked).toBe(false);
+    fireEvent.keyDown(box(), { key: 'z', ctrlKey: true });
+    await waitFor(() => expect(box().checked).toBe(true));
+    fireEvent.keyDown(box(), { key: 'y', ctrlKey: true });
+    await waitFor(() => expect(box().checked).toBe(false));
+    const search = within(dialog()).getByRole('searchbox', { name: t.places.addLabel });
+    const typed = fireEvent.keyDown(search, { key: 'z', ctrlKey: true });
+    expect(typed).toBe(true); // not prevented: the field undoes its own text
+    expect(box().checked).toBe(false);
+  });
+
   it('keeps the place search when switching to Style and back', async () => {
     await thai();
     const search = () => within(dialog()).getByRole('searchbox', { name: t.places.addLabel });
