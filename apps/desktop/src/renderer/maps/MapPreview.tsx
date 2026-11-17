@@ -9,6 +9,13 @@ import { mapDialogStore, subjectBase, subjectPack, updateSpec, type MapSpec } fr
 import { worldLand } from './mapActions';
 import { panFrame, zoomFrame } from './previewFrame';
 import { geometryKey, rememberBake, rememberedBake } from './previewBake';
+import {
+  customPlaceAt,
+  drawnLabelOffset,
+  lonLatAtMm,
+  patchPlace,
+  placePointMm,
+} from './placesModel';
 
 /** The largest the preview is drawn, in CSS px. */
 const MAX_W = 620;
@@ -17,7 +24,8 @@ const MAX_H = 440;
 const MAX_H_SHARE = 0.4;
 /** One wheel notch (`deltaY` 100) zooms by this factor. */
 const ZOOM_PER_NOTCH = Math.exp(0.15);
-const DRAG_SLOP_PX = 2;
+/** A press that moves less than this is a click, not a drag. */
+const DRAG_SLOP_PX = 4;
 
 interface Settled {
   /** The geometry inputs this settles. */
@@ -175,8 +183,65 @@ export function MapPreview({
     return () => node.removeEventListener('wheel', onWheel);
   }, []);
 
+  /** A label is dragged: its offset (mm from the point) follows the pointer. */
+  const dragLabel = (node: Element, e: React.PointerEvent<HTMLDivElement>) => {
+    const placeId = node.getAttribute('data-label') ?? '';
+    const first = mapDialogStore.getState().spec;
+    const { geometry: g, box: b } = live.current;
+    const index = first?.places.findIndex((p) => p.id === placeId) ?? -1;
+    const place = first?.places[index];
+    if (!first || !g || !place) return;
+    const point = placePointMm(g, b, first, place.lon, place.lat);
+    const start = drawnLabelOffset(surface.current ?? document, placeId, point);
+    if (!start) return;
+    const from = { x: e.clientX, y: e.clientY };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - from.x;
+      const dy = ev.clientY - from.y;
+      if (!moved && Math.hypot(dx, dy) < DRAG_SLOP_PX) return;
+      moved = true;
+      const s = mapDialogStore.getState().spec;
+      if (!s) return;
+      const at = s.places.findIndex((p) => p.id === placeId);
+      void updateSpec({
+        places: patchPlace(s.places, at, {
+          labelOffset: {
+            dx: start.dx + dx / live.current.pxPerMm,
+            dy: start.dy + dy / live.current.pxPerMm,
+          },
+        }),
+      });
+    };
+    const end = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  };
+
+  /** A click (no drag) puts a place under the pointer. */
+  const addPlaceAt = (clientX: number, clientY: number) => {
+    const { geometry: g, box: b, pxPerMm: k } = live.current;
+    const s = mapDialogStore.getState().spec;
+    const rect = surface.current?.getBoundingClientRect();
+    if (!g || !s || !rect) return;
+    const [lon, lat] = lonLatAtMm(g, b, s, (clientX - rect.left) / k, (clientY - rect.top) / k);
+    void updateSpec({
+      places: [...s.places, customPlaceAt(mapDialogStore.getState().bundled, lon, lat)],
+    });
+  };
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || !live.current.geometry) return;
+    const label = (e.target as Element).closest?.('[data-label]');
+    if (label) {
+      dragLabel(label, e);
+      return;
+    }
     let last = { x: e.clientX, y: e.clientY };
     let moved = false;
     const move = (ev: PointerEvent) => {
@@ -193,10 +258,15 @@ export function MapPreview({
         frame: panFrame(g, b, s.frame, s.subject.includeRemote, dx / k, dy / k),
       });
     };
-    const end = () => {
+    const end = (ev: Event) => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', end);
       window.removeEventListener('pointercancel', end);
+      // a press that never moved is a click; a cancelled one is not
+      if (!moved && ev.type === 'pointerup') {
+        const up = ev as PointerEvent;
+        addPlaceAt(up.clientX, up.clientY);
+      }
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', end);

@@ -66,6 +66,42 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await page.screenshot({ path: shot('task16-thailande') });
     });
 
+    await test.step('places panel: untick, add by search, click on the map, drag a label', async () => {
+      const places = dialog.getByRole('group', { name: 'Lieux' });
+      await expect(places.getByRole('heading', { name: 'Villes' })).toBeVisible();
+      await expect(places.getByRole('heading', { name: 'Sites' })).toBeVisible();
+      const preview = dialog.getByLabel('Aperçu de la carte');
+      // untick Chiang Mai: its label leaves the preview
+      await expect(preview).toContainText('Chiang Mai');
+      await places.getByRole('checkbox', { name: 'Afficher Chiang Mai' }).uncheck();
+      await expect(preview).not.toContainText('Chiang Mai');
+      await places.getByRole('checkbox', { name: 'Afficher Chiang Mai' }).check();
+      await expect(preview).toContainText('Chiang Mai');
+      // add a bundled place by search
+      await places.getByRole('searchbox', { name: 'Lieu à ajouter' }).fill('lampang');
+      await places.getByRole('option', { name: 'Lampang' }).click();
+      await expect(preview).toContainText('Lampang');
+      // a click on the sea adds a custom place
+      const box = (await preview.boundingBox())!;
+      await page.mouse.click(box.x + box.width * 0.12, box.y + box.height * 0.5);
+      await expect(places.getByRole('heading', { name: 'Lieux ajoutés' })).toBeVisible();
+      // drag the label of Bangkok
+      const label = preview.locator('[data-label]', { hasText: 'Bangkok' });
+      const lb = (await label.boundingBox())!;
+      await page.mouse.move(lb.x + lb.width / 2, lb.y + lb.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(lb.x + lb.width / 2 + 30, lb.y + lb.height / 2 + 20, { steps: 5 });
+      await page.mouse.up();
+      await expect(
+        places.getByRole('button', { name: 'Position automatique de Bangkok' }),
+      ).toBeEnabled();
+      await page.screenshot({ path: shot('task17-places') });
+      await places.getByRole('button', { name: 'Position automatique de Bangkok' }).click();
+      await expect(
+        places.getByRole('button', { name: 'Position automatique de Bangkok' }),
+      ).toBeDisabled();
+    });
+
     await test.step('wheel zooms, drag pans, Recentrer goes back', async () => {
       const preview = dialog.getByLabel('Aperçu de la carte');
       const box = (await preview.boundingBox())!;
