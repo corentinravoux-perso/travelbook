@@ -13,8 +13,13 @@ import {
   newMapBox,
   openMapDialog,
   pickSubject,
+  beginEditGroup,
+  endEditGroup,
   placesInRegions,
+  redoMapEdit,
   specOf,
+  UNDO_MERGE_MS,
+  undoMapEdit,
   updateSpec,
 } from './dialogModel';
 import {
@@ -49,6 +54,128 @@ beforeEach(() => {
 afterEach(() => {
   closeMapDialog();
   vi.unstubAllGlobals();
+});
+
+describe('undo in the dialog', () => {
+  const spec = () => mapDialogStore.getState().spec!;
+  const later = (ms: number) => vi.setSystemTime(Date.now() + ms);
+
+  it('undoes and redoes edits one step at a time; a new edit drops the redo', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await openMapDialog();
+      await pickSubject('TH');
+      const start = spec();
+      expect(await undoMapEdit()).toBe(false);
+      await updateSpec({ medallions: true });
+      later(UNDO_MERGE_MS + 1);
+      await updateSpec({ background: '#ffffff' });
+      expect(await undoMapEdit()).toBe(true);
+      expect(spec().background).toBe(start.background);
+      expect(spec().medallions).toBe(true);
+      expect(await undoMapEdit()).toBe(true);
+      expect(spec()).toBe(start);
+      expect(await redoMapEdit()).toBe(true);
+      expect(spec().medallions).toBe(true);
+      later(UNDO_MERGE_MS + 1);
+      await updateSpec({ projection: 'mercator' });
+      expect(await redoMapEdit()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('makes one step of quick edits of the same fields (a drag, a slider)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await openMapDialog();
+      await pickSubject('TH');
+      const start = spec();
+      for (const scale of [1.2, 1.5, 2]) {
+        await updateSpec({ frame: { center: [100, 13], scale } });
+        later(100);
+      }
+      expect(mapDialogStore.getState().past).toHaveLength(1);
+      await undoMapEdit();
+      expect(spec().frame).toEqual(start.frame);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('quick edits of the same field outside a gesture stay separate steps', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const [a, b] = spec().places;
+    await updateSpec({
+      places: spec().places.map((p) => (p.id === a!.id ? { ...p, shown: false } : p)),
+    });
+    await updateSpec({
+      places: spec().places.map((p) => (p.id === b!.id ? { ...p, shown: false } : p)),
+    });
+    await undoMapEdit();
+    expect(spec().places.find((p) => p.id === a!.id)!.shown).toBe(false);
+    expect(spec().places.find((p) => p.id === b!.id)!.shown).toBe(true);
+  });
+
+  it('every edit of one gesture is one step, however slow; the next gesture is another', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await openMapDialog();
+      await pickSubject('TH');
+      const start = spec();
+      beginEditGroup('pointer');
+      for (const dx of [1, 2, 3]) {
+        await updateSpec({ background: `#00000${dx}` });
+        later(2_000);
+      }
+      endEditGroup('pointer');
+      beginEditGroup('pointer');
+      await updateSpec({ medallions: true });
+      endEditGroup('pointer');
+      expect(mapDialogStore.getState().past).toHaveLength(2);
+      await undoMapEdit();
+      expect(spec().background).toBe('#000003');
+      await undoMapEdit();
+      expect(spec()).toBe(start);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('an edit still waiting for the base file is dropped by an undo', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    await updateSpec({ medallions: true });
+    const pending = updateSpec({ subject: { ...spec().subject, regions: ['IT-82'] } });
+    await undoMapEdit();
+    await pending;
+    expect(spec().medallions).toBe(false);
+    expect(spec().subject.regions).toEqual([]);
+    expect(await redoMapEdit()).toBe(true);
+    expect(spec().medallions).toBe(true);
+  });
+
+  it('after an undo, a region change derives the default places again', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    await updateSpec({ subject: { ...spec().subject, regions: ['IT-82'] } });
+    await undoMapEdit();
+    expect(spec().places.map((p) => p.label)).toContain('Rome');
+    await updateSpec({ subject: { ...spec().subject, regions: ['IT-82'] } });
+    const labels = spec().places.map((p) => p.label);
+    expect(labels).toContain('Palerme');
+    expect(labels).not.toContain('Rome');
+  });
+
+  it('a new subject starts a new history', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    await updateSpec({ medallions: true });
+    await pickSubject('PE');
+    expect(await undoMapEdit()).toBe(false);
+    expect(spec().subject.id).toBe('PE');
+  });
 });
 
 describe('searchSubjects', () => {
@@ -237,6 +364,14 @@ describe('reopening a map', () => {
       specOf({ ...bad, route: { stops: [], legs: [], numbered: false } }, null).route,
     ).toBeNull();
     expect(() => specOf({ ...bad, subject: { ...bad.subject, id: 'XX' } }, null)).not.toThrow();
+  });
+
+  it('keeps the stops shown without a number, one flag per stop', () => {
+    const el = mapElement();
+    const route = { stops: ['p1', 'p2', 'p1'], legs: [], numbered: true };
+    const spec = specOf({ ...el, route: { ...route, unnumbered: [false, true] } }, null);
+    expect(spec.route!.unnumbered).toEqual([false, true, false]);
+    expect('unnumbered' in specOf({ ...el, route }, null).route!).toBe(false);
   });
 });
 

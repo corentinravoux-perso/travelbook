@@ -24,6 +24,7 @@ function setup(flushCover?: () => Promise<void>) {
     open: vi.fn<(dir?: string) => Promise<OpenedProject | null>>(),
     recent: vi.fn(() => Promise.resolve([])),
     duplicate: vi.fn<(dir: string) => Promise<ProjectInfo>>(),
+    delete: vi.fn<(dir: string) => Promise<void>>(),
     snapshot: vi.fn((label: SnapshotInfo['label']) => Promise.resolve(info(label))),
   };
   const store = createProjectStore({ editor, api, flushCover });
@@ -237,6 +238,26 @@ describe('project store and the geometry cache', () => {
     expect(clear).toHaveBeenCalledTimes(1);
   });
 
+  describe('deleteProject', () => {
+    it('trashes through the api and refreshes the list', async () => {
+      const { store, api } = setup();
+      api.delete.mockResolvedValue(undefined);
+      expect(await store.getState().deleteProject('/albums/x.travelbook')).toBe(true);
+      expect(api.delete).toHaveBeenCalledWith('/albums/x.travelbook');
+      expect(api.recent).toHaveBeenCalled();
+      expect(store.getState().busy).toBe(false);
+    });
+
+    it('records a "delete" error when the trash fails', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { store, api } = setup();
+      api.delete.mockRejectedValue(new Error('no trash'));
+      expect(await store.getState().deleteProject('/albums/x.travelbook')).toBe(false);
+      expect(store.getState().error).toBe('delete');
+      expect(store.getState().busy).toBe(false);
+    });
+  });
+
   describe('duplicateProject', () => {
     it('copies through the api, refreshes the list and stays on the home screen', async () => {
       const { store, api } = setup();
@@ -252,6 +273,25 @@ describe('project store and the geometry cache', () => {
       expect(store.getState().error).toBeNull();
     });
 
+    it('names the album being copied and refuses a second copy meanwhile', async () => {
+      const { store, api } = setup();
+      let finish: () => void = () => undefined;
+      api.duplicate.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finish = () =>
+              resolve({ dir: '/albums/x-copie.travelbook', book: newBook({ title: 'X (copie)' }) });
+          }),
+      );
+      const first = store.getState().duplicateProject('/albums/x.travelbook');
+      expect(store.getState().duplicating).toBe('/albums/x.travelbook');
+      expect(await store.getState().duplicateProject('/albums/y.travelbook')).toBe(false);
+      expect(api.duplicate).toHaveBeenCalledTimes(1);
+      finish();
+      expect(await first).toBe(true);
+      expect(store.getState().duplicating).toBeNull();
+    });
+
     it('records a "duplicate" error when the copy fails', async () => {
       vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const { store, api } = setup();
@@ -259,6 +299,7 @@ describe('project store and the geometry cache', () => {
       expect(await store.getState().duplicateProject('/albums/x.travelbook')).toBe(false);
       expect(store.getState().error).toBe('duplicate');
       expect(store.getState().busy).toBe(false);
+      expect(store.getState().duplicating).toBeNull();
     });
   });
 });

@@ -306,6 +306,42 @@ describe('the itinerary panel', () => {
     expect(badge('Bangkok')).toBe('1');
   });
 
+  it('a stop can go without a number; the next ones take the numbers it skipped', async () => {
+    await ready();
+    addStopByName('Bangkok');
+    addStopByName('Chiang Mai');
+    addStopByName('Hat Yai');
+    const tick = (n: number, name: string) =>
+      within(panel()).getByRole('checkbox', { name: r.stopNumbered(n, name) }) as HTMLInputElement;
+    expect(tick(2, 'Chiang Mai').checked).toBe(true);
+    fireEvent.click(tick(2, 'Chiang Mai'));
+    expect(route()!.unnumbered).toEqual([false, true, false]);
+    expect(badge('Chiang Mai')).toBeNull();
+    expect(badge('Hat Yai')).toBe('2');
+    const shown = Array.from(panel().querySelectorAll('.map-stop__n')).map((n) => n.textContent);
+    expect(shown).toEqual(['1', r.noNumber, '2']);
+    // the stop keeps its choice when moved
+    fireEvent.click(within(panel()).getByRole('button', { name: r.down(2, 'Chiang Mai') }));
+    expect(route()!.unnumbered).toEqual([false, false, true]);
+    expect(badge('Hat Yai')).toBe('2');
+    // with "Numéroter" off, the per-stop boxes are disabled
+    fireEvent.click(within(panel()).getByRole('checkbox', { name: r.numbered }));
+    expect(tick(1, 'Bangkok').disabled).toBe(true);
+  });
+
+  it('a hidden place is skipped by the numbers: the next stop takes its number', async () => {
+    await ready();
+    addStopByName('Bangkok');
+    addStopByName('Chiang Mai');
+    addStopByName('Hat Yai');
+    withPlaces((p) =>
+      fireEvent.click(within(p).getByRole('checkbox', { name: t.places.show('Chiang Mai') })),
+    );
+    expect(badge('Hat Yai')).toBe('2');
+    const shown = Array.from(panel().querySelectorAll('.map-stop__n')).map((n) => n.textContent);
+    expect(shown).toEqual(['1', r.noNumber, '2']);
+  });
+
   it('a hidden or deleted place that is a stop stays listed and is marked, not drawn', async () => {
     await ready();
     addStopByName('Bangkok');

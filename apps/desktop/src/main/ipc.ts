@@ -86,6 +86,7 @@ import {
   writeSnapshot,
 } from './project/snapshots';
 import { menuLanguage, setMenuLanguage } from './app-settings';
+import { deleteProject } from './project/delete';
 import { duplicateProject } from './project/duplicate';
 import { createProject, openProject, saveBook } from './project/store';
 import {
@@ -107,6 +108,8 @@ export interface Host {
   pickFont(): Promise<string | null>;
   openExternal(url: string): Promise<void>;
   showInFolder(path: string): void;
+  /** Move a file or folder to the system trash. */
+  trashItem(path: string): Promise<void>;
   version(): string;
   /** Rebuild the application menu bar in this language. */
   applyMenu(language: MenuLanguage): void;
@@ -213,6 +216,7 @@ const schemas = {
   ]),
   open: z.tuple([absolutePath.optional()]),
   duplicate: z.tuple([absolutePath]),
+  delete: z.tuple([absolutePath]),
   menuLanguage: z.tuple([z.enum(['fr', 'en'])]),
   save: z.tuple([BookSchema]),
   captureRect: z.tuple([captureRect]),
@@ -373,6 +377,11 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.projectDuplicate]: async (_ctx, ...args) => {
       const [dir] = parseArgs(CHANNEL.projectDuplicate, schemas.duplicate, args);
       return duplicateProject(dir);
+    },
+
+    [CHANNEL.projectDelete]: async (_ctx, ...args) => {
+      const [dir] = parseArgs(CHANNEL.projectDelete, schemas.delete, args);
+      await deleteProject(dir, (path) => host.trashItem(path));
     },
 
     [CHANNEL.projectPickFolder]: async (_ctx, ...args) => {

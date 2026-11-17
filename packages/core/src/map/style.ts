@@ -27,6 +27,7 @@ export const DEFAULT_MAP_STYLE: MapStyle = {
     color: '#4a2f1a',
     case: 'none',
     letterSpacingEm: 0,
+    wordSpacingEm: -0.1,
     halo: { color: '#fbf4e2', width: 0.8 },
   },
   markers: {
@@ -100,9 +101,18 @@ function resetToDefault(style: Json, path: readonly PropertyKey[]): void {
  * another release, or edited by hand. A missing token is filled from `DEFAULT_MAP_STYLE`, an
  * unknown one dropped, an invalid one (wrong type, out of range) put back to its default, and
  * `styleVersion` is 1. The result is a new object.
+ *
+ * One exception keeps saved maps as they were drawn: a style with labels but no
+ * `label.wordSpacingEm` was saved before the token existed, so it gets 0 (the fonts' own space),
+ * not the tighter default that new maps get.
  */
 export function normalizeStyle(raw: unknown): MapStyle {
-  const candidate = overlay(DEFAULT_MAP_STYLE, raw) as Json;
+  const label = isRecord(raw) ? raw['label'] : undefined;
+  const source =
+    isRecord(raw) && isRecord(label) && !('wordSpacingEm' in label)
+      ? { ...raw, label: { ...label, wordSpacingEm: 0 } }
+      : raw;
+  const candidate = overlay(DEFAULT_MAP_STYLE, source) as Json;
   const first = MapStyleSchema.safeParse(candidate);
   if (first.success) return first.data;
   for (const issue of first.error.issues) resetToDefault(candidate, issue.path);

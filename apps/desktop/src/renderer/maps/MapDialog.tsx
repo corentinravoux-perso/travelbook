@@ -6,7 +6,7 @@ import {
   type MapPreset,
   type MapStyle,
 } from '@travelbook/core';
-import { useEffect, useId, useRef, useState } from 'react';
+import { memo, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
 import {
@@ -14,7 +14,11 @@ import {
   closeMapDialog,
   mapDialogStore,
   newMapBox,
+  beginEditGroup,
+  endEditGroup,
   pickSubject,
+  redoMapEdit,
+  undoMapEdit,
   updateSpec,
   useMapDialog,
   type MapSpec,
@@ -273,8 +277,21 @@ type TabId = 'places' | 'route' | 'style';
 const TABS: TabId[] = ['places', 'route', 'style'];
 
 /**
+ * A tab panel's content. While its tab stays hidden it is not drawn again (it keeps its state,
+ * not every update): a drag on the preview would otherwise redraw the three panels at each move.
+ * It catches up when its tab is shown.
+ */
+const TabContent = memo(
+  function TabContent({ children }: { active: boolean; children: ReactNode }) {
+    return <>{children}</>;
+  },
+  (prev, next) => !prev.active && !next.active,
+);
+
+/**
  * The sections of the right column: a tablist (arrows, Home and End move; only the open tab is in
- * the tab order) with one tabpanel at a time. The preview next to it stays in view.
+ * the tab order) with one tabpanel shown at a time. The other panels stay mounted, hidden, so a
+ * search or an open list survives a switch. The preview next to it stays in view.
  */
 function Sections({
   spec,
@@ -322,7 +339,7 @@ function Sections({
             role="tab"
             id={`${base}-tab-${id}`}
             aria-selected={tab === id}
-            aria-controls={`${base}-panel`}
+            aria-controls={`${base}-panel-${id}`}
             tabIndex={tab === id ? 0 : -1}
             className="map-tab"
             onClick={() => setTab(id)}
@@ -331,16 +348,22 @@ function Sections({
           </button>
         ))}
       </div>
-      <div
-        className="map-tabpanel"
-        role="tabpanel"
-        id={`${base}-panel`}
-        aria-labelledby={`${base}-tab-${tab}`}
-      >
-        {tab === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
-        {tab === 'route' && <RoutePanel spec={spec} />}
-        {tab === 'style' && <StylePanel spec={spec} />}
-      </div>
+      {TABS.map((id) => (
+        <div
+          key={id}
+          className="map-tabpanel"
+          role="tabpanel"
+          id={`${base}-panel-${id}`}
+          aria-labelledby={`${base}-tab-${id}`}
+          hidden={tab !== id}
+        >
+          <TabContent active={tab === id}>
+            {id === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
+            {id === 'route' && <RoutePanel spec={spec} />}
+            {id === 'style' && <StylePanel spec={spec} />}
+          </TabContent>
+        </div>
+      ))}
     </div>
   );
 }
@@ -452,6 +475,42 @@ function MapForm() {
   );
 }
 
+/** Keys typed into these go to the field (its own undo), not to the dialog's history. */
+const TEXT_INPUTS = new Set(['text', 'search', 'number', 'email', 'url', 'tel', 'password']);
+function typesText(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable || target.tagName === 'TEXTAREA') return true;
+  return target instanceof HTMLInputElement && TEXT_INPUTS.has(target.type);
+}
+
+/**
+ * Ctrl+Z undoes the dialog's last edit, Ctrl+Maj+Z and Ctrl+Y redo it; the album behind is not
+ * touched (the canvas shortcuts ignore keys from a dialog). In a text field the keys stay its own.
+ */
+function onDialogKeyDown(e: React.KeyboardEvent): void {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || typesText(e.target)) return;
+  const key = e.key.toLowerCase();
+  const redo = (key === 'z' && e.shiftKey) || (key === 'y' && !e.shiftKey);
+  if (key !== 'z' && !redo) return;
+  e.preventDefault();
+  void (redo ? redoMapEdit() : undoMapEdit());
+}
+
+/**
+ * A press in the dialog is one undo step until it is released (a drag, a slider, a click), and
+ * so is the time a text field has the focus (typing a name).
+ */
+function onDialogPointerDown(): void {
+  beginEditGroup('pointer');
+  const end = () => {
+    endEditGroup('pointer');
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+  };
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+}
+
 /** "Créer une carte": the map maker's dialog. Mounted once by the shell; `openMapDialog` opens it. */
 export function MapDialog() {
   const open = useMapDialog((s) => s.open);
@@ -472,6 +531,10 @@ export function MapDialog() {
       className="dialog dialog--map"
       aria-labelledby="map-title"
       onClose={closeMapDialog}
+      onKeyDown={onDialogKeyDown}
+      onPointerDownCapture={onDialogPointerDown}
+      onFocusCapture={(e) => typesText(e.target) && beginEditGroup('focus')}
+      onBlurCapture={(e) => typesText(e.target) && endEditGroup('focus')}
       onCancel={(e) => {
         // Escape must not drop a map that is being placed: the apply goes on
         if (mapDialogStore.getState().status === 'applying') e.preventDefault();

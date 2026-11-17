@@ -170,10 +170,12 @@ export const fr = {
       remove: (name: string) => `Supprimer ${name}`,
       autoPosition: 'Position automatique',
       autoPositionOf: (name: string) => `Position automatique de ${name}`,
+      autoPositionText: 'Auto',
       size: (name: string) => `Taille de l’icône de ${name} (mm)`,
       sizeHint: 'Vide : taille du style.',
       nudge: (name: string, direction: string) => `Déplacer l’étiquette de ${name} ${direction}`,
-      nudgeHint: 'Un clic : 0,5 mm (Maj + clic : 2 mm). Ou glissez l’étiquette sur l’aperçu.',
+      nudgeHint:
+        'Clic ou flèches : déplacer de 0,5 mm (Maj : 2 mm). Ou glissez l’étiquette sur l’aperçu.',
       labelCaption: 'Étiquette',
       photoCaption: 'Médaillon',
       directions: {
@@ -203,7 +205,8 @@ export const fr = {
       pickHint: 'Cliquez sur une photo pour en faire le médaillon du lieu.',
       photoNudge: (name: string, direction: string) =>
         `Déplacer le médaillon de ${name} ${direction}`,
-      photoNudgeHint: 'Un clic : 0,5 mm (Maj + clic : 2 mm). Ou glissez le médaillon sur l’aperçu.',
+      photoNudgeHint:
+        'Clic ou flèches : déplacer de 0,5 mm (Maj : 2 mm). Ou glissez le médaillon sur l’aperçu.',
     },
     route: {
       title: 'Itinéraire',
@@ -215,6 +218,9 @@ export const fr = {
       up: (n: number, name: string) => `Monter l’étape ${n} (${name})`,
       down: (n: number, name: string) => `Descendre l’étape ${n} (${name})`,
       remove: (n: number, name: string) => `Retirer l’étape ${n} (${name})`,
+      stopNumbered: (n: number, name: string) => `Numéro de l’étape ${n} (${name}) sur la carte`,
+      stopNumberedHint: 'Décoché : l’étape n’a pas de numéro, les suivantes gardent la suite.',
+      noNumber: '–',
       hidden: 'masqué',
       missing: 'lieu supprimé',
       leg: (n: number) => `Trajet ${n}`,
@@ -258,6 +264,7 @@ export const fr = {
       case: 'Casse',
       cases: { none: 'Telle quelle', upper: 'MAJUSCULES', lower: 'minuscules' },
       letterSpacing: 'Espacement des lettres (em)',
+      wordSpacing: 'Espacement des mots (em)',
       halo: 'Halo du texte',
       markerShape: 'forme',
       scale: 'échelle',
@@ -1327,6 +1334,16 @@ export const fr = {
     createFailed: "Le livre n'a pas pu être créé. Vérifiez le dossier choisi et réessayez.",
     duplicate: (title: string) => `Dupliquer ${title}`,
     duplicateLabel: 'Dupliquer',
+    duplicating: 'Duplication…',
+    delete: (title: string) => `Supprimer ${title}`,
+    deleteLabel: 'Supprimer',
+    deleteTitle: (title: string) => `Supprimer « ${title} » ?`,
+    deleteText:
+      'Le dossier de l’album, avec ses photos et son historique, part dans la corbeille du système. Vous pourrez l’en sortir tant qu’elle n’est pas vidée.',
+    deleteCancel: 'Annuler',
+    deleteConfirm: 'Mettre à la corbeille',
+    deleteFailed:
+      "L'album n'a pas pu être mis à la corbeille. Vérifiez que son dossier existe encore et réessayez.",
     duplicateFailed:
       "L'album n'a pas pu être dupliqué. Vérifiez l'espace disponible et que son dossier existe encore.",
     openFailed:

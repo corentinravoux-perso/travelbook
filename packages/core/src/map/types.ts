@@ -55,6 +55,11 @@ export interface MapRoute {
   /** `legs[i]` goes from `stops[i]` to `stops[i + 1]`. */
   legs: MapLeg[];
   numbered: boolean;
+  /**
+   * `unnumbered[i]`: stop `i` shows no number (a stop on the way); the numbers skip it. Absent,
+   * shorter than `stops` or `false`: numbered.
+   */
+  unnumbered?: boolean[];
 }
 
 /** Fill and stroke colours are CSS colours, or `null` for not painted. */
@@ -97,6 +102,11 @@ export interface MapStyle {
     case: 'none' | 'upper' | 'lower';
     /** In em. */
     letterSpacingEm: number;
+    /**
+     * Added to the font's space between words, in em; negative tightens (the default, -0.1:
+     * the fonts' spaces look wide at map sizes).
+     */
+    wordSpacingEm: number;
     /** A stroke under the text; width 0 draws none. */
     halo: { color: string; width: Mm };
   };

@@ -54,6 +54,7 @@ const MapRouteSchema = z.object({
   stops: z.array(id),
   legs: z.array(MapLegSchema),
   numbered: z.boolean(),
+  unnumbered: z.array(z.boolean()).optional(),
 });
 
 /** A fill or a stroke: a colour, or `null` for not painted. */
@@ -83,6 +84,7 @@ export const MapStyleSchema = z.object({
     color,
     case: z.enum(['none', 'upper', 'lower']),
     letterSpacingEm: z.number().finite(),
+    wordSpacingEm: z.number().finite(),
     halo: z.object({ color, width: nonNegMm }),
   }),
   markers: z.record(PlaceKindSchema, MapMarkerStyleSchema),

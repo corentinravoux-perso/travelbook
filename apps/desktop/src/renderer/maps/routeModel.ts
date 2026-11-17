@@ -5,14 +5,31 @@ export const DEFAULT_LEG: MapLeg = { mode: 'voiture', curve: 'droit', bend: 0, i
 const copyLeg = (leg: MapLeg): MapLeg => ({ ...leg });
 
 /**
- * The route with exactly `stops - 1` legs: missing legs are the default, extra ones are dropped.
- * The schema does not tie the two lists together, so every edit starts here. Never mutates.
+ * The route with exactly `stops - 1` legs: missing legs are the default, extra ones are dropped;
+ * `unnumbered`, when present, has one flag per stop (`false` added, extra ones dropped).
+ * The schema does not tie the lists together, so every edit starts here. Never mutates.
  */
 export function repairRoute(route: MapRoute): MapRoute {
   const legs = Array.from({ length: Math.max(0, route.stops.length - 1) }, (_, i) =>
     copyLeg(route.legs[i] ?? DEFAULT_LEG),
   );
-  return { stops: [...route.stops], legs, numbered: route.numbered };
+  const out: MapRoute = { stops: [...route.stops], legs, numbered: route.numbered };
+  if (route.unnumbered) {
+    out.unnumbered = route.stops.map((_, i) => route.unnumbered?.[i] === true);
+  }
+  return out;
+}
+
+/** Whether stop `i` shows its number (when the route is numbered). */
+export const stopNumbered = (route: MapRoute, index: number): boolean =>
+  route.unnumbered?.[index] !== true;
+
+/** Show or hide the number of stop `index`; the numbers of the next stops follow. */
+export function setStopNumbered(route: MapRoute, index: number, numbered: boolean): MapRoute {
+  const fixed = repairRoute(route);
+  if (index < 0 || index >= fixed.stops.length) return fixed;
+  const flags = fixed.unnumbered ?? fixed.stops.map(() => false);
+  return { ...fixed, unnumbered: flags.map((f, i) => (i === index ? !numbered : f)) };
 }
 
 /** A stop at the end, with a default leg from the previous one. A place may be added again. */
@@ -23,6 +40,7 @@ export function addStop(route: MapRoute | null, placeId: string): MapRoute {
     ...fixed,
     stops: [...fixed.stops, placeId],
     legs: fixed.stops.length > 0 ? [...fixed.legs, copyLeg(DEFAULT_LEG)] : fixed.legs,
+    ...(fixed.unnumbered ? { unnumbered: [...fixed.unnumbered, false] } : {}),
   };
 }
 
@@ -37,25 +55,35 @@ export function removeStop(route: MapRoute, index: number): MapRoute | null {
   if (index < 0 || index >= fixed.stops.length) return fixed;
   if (fixed.stops.length === 1) return null;
   const legs = fixed.legs.filter((_, i) => i !== Math.min(index, fixed.stops.length - 2));
-  return { ...fixed, stops: fixed.stops.filter((_, i) => i !== index), legs };
+  return {
+    ...fixed,
+    stops: fixed.stops.filter((_, i) => i !== index),
+    legs,
+    ...(fixed.unnumbered ? { unnumbered: fixed.unnumbered.filter((_, i) => i !== index) } : {}),
+  };
 }
 
 /**
- * Move a stop; its leg (the one leaving it) moves with it, so the user's choice of mode and
- * curve stays on the stop they were made for. The last stop has no leg: when it ends up
- * elsewhere it gets a default leg, and the leg of whichever stop becomes last is dropped.
+ * Move a stop; the leg that arrives at it (how the traveller got there: mode, curve) moves with
+ * it. The stop that becomes first drops its arriving leg; the stop that was first, having none,
+ * gets a default leg wherever it lands.
  */
 export function moveStop(route: MapRoute, from: number, to: number): MapRoute {
   const fixed = repairRoute(route);
   const n = fixed.stops.length;
   if (from === to || from < 0 || to < 0 || from >= n || to >= n) return fixed;
-  const slots = fixed.stops.map((id, i) => ({ id, leg: fixed.legs[i] ?? null }));
+  const slots = fixed.stops.map((id, i) => ({
+    id,
+    arrival: i > 0 ? fixed.legs[i - 1]! : null,
+    unnumbered: fixed.unnumbered?.[i] ?? false,
+  }));
   const [moved] = slots.splice(from, 1);
   slots.splice(to, 0, moved!);
   return {
     ...fixed,
     stops: slots.map((s) => s.id),
-    legs: slots.slice(0, -1).map((s) => s.leg ?? copyLeg(DEFAULT_LEG)),
+    legs: slots.slice(1).map((s) => s.arrival ?? copyLeg(DEFAULT_LEG)),
+    ...(fixed.unnumbered ? { unnumbered: slots.map((s) => s.unnumbered) } : {}),
   };
 }
 

@@ -284,6 +284,9 @@
   font-weight: 600;
   color: var(--ink);
 }
+.map-tabpanel[hidden] {
+  display: none;
+}
 .map-tabpanel {
   display: flex;
   flex: 1;
@@ -373,7 +376,7 @@
 }
 .map-stop {
   display: grid;
-  grid-template-columns: 1.4rem 1fr auto auto auto;
+  grid-template-columns: 1.4rem 1fr auto auto auto auto;
   gap: var(--s3);
   align-items: center;
   cursor: grab;
@@ -540,8 +543,14 @@
 }
 .map-nudge {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 2px;
   align-items: center;
+}
+.map-nudge__hint {
+  flex-basis: 100%;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
 }
 .map-nudge__caption {
   margin-right: var(--s2);

@@ -1,6 +1,15 @@
 import type { MapLeg, MapRoute } from '@travelbook/core';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LEG, addStop, moveStop, removeStop, repairRoute, setLeg } from './routeModel';
+import {
+  DEFAULT_LEG,
+  addStop,
+  moveStop,
+  removeStop,
+  repairRoute,
+  setLeg,
+  setStopNumbered,
+  stopNumbered,
+} from './routeModel';
 
 const leg = (mode: MapLeg['mode']): MapLeg => ({ ...DEFAULT_LEG, mode });
 const route = (stops: string[], modes: MapLeg['mode'][]): MapRoute => ({
@@ -63,22 +72,60 @@ describe('removeStop: a leg stays attached to its from stop', () => {
   });
 });
 
-describe('moveStop: legs travel with their from stop', () => {
+describe('moveStop: a stop keeps the leg that arrives at it', () => {
+  // a →(avion) b →(bus) c
   const base = () => route(['a', 'b', 'c'], ['avion', 'bus']);
-  it('moving down', () => {
-    const r = moveStop(base(), 0, 1);
-    expect(r.stops).toEqual(['b', 'a', 'c']);
-    // b had bus, a had avion; c is last and has none
+  it('moving b to the end: a →(bus) c →(avion) b', () => {
+    const r = moveStop(base(), 1, 2);
+    expect(r.stops).toEqual(['a', 'c', 'b']);
     expect(modes(r)).toEqual(['bus', 'avion']);
   });
-  it('moving the last stop up gives it a default leg and drops the new last leg', () => {
-    const r = moveStop(base(), 2, 1);
-    expect(r.stops).toEqual(['a', 'c', 'b']);
-    expect(modes(r)).toEqual(['avion', 'voiture']);
+  it('moving c to the front: c drops its leg, a gets the default one', () => {
+    const r = moveStop(base(), 2, 0);
+    expect(r.stops).toEqual(['c', 'a', 'b']);
+    expect(modes(r)).toEqual(['voiture', 'avion']);
+  });
+  it('moving the first stop down: it gets the default leg', () => {
+    const r = moveStop(base(), 0, 1);
+    expect(r.stops).toEqual(['b', 'a', 'c']);
+    expect(modes(r)).toEqual(['voiture', 'bus']);
+  });
+  it('keeps the curve and the glyph of the leg with its stop', () => {
+    const r0 = route(['a', 'b', 'c'], ['avion', 'bus']);
+    r0.legs[0] = { ...r0.legs[0]!, curve: 'courbe', bend: 0.4, icon: true };
+    const r = moveStop(r0, 1, 2);
+    expect(r.legs[1]).toEqual({ mode: 'avion', curve: 'courbe', bend: 0.4, icon: true });
   });
   it('same index, or out of range, changes nothing', () => {
     expect(moveStop(base(), 1, 1)).toEqual(base());
     expect(moveStop(base(), 1, 5)).toEqual(base());
+  });
+});
+
+describe('per-stop numbers', () => {
+  const base = () => route(['a', 'b', 'c'], ['avion', 'bus']);
+  it('a route without flags numbers every stop; one flag per stop once set', () => {
+    expect([0, 1, 2].map((i) => stopNumbered(base(), i))).toEqual([true, true, true]);
+    const r = setStopNumbered(base(), 1, false);
+    expect(r.unnumbered).toEqual([false, true, false]);
+    expect(stopNumbered(r, 1)).toBe(false);
+    expect(setStopNumbered(r, 1, true).unnumbered).toEqual([false, false, false]);
+  });
+  it('the flag follows its stop when moved, removed, or a stop is added', () => {
+    const r = setStopNumbered(base(), 1, false);
+    expect(moveStop(r, 1, 2).unnumbered).toEqual([false, false, true]);
+    expect(removeStop(r, 0)!.unnumbered).toEqual([true, false]);
+    expect(addStop(r, 'd').unnumbered).toEqual([false, true, false, false]);
+  });
+  it('repair pads and trims the flags, and leaves a route without flags without', () => {
+    expect(repairRoute({ ...base(), unnumbered: [true] }).unnumbered).toEqual([true, false, false]);
+    expect(repairRoute({ ...base(), unnumbered: [false, false, false, true] }).unnumbered).toEqual([
+      false,
+      false,
+      false,
+    ]);
+    expect('unnumbered' in repairRoute(base())).toBe(false);
+    expect('unnumbered' in addStop(base(), 'd')).toBe(false);
   });
 });
 

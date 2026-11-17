@@ -36,6 +36,7 @@
       "color": "#111111",
       "case": "none",
       "letterSpacingEm": 0,
+      "wordSpacingEm": -0.1,
       "halo": {
         "color": "#ffffff",
         "width": 0.9

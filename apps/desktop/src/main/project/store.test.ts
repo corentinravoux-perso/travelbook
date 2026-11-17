@@ -7,6 +7,7 @@ import {
   rename,
   rm,
   stat,
+  utimes,
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -167,6 +168,27 @@ describe('createProject / openProject', () => {
     const { dir } = await createProject({ name: 'Résilient', parentDir });
     await expect(openProject(dir)).resolves.toMatchObject({ dir });
     expect(warn).toHaveBeenCalled();
+  });
+});
+
+describe('unused map geometries', () => {
+  it('opening an album deletes, in the background, the geometry nothing uses', async () => {
+    const { dir, book } = await createProject({ name: 'Cartes', parentDir });
+    const old = new Date(Date.now() - 3_600_000);
+    for (const name of ['0123456789abcdef.json', 'fedcba9876543210.json']) {
+      await writeFile(join(dir, 'assets', name), '{}');
+      await utimes(join(dir, 'assets', name), old, old);
+    }
+    const withMap: Book = {
+      ...book,
+      assets: { 'map-0123456789abcdef': mapAsset() },
+      spreads: book.spreads.map((s, i) => (i === 0 ? { ...s, elements: [mapElement()] } : s)),
+    };
+    await saveBook(dir, withMap);
+    await openProject(dir);
+    await vi.waitFor(async () =>
+      expect(await readdir(join(dir, 'assets'))).toEqual(['0123456789abcdef.json']),
+    );
   });
 });
 

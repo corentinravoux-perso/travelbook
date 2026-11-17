@@ -155,6 +155,69 @@ describe('MapView', () => {
     expect(container.querySelector('[data-element-type="map"]')).not.toBeNull();
   });
 
+  it('keeps "Carte introuvable" on one line at 10 pt in a large frame', () => {
+    const { container } = draw(mapEl({ w: 150, h: 100 }), 'missing');
+    const text = container.querySelector('text')!;
+    expect(Number(text.getAttribute('font-size'))).toBeCloseTo(10 * PT_MM, 3);
+    expect(text.querySelectorAll('tspan')).toHaveLength(0);
+    expect(text.textContent).toBe('Carte introuvable');
+  });
+
+  it('fits "Carte introuvable" in a 20 x 20 mm frame, on two lines', () => {
+    const { container } = draw(mapEl({ w: 20, h: 20 }), 'missing');
+    const text = container.querySelector('text')!;
+    const lines = Array.from(text.querySelectorAll('tspan')).map((t) => t.textContent);
+    expect(lines).toEqual(['Carte', 'introuvable']);
+    const size = Number(text.getAttribute('font-size'));
+    expect(size).toBeGreaterThan(0);
+    expect('introuvable'.length * 0.55 * size).toBeLessThanOrEqual(20);
+    expect(size).toBeLessThanOrEqual(10 * PT_MM);
+  });
+
+  it('shrinks the missing text to the frame, finite even in a zero-size frame', () => {
+    for (const [w, h] of [
+      [8, 3],
+      [0, 0],
+    ] as const) {
+      const { container } = draw(mapEl({ w, h }), 'missing');
+      const size = Number(container.querySelector('text')!.getAttribute('font-size'));
+      expect(Number.isFinite(size)).toBe(true);
+      expect(size * 1.2).toBeLessThanOrEqual(Math.max(h, 0) + 1e-9);
+    }
+  });
+
+  it('sets the word spacing of the labels from the style', () => {
+    const spacing = (el: MapElement) =>
+      draw(el).layer('labels')?.querySelector('[data-label]')?.getAttribute('word-spacing');
+    expect(spacing(mapEl())).toBe('-0.1em');
+    const base = mapEl();
+    const wide = { ...base.style, label: { ...base.style.label, wordSpacingEm: 0.2 } };
+    expect(spacing(mapEl({ style: wide }))).toBe('0.2em');
+  });
+
+  it('keeps the dashes of the legs exact at every zoom (no dash rounded to 0)', () => {
+    const dashOf = (mode: 'avion' | 'bateau', scale: number) =>
+      draw(
+        mapEl({
+          frame: { center: [0, 0], scale },
+          route: {
+            stops: ['a', 'b'],
+            legs: [{ mode, curve: 'droit', bend: 0, icon: false }],
+            numbered: false,
+          },
+        }),
+      )
+        .layer('route')
+        ?.querySelector('path[data-leg]')
+        ?.getAttribute('stroke-dasharray');
+    const bateau = DEFAULT_MAP_STYLE.route.bateau.dash!;
+    const avion = DEFAULT_MAP_STYLE.route.avion.dash!;
+    for (const scale of [0.25, 0.4, 1, 1.57, 6.3]) {
+      expect(dashOf('bateau', scale)).toBe(bateau.map((n) => +(n * scale).toFixed(4)).join(' '));
+      expect(dashOf('avion', scale)).toBe(avion.map((n) => +(n * scale).toFixed(4)).join(' '));
+    }
+  });
+
   it('takes the missing label as a prop', () => {
     const { container } = render(
       <MapView
