@@ -195,6 +195,29 @@ describe('MapView', () => {
     expect(spacing(mapEl({ style: wide }))).toBe('0.2em');
   });
 
+  it('keeps the dashes of the legs exact at every zoom (no dash rounded to 0)', () => {
+    const dashOf = (mode: 'avion' | 'bateau', scale: number) =>
+      draw(
+        mapEl({
+          frame: { center: [0, 0], scale },
+          route: {
+            stops: ['a', 'b'],
+            legs: [{ mode, curve: 'droit', bend: 0, icon: false }],
+            numbered: false,
+          },
+        }),
+      )
+        .layer('route')
+        ?.querySelector('path[data-leg]')
+        ?.getAttribute('stroke-dasharray');
+    const bateau = DEFAULT_MAP_STYLE.route.bateau.dash!;
+    const avion = DEFAULT_MAP_STYLE.route.avion.dash!;
+    for (const scale of [0.25, 0.4, 1, 1.57, 6.3]) {
+      expect(dashOf('bateau', scale)).toBe(bateau.map((n) => +(n * scale).toFixed(4)).join(' '));
+      expect(dashOf('avion', scale)).toBe(avion.map((n) => +(n * scale).toFixed(4)).join(' '));
+    }
+  });
+
   it('takes the missing label as a prop', () => {
     const { container } = render(
       <MapView
