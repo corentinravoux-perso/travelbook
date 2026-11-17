@@ -298,6 +298,14 @@ describe('reopening a map', () => {
     ).toBeNull();
     expect(() => specOf({ ...bad, subject: { ...bad.subject, id: 'XX' } }, null)).not.toThrow();
   });
+
+  it('keeps the stops shown without a number, one flag per stop', () => {
+    const el = mapElement();
+    const route = { stops: ['p1', 'p2', 'p1'], legs: [], numbered: true };
+    const spec = specOf({ ...el, route: { ...route, unnumbered: [false, true] } }, null);
+    expect(spec.route!.unnumbered).toEqual([false, true, false]);
+    expect('unnumbered' in specOf({ ...el, route }, null).route!).toBe(false);
+  });
 });
 
 describe('default places of a region subject', () => {

@@ -253,6 +253,10 @@ export function specOf(el: MapElement, subject: IndexSubject | null): MapSpec {
         (_, i) => el.route!.legs?.[i] ?? DEFAULT_LEG,
       );
       route = { stops, legs: structuredClone(legs), numbered: el.route.numbered };
+      // the stops shown without a number, one flag per stop (absent: all numbered)
+      if (Array.isArray(el.route.unnumbered)) {
+        route.unnumbered = stops.map((_, i) => el.route!.unnumbered?.[i] === true);
+      }
     }
   }
   return structuredClone({
