@@ -10,7 +10,7 @@ const licence = {
   source: 'travelbook',
   author: 'Corentin Ravoux',
   licence: 'MIT',
-  url: 'https://github.com/corentinravoux/travelbook',
+  url: 'https://github.com/corentinravoux-perso/travelbook',
   requiresAttribution: false,
 };
 const svg =

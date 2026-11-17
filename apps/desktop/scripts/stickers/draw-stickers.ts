@@ -81,7 +81,7 @@ export async function recordLicences(): Promise<number> {
     source: 'travelbook',
     author: 'Corentin Ravoux',
     licence: 'MIT',
-    url: 'https://github.com/corentinravoux/travelbook',
+    url: 'https://github.com/corentinravoux-perso/travelbook',
   });
   await writeJson(LICENCES_FILE, doc);
   return files.length;

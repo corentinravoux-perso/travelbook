@@ -5,7 +5,7 @@
   "private": true,
   "description": "Desktop app for composing printed travel photo albums.",
   "author": "Corentin Ravoux",
-  "homepage": "https://github.com/corentinravoux/travelbook",
+  "homepage": "https://github.com/corentinravoux-perso/travelbook",
   "desktopName": "travelbook.desktop",
   "license": "MIT",
   "type": "module",

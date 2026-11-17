@@ -222,7 +222,7 @@ describe('resources/maps/presets', () => {
       source: 'travelbook',
       author: 'Corentin Ravoux',
       licence: 'MIT',
-      url: 'https://github.com/corentinravoux/travelbook',
+      url: 'https://github.com/corentinravoux-perso/travelbook',
     });
     expect([...(entry?.files ?? [])].sort()).toEqual(
       PRESETS.map(([id]) => `maps/presets/${id}.json`).sort(),

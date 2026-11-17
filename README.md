@@ -15,18 +15,18 @@ The interface is in French. Code, comments and documentation are in English.
 ### Latest build of `main`
 
 Every push to `main` rebuilds both installers and attaches them, under fixed names, to the
-pre-release [`latest`](https://github.com/corentinravoux/travelbook/releases/tag/latest):
+pre-release [`latest`](https://github.com/corentinravoux-perso/travelbook/releases/tag/latest):
 
-| System        | File                    | Direct link                                                                                   |
-| ------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
-| Windows (x64) | `travelbook-latest.exe` | <https://github.com/corentinravoux/travelbook/releases/download/latest/travelbook-latest.exe> |
-| Linux (x64)   | `travelbook-latest.deb` | <https://github.com/corentinravoux/travelbook/releases/download/latest/travelbook-latest.deb> |
+| System        | File                    | Direct link                                                                                         |
+| ------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| Windows (x64) | `travelbook-latest.exe` | <https://github.com/corentinravoux-perso/travelbook/releases/download/latest/travelbook-latest.exe> |
+| Linux (x64)   | `travelbook-latest.deb` | <https://github.com/corentinravoux-perso/travelbook/releases/download/latest/travelbook-latest.deb> |
 
 The repository is private: the links work only for a GitHub account with access to it, logged in.
 From a terminal, the GitHub CLI fetches both files:
 
 ```sh
-gh release download latest -R corentinravoux/travelbook -D ~/Downloads/travelbook-latest
+gh release download latest -R corentinravoux-perso/travelbook -D ~/Downloads/travelbook-latest
 ```
 
 Versioned releases (tags `vX.Y.Z`) carry the version in the file names, as below.

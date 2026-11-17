@@ -29,7 +29,7 @@ export interface BackgroundEntry {
   url: string;
 }
 
-const REPO_URL = 'https://github.com/corentinravoux/travelbook';
+const REPO_URL = 'https://github.com/corentinravoux-perso/travelbook';
 const SCRIPT_PATH = 'apps/desktop/scripts/build-backgrounds.ts';
 
 export function entries(): BackgroundEntry[] {

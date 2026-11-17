@@ -698,7 +698,9 @@ describe('the Wikidata client', () => {
   });
 
   it('sends the generic User-Agent, never a personal address', async () => {
-    expect(USER_AGENT).toBe('travelbook-build/0.1 (https://github.com/corentinravoux/travelbook)');
+    expect(USER_AGENT).toBe(
+      'travelbook-build/0.1 (https://github.com/corentinravoux-perso/travelbook)',
+    );
     expect(USER_AGENT).not.toMatch(/@/);
     let seen: Headers | undefined;
     const fake = (async (_url: string, init?: RequestInit) => {
