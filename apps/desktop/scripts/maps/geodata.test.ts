@@ -1689,6 +1689,8 @@ describe('the perspectives of the divisions', () => {
     const fixture = JSON.parse(
       readFileSync(new URL('./dependencies-2026-10-21.0.json', import.meta.url), 'utf8'),
     ) as { overture: string; dependencies: string[] };
+    // A release bump without a new fixture must fail here.
+    expect(fixture.overture).toBe(OVERTURE_RELEASE);
     const catalogFile = join(CACHE_DIR, `overture-${fixture.overture}`, 'catalog.json');
     if (existsSync(catalogFile)) {
       const cached = JSON.parse(readFileSync(catalogFile, 'utf8')) as CatalogEntry[];
