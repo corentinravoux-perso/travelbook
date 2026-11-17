@@ -277,27 +277,65 @@ describe('default places of a region subject', () => {
 });
 
 describe('placesInRegions', () => {
-  const it_ = () => getSubject('IT')!;
-  const places = async () => JSON.parse(read('places/IT.json')).places as BundledPlace[];
-  const base = () => JSON.parse(read('subjects/IT.topo.json'));
+  const subjectOf = (id: string) => getSubject(id)!;
+  const placesOf = (iso: string) => JSON.parse(read(`places/${iso}.json`)).places as BundledPlace[];
+  const baseOf = (id: string) => JSON.parse(read(`subjects/${id}.topo.json`));
+  const names = (id: string, iso: string, regions: string[], withBase = true) =>
+    placesInRegions(placesOf(iso), subjectOf(id), regions, withBase ? baseOf(id) : null).map(
+      (p) => p.name,
+    );
 
-  it('keeps the places inside the region polygon: Reggio di Calabria is out, Messine in', async () => {
-    const names = placesInRegions(await places(), it_(), ['IT-82'], base()).map((p) => p.name);
-    expect(names).toEqual(expect.arrayContaining(['Palerme', 'Catane', 'Messine']));
-    expect(names).not.toContain('Reggio de Calabre');
-    expect(names).not.toContain('Rome');
+  it('Sicily keeps Messine, Palerme and Catane, and not Reggio de Calabre or Rome', () => {
+    const sicily = names('IT', 'IT', ['IT-82']);
+    expect(sicily).toEqual(expect.arrayContaining(['Palerme', 'Catane', 'Messine']));
+    expect(sicily).not.toContain('Reggio de Calabre');
+    expect(sicily).not.toContain('Rome');
   });
 
-  it('falls back to the bbox of a region the base has no geometry for', async () => {
-    const empty = { ...base(), objects: {} };
-    const names = placesInRegions(await places(), it_(), ['IT-82'], empty).map((p) => p.name);
-    expect(names).toContain('Reggio de Calabre');
-    expect(names).not.toContain('Rome');
+  it('Reggio de Calabre belongs to Calabria', () => {
+    expect(names('IT', 'IT', ['IT-78'])).toContain('Reggio de Calabre');
   });
 
-  it('without a base it is the bbox test', async () => {
-    const names = placesInRegions(await places(), it_(), ['IT-82']).map((p) => p.name);
-    expect(names).toContain('Reggio de Calabre');
+  it('coastal places just outside a simplified polygon stay with their region', () => {
+    expect(names('IT', 'IT', ['IT-52'])).toContain('Livourne');
+    expect(names('IT', 'IT', ['IT-88'])).toContain('Olbia');
+  });
+
+  it('an island place stays with its region: Mykonos in the Southern Aegean', () => {
+    expect(names('GR', 'GR', ['GR-L'])).toContain('Mykonos');
+    expect(names('GR', 'GR', ['GR-I'])).not.toContain('Mykonos');
+  });
+
+  it('a place in the sea 30 km offshore belongs to no region', () => {
+    const sight: BundledPlace = {
+      ref: 'wd:test',
+      kind: 'sight',
+      name: 'Épave',
+      lon: 14.0,
+      lat: 36.3,
+      rank: 0,
+    };
+    for (const id of ['IT-82', 'IT-78']) {
+      expect(placesInRegions([sight], subjectOf('IT'), [id], baseOf('IT'))).toEqual([]);
+    }
+  });
+
+  it('two chosen regions keep the places of both', () => {
+    const both = names('IT', 'IT', ['IT-82', 'IT-78']);
+    expect(both).toEqual(expect.arrayContaining(['Palerme', 'Reggio de Calabre']));
+  });
+
+  it('falls back to the bbox when the base has no region geometry', () => {
+    const empty = { ...baseOf('IT'), objects: {} };
+    const list = placesInRegions(placesOf('IT'), subjectOf('IT'), ['IT-82'], empty).map(
+      (p) => p.name,
+    );
+    expect(list).toContain('Reggio de Calabre');
+    expect(list).not.toContain('Rome');
+  });
+
+  it('without a base it is the bbox test', () => {
+    expect(names('IT', 'IT', ['IT-82'], false)).toContain('Reggio de Calabre');
   });
 
   it('a Sicily pick leaves Reggio di Calabre out of the default places', async () => {

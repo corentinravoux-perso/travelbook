@@ -219,6 +219,30 @@ describe('preset chips', () => {
   });
 });
 
+describe('a bake that was cancelled', () => {
+  it('is not a failure: no alert, nothing logged', async () => {
+    const { BakeCancelled } = await import('./bakeClient');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.mocked(bake).mockRejectedValueOnce(new BakeCancelled('Superseded'));
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    await waitFor(() => expect(vi.mocked(bake)).toHaveBeenCalledTimes(1));
+    await act(() => new Promise<void>((r) => setTimeout(r, 30)));
+    expect(within(dialog()).queryByText(t.bakeFailed)).toBeNull();
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
+  });
+
+  it('a real bake error is shown', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.mocked(bake).mockRejectedValueOnce(new Error('boom'));
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    expect(await within(dialog()).findByText(t.bakeFailed)).toBeTruthy();
+    error.mockRestore();
+  });
+});
+
 describe('the native cancel of the dialog', () => {
   it('is blocked while the map is being placed, and closes the dialog otherwise', async () => {
     await openFromPanel();

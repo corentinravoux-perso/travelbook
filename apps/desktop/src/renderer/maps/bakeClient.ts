@@ -31,6 +31,9 @@ export type BakeRequest = {
 export type BakeReply =
   { id: number; ok: true; geometry: MapGeometry } | { id: number; ok: false; error: string };
 
+/** A bake that was dropped on purpose (a newer one replaced it, or the dialog closed): not a failure. */
+export class BakeCancelled extends Error {}
+
 /** How long to wait after the last change before baking: a worker is free, the main thread is not. */
 export const DEBOUNCE_WORKER_MS = 150;
 export const DEBOUNCE_MAIN_MS = 300;
@@ -156,13 +159,13 @@ export async function bake(input: BakeInput): Promise<MapGeometry> {
   if (!w) return bakeHere(input);
   try {
     return await new Promise<MapGeometry>((resolve, reject) => {
-      waiting?.reject(new Error('Superseded'));
+      waiting?.reject(new BakeCancelled('Superseded'));
       waiting = { input, resolve, reject };
       next(w);
     });
   } catch (error) {
     // the worker died under this job: a failed bake is the worker's, not the data's
-    if (broken && !(error instanceof Error && error.message === 'Superseded')) {
+    if (broken && !(error instanceof BakeCancelled)) {
       return bakeHere(input);
     }
     throw error;
@@ -173,9 +176,9 @@ export async function bake(input: BakeInput): Promise<MapGeometry> {
 export function stopBakeWorker(): void {
   worker?.terminate();
   worker = null;
-  for (const job of [...pending.values()]) job.reject(new Error('Closed'));
+  for (const job of [...pending.values()]) job.reject(new BakeCancelled('Closed'));
   pending.clear();
-  waiting?.reject(new Error('Closed'));
+  waiting?.reject(new BakeCancelled('Closed'));
   waiting = null;
   running = null;
 }

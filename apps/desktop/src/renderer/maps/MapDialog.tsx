@@ -213,6 +213,7 @@ function Presets({ style }: { style: MapStyle | null }) {
   );
 }
 
+/** The layers and the background. Off until a subject is picked. */
 function Layers({ spec }: { spec: MapSpec | null }) {
   const flag = (key: 'showRegions' | 'showNeighbours' | 'includeRemote', label: string) => (
     <label className="check">
