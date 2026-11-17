@@ -102,8 +102,37 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       ).toBeDisabled();
     });
 
+    await test.step('itinerary: Bangkok, Chiang Mai (avion), Phuket (bus), numbered', async () => {
+      const places = dialog.getByRole('group', { name: 'Lieux' });
+      const route = dialog.getByRole('group', { name: 'Itinéraire' });
+      const preview = dialog.getByLabel('Aperçu de la carte');
+      await places.getByRole('searchbox', { name: 'Lieu à ajouter' }).fill('phuket');
+      await places.getByRole('option', { name: 'Phuket', exact: true }).click();
+      const add = route.getByRole('combobox', { name: 'Étape à ajouter' });
+      for (const name of ['Bangkok', 'Chiang Mai', 'Phuket']) {
+        await add.selectOption({ label: name });
+      }
+      await route.getByLabel('Mode du trajet 1').selectOption('avion');
+      await route.getByLabel('Pictogramme du trajet 1').check();
+      await route.getByLabel('Mode du trajet 2').selectOption('bus');
+      await route.getByLabel('Forme du trajet 2').selectOption('courbe');
+      await route.getByLabel('Courbure du trajet 2').fill('0.4');
+      await expect(preview.locator('[data-layer="route"] path').first()).toBeVisible();
+      await expect(preview.locator('[data-layer="badges"] text')).toHaveText(['1', '2', '3']);
+      // a tall window for the picture only: the dialog fits whole
+      const size = page.viewportSize();
+      await page.setViewportSize({ width: 1280, height: 1250 });
+      await dialog.evaluate((el) => el.scrollTo(0, 0));
+      await page.screenshot({ path: shot('task18-route') });
+      if (size) await page.setViewportSize(size);
+      await route.getByRole('button', { name: 'Descendre l’étape 1 (Bangkok)' }).click();
+      await expect(preview.locator('[data-layer="badges"] text')).toHaveCount(3);
+      await route.getByRole('button', { name: 'Monter l’étape 2 (Bangkok)' }).click();
+    });
+
     await test.step('wheel zooms, drag pans, Recentrer goes back', async () => {
       const preview = dialog.getByLabel('Aperçu de la carte');
+      await preview.scrollIntoViewIfNeeded();
       const box = (await preview.boundingBox())!;
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.wheel(0, -400);
