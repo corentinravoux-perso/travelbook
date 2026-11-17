@@ -16,9 +16,12 @@ import { editorStore } from '../store/editor';
 import {
   getSubject,
   loadPlaces,
+  loadSubjectData,
   loadSubjectIndex,
   type BundledPlace,
   type IndexSubject,
+  type PackFallback,
+  type SubjectData,
 } from './subjects';
 
 /** What the dialog edits: the map element without its box, its name and its baked geometry. */
@@ -27,8 +30,7 @@ export type MapSpec = Pick<
   'subject' | 'frame' | 'projection' | 'style' | 'places' | 'route' | 'medallions' | 'background'
 >;
 
-/** Why the fine outline of a subject was not used: see `PackResult` (Task 14). */
-export type PackFallback = 'offline' | 'checksum' | 'unknown';
+export type { PackFallback };
 
 export interface MapTarget {
   spreadId: string;
@@ -46,8 +48,8 @@ export interface MapDialogState {
   /** The subject's bundled cities and sights, for the place lists. */
   bundled: BundledPlace[];
   /**
-   * Set by the last apply when the subject's fine pack could not be had and the base file was
-   * used instead (the dialog says so); `null` otherwise.
+   * Set from the pick (or the reopening) of a subject whose fine pack could not be had: the base
+   * file is used instead and the dialog says so; `null` otherwise.
    */
   packFallback: PackFallback | null;
   status: 'idle' | 'applying' | 'failed';
@@ -200,12 +202,35 @@ export function specOf(el: MapElement, subject: IndexSubject | null): MapSpec {
   });
 }
 
-/** Ignore the answer of a subject loaded before a newer choice. */
+/** Ignore the answer of a subject loaded before a newer choice. Bumped by open, pick and close. */
 let choice = 0;
+
+/** Tells whether the dialog is still the one an async job started in (open, not replaced). */
+export const dialogToken = (): number => choice;
+
+let loadedData: { id: string; promise: Promise<SubjectData> } | null = null;
+
+/**
+ * The base file and fine pack of a subject, loaded once per dialog session: the preview and the
+ * apply share them. A failed load is not kept.
+ */
+export function subjectData(subjectId: string): Promise<SubjectData> {
+  if (loadedData?.id === subjectId) return loadedData.promise;
+  const entry = {
+    id: subjectId,
+    promise: loadSubjectData(subjectId).catch((error: unknown) => {
+      if (loadedData === entry) loadedData = null;
+      throw error;
+    }),
+  };
+  loadedData = entry;
+  return entry.promise;
+}
 
 /** Close the dialog and forget its state. */
 export function closeMapDialog(): void {
   choice += 1;
+  loadedData = null;
   mapDialogStore.setState(idle(), true);
 }
 
@@ -236,21 +261,30 @@ export async function openMapDialog(target?: MapTarget): Promise<void> {
     spec: specOf(el, subject),
   });
   if (subject) {
-    const bundled = await loadPlaces(subject);
-    if (mine === choice) mapDialogStore.setState({ bundled });
+    const [bundled, data] = await Promise.all([
+      loadPlaces(subject),
+      subjectData(subject.id).catch(() => null),
+    ]);
+    if (mine === choice) {
+      mapDialogStore.setState({ bundled, packFallback: data?.packFallback ?? null });
+    }
   }
 }
 
 /** Start a new map of a subject (or change the subject of the one being edited): default places. */
-export async function pickSubject(subjectId: string): Promise<void> {
+export async function pickSubject(subjectId: string, regionId?: string): Promise<void> {
   const mine = ++choice;
   const index = await loadSubjectIndex();
   const subject = getSubject(subjectId, index);
   if (!subject || mine !== choice) return;
-  const bundled = await loadPlaces(subject);
+  const [bundled, data] = await Promise.all([
+    loadPlaces(subject),
+    subjectData(subject.id).catch(() => null),
+  ]);
   if (mine !== choice) return;
   const area = reopenedArea() ?? frameArea();
   const base = newSpec(subject);
+  if (regionId !== undefined) base.subject.regions = [regionId];
   const previous = mapDialogStore.getState().spec;
   mapDialogStore.setState({
     name: subject.name,
@@ -268,7 +302,9 @@ export async function pickSubject(subjectId: string): Promise<void> {
         : {}),
       places: defaultPlaces(bundled, area),
     },
-    packFallback: null,
+    packFallback: data?.packFallback ?? null,
+    status: 'idle',
+    error: null,
   });
 }
 
