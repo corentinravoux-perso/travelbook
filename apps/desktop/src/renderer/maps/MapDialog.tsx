@@ -1,4 +1,11 @@
-import { normalizeStyle, type MapGeometry, type MapPreset, type MapStyle } from '@travelbook/core';
+import {
+  normalizeStyle,
+  styleColours,
+  withTemplateColours,
+  type MapGeometry,
+  type MapPreset,
+  type MapStyle,
+} from '@travelbook/core';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -168,8 +175,9 @@ function useBuiltInStyles(): Record<string, MapStyle> {
 }
 
 /**
- * The six built-in styles, then the user's own. A chip copies the style into the map; the chip
- * whose style equals the map's current one is pressed, none once it was edited.
+ * The six built-in styles, then the user's own. A chip copies the template's COLOURS into the map
+ * and keeps everything else the user chose (sizes, widths, fonts, markers, dashes, hand-drawn);
+ * the chip whose colours equal the map's is pressed, none once a colour was edited.
  */
 function Presets({ style }: { style: MapStyle | null }) {
   const mine = useStyleTemplates((s) => s.mine);
@@ -180,7 +188,13 @@ function Presets({ style }: { style: MapStyle | null }) {
   const same = (candidate: unknown): boolean =>
     style !== null &&
     candidate !== undefined &&
-    JSON.stringify(style) === JSON.stringify(normalizeStyle(candidate));
+    JSON.stringify(styleColours(style)) === JSON.stringify(styleColours(normalizeStyle(candidate)));
+  const apply = (template: unknown) => {
+    const now = mapDialogStore.getState().spec?.style ?? null;
+    void updateSpec({
+      style: now ? withTemplateColours(now, template) : normalizeStyle(template),
+    });
+  };
   return (
     <div className="map-chips" role="group" aria-label={t.presetsGroup}>
       {BUILT_IN.map((id) => (
@@ -190,7 +204,7 @@ function Presets({ style }: { style: MapStyle | null }) {
           className="map-chip"
           aria-pressed={same(builtIn[id])}
           disabled={builtIn[id] === undefined}
-          onClick={() => void updateSpec({ style: normalizeStyle(builtIn[id]) })}
+          onClick={() => apply(builtIn[id])}
         >
           {t.presetNames[id]}
         </button>
@@ -201,7 +215,7 @@ function Presets({ style }: { style: MapStyle | null }) {
           type="button"
           className="map-chip"
           aria-pressed={same(p.style)}
-          onClick={() => void updateSpec({ style: normalizeStyle(p.style) })}
+          onClick={() => apply(p.style)}
         >
           {p.name}
         </button>

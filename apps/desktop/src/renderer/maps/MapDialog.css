@@ -212,9 +212,16 @@
   background: none;
 }
 
-.map-preview__paper [data-label] {
+/* what can be dragged on its own; the rest of the map is a surface to pan */
+.map-preview__paper [data-label],
+.map-preview__paper [data-medallion],
+.map-preview__paper [data-place][data-custom] {
   pointer-events: auto;
   cursor: move;
+}
+/* a medallion is grabbed anywhere inside its ring, not only on the photo */
+.map-preview__paper [data-medallion] [data-ring] {
+  pointer-events: all;
 }
 .map-dialog__main {
   display: grid;
@@ -330,7 +337,7 @@
 }
 .map-place {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 4.2rem auto auto auto 1.6rem;
+  grid-template-columns: auto minmax(0, 1fr) 4.2rem auto 1.6rem;
   gap: var(--s3);
   align-items: center;
 }
@@ -505,7 +512,36 @@
 .map-place__photo {
   grid-column: 2 / -1;
   display: flex;
+  flex-wrap: wrap;
   gap: var(--s3);
+  align-items: center;
+}
+/* a place's second line: its type, its marker, where its label is */
+.map-place__more {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s3);
+  align-items: center;
+}
+.map-place__select {
+  flex: 1 1 7rem;
+  width: auto;
+  min-width: 0;
+}
+.map-nudge {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+.map-nudge__caption {
+  margin-right: var(--s2);
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.map-nudge__btn {
+  min-width: 1.6rem;
+  padding-inline: var(--s2);
 }
 .map-dialog {
   position: relative;

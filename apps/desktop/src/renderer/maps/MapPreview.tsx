@@ -1,4 +1,10 @@
-import { MM_TO_PX, type MapElement, type MapGeometry, type Spread } from '@travelbook/core';
+import {
+  frameZoom,
+  MM_TO_PX,
+  type MapElement,
+  type MapGeometry,
+  type Spread,
+} from '@travelbook/core';
 import { SpreadView } from '@travelbook/render';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { assetUrl } from '../editor/assetUrl';
@@ -132,7 +138,9 @@ function useRoom(ref: React.RefObject<HTMLElement | null>): { w: number; h: numb
 
 /**
  * The map as it will be placed, drawn by the real renderer in the proportions of its box. The
- * wheel zooms about the pointer, dragging pans; both set `frame` and never bake again.
+ * wheel zooms about the pointer, dragging pans; both set `frame` and never bake again. Labels,
+ * medallions and the places the user added are dragged on their own: the CSS lets only those take
+ * the pointer, the rest of the map is a surface to pan.
  */
 export function MapPreview({
   spec,
@@ -216,7 +224,9 @@ export function MapPreview({
     const place = first?.places[index];
     if (!first || !g || !place) return;
     const point = placePointMm(g, b, first, place.lon, place.lat);
-    const start = drawnLabelOffset(surface.current ?? document, placeId, point);
+    // offsets are kept at zoom 1: the preview draws them `zoom` times larger
+    const zoom = frameZoom(first.frame);
+    const start = drawnLabelOffset(surface.current ?? document, placeId, point, zoom);
     if (!start) return;
     const from = { x: e.clientX, y: e.clientY };
     let moved = false;
@@ -231,8 +241,8 @@ export function MapPreview({
       void updateSpec({
         places: patchPlace(s.places, at, {
           labelOffset: {
-            dx: start.dx + dx / live.current.pxPerMm,
-            dy: start.dy + dy / live.current.pxPerMm,
+            dx: start.dx + dx / (live.current.pxPerMm * zoom),
+            dy: start.dy + dy / (live.current.pxPerMm * zoom),
           },
         }),
       });
@@ -250,9 +260,11 @@ export function MapPreview({
   /** A medallion is dragged: its offset (mm from the point) follows the pointer. */
   const dragMedallion = (node: Element, e: React.PointerEvent<HTMLDivElement>) => {
     const placeId = node.getAttribute('data-medallion') ?? '';
-    const first = mapDialogStore.getState().spec?.places.find((p) => p.id === placeId);
-    if (!first?.photo) return;
+    const spec = mapDialogStore.getState().spec;
+    const first = spec?.places.find((p) => p.id === placeId);
+    if (!spec || !first?.photo) return;
     const start = first.photo.offset;
+    const zoom = frameZoom(spec.frame);
     const from = { x: e.clientX, y: e.clientY };
     let moved = false;
     const move = (ev: PointerEvent) => {
@@ -269,12 +281,52 @@ export function MapPreview({
           photo: {
             ...photo,
             offset: {
-              dx: start.dx + dx / live.current.pxPerMm,
-              dy: start.dy + dy / live.current.pxPerMm,
+              dx: start.dx + dx / (live.current.pxPerMm * zoom),
+              dy: start.dy + dy / (live.current.pxPerMm * zoom),
             },
           },
         }),
       });
+    };
+    const end = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  };
+
+  /** A place the user added is dragged: it moves to the point under the pointer. */
+  const dragPlace = (node: Element, e: React.PointerEvent<HTMLDivElement>) => {
+    const placeId = node.getAttribute('data-place') ?? '';
+    const first = mapDialogStore.getState().spec;
+    const { geometry: g, box: b } = live.current;
+    const place = first?.places.find((p) => p.id === placeId);
+    if (!first || !g || !place) return;
+    const point = placePointMm(g, b, first, place.lon, place.lat);
+    if (!point) return;
+    const from = { x: e.clientX, y: e.clientY };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - from.x;
+      const dy = ev.clientY - from.y;
+      if (!moved && Math.hypot(dx, dy) < DRAG_SLOP_PX) return;
+      moved = true;
+      const s = mapDialogStore.getState().spec;
+      const k = live.current.pxPerMm;
+      const at = s?.places.findIndex((p) => p.id === placeId) ?? -1;
+      if (!s || at < 0 || !live.current.geometry) return;
+      const [lon, lat] = lonLatAtMm(
+        live.current.geometry,
+        live.current.box,
+        s,
+        point[0] + dx / k,
+        point[1] + dy / k,
+      );
+      if (!Number.isFinite(lon) || !Number.isFinite(lat)) return;
+      void updateSpec({ places: patchPlace(s.places, at, { lon, lat }) });
     };
     const end = () => {
       window.removeEventListener('pointermove', move);
@@ -308,6 +360,11 @@ export function MapPreview({
     const medallion = (e.target as Element).closest?.('[data-medallion]');
     if (medallion) {
       dragMedallion(medallion, e);
+      return;
+    }
+    const custom = (e.target as Element).closest?.('[data-place][data-custom]');
+    if (custom) {
+      dragPlace(custom, e);
       return;
     }
     let last = { x: e.clientX, y: e.clientY };

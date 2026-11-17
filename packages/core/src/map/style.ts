@@ -110,3 +110,37 @@ export function normalizeStyle(raw: unknown): MapStyle {
   // Every issue was put back to a default that is valid: the second parse cannot fail.
   return second.success ? second.data : clone(DEFAULT_MAP_STYLE);
 }
+
+/** The keys of a style that hold a paint: a CSS colour, or `null` for not painted. */
+const PAINT_KEYS = new Set(['fill', 'stroke', 'color', 'text', 'ringColor']);
+
+/** Every paint of a style, by its path: what a template brings to a map. */
+export function styleColours(style: MapStyle): Record<string, string | null> {
+  const out: Record<string, string | null> = {};
+  const walk = (node: Json, at: string) => {
+    for (const [key, value] of Object.entries(node)) {
+      const path = at ? `${at}.${key}` : key;
+      if (PAINT_KEYS.has(key) && (typeof value === 'string' || value === null)) out[path] = value;
+      else if (isRecord(value)) walk(value, path);
+    }
+  };
+  walk(style as unknown as Json, '');
+  return out;
+}
+
+/**
+ * `style` with the colours of `template` (fills, strokes, text, rings; a `null` "not painted"
+ * included) and nothing else: the user's sizes, widths, fonts, markers, dashes and hand-drawn
+ * outline are kept when they switch templates. Both are normalized first; the result is new.
+ */
+export function withTemplateColours(style: unknown, template: unknown): MapStyle {
+  const into = normalizeStyle(style) as unknown as Json;
+  for (const [path, value] of Object.entries(styleColours(normalizeStyle(template)))) {
+    const keys = path.split('.');
+    const last = keys.pop() as string;
+    let node = into;
+    for (const key of keys) node = node[key] as Json;
+    node[last] = value;
+  }
+  return into as unknown as MapStyle;
+}

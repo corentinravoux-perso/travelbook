@@ -1,4 +1,15 @@
-import type { AssetRef, MapGeometry, MapPlace, MapTopology } from '@travelbook/core';
+import {
+  frameZoom,
+  MAP_MARKERS,
+  MAP_PLACE_KINDS,
+  placeKind,
+  type AssetRef,
+  type MapGeometry,
+  type MapMarker,
+  type MapPlace,
+  type MapPlaceKind,
+  type MapTopology,
+} from '@travelbook/core';
 import { useEffect, useId, useState } from 'react';
 import { PhotoChoice } from '../panels/PhotoPicker';
 import { useEditor } from '../store/editor';
@@ -24,7 +35,7 @@ import { getSubject } from './subjects';
 
 const t = fr.maps.places;
 
-/** One arrow key press moves a label by this, mm; with Shift by `NUDGE_BIG_MM`. */
+/** One click (or arrow key) moves a label or a medallion by this, mm; with Shift by `NUDGE_BIG_MM`. */
 const NUDGE_MM = 0.5;
 const NUDGE_BIG_MM = 2;
 const ARROWS: Record<string, [number, number]> = {
@@ -33,6 +44,62 @@ const ARROWS: Record<string, [number, number]> = {
   ArrowUp: [0, -1],
   ArrowDown: [0, 1],
 };
+/** The four buttons of a nudge pad, in reading order. */
+const PAD: { key: keyof typeof t.directions; glyph: string; dir: [number, number] }[] = [
+  { key: 'left', glyph: '←', dir: [-1, 0] },
+  { key: 'up', glyph: '↑', dir: [0, -1] },
+  { key: 'down', glyph: '↓', dir: [0, 1] },
+  { key: 'right', glyph: '→', dir: [1, 0] },
+];
+
+/**
+ * Four arrow buttons that move something by `NUDGE_MM` per click (`NUDGE_BIG_MM` with Shift); the
+ * arrow keys do the same while one of them has the focus.
+ */
+function NudgePad({
+  caption,
+  label,
+  hint,
+  disabled,
+  onMove,
+  children,
+}: {
+  caption: string;
+  label: (direction: string) => string;
+  hint: string;
+  disabled: boolean;
+  onMove: (dx: number, dy: number) => void;
+  children?: React.ReactNode;
+}) {
+  const step = (shift: boolean, dir: [number, number]) => {
+    const mm = shift ? NUDGE_BIG_MM : NUDGE_MM;
+    onMove(dir[0] * mm, dir[1] * mm);
+  };
+  return (
+    <span className="map-nudge" role="group" aria-label={caption} title={hint}>
+      <span className="map-nudge__caption">{caption}</span>
+      {PAD.map(({ key, glyph, dir }) => (
+        <button
+          key={key}
+          type="button"
+          className="button map-nudge__btn"
+          aria-label={label(t.directions[key])}
+          disabled={disabled}
+          onClick={(e) => step(e.shiftKey, dir)}
+          onKeyDown={(e) => {
+            const arrow = ARROWS[e.key];
+            if (!arrow) return;
+            e.preventDefault();
+            step(e.shiftKey, arrow);
+          }}
+        >
+          {glyph}
+        </button>
+      ))}
+      {children}
+    </span>
+  );
+}
 
 /** A new medallion: 28 mm across, 30 mm above its point, the photo centred. */
 const MEDALLION_DIAMETER_MM = 28;
@@ -40,7 +107,10 @@ const MEDALLION_OFFSET_MM = { dx: 0, dy: -30 };
 
 const setPlaces = (places: MapPlace[]) => void updateSpec({ places });
 
-/** One place: shown, its name (renamable), label shown, label position, removal of a clicked one. */
+/**
+ * One place: shown, its name (renamable), icon size, label shown, removal of a clicked one; below,
+ * what it is drawn as (type, marker) and the positions of its label and medallion.
+ */
 function PlaceRow({
   row,
   spec,
@@ -58,28 +128,18 @@ function PlaceRow({
 }) {
   const { index, place } = row;
   const patch = (p: Partial<MapPlace>) => setPlaces(patchPlace(spec.places, index, p));
-  const nudge = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    const dir = ARROWS[e.key];
-    if (!dir) return;
-    e.preventDefault();
-    const step = e.shiftKey ? NUDGE_BIG_MM : NUDGE_MM;
+  const kind = placeKind(place);
+  const nudge = (dx: number, dy: number) => {
     const point = geometry ? placePointMm(geometry, box, spec, place.lon, place.lat) : null;
+    const preview = document.querySelector('.map-preview') ?? document;
     const from = place.labelOffset ??
-      drawnLabelOffset(document.querySelector('.map-preview') ?? document, place.id, point) ?? {
-        dx: 0,
-        dy: 0,
-      };
-    patch({ labelOffset: { dx: from.dx + dir[0] * step, dy: from.dy + dir[1] * step } });
+      drawnLabelOffset(preview, place.id, point, frameZoom(spec.frame)) ?? { dx: 0, dy: 0 };
+    patch({ labelOffset: { dx: from.dx + dx, dy: from.dy + dy } });
   };
-  const nudgePhoto = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    const dir = ARROWS[e.key];
-    if (!dir || !place.photo) return;
-    e.preventDefault();
-    const step = e.shiftKey ? NUDGE_BIG_MM : NUDGE_MM;
-    const { dx, dy } = place.photo.offset;
-    patch({
-      photo: { ...place.photo, offset: { dx: dx + dir[0] * step, dy: dy + dir[1] * step } },
-    });
+  const nudgePhoto = (dx: number, dy: number) => {
+    if (!place.photo) return;
+    const at = place.photo.offset;
+    patch({ photo: { ...place.photo, offset: { dx: at.dx + dx, dy: at.dy + dy } } });
   };
   return (
     <li className="map-place">
@@ -116,26 +176,6 @@ function PlaceRow({
         disabled={!place.shown}
         onChange={(e) => patch({ labelShown: e.target.checked })}
       />
-      <button
-        type="button"
-        className="button map-place__btn"
-        aria-label={t.nudge(place.label)}
-        title={t.nudgeHint}
-        disabled={!place.shown || !place.labelShown}
-        onKeyDown={nudge}
-      >
-        ↔
-      </button>
-      <button
-        type="button"
-        className="button map-place__btn"
-        aria-label={t.autoPositionOf(place.label)}
-        title={t.autoPosition}
-        disabled={place.labelOffset === null}
-        onClick={() => patch({ labelOffset: null })}
-      >
-        A
-      </button>
       {place.source.kind === 'custom' ? (
         <button
           type="button"
@@ -148,6 +188,55 @@ function PlaceRow({
       ) : (
         <span />
       )}
+      <div className="map-place__more">
+        <select
+          className="input map-place__select"
+          aria-label={t.kind(place.label)}
+          title={t.kindHint}
+          value={kind}
+          onChange={(e) => patch({ kind: e.target.value as MapPlaceKind })}
+        >
+          {MAP_PLACE_KINDS.map((k) => (
+            <option key={k} value={k}>
+              {fr.maps.style.markerKinds[k]}
+            </option>
+          ))}
+        </select>
+        <select
+          className="input map-place__select"
+          aria-label={t.marker(place.label)}
+          value={place.marker ?? ''}
+          disabled={!place.shown}
+          onChange={(e) => patch({ marker: (e.target.value || null) as MapMarker | null })}
+        >
+          <option value="">
+            {t.markerOfStyle(fr.maps.style.shapes[spec.style.markers[kind].kind] ?? '')}
+          </option>
+          {MAP_MARKERS.map((m) => (
+            <option key={m} value={m}>
+              {fr.maps.style.shapes[m]}
+            </option>
+          ))}
+        </select>
+        <NudgePad
+          caption={t.labelCaption}
+          label={(d) => t.nudge(place.label, d)}
+          hint={t.nudgeHint}
+          disabled={!place.shown || !place.labelShown}
+          onMove={nudge}
+        >
+          <button
+            type="button"
+            className="button map-nudge__btn"
+            aria-label={t.autoPositionOf(place.label)}
+            title={t.autoPosition}
+            disabled={place.labelOffset === null}
+            onClick={() => patch({ labelOffset: null })}
+          >
+            A
+          </button>
+        </NudgePad>
+      </div>
       {medallions && (
         <div className="map-place__photo">
           <button
@@ -160,15 +249,13 @@ function PlaceRow({
           </button>
           {place.photo && (
             <>
-              <button
-                type="button"
-                className="button map-place__btn"
-                aria-label={t.photoNudge(place.label)}
-                title={t.photoNudgeHint}
-                onKeyDown={nudgePhoto}
-              >
-                ↔
-              </button>
+              <NudgePad
+                caption={t.photoCaption}
+                label={(d) => t.photoNudge(place.label, d)}
+                hint={t.photoNudgeHint}
+                disabled={false}
+                onMove={nudgePhoto}
+              />
               <button
                 type="button"
                 className="button map-place__btn"

@@ -27,6 +27,7 @@ const MapPlaceSchema = z.object({
   lon,
   lat,
   label: z.string(),
+  kind: PlaceKindSchema.optional(),
   shown: z.boolean(),
   labelShown: z.boolean(),
   marker: MarkerSchema.nullable(),

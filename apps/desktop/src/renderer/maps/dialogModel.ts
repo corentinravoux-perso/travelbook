@@ -93,6 +93,8 @@ export function placeFromBundled(p: BundledPlace): MapPlace {
     lon: p.lon,
     lat: p.lat,
     label: p.name,
+    // the style draws a capital larger; the other kinds follow the source
+    ...(p.kind === 'capital' ? { kind: 'capital' as const } : {}),
     shown: true,
     labelShown: true,
     marker: null,
