@@ -15,6 +15,7 @@ import {
 import { applyMap } from './mapActions';
 import { MapPreview, usePreviewGeometry } from './MapPreview';
 import { PlacesPanel } from './PlacesPanel';
+import { RoutePanel } from './RoutePanel';
 import {
   MAPS_BASE,
   getSubject,
@@ -284,7 +285,10 @@ function MapForm() {
                 <MapPreview spec={spec} box={box} geometry={geometry} busy={busy} />
                 <figcaption className="field__help">{t.previewHint}</figcaption>
               </figure>
-              <PlacesPanel spec={spec} geometry={geometry} box={box} />
+              <div className="map-dialog__side">
+                <PlacesPanel spec={spec} geometry={geometry} box={box} />
+                <RoutePanel spec={spec} />
+              </div>
             </div>
             {failed && (
               <p className="dialog__error" role="alert">

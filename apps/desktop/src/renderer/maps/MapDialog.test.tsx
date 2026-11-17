@@ -334,6 +334,10 @@ describe('pan and zoom', () => {
     await openFromPanel();
     await pick('thai', 'Thaïlande');
     await waitFor(() => expect(drawn()).not.toBeNull());
+    // the wheel handler does nothing before the preview geometry is baked (aria-busy off)
+    await waitFor(() =>
+      expect(dialog().querySelector('.map-preview[aria-busy="false"]')).not.toBeNull(),
+    );
   }
 
   it('the wheel zooms the preview and sets the frame', async () => {
