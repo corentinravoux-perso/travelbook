@@ -274,7 +274,8 @@ const TABS: TabId[] = ['places', 'route', 'style'];
 
 /**
  * The sections of the right column: a tablist (arrows, Home and End move; only the open tab is in
- * the tab order) with one tabpanel at a time. The preview next to it stays in view.
+ * the tab order) with one tabpanel shown at a time. The other panels stay mounted, hidden, so a
+ * search or an open list survives a switch. The preview next to it stays in view.
  */
 function Sections({
   spec,
@@ -322,7 +323,7 @@ function Sections({
             role="tab"
             id={`${base}-tab-${id}`}
             aria-selected={tab === id}
-            aria-controls={`${base}-panel`}
+            aria-controls={`${base}-panel-${id}`}
             tabIndex={tab === id ? 0 : -1}
             className="map-tab"
             onClick={() => setTab(id)}
@@ -331,16 +332,20 @@ function Sections({
           </button>
         ))}
       </div>
-      <div
-        className="map-tabpanel"
-        role="tabpanel"
-        id={`${base}-panel`}
-        aria-labelledby={`${base}-tab-${tab}`}
-      >
-        {tab === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
-        {tab === 'route' && <RoutePanel spec={spec} />}
-        {tab === 'style' && <StylePanel spec={spec} />}
-      </div>
+      {TABS.map((id) => (
+        <div
+          key={id}
+          className="map-tabpanel"
+          role="tabpanel"
+          id={`${base}-panel-${id}`}
+          aria-labelledby={`${base}-tab-${id}`}
+          hidden={tab !== id}
+        >
+          {id === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
+          {id === 'route' && <RoutePanel spec={spec} />}
+          {id === 'style' && <StylePanel spec={spec} />}
+        </div>
+      ))}
     </div>
   );
 }

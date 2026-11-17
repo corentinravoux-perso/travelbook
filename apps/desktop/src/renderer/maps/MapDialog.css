@@ -284,6 +284,9 @@
   font-weight: 600;
   color: var(--ink);
 }
+.map-tabpanel[hidden] {
+  display: none;
+}
 .map-tabpanel {
   display: flex;
   flex: 1;
