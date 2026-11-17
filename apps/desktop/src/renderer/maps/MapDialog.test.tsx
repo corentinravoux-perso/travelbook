@@ -611,6 +611,21 @@ describe('the sections of the dialog', () => {
     expect(offers()).toEqual(before);
   });
 
+  it('a hidden tab catches up with the edits made while it was hidden', async () => {
+    await thai();
+    fireEvent.click(tab('Style'));
+    const spec = mapDialogStore.getState().spec!;
+    await act(() =>
+      updateSpec({
+        places: spec.places.map((p) => (p.label === 'Bangkok' ? { ...p, label: 'Krung Thep' } : p)),
+      }),
+    );
+    fireEvent.click(tab('Lieux'));
+    expect(
+      within(dialog()).getByRole('textbox', { name: t.places.rename('Krung Thep') }),
+    ).toBeTruthy();
+  });
+
   it('arrow keys, Home and End move between the tabs (roving tabindex)', async () => {
     await thai();
     expect([tab('Lieux').tabIndex, tab('Itinéraire').tabIndex, tab('Style').tabIndex]).toEqual([

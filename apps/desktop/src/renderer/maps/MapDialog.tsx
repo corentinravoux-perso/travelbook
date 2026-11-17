@@ -6,7 +6,7 @@ import {
   type MapPreset,
   type MapStyle,
 } from '@travelbook/core';
-import { useEffect, useId, useRef, useState } from 'react';
+import { memo, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
 import {
@@ -277,6 +277,18 @@ type TabId = 'places' | 'route' | 'style';
 const TABS: TabId[] = ['places', 'route', 'style'];
 
 /**
+ * A tab panel's content. While its tab stays hidden it is not drawn again (it keeps its state,
+ * not every update): a drag on the preview would otherwise redraw the three panels at each move.
+ * It catches up when its tab is shown.
+ */
+const TabContent = memo(
+  function TabContent({ children }: { active: boolean; children: ReactNode }) {
+    return <>{children}</>;
+  },
+  (prev, next) => !prev.active && !next.active,
+);
+
+/**
  * The sections of the right column: a tablist (arrows, Home and End move; only the open tab is in
  * the tab order) with one tabpanel shown at a time. The other panels stay mounted, hidden, so a
  * search or an open list survives a switch. The preview next to it stays in view.
@@ -345,9 +357,11 @@ function Sections({
           aria-labelledby={`${base}-tab-${id}`}
           hidden={tab !== id}
         >
-          {id === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
-          {id === 'route' && <RoutePanel spec={spec} />}
-          {id === 'style' && <StylePanel spec={spec} />}
+          <TabContent active={tab === id}>
+            {id === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
+            {id === 'route' && <RoutePanel spec={spec} />}
+            {id === 'style' && <StylePanel spec={spec} />}
+          </TabContent>
         </div>
       ))}
     </div>
