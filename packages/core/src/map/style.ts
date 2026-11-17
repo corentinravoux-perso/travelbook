@@ -113,14 +113,23 @@ export function normalizeStyle(raw: unknown): MapStyle {
 
 /** The keys of a style that hold a paint: a CSS colour, or `null` for not painted. */
 const PAINT_KEYS = new Set(['fill', 'stroke', 'color', 'text', 'ringColor']);
+/** The typefaces a template brings, each with its weight (a family may have one weight only). */
+const FONT_PATHS = new Set(['label.font', 'label.weight', 'badge.font', 'badge.weight']);
+/** The marker shape of each kind of place. */
+const MARKER_SHAPE = /^markers\.[a-z]+\.kind$/;
 
-/** Every paint of a style, by its path: what a template brings to a map. */
-export function styleColours(style: MapStyle): Record<string, string | null> {
-  const out: Record<string, string | null> = {};
+/**
+ * What a template brings to a map, by token path: every paint (a `null` "not painted" included),
+ * the fonts with their weights and the marker shapes. The rest (sizes, widths, dashes, case,
+ * letter spacing, the hand-drawn outline) is the user's and stays when they switch templates.
+ */
+export function templateLook(style: MapStyle): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
   const walk = (node: Json, at: string) => {
     for (const [key, value] of Object.entries(node)) {
       const path = at ? `${at}.${key}` : key;
-      if (PAINT_KEYS.has(key) && (typeof value === 'string' || value === null)) out[path] = value;
+      const paint = PAINT_KEYS.has(key) && (typeof value === 'string' || value === null);
+      if (paint || FONT_PATHS.has(path) || MARKER_SHAPE.test(path)) out[path] = value;
       else if (isRecord(value)) walk(value, path);
     }
   };
@@ -129,13 +138,12 @@ export function styleColours(style: MapStyle): Record<string, string | null> {
 }
 
 /**
- * `style` with the colours of `template` (fills, strokes, text, rings; a `null` "not painted"
- * included) and nothing else: the user's sizes, widths, fonts, markers, dashes and hand-drawn
- * outline are kept when they switch templates. Both are normalized first; the result is new.
+ * `style` with the look of `template` (`templateLook`: colours, fonts, marker shapes) and the
+ * user's other choices kept. Both are normalized first; the result is new.
  */
-export function withTemplateColours(style: unknown, template: unknown): MapStyle {
+export function withTemplateLook(style: unknown, template: unknown): MapStyle {
   const into = normalizeStyle(style) as unknown as Json;
-  for (const [path, value] of Object.entries(styleColours(normalizeStyle(template)))) {
+  for (const [path, value] of Object.entries(templateLook(normalizeStyle(template)))) {
     const keys = path.split('.');
     const last = keys.pop() as string;
     let node = into;

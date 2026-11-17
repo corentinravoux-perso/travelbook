@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MapStyleSchema } from './schema';
-import { DEFAULT_MAP_STYLE, normalizeStyle, styleColours, withTemplateColours } from './style';
+import { DEFAULT_MAP_STYLE, normalizeStyle, templateLook, withTemplateLook } from './style';
 
 /** A style edited by key, as a test breaks or removes one token of a valid style. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -209,7 +209,7 @@ describe('normalizeStyle', () => {
   });
 });
 
-describe('withTemplateColours', () => {
+describe('withTemplateLook', () => {
   const template = {
     ...structuredClone(DEFAULT_MAP_STYLE),
     land: { fill: '#000001', stroke: null, width: 3 },
@@ -222,21 +222,21 @@ describe('withTemplateColours', () => {
     rough: { seed: 1, roughness: 1 },
   };
 
-  it('takes every paint of the template, a null one included', () => {
-    const out = withTemplateColours(DEFAULT_MAP_STYLE, template);
-    expect(styleColours(out)).toEqual(styleColours(normalizeStyle(template)));
+  it('takes every paint, the fonts and the marker shapes of the template', () => {
+    const out = withTemplateLook(DEFAULT_MAP_STYLE, template);
+    expect(templateLook(out)).toEqual(templateLook(normalizeStyle(template)));
     expect(out.land.fill).toBe('#000001');
     expect(out.land.stroke).toBeNull();
     expect(out.label.color).toBe('#000002');
     expect(out.markers.city.color).toBe('#000003');
+    expect(out.label.font).toBe('Inter');
+    expect(out.markers.city.kind).toBe('flag');
   });
 
   it('keeps everything else of the map', () => {
-    const out = withTemplateColours(DEFAULT_MAP_STYLE, template);
+    const out = withTemplateLook(DEFAULT_MAP_STYLE, template);
     expect(out.land.width).toBe(DEFAULT_MAP_STYLE.land.width);
-    expect(out.label.font).toBe(DEFAULT_MAP_STYLE.label.font);
     expect(out.label.sizePt).toBe(DEFAULT_MAP_STYLE.label.sizePt);
-    expect(out.markers.city.kind).toBe(DEFAULT_MAP_STYLE.markers.city.kind);
     expect(out.markers.city.scale).toBe(DEFAULT_MAP_STYLE.markers.city.scale);
     expect(out.sizes).toEqual(DEFAULT_MAP_STYLE.sizes);
     expect(out.rough).toBeNull();
@@ -245,7 +245,7 @@ describe('withTemplateColours', () => {
 
   it('edits neither input', () => {
     const before = structuredClone(DEFAULT_MAP_STYLE);
-    withTemplateColours(DEFAULT_MAP_STYLE, template);
+    withTemplateLook(DEFAULT_MAP_STYLE, template);
     expect(DEFAULT_MAP_STYLE).toEqual(before);
   });
 });

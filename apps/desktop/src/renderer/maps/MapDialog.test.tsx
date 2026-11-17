@@ -186,6 +186,24 @@ describe('opening from the Cartes panel', () => {
   });
 });
 
+describe('the enlarged preview', () => {
+  it('hides the search, the templates and the layers, and gives them back', async () => {
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    const d = within(dialog());
+    fireEvent.click(await d.findByRole('button', { name: t.enlarge }));
+    expect(d.queryByRole('group', { name: t.presetsGroup })).toBeNull();
+    expect(d.queryByRole('searchbox', { name: t.searchLabel })).toBeNull();
+    expect(d.queryByRole('checkbox', { name: t.layerNeighbours })).toBeNull();
+    // the preview and the tabs stay
+    expect(d.getByLabelText(t.preview)).toBeTruthy();
+    expect(d.getByRole('tab', { name: t.tabNames.places })).toBeTruthy();
+    fireEvent.click(d.getByRole('button', { name: t.shrink }));
+    expect(d.getByRole('group', { name: t.presetsGroup })).toBeTruthy();
+    expect(d.getByRole('checkbox', { name: t.layerNeighbours })).toBeTruthy();
+  });
+});
+
 describe('preset chips', () => {
   const chip = (name: string) =>
     within(dialog()).getByRole('button', { name }) as HTMLButtonElement;
@@ -208,7 +226,7 @@ describe('preset chips', () => {
     }
   });
 
-  it('a chip changes the colours only: sizes, fonts and markers the user chose are kept', async () => {
+  it('a chip brings colours, fonts and marker shapes; the sizes the user chose are kept', async () => {
     await openFromPanel();
     await pick('thai', 'Thaïlande');
     await waitFor(() => expect(chip('Safran').disabled).toBe(false));
@@ -228,9 +246,10 @@ describe('preset chips', () => {
     const after = spec().style;
     expect(after.sizes).toEqual({ marker: 7, badge: 9, vehicle: 11 });
     expect(after.label.sizePt).toBe(14);
-    expect(after.label.font).toBe(style.label.font);
     expect(after.label.case).toBe(style.label.case);
-    expect(after.markers.city.kind).toBe(style.markers.city.kind);
+    // Safran's typeface and pins
+    expect(after.label.font).toBe('Bebas Neue');
+    expect(after.markers.city.kind).toBe('pin');
     expect(after.outline.width).toBe(style.outline.width);
     expect(after.rough).toEqual({ seed: 4, roughness: 2 });
     // the colours are Safran's
@@ -309,7 +328,7 @@ describe('what re-bakes and what does not', () => {
     expect(vi.mocked(bake)).not.toHaveBeenCalled();
   });
 
-  it('a preset brings its colours only: Crayon keeps a clean outline and does not bake', async () => {
+  it('a preset keeps the outline the user has: Crayon does not turn hand-drawn, no bake', async () => {
     await ready();
     const crayon = within(dialog()).getByRole('button', { name: 'Crayon' }) as HTMLButtonElement;
     await waitFor(() => expect(crayon.disabled).toBe(false));
