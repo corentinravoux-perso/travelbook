@@ -155,6 +155,37 @@ describe('MapView', () => {
     expect(container.querySelector('[data-element-type="map"]')).not.toBeNull();
   });
 
+  it('keeps "Carte introuvable" on one line at 10 pt in a large frame', () => {
+    const { container } = draw(mapEl({ w: 150, h: 100 }), 'missing');
+    const text = container.querySelector('text')!;
+    expect(Number(text.getAttribute('font-size'))).toBeCloseTo(10 * PT_MM, 3);
+    expect(text.querySelectorAll('tspan')).toHaveLength(0);
+    expect(text.textContent).toBe('Carte introuvable');
+  });
+
+  it('fits "Carte introuvable" in a 20 x 20 mm frame, on two lines', () => {
+    const { container } = draw(mapEl({ w: 20, h: 20 }), 'missing');
+    const text = container.querySelector('text')!;
+    const lines = Array.from(text.querySelectorAll('tspan')).map((t) => t.textContent);
+    expect(lines).toEqual(['Carte', 'introuvable']);
+    const size = Number(text.getAttribute('font-size'));
+    expect(size).toBeGreaterThan(0);
+    expect('introuvable'.length * 0.55 * size).toBeLessThanOrEqual(20);
+    expect(size).toBeLessThanOrEqual(10 * PT_MM);
+  });
+
+  it('shrinks the missing text to the frame, finite even in a zero-size frame', () => {
+    for (const [w, h] of [
+      [8, 3],
+      [0, 0],
+    ] as const) {
+      const { container } = draw(mapEl({ w, h }), 'missing');
+      const size = Number(container.querySelector('text')!.getAttribute('font-size'));
+      expect(Number.isFinite(size)).toBe(true);
+      expect(size * 1.2).toBeLessThanOrEqual(Math.max(h, 0) + 1e-9);
+    }
+  });
+
   it('takes the missing label as a prop', () => {
     const { container } = render(
       <MapView
