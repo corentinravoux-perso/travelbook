@@ -1,0 +1,199 @@
+/* "Créer une carte". Chrome from the tokens only; the map carries its own colours. */
+.dialog.dialog--map {
+  /* Two classes: the base `.dialog` (560 px) is loaded after this file. */
+  width: min(860px, calc(100vw - 2 * var(--s7)));
+  max-height: calc(100vh - 2 * var(--s7));
+  overflow: auto;
+}
+.map-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  padding: var(--s7);
+}
+.map-dialog__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+.map-search {
+  position: relative;
+}
+.map-search__hits {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + var(--s2));
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  margin: 0;
+  padding: var(--s2);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r2);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.map-search__hit {
+  display: flex;
+  gap: var(--s3);
+  align-items: baseline;
+  width: 100%;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r1);
+  font-size: var(--t-sm);
+  text-align: left;
+  color: var(--ink);
+}
+.map-search__hit:hover,
+.map-search__hit:focus-visible {
+  background: var(--chrome);
+}
+.map-search__parent,
+.map-search__none {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.map-search__none {
+  padding: var(--s3) var(--s4);
+  list-style: none;
+}
+.map-subject__line {
+  margin: 0;
+  font-size: var(--t-md);
+}
+.map-regions {
+  margin-top: var(--s3);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.map-regions summary {
+  cursor: pointer;
+}
+.map-regions__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--s2) var(--s5);
+  max-height: 180px;
+  margin: var(--s3) 0 0;
+  padding: var(--s3);
+  overflow-y: auto;
+  list-style: none;
+  border-radius: var(--r1);
+  background: var(--sunken);
+}
+.map-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.map-chip {
+  height: var(--control-h);
+  padding: 0 var(--s5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-h);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease);
+}
+.map-chip:hover {
+  background: var(--chrome);
+  color: var(--ink);
+}
+.map-chip[aria-pressed='true'] {
+  border-color: var(--invert-bg);
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+.map-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+.map-dialog__empty {
+  margin: 0;
+  padding: var(--s8) 0;
+  text-align: center;
+  color: var(--ink-3);
+}
+.map-dialog__preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s3);
+  margin: 0;
+  padding: var(--s6);
+  border-radius: var(--r2);
+  background: var(--ground);
+}
+.map-preview {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  /* Paper: a transparent map is shown on white, as it will print. */
+  background: #fff;
+  box-shadow: var(--shadow-paper);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.map-preview:active {
+  cursor: grabbing;
+}
+.map-preview__paper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.map-preview__busy {
+  position: absolute;
+  right: var(--s3);
+  bottom: var(--s3);
+  padding: var(--s2) var(--s4);
+  border-radius: var(--r1);
+  background: var(--surface);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+}
+.map-dialog__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.map-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3) var(--s6);
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.map-layers > legend {
+  float: left;
+  margin-right: var(--s5);
+  padding: 0;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.map-layers__bg {
+  margin-left: var(--s5);
+}
+.map-layers__color {
+  width: 36px;
+  height: var(--control-h);
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r1);
+  background: none;
+}
