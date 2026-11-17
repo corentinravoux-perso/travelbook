@@ -3,6 +3,7 @@ import { BOOK_FONTS } from '../fonts/bookFonts';
 import { fontListStore, useFontList } from '../fonts/fontList';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
+import { NumberField } from './NumberField';
 import { updateSpec, type MapSpec } from './dialogModel';
 import { styleTemplatesStore, useStyleTemplates } from './styleTemplates';
 import {
@@ -26,51 +27,6 @@ const hexOf = (value: unknown): string =>
 
 /** The name shown next to a control: its label without the group it already sits under. */
 const shortName = (label: string): string => label.split(' : ').slice(1).join(' : ') || label;
-
-/**
- * A number typed in: the text is kept while it is typed ("0." is not yet a number) and the value
- * is clamped into range once it parses.
- */
-function NumberField({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange(value: number): void;
-}) {
-  const [text, setText] = useState(String(value));
-  const [seen, setSeen] = useState(value);
-  if (seen !== value) {
-    // the value changed from elsewhere (a preset, an undo): show it
-    setSeen(value);
-    if (Number(text) !== value) setText(String(value));
-  }
-  return (
-    <input
-      type="number"
-      className="input map-style__number"
-      aria-label={label}
-      min={min}
-      max={max}
-      step={step}
-      value={text}
-      onChange={(e) => {
-        setText(e.target.value);
-        const n = Number(e.target.value);
-        if (e.target.value.trim() !== '' && Number.isFinite(n))
-          onChange(Math.min(max, Math.max(min, n)));
-      }}
-    />
-  );
-}
 
 function ColorField({
   control,
@@ -98,7 +54,7 @@ function ColorField({
             aria-label={`${control.label} (${t.none})`}
             checked={value === null}
             onChange={(e) => {
-              if (e.target.checked) last.current = hexOf(value);
+              if (e.target.checked && typeof value === 'string') last.current = value;
               setStyle(spec, control.path, e.target.checked ? null : last.current);
             }}
           />
@@ -223,9 +179,10 @@ function Control({ control, spec }: { control: StyleControl; spec: MapSpec }) {
           className="input"
           aria-label={control.label}
           value={current}
-          onChange={(e) =>
-            set(structuredClone(DASHES.find((d) => d.id === e.target.value)?.dash ?? dash))
-          }
+          onChange={(e) => {
+            const entry = DASHES.find((d) => d.id === e.target.value);
+            set(entry ? structuredClone(entry.dash) : dash);
+          }}
         >
           {current === 'custom' && <option value="custom">{t.dashes['custom']}</option>}
           {DASHES.map((d) => (

@@ -227,7 +227,15 @@ describe('the places list', () => {
     expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(7.5);
     // out of 1..20 is clamped
     fireEvent.change(field(), { target: { value: '99' } });
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(7.5);
+    fireEvent.blur(field());
+    expect(field().value).toBe('20');
     expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(20);
+    // typing "12" passes through "1" without being rewritten
+    fireEvent.change(field(), { target: { value: '1' } });
+    fireEvent.change(field(), { target: { value: '12' } });
+    expect(field().value).toBe('12');
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(12);
     fireEvent.change(field(), { target: { value: '' } });
     expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBeNull();
     expect(bake).not.toHaveBeenCalled();
