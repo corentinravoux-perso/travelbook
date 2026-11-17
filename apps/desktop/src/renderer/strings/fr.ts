@@ -264,6 +264,7 @@ export const fr = {
       case: 'Casse',
       cases: { none: 'Telle quelle', upper: 'MAJUSCULES', lower: 'minuscules' },
       letterSpacing: 'Espacement des lettres (em)',
+      wordSpacing: 'Espacement des mots (em)',
       halo: 'Halo du texte',
       markerShape: 'forme',
       scale: 'échelle',

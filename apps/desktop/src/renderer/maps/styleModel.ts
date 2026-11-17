@@ -147,6 +147,14 @@ export const STYLE_GROUPS: StyleGroup[] = [
         step: 0.01,
       },
       {
+        path: ['label', 'wordSpacingEm'],
+        label: t.wordSpacing,
+        kind: 'number',
+        min: -0.3,
+        max: 1,
+        step: 0.01,
+      },
+      {
         path: ['label', 'halo', 'color'],
         label: `${t.halo} : ${t.color}`,
         kind: 'color',

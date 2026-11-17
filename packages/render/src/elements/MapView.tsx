@@ -305,12 +305,18 @@ export function MapView({
     if (!p.shown || !p.labelShown) return;
     const text = cased(p.label, style.label.case);
     const chars = Array.from(text).length;
+    const spaces = text.split(' ').length - 1;
     labelBoxes.push({
       id: p.id,
       // The true point: `labelOffset` is measured from it for every marker kind.
       x,
       y,
-      w: chars * labelPt * (GLYPH_EM + finite(style.label.letterSpacingEm)),
+      w: Math.max(
+        0,
+        labelPt *
+          (chars * (GLYPH_EM + finite(style.label.letterSpacingEm)) +
+            spaces * finite(style.label.wordSpacingEm)),
+      ),
       h: labelPt * LABEL_LINE,
       rank: i,
       fixed: p.labelOffset ? { dx: p.labelOffset.dx * z, dy: p.labelOffset.dy * z } : undefined,
@@ -584,6 +590,7 @@ export function MapView({
               }
               fontSize={f(labelPt)}
               letterSpacing={`${f(style.label.letterSpacingEm)}em`}
+              wordSpacing={`${f(style.label.wordSpacingEm)}em`}
               fill={style.label.color}
               stroke={halo.width > 0 ? halo.color : undefined}
               strokeWidth={halo.width > 0 ? f(halo.width * z) : undefined}

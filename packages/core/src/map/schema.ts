@@ -84,6 +84,7 @@ export const MapStyleSchema = z.object({
     color,
     case: z.enum(['none', 'upper', 'lower']),
     letterSpacingEm: z.number().finite(),
+    wordSpacingEm: z.number().finite(),
     halo: z.object({ color, width: nonNegMm }),
   }),
   markers: z.record(PlaceKindSchema, MapMarkerStyleSchema),
