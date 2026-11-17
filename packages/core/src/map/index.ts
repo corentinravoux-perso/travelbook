@@ -18,6 +18,7 @@ export {
   type MapGeometry,
   type ProjectionParams,
 } from './projection';
+export { regionContains } from './regions';
 export { bakeGeometry, simplifyTopology, type Topology as MapTopology } from './bake';
 export { legPath, routeNumbers, routeSegments, type RouteSegment } from './route';
 export { placeLabels, type LabelBox, type Obstacle as LabelObstacle } from './labels';
