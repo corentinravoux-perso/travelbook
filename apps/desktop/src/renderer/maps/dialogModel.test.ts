@@ -223,11 +223,18 @@ describe('reopening a map', () => {
     const spec = specOf(bad, getSubject('TH'));
     expect(spec.subject.regions).toEqual([]);
     expect(spec.places.map((p) => p.id)).toEqual(['p1', 'p2']);
-    expect(spec.route!.stops).toEqual(['p1', 'p2', 'p1']);
-    expect(spec.route!.legs).toHaveLength(2);
+    expect(spec.route!.stops).toEqual(['p1', 'ghost', 'p2', 'p1']);
+    expect(spec.route!.legs).toHaveLength(3);
     expect(spec.route!.legs[0]!.mode).toBe('train');
+    // a stop whose place is gone is kept (the route panel marks it "lieu supprimé")
+    const ghost = specOf(
+      { ...bad, route: { stops: ['p1', 'ghost'], legs: [], numbered: false } },
+      null,
+    );
+    expect(ghost.route!.stops).toEqual(['p1', 'ghost']);
+    expect(ghost.route!.legs).toHaveLength(1);
     expect(
-      specOf({ ...bad, route: { stops: ['ghost'], legs: [], numbered: false } }, null).route,
+      specOf({ ...bad, route: { stops: [], legs: [], numbered: false } }, null).route,
     ).toBeNull();
     expect(() => specOf({ ...bad, subject: { ...bad.subject, id: 'XX' } }, null)).not.toThrow();
   });

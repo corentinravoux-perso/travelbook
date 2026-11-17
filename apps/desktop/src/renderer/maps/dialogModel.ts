@@ -57,6 +57,8 @@ export interface MapDialogState {
    * file is used instead and the dialog says so; `null` otherwise.
    */
   packFallback: PackFallback | null;
+  /** The fine pack of the chosen regions is being loaded (it may be downloaded). */
+  packLoading: boolean;
   status: 'idle' | 'applying' | 'failed';
   error: string | null;
 }
@@ -68,6 +70,7 @@ const idle = (): MapDialogState => ({
   spec: null,
   bundled: [],
   packFallback: null,
+  packLoading: false,
   status: 'idle',
   error: null,
 });
@@ -225,7 +228,8 @@ export function specOf(el: MapElement, subject: IndexSubject | null): MapSpec {
   const regions = (el.subject?.regions ?? []).filter((r) => known === null || known.has(r));
   let route: MapElement['route'] = null;
   if (el.route) {
-    const stops = (el.route.stops ?? []).filter((id) => seen.has(id));
+    // a stop whose place is gone stays: the route panel marks it and the drawing skips it
+    const stops = el.route.stops ?? [];
     if (stops.length > 0) {
       const legs = Array.from(
         { length: stops.length - 1 },
@@ -292,19 +296,18 @@ async function syncPackFallback(): Promise<void> {
   const mine = choice;
   const { spec } = mapDialogStore.getState();
   if (!spec || spec.subject.regions.length === 0) {
-    if (mapDialogStore.getState().packFallback !== null)
-      mapDialogStore.setState({ packFallback: null });
+    if (mapDialogStore.getState().packFallback !== null || mapDialogStore.getState().packLoading)
+      mapDialogStore.setState({ packFallback: null, packLoading: false });
     return;
   }
+  mapDialogStore.setState({ packLoading: true, packFallback: null });
   const { packFallback } = await subjectPack(spec.subject.id);
   const now = mapDialogStore.getState().spec;
-  if (
-    mine === choice &&
-    now &&
-    now.subject.id === spec.subject.id &&
-    now.subject.regions.length > 0
-  ) {
-    mapDialogStore.setState({ packFallback });
+  if (mine !== choice) return;
+  if (now && now.subject.id === spec.subject.id && now.subject.regions.length > 0) {
+    mapDialogStore.setState({ packFallback, packLoading: false });
+  } else if (!now || now.subject.regions.length === 0) {
+    mapDialogStore.setState({ packFallback: null, packLoading: false });
   }
 }
 
@@ -389,6 +392,7 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
       places,
     },
     packFallback: null,
+    packLoading: false,
     status: 'idle',
     error: null,
   });

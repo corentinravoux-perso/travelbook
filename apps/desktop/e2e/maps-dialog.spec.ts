@@ -95,7 +95,7 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await expect(
         places.getByRole('button', { name: 'Position automatique de Bangkok' }),
       ).toBeEnabled();
-      await page.screenshot({ path: shot('task17-places') });
+      await page.screenshot({ path: shot('task19-lieux') });
       await places.getByRole('button', { name: 'Position automatique de Bangkok' }).click();
       await expect(
         places.getByRole('button', { name: 'Position automatique de Bangkok' }),
@@ -104,10 +104,11 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
 
     await test.step('itinerary: Bangkok, Chiang Mai (avion), Phuket (bus), numbered', async () => {
       const places = dialog.getByRole('group', { name: 'Lieux' });
-      const route = dialog.getByRole('group', { name: 'Itinéraire' });
       const preview = dialog.getByLabel('Aperçu de la carte');
       await places.getByRole('searchbox', { name: 'Lieu à ajouter' }).fill('phuket');
       await places.getByRole('option', { name: 'Phuket', exact: true }).click();
+      await dialog.getByRole('tab', { name: 'Itinéraire' }).click();
+      const route = dialog.getByRole('group', { name: 'Itinéraire' });
       const add = route.getByRole('combobox', { name: 'Étape à ajouter' });
       for (const name of ['Bangkok', 'Chiang Mai', 'Phuket']) {
         await add.selectOption({ label: name });
@@ -119,15 +120,40 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await route.getByLabel('Courbure du trajet 2').fill('0.4');
       await expect(preview.locator('[data-layer="route"] path').first()).toBeVisible();
       await expect(preview.locator('[data-layer="badges"] text')).toHaveText(['1', '2', '3']);
-      // a tall window for the picture only: the dialog fits whole
-      const size = page.viewportSize();
-      await page.setViewportSize({ width: 1280, height: 1250 });
-      await dialog.evaluate((el) => el.scrollTo(0, 0));
-      await page.screenshot({ path: shot('task18-route') });
-      if (size) await page.setViewportSize(size);
+      await page.screenshot({ path: shot('task19-itineraire') });
       await route.getByRole('button', { name: 'Descendre l’étape 1 (Bangkok)' }).click();
       await expect(preview.locator('[data-layer="badges"] text')).toHaveCount(3);
       await route.getByRole('button', { name: 'Monter l’étape 2 (Bangkok)' }).click();
+    });
+
+    await test.step('style: sliders, a template saved, renamed and deleted in place', async () => {
+      await dialog.getByRole('tab', { name: 'Style' }).click();
+      const preview = dialog.getByLabel('Aperçu de la carte');
+      const panel = dialog.getByRole('tabpanel', { name: 'Style' });
+      await panel.getByLabel('Taille des icônes : lieux').fill('6');
+      await panel.getByLabel('Détail du contour').fill('0.5');
+      await expect(page.locator('.map-preview[aria-busy="false"]')).toBeVisible();
+      await panel.getByLabel('Casse').selectOption('upper');
+      await expect(preview).toContainText('BANGKOK');
+      await panel.getByRole('button', { name: 'Enregistrer comme modèle…' }).click();
+      await panel.getByLabel('Nom du modèle').fill('Mon essai');
+      await panel.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+      const chips = dialog.getByRole('group', { name: 'Modèles de style' });
+      await expect(chips.getByRole('button', { name: 'Mon essai' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      await page.screenshot({ path: shot('task19-style') });
+      await panel.getByRole('button', { name: 'Renommer le modèle Mon essai' }).click();
+      await panel.getByLabel('Nouveau nom du modèle').fill('Mon test');
+      await panel.getByLabel('Nouveau nom du modèle').press('Enter');
+      await expect(chips.getByRole('button', { name: 'Mon test' })).toBeVisible();
+      await panel.getByRole('button', { name: 'Supprimer le modèle Mon test' }).click();
+      await panel.getByRole('button', { name: 'Confirmer la suppression de Mon test' }).click();
+      await expect(chips.getByRole('button', { name: 'Mon test' })).toHaveCount(0);
+      // back to the carnet look for the rest
+      await chips.getByRole('button', { name: 'Carnet' }).click();
+      await dialog.getByRole('tab', { name: 'Lieux' }).click();
     });
 
     await test.step('wheel zooms, drag pans, Recentrer goes back', async () => {
@@ -180,6 +206,22 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await expect(preview).not.toContainText('Rome');
       await expect(preview).not.toContainText('Reggio');
       await page.screenshot({ path: shot('task16-sicile') });
+    });
+
+    await test.step('Thaïlande ▸ Phuket: its fine pack is not bundled; the dialog says why when it fails', async () => {
+      await dialog.getByRole('searchbox', { name: 'Pays ou région' }).fill('phuket');
+      await dialog
+        .getByRole('option', { name: /Phuket/ })
+        .first()
+        .click();
+      await expect(dialog.getByRole('status')).toHaveText(
+        /^(Chargement du contour détaillé…|Contour détaillé indisponible hors ligne : contour du pays utilisé\.|Le contour détaillé téléchargé est invalide : contour du pays utilisé\.|Pas de contour détaillé pour cette région : contour du pays utilisé\.)$/,
+        { timeout: 30_000 },
+      );
+      await expect(dialog.getByRole('status')).not.toHaveText(/^Chargement/, { timeout: 60_000 });
+      console.log(`Phuket pack: ${await dialog.getByRole('status').textContent()}`);
+      await expect(page.locator('.map-preview[aria-busy="false"]')).toBeVisible();
+      await page.screenshot({ path: shot('task19-phuket-hors-ligne') });
     });
 
     // zod probes `new Function('')` at load: the CSP logs that refusal, which it catches
