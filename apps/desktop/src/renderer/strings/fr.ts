@@ -1335,6 +1335,15 @@ export const fr = {
     duplicate: (title: string) => `Dupliquer ${title}`,
     duplicateLabel: 'Dupliquer',
     duplicating: 'Duplication…',
+    delete: (title: string) => `Supprimer ${title}`,
+    deleteLabel: 'Supprimer',
+    deleteTitle: (title: string) => `Supprimer « ${title} » ?`,
+    deleteText:
+      'Le dossier de l’album, avec ses photos et son historique, part dans la corbeille du système. Vous pourrez l’en sortir tant qu’elle n’est pas vidée.',
+    deleteCancel: 'Annuler',
+    deleteConfirm: 'Mettre à la corbeille',
+    deleteFailed:
+      "L'album n'a pas pu être mis à la corbeille. Vérifiez que son dossier existe encore et réessayez.",
     duplicateFailed:
       "L'album n'a pas pu être dupliqué. Vérifiez l'espace disponible et que son dossier existe encore.",
     openFailed:

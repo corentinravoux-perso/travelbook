@@ -434,6 +434,11 @@ export interface TbApi {
      * it. Rejects when the folder is not an album or the copy fails (nothing is left behind).
      */
     duplicate(dir: string): Promise<ProjectInfo>;
+    /**
+     * Move the album in `dir` (one of the recent list, not the open one) to the system trash and
+     * take it out of the recent list. Rejects when it is not such an album or the trash fails.
+     */
+    delete(dir: string): Promise<void>;
     /** Copy the book as last saved (or opened) into `history/`. */
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
     listSnapshots(): Promise<SnapshotInfo[]>;

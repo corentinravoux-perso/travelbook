@@ -1,5 +1,5 @@
 import { mkdir, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { RecentProject } from '../../shared/api';
 import { userDataDir } from '../user-data';
 import { serialize, writeFileAtomic } from './atomic-write';
@@ -45,6 +45,18 @@ export async function recentProjects(): Promise<RecentProject[]> {
       return coverThumb === undefined ? base : { ...base, coverThumb };
     }),
   );
+}
+
+/** Take a project out of the recent list (its folder is left alone). */
+export async function removeRecentProject(projectDir: string): Promise<void> {
+  const dir = await userDataDir();
+  const file = join(dir, FILE_NAME);
+  await serialize(`recent:${file}`, async () => {
+    const list = await readList(file);
+    const kept = list.filter((r) => resolve(r.dir) !== resolve(projectDir));
+    if (kept.length === list.length) return;
+    await writeFileAtomic(file, JSON.stringify(kept, null, 2) + '\n');
+  });
 }
 
 /**

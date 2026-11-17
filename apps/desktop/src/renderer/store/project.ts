@@ -18,7 +18,7 @@ export const SNAPSHOT_NOTE_MS = 2500;
 
 export type View = 'home' | 'editor';
 /** What failed on the home screen; the text is in `fr.home`. */
-export type ProjectError = 'create' | 'open' | 'duplicate';
+export type ProjectError = 'create' | 'open' | 'duplicate' | 'delete';
 export type SnapshotNote = 'saved' | 'failed';
 
 export interface ProjectState {
@@ -41,6 +41,8 @@ export interface ProjectState {
   openProject(dir?: string): Promise<boolean>;
   /** Copy the album in `dir` as "<title> (copie)" and refresh the list, without opening it. */
   duplicateProject(dir: string): Promise<boolean>;
+  /** Move the album in `dir` to the system trash and refresh the list; false when it failed. */
+  deleteProject(dir: string): Promise<boolean>;
   /** Save the open book, then show the home screen. A failed save keeps the editor on screen. */
   goHome(): Promise<void>;
   dismissMissing(): void;
@@ -61,6 +63,7 @@ export interface ProjectStoreDeps {
     open(dir?: string): Promise<OpenedProject | null>;
     recent(): Promise<RecentProject[]>;
     duplicate(dir: string): Promise<ProjectInfo>;
+    delete(dir: string): Promise<void>;
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
   };
 }
@@ -152,6 +155,21 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         await get().refreshRecent();
         return true;
       },
+      async deleteProject(dir) {
+        if (get().busy) return false;
+        set({ busy: true, error: null });
+        try {
+          await api.delete(dir);
+        } catch (error) {
+          console.warn('Could not delete the album:', error);
+          set({ error: 'delete' });
+          return false;
+        } finally {
+          set({ busy: false });
+        }
+        await get().refreshRecent();
+        return true;
+      },
       async goHome() {
         try {
           await editor.getState().flush();
@@ -212,6 +230,7 @@ export const projectStore = createProjectStore({
     open: (d) => window.tb.project.open(d),
     recent: () => window.tb.project.recent(),
     duplicate: (d) => window.tb.project.duplicate(d),
+    delete: (d) => window.tb.project.delete(d),
     snapshot: (l) => window.tb.project.snapshot(l),
   },
 });
