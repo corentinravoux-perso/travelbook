@@ -23,6 +23,17 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   sticker set "Affiches", usable on any page. Recolourable drawings follow the title colour on
   request.
 - Lilita One, the posters' title face, among the bundled fonts (42 families).
+- Cartes: "Créer une carte…" (Cartes panel) draws a vector map of a country or a region from
+  bundled geodata (Overture Maps divisions, ODbL 1.0, credited in "Crédits des images"), with
+  cities and sights, custom places, movable labels, an itinerary (voiture, bus, train, avion,
+  bateau, pied; numbered stops, straight or curved legs) and optional photo medallions. Six
+  styles (Carnet, Ardoise, Safran, Encre, Crayon, Pastel) with icon sizes, outline detail and
+  your own saved templates. Pan and zoom in the preview; the map is reopened with a
+  double-click or "Modifier la carte…". Context land around the subject comes from a shared
+  Natural Earth layer. Finer outlines of some regions are downloaded when first needed, with a
+  clear message when offline. A map's text stays vector text in the PDF.
+- Cartes: an album with a map is saved as format 2; once its last map is deleted it is saved as
+  format 1 again, so release 0.1 can open it.
 
 ## [0.1.0] - 2026-11-15
 
