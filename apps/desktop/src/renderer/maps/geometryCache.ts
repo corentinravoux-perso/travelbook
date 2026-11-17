@@ -107,6 +107,9 @@ export function createGeometryCache(options: {
             : { state: 'done', value: result },
         );
         bump();
+        // Nothing else may draw the page again: notify once the retry is allowed, so the views
+        // peek again and the read is tried anew.
+        if (result === 'timeout') setTimeout(bump, GEOMETRY_RETRY_AFTER_MS);
       }
       return value;
     });

@@ -179,7 +179,27 @@ describe('geometry cache retry after a timeout', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
       await vi.advanceTimersByTimeAsync(0);
       expect(cache.peek('map-a')).toEqual(geometry);
-      expect(listener).toHaveBeenCalledTimes(2);
+      // the timeout, the retry allowed, the geometry in
+      expect(listener).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('notifies the views when the retry is allowed, so a page left alone draws the map', async () => {
+    vi.useFakeTimers();
+    try {
+      const { cache, fetchMock, state } = stallingCache();
+      const listener = vi.fn(() => void cache.peek('map-a')); // a view that peeks on render
+      cache.subscribe(listener);
+      cache.peek('map-a');
+      await vi.advanceTimersByTimeAsync(GEOMETRY_TIMEOUT_MS);
+      expect(cache.peek('map-a')).toBe('missing');
+      state.stalled = false;
+      await vi.advanceTimersByTimeAsync(GEOMETRY_RETRY_AFTER_MS);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(cache.peek('map-a')).toEqual(geometry);
     } finally {
       vi.useRealTimers();
     }
