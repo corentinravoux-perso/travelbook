@@ -79,6 +79,7 @@ import {
   readSnapshot,
   writeSnapshot,
 } from './project/snapshots';
+import { duplicateProject } from './project/duplicate';
 import { createProject, openProject, saveBook } from './project/store';
 import {
   knownAssets,
@@ -202,6 +203,7 @@ const schemas = {
     }),
   ]),
   open: z.tuple([absolutePath.optional()]),
+  duplicate: z.tuple([absolutePath]),
   save: z.tuple([BookSchema]),
   captureRect: z.tuple([captureRect]),
   snapshotLabel: z.tuple([z.enum(['auto', 'manual'])]),
@@ -345,6 +347,11 @@ export function createHandlers(host: Host): IpcHandlers {
       const opened = await openProject(dir);
       openSession(opened.dir, opened.book);
       return opened;
+    },
+
+    [CHANNEL.projectDuplicate]: async (_ctx, ...args) => {
+      const [dir] = parseArgs(CHANNEL.projectDuplicate, schemas.duplicate, args);
+      return duplicateProject(dir);
     },
 
     [CHANNEL.projectPickFolder]: async (_ctx, ...args) => {

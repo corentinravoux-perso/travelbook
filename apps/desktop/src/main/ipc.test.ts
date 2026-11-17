@@ -387,6 +387,29 @@ describe('project', () => {
     expect(recent.map((r) => r.dir)).toEqual([b.dir, a.dir]);
   });
 
+  describe('duplicate', () => {
+    it('copies an album next to itself and lists the copy, without opening it', async () => {
+      const original = await create('Islande');
+      const copy = await call<{ dir: string; book: { id: string; title: string } }>(
+        CHANNEL.projectDuplicate,
+        original.dir,
+      );
+      expect(copy.book.title).toBe('Islande (copie)');
+      expect(copy.book.id).not.toBe(original.book.id);
+      const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(recent.map((r) => r.dir)).toContain(copy.dir);
+    });
+
+    it.each([
+      ['no argument', []],
+      ['a relative path', ['albums/x']],
+      ['a number', [1]],
+      ['an extra argument', ['/tmp/x', 'y']],
+    ] as const)('rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.projectDuplicate, ...args)).rejects.toThrow(/project:duplicate/);
+    });
+  });
+
   describe('cover thumbnail', () => {
     const rect = { x: 4, y: 8, width: 320, height: 240 };
 

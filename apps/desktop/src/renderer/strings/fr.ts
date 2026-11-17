@@ -1307,6 +1307,10 @@ export const fr = {
     openedOn: (date: string) => `Ouvert le ${date}`,
     coverAlt: (title: string) => `Couverture de ${title}`,
     createFailed: "Le livre n'a pas pu être créé. Vérifiez le dossier choisi et réessayez.",
+    duplicate: (title: string) => `Dupliquer ${title}`,
+    duplicateLabel: 'Dupliquer',
+    duplicateFailed:
+      "L'album n'a pas pu être dupliqué. Vérifiez l'espace disponible et que son dossier existe encore.",
     openFailed:
       "Le livre n'a pas pu être ouvert. Vérifiez que son dossier existe encore et réessayez.",
   },
