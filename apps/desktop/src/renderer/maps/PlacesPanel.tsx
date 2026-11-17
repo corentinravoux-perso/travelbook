@@ -11,6 +11,7 @@ import {
   type Row,
 } from './placesModel';
 import { placeFromBundled } from './dialogModel';
+import { NumberField } from './NumberField';
 import { getSubject } from './subjects';
 
 const t = fr.maps.places;
@@ -68,6 +69,19 @@ function PlaceRow({
         aria-label={t.rename(place.label)}
         value={place.label}
         onChange={(e) => patch({ label: e.target.value })}
+      />
+      <NumberField
+        className="input map-place__size"
+        label={t.size(place.label)}
+        title={t.sizeHint}
+        min={1}
+        max={20}
+        step={0.5}
+        nullable
+        placeholder={String(spec.style.sizes.marker)}
+        value={place.markerSize}
+        disabled={!place.shown}
+        onChange={(markerSize) => patch({ markerSize })}
       />
       <input
         type="checkbox"

@@ -74,6 +74,7 @@ beforeEach(async () => {
   (window as unknown as { tb: unknown }).tb = {
     project: { save: () => Promise.resolve() },
     maps: { loadPack: vi.fn(async () => packReply), listStyles },
+    library: { fonts: { list: async () => [] } },
   };
   vi.stubGlobal(
     'fetch',
@@ -213,6 +214,31 @@ describe('the places list', () => {
     });
     expect(within(places()).queryByRole('option', { name: /Lampang/ })).toBeNull();
     expect(within(places()).getByText(t.places.none)).toBeTruthy();
+  });
+
+  it('sets the size of a marker in mm; empty goes back to the size of the style', async () => {
+    await ready();
+    const field = () =>
+      within(places()).getByLabelText(t.places.size('Bangkok')) as HTMLInputElement;
+    // empty and showing the style size as a placeholder
+    expect(field().value).toBe('');
+    expect(field().placeholder).toBe(String(spec().style.sizes.marker));
+    fireEvent.change(field(), { target: { value: '7.5' } });
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(7.5);
+    // out of 1..20 is clamped
+    fireEvent.change(field(), { target: { value: '99' } });
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(7.5);
+    fireEvent.blur(field());
+    expect(field().value).toBe('20');
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(20);
+    // typing "12" passes through "1" without being rewritten
+    fireEvent.change(field(), { target: { value: '1' } });
+    fireEvent.change(field(), { target: { value: '12' } });
+    expect(field().value).toBe('12');
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBe(12);
+    fireEvent.change(field(), { target: { value: '' } });
+    expect(spec().places.find((p) => p.label === 'Bangkok')!.markerSize).toBeNull();
+    expect(bake).not.toHaveBeenCalled();
   });
 
   it('removes a clicked place but keeps no delete button on bundled ones', async () => {

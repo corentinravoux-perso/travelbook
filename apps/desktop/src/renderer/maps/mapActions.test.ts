@@ -441,9 +441,10 @@ describe('applyMap, reopened map', () => {
     });
     await applyMap(mapDialogStore.getState());
     expect(mapDialogStore.getState().status).not.toBe('failed');
+    // the stop whose place is gone is kept (marked "lieu supprimé" in the dialog), its leg repaired
     expect(maps(editorStore.getState().book!)[0]!.route).toEqual({
-      stops: ['p1'],
-      legs: [],
+      stops: ['p1', 'ghost'],
+      legs: [{ mode: 'voiture', curve: 'droit', bend: 0, icon: false }],
       numbered: false,
     });
   });
