@@ -97,7 +97,10 @@ const paint = (c: string | null): string => c ?? 'none';
 const posDashes = (dash: number[] | null): string | undefined => {
   if (!dash) return undefined;
   const d = dash.map((n) => Math.max(0, finite(n)));
-  return d.length > 0 && d.reduce((a, b) => a + b, 0) > 0 ? d.map(round).join(' ') : undefined;
+  // `(n) => round(n)`, not `round`: `map` would pass the index as the number of decimals.
+  return d.length > 0 && d.reduce((a, b) => a + b, 0) > 0
+    ? d.map((n) => round(n)).join(' ')
+    : undefined;
 };
 
 const cased = (text: string, mode: 'none' | 'upper' | 'lower'): string =>
