@@ -113,6 +113,7 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       const preview = dialog.getByLabel('Aperçu de la carte');
       await expect(preview).toContainText('Palerme');
       await expect(preview).not.toContainText('Rome');
+      await expect(preview).not.toContainText('Reggio');
       await page.screenshot({ path: shot('task16-sicile') });
     });
 

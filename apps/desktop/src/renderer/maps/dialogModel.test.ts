@@ -13,6 +13,7 @@ import {
   newMapBox,
   openMapDialog,
   pickSubject,
+  placesInRegions,
   specOf,
   updateSpec,
 } from './dialogModel';
@@ -272,5 +273,48 @@ describe('default places of a region subject', () => {
     await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
     expect(labels()).toContain('Mon lieu');
     expect(labels()).toContain('Rome');
+  });
+});
+
+describe('placesInRegions', () => {
+  const it_ = () => getSubject('IT')!;
+  const places = async () => JSON.parse(read('places/IT.json')).places as BundledPlace[];
+  const base = () => JSON.parse(read('subjects/IT.topo.json'));
+
+  it('keeps the places inside the region polygon: Reggio di Calabria is out, Messine in', async () => {
+    const names = placesInRegions(await places(), it_(), ['IT-82'], base()).map((p) => p.name);
+    expect(names).toEqual(expect.arrayContaining(['Palerme', 'Catane', 'Messine']));
+    expect(names).not.toContain('Reggio de Calabre');
+    expect(names).not.toContain('Rome');
+  });
+
+  it('falls back to the bbox of a region the base has no geometry for', async () => {
+    const empty = { ...base(), objects: {} };
+    const names = placesInRegions(await places(), it_(), ['IT-82'], empty).map((p) => p.name);
+    expect(names).toContain('Reggio de Calabre');
+    expect(names).not.toContain('Rome');
+  });
+
+  it('without a base it is the bbox test', async () => {
+    const names = placesInRegions(await places(), it_(), ['IT-82']).map((p) => p.name);
+    expect(names).toContain('Reggio de Calabre');
+  });
+
+  it('a Sicily pick leaves Reggio di Calabre out of the default places', async () => {
+    await openMapDialog();
+    await pickSubject('IT', 'IT-82');
+    const labels = mapDialogStore.getState().spec!.places.map((p) => p.label);
+    expect(labels).toContain('Messine');
+    expect(labels).not.toContain('Reggio de Calabre');
+  });
+
+  it('choosing the region later does the same', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    const spec = mapDialogStore.getState().spec!;
+    await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
+    const labels = mapDialogStore.getState().spec!.places.map((p) => p.label);
+    expect(labels).toContain('Palerme');
+    expect(labels).not.toContain('Reggio de Calabre');
   });
 });

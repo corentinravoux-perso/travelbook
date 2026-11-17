@@ -3,6 +3,7 @@ import {
   newId,
   normalizeStyle,
   pageBox,
+  regionContains,
   type Book,
   type MapElement,
   type MapLeg,
@@ -119,21 +120,26 @@ export function defaultPlaces(places: BundledPlace[], frameAreaMm2: number): Map
 }
 
 /**
- * The candidates of a subject limited to its chosen regions: those inside the bbox of one of them
- * (the bboxes of the index). A point-in-region test would need the region geometry, which is in
- * the fine pack and is not always there; the bbox is what the dialog has at once, so a place just
- * outside a coast but inside a neighbouring bbox can still be a candidate. No region: all.
+ * The candidates of a subject limited to its chosen regions: first those inside the bbox of one
+ * of them (the index), then, when the subject's base topology has the region's polygon, only
+ * those inside it (`regionContains`, spherical). A region the base has no geometry for is judged
+ * by its bbox alone. No region chosen: all places.
  */
 export function placesInRegions(
   places: BundledPlace[],
   subject: IndexSubject | null,
   regionIds: string[],
+  base: MapTopology | null = null,
 ): BundledPlace[] {
-  const boxes = (subject?.regions ?? []).filter((r) => regionIds.includes(r.id)).map((r) => r.bbox);
-  if (boxes.length === 0) return places;
-  return places.filter((p) =>
-    boxes.some(([w, s, e, n]) => p.lat >= s && p.lat <= n && p.lon >= w && p.lon <= e),
-  );
+  const chosen = (subject?.regions ?? []).filter((r) => regionIds.includes(r.id));
+  if (chosen.length === 0) return places;
+  const tests = chosen.map((r) => {
+    const [w, s, e, n] = r.bbox;
+    const inBox = (p: BundledPlace) => p.lat >= s && p.lat <= n && p.lon >= w && p.lon <= e;
+    const inShape = base ? regionContains(base, r.id) : null;
+    return (p: BundledPlace) => inBox(p) && (inShape ? inShape(p.lon, p.lat) : true);
+  });
+  return places.filter((p) => tests.some((test) => test(p)));
 }
 
 /** A place list without ids, to tell whether the user changed the defaults. */
@@ -230,6 +236,10 @@ export function specOf(el: MapElement, subject: IndexSubject | null): MapSpec {
     background: el.background,
   });
 }
+
+/** The base file of a subject, or `null` when it cannot be read (the bbox test is used then). */
+const baseOrNull = (subjectId: string): Promise<MapTopology | null> =>
+  subjectBase(subjectId).catch(() => null);
 
 /** Ignore the answer of a subject loaded before a newer choice. Bumped by open, pick and close. */
 let choice = 0;
@@ -346,7 +356,12 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
   const base = newSpec(subject);
   if (regionId !== undefined) base.subject.regions = [regionId];
   const previous = mapDialogStore.getState().spec;
-  const places = defaultPlaces(placesInRegions(bundled, subject, base.subject.regions), area);
+  const topology = base.subject.regions.length > 0 ? await baseOrNull(subject.id) : null;
+  if (mine !== choice) return;
+  const places = defaultPlaces(
+    placesInRegions(bundled, subject, base.subject.regions, topology),
+    area,
+  );
   derivedPlaces = placesSignature(places);
   mapDialogStore.setState({
     name: subject.name,
@@ -373,18 +388,33 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
 
 /** Change fields of the spec. No effect before a subject is picked. */
 export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
+  const first = mapDialogStore.getState().spec;
+  if (!first) return;
+  const mine = choice;
+  const rederives = (spec: MapSpec): boolean =>
+    patch.subject !== undefined &&
+    patch.places === undefined &&
+    [...patch.subject.regions].sort().join() !== [...spec.subject.regions].sort().join() &&
+    derivedPlaces !== null &&
+    placesSignature(spec.places) === derivedPlaces;
+  // the region polygons come from the base file: wait for it only when the defaults change
+  const topology =
+    rederives(first) && patch.subject!.regions.length > 0
+      ? await baseOrNull(first.subject.id)
+      : null;
+  if (mine !== choice) return;
   const { spec } = mapDialogStore.getState();
   if (!spec) return;
   const next = { ...spec, ...patch };
-  const regionsChanged =
-    patch.subject !== undefined &&
-    patch.places === undefined &&
-    [...patch.subject.regions].sort().join() !== [...spec.subject.regions].sort().join();
   // the regions changed and the places are still the defaults: derive the defaults again
-  if (regionsChanged && derivedPlaces !== null && placesSignature(spec.places) === derivedPlaces) {
-    const subject = getSubject(spec.subject.id);
+  if (rederives(spec)) {
     next.places = defaultPlaces(
-      placesInRegions(mapDialogStore.getState().bundled, subject, next.subject.regions),
+      placesInRegions(
+        mapDialogStore.getState().bundled,
+        getSubject(spec.subject.id),
+        next.subject.regions,
+        topology,
+      ),
       reopenedArea() ?? frameArea(),
     );
     derivedPlaces = placesSignature(next.places);
