@@ -53,13 +53,16 @@ export function legPath(
 
 /**
  * Place id to the numbers of its stops, from 1 (a place visited twice has both). A stop marked
- * in `route.unnumbered` gets no number and the next numbered stop takes the one it skipped.
+ * in `route.unnumbered` gets no number and the next numbered stop takes the one it skipped; so
+ * does, when `places` is given, a stop whose place is hidden or gone (it is not drawn).
  */
-export function routeNumbers(route: MapRoute): Map<string, number[]> {
+export function routeNumbers(route: MapRoute, places?: MapPlace[]): Map<string, number[]> {
+  const shown = places ? new Set(places.filter((p) => p.shown).map((p) => p.id)) : null;
   const out = new Map<string, number[]>();
   let n = 0;
   route.stops.forEach((id, i) => {
     if (route.unnumbered?.[i] === true) return;
+    if (shown !== null && !shown.has(id)) return;
     n += 1;
     const numbers = out.get(id);
     if (numbers) numbers.push(n);

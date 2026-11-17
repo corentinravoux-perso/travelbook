@@ -112,6 +112,17 @@ describe('routeNumbers', () => {
     expect(routeNumbers({ ...route(['A', 'B']), unnumbered: [true, true] }).size).toBe(0);
   });
 
+  it('skips the stops whose place is hidden or gone, when the places are given', () => {
+    const at = (id: string, shown = true) => ({ ...mapElement().places[0]!, id, shown });
+    const r = route(['A', 'B', 'C', 'D']);
+    const out = routeNumbers(r, [at('A'), at('B', false), at('D')]);
+    expect([...out.entries()]).toEqual([
+      ['A', [1]],
+      ['D', [2]],
+    ]);
+    expect(routeNumbers(r).get('D')).toEqual([4]);
+  });
+
   it('handles one stop and no stop', () => {
     expect(routeNumbers(route(['A'])).get('A')).toEqual([1]);
     expect(routeNumbers(route([])).size).toBe(0);

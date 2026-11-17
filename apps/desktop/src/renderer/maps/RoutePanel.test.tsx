@@ -329,6 +329,19 @@ describe('the itinerary panel', () => {
     expect(tick(1, 'Bangkok').disabled).toBe(true);
   });
 
+  it('a hidden place is skipped by the numbers: the next stop takes its number', async () => {
+    await ready();
+    addStopByName('Bangkok');
+    addStopByName('Chiang Mai');
+    addStopByName('Hat Yai');
+    withPlaces((p) =>
+      fireEvent.click(within(p).getByRole('checkbox', { name: t.places.show('Chiang Mai') })),
+    );
+    expect(badge('Hat Yai')).toBe('2');
+    const shown = Array.from(panel().querySelectorAll('.map-stop__n')).map((n) => n.textContent);
+    expect(shown).toEqual(['1', r.noNumber, '2']);
+  });
+
   it('a hidden or deleted place that is a stop stays listed and is marked, not drawn', async () => {
     await ready();
     addStopByName('Bangkok');

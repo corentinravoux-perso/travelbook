@@ -279,7 +279,7 @@ export function MapView({
     : [];
 
   const numbers =
-    el.route && el.route.numbered ? routeNumbers(el.route) : new Map<string, number[]>();
+    el.route && el.route.numbered ? routeNumbers(el.route, places) : new Map<string, number[]>();
   const badgeD = Math.max(0, finite(style.sizes.badge) * z);
 
   // With regions chosen, the rest of the subject is context (neighbours look) and the chosen
