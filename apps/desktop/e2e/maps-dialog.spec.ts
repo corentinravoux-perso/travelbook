@@ -253,18 +253,28 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       await page.screenshot({ path: shot('task16-sicile') });
     });
 
-    await test.step('Thaïlande ▸ Phuket: its fine pack is not bundled; the dialog says why when it fails', async () => {
+    await test.step('Thaïlande ▸ Phuket: its fine pack is not bundled: downloaded, or the dialog says why it failed', async () => {
       await dialog.getByRole('searchbox', { name: 'Pays ou région' }).fill('phuket');
       await dialog
         .getByRole('option', { name: /Phuket/ })
         .first()
         .click();
-      await expect(dialog.getByRole('status')).toHaveText(
-        /^(Chargement du contour détaillé…|Contour détaillé indisponible hors ligne : contour du pays utilisé\.|Le contour détaillé téléchargé est invalide : contour du pays utilisé\.|Pas de contour détaillé pour cette région : contour du pays utilisé\.)$/,
-        { timeout: 30_000 },
+      // The subject and the pack's loading state change in one render (pickSubject), so once the
+      // subject line names Phuket the download has started, or already ended.
+      await expect(dialog.locator('.map-subject__line')).toHaveText(/^Thaïlande ▸ Phuket/);
+      await expect(dialog.getByText(/^Chargement du contour détaillé/)).toBeHidden({
+        timeout: 60_000,
+      });
+      // A pack downloaded from the public release leaves no status line; a failure gives its reason.
+      const status = dialog.getByRole('status');
+      if ((await status.count()) > 0) {
+        await expect(status).toHaveText(
+          /^(Contour détaillé indisponible hors ligne : contour du pays utilisé\.|Le contour détaillé téléchargé est invalide : contour du pays utilisé\.|Pas de contour détaillé pour cette région : contour du pays utilisé\.)$/,
+        );
+      }
+      console.log(
+        `Phuket pack: ${(await status.count()) > 0 ? await status.textContent() : 'downloaded'}`,
       );
-      await expect(dialog.getByRole('status')).not.toHaveText(/^Chargement/, { timeout: 60_000 });
-      console.log(`Phuket pack: ${await dialog.getByRole('status').textContent()}`);
       await expect(page.locator('.map-preview[aria-busy="false"]')).toBeVisible();
       await page.screenshot({ path: shot('task19-phuket-hors-ligne') });
     });

@@ -8,7 +8,8 @@ import { join } from 'node:path';
 import { CACHE_DIR } from './overture.ts';
 
 /** Generic on purpose: no personal contact detail goes to a third-party service. */
-export const USER_AGENT = 'travelbook-build/0.1 (https://github.com/corentinravoux/travelbook)';
+export const USER_AGENT =
+  'travelbook-build/0.1 (https://github.com/corentinravoux-perso/travelbook)';
 export const SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';
 
 export type SightCategory =

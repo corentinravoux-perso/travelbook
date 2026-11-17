@@ -9,7 +9,7 @@ import { writeFileAtomic } from '../project/atomic-write';
 import { userDataDir } from '../user-data';
 
 /** Where the geodata releases of the travelbook repository are: `<this>/geodata-<overture>/<file>`. */
-export const RELEASES_URL = 'https://github.com/corentinravoux/travelbook/releases/download';
+export const RELEASES_URL = 'https://github.com/corentinravoux-perso/travelbook/releases/download';
 
 /** A pack is a few MB: this is long enough for a slow link, short enough to give up on a stall. */
 const DOWNLOAD_TIMEOUT_MS = 60_000;
