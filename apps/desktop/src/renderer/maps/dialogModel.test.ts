@@ -13,6 +13,8 @@ import {
   newMapBox,
   openMapDialog,
   pickSubject,
+  beginEditGroup,
+  endEditGroup,
   placesInRegions,
   redoMapEdit,
   specOf,
@@ -99,6 +101,71 @@ describe('undo in the dialog', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('quick edits of the same field outside a gesture stay separate steps', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const [a, b] = spec().places;
+    await updateSpec({
+      places: spec().places.map((p) => (p.id === a!.id ? { ...p, shown: false } : p)),
+    });
+    await updateSpec({
+      places: spec().places.map((p) => (p.id === b!.id ? { ...p, shown: false } : p)),
+    });
+    await undoMapEdit();
+    expect(spec().places.find((p) => p.id === a!.id)!.shown).toBe(false);
+    expect(spec().places.find((p) => p.id === b!.id)!.shown).toBe(true);
+  });
+
+  it('every edit of one gesture is one step, however slow; the next gesture is another', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await openMapDialog();
+      await pickSubject('TH');
+      const start = spec();
+      beginEditGroup('pointer');
+      for (const dx of [1, 2, 3]) {
+        await updateSpec({ background: `#00000${dx}` });
+        later(2_000);
+      }
+      endEditGroup('pointer');
+      beginEditGroup('pointer');
+      await updateSpec({ medallions: true });
+      endEditGroup('pointer');
+      expect(mapDialogStore.getState().past).toHaveLength(2);
+      await undoMapEdit();
+      expect(spec().background).toBe('#000003');
+      await undoMapEdit();
+      expect(spec()).toBe(start);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('an edit still waiting for the base file is dropped by an undo', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    await updateSpec({ medallions: true });
+    const pending = updateSpec({ subject: { ...spec().subject, regions: ['IT-82'] } });
+    await undoMapEdit();
+    await pending;
+    expect(spec().medallions).toBe(false);
+    expect(spec().subject.regions).toEqual([]);
+    expect(await redoMapEdit()).toBe(true);
+    expect(spec().medallions).toBe(true);
+  });
+
+  it('after an undo, a region change derives the default places again', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    await updateSpec({ subject: { ...spec().subject, regions: ['IT-82'] } });
+    await undoMapEdit();
+    expect(spec().places.map((p) => p.label)).toContain('Rome');
+    await updateSpec({ subject: { ...spec().subject, regions: ['IT-82'] } });
+    const labels = spec().places.map((p) => p.label);
+    expect(labels).toContain('Palerme');
+    expect(labels).not.toContain('Rome');
   });
 
   it('a new subject starts a new history', async () => {

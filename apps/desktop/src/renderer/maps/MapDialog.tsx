@@ -14,6 +14,8 @@ import {
   closeMapDialog,
   mapDialogStore,
   newMapBox,
+  beginEditGroup,
+  endEditGroup,
   pickSubject,
   redoMapEdit,
   undoMapEdit,
@@ -480,6 +482,21 @@ function onDialogKeyDown(e: React.KeyboardEvent): void {
   void (redo ? redoMapEdit() : undoMapEdit());
 }
 
+/**
+ * A press in the dialog is one undo step until it is released (a drag, a slider, a click), and
+ * so is the time a text field has the focus (typing a name).
+ */
+function onDialogPointerDown(): void {
+  beginEditGroup('pointer');
+  const end = () => {
+    endEditGroup('pointer');
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+  };
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', end);
+}
+
 /** "Créer une carte": the map maker's dialog. Mounted once by the shell; `openMapDialog` opens it. */
 export function MapDialog() {
   const open = useMapDialog((s) => s.open);
@@ -501,6 +518,9 @@ export function MapDialog() {
       aria-labelledby="map-title"
       onClose={closeMapDialog}
       onKeyDown={onDialogKeyDown}
+      onPointerDownCapture={onDialogPointerDown}
+      onFocusCapture={(e) => typesText(e.target) && beginEditGroup('focus')}
+      onBlurCapture={(e) => typesText(e.target) && endEditGroup('focus')}
       onCancel={(e) => {
         // Escape must not drop a map that is being placed: the apply goes on
         if (mapDialogStore.getState().status === 'applying') e.preventDefault();
