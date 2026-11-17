@@ -59,6 +59,7 @@ test('the renderer is isolated and gets only the typed API', async () => {
     'maps',
     'photos',
     'project',
+    'settings',
   ]);
   expect(await page.evaluate(() => (window as unknown as Win).tb.app.version())).toMatch(
     /^\d+\.\d+\.\d+/,
