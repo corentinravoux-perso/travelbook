@@ -41,21 +41,21 @@ export function removeStop(route: MapRoute, index: number): MapRoute | null {
 }
 
 /**
- * Move a stop; its leg (the one leaving it) moves with it, so the user's choice of mode and
- * curve stays on the stop they were made for. The last stop has no leg: when it ends up
- * elsewhere it gets a default leg, and the leg of whichever stop becomes last is dropped.
+ * Move a stop; the leg that arrives at it (how the traveller got there: mode, curve) moves with
+ * it. The stop that becomes first drops its arriving leg; the stop that was first, having none,
+ * gets a default leg wherever it lands.
  */
 export function moveStop(route: MapRoute, from: number, to: number): MapRoute {
   const fixed = repairRoute(route);
   const n = fixed.stops.length;
   if (from === to || from < 0 || to < 0 || from >= n || to >= n) return fixed;
-  const slots = fixed.stops.map((id, i) => ({ id, leg: fixed.legs[i] ?? null }));
+  const slots = fixed.stops.map((id, i) => ({ id, arrival: i > 0 ? fixed.legs[i - 1]! : null }));
   const [moved] = slots.splice(from, 1);
   slots.splice(to, 0, moved!);
   return {
     ...fixed,
     stops: slots.map((s) => s.id),
-    legs: slots.slice(0, -1).map((s) => s.leg ?? copyLeg(DEFAULT_LEG)),
+    legs: slots.slice(1).map((s) => s.arrival ?? copyLeg(DEFAULT_LEG)),
   };
 }
 
