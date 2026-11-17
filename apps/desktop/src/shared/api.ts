@@ -420,6 +420,11 @@ export interface TbApi {
     /** Replace `book.json`. Main also remembers the book for `snapshot`. */
     save(book: Book): Promise<void>;
     recent(): Promise<RecentProject[]>;
+    /**
+     * Copy the album in `dir` next to itself as "<title> (copie)" with a new book id; does not open
+     * it. Rejects when the folder is not an album or the copy fails (nothing is left behind).
+     */
+    duplicate(dir: string): Promise<ProjectInfo>;
     /** Copy the book as last saved (or opened) into `history/`. */
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
     listSnapshots(): Promise<SnapshotInfo[]>;

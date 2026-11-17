@@ -48,7 +48,7 @@ export function Home() {
   const error = useProject((s) => s.error);
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { refreshRecent, openProject, createProject } = projectStore.getState();
+  const { refreshRecent, openProject, createProject, duplicateProject } = projectStore.getState();
 
   useEffect(() => {
     void refreshRecent();
@@ -105,6 +105,12 @@ export function Home() {
           </p>
         )}
 
+        {error === 'duplicate' && (
+          <p className="home__error" role="alert">
+            {fr.home.duplicateFailed}
+          </p>
+        )}
+
         {recent.length === 0 ? (
           <div className="home__empty">
             <div className="home__scene" aria-hidden="true">
@@ -139,6 +145,17 @@ export function Home() {
                     <span className="album__date">
                       {fr.home.openedOn(formatDate(project.openedAt))}
                     </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="button album__duplicate"
+                    disabled={busy}
+                    aria-label={fr.home.duplicate(project.title)}
+                    title={fr.home.duplicate(project.title)}
+                    onClick={() => void duplicateProject(project.dir)}
+                  >
+                    <Icon name="copy" />
+                    {fr.home.duplicateLabel}
                   </button>
                 </li>
               ))}

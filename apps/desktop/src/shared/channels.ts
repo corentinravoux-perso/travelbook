@@ -10,6 +10,7 @@ export const CHANNEL = {
   projectSnapshot: 'project:snapshot',
   projectListSnapshots: 'project:listSnapshots',
   projectReadSnapshot: 'project:readSnapshot',
+  projectDuplicate: 'project:duplicate',
   projectReveal: 'project:reveal',
   projectPickFolder: 'project:pickFolder',
   projectCaptureCover: 'project:captureCover',
