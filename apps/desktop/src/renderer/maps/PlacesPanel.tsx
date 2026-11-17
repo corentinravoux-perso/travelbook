@@ -1,7 +1,9 @@
-import type { MapGeometry, MapPlace, MapTopology } from '@travelbook/core';
+import type { AssetRef, MapGeometry, MapPlace, MapTopology } from '@travelbook/core';
 import { useEffect, useId, useState } from 'react';
+import { PhotoChoice } from '../panels/PhotoPicker';
+import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
-import { subjectBase, updateSpec, useMapDialog, type MapSpec } from './dialogModel';
+import { mapDialogStore, subjectBase, updateSpec, useMapDialog, type MapSpec } from './dialogModel';
 import {
   drawnLabelOffset,
   groupPlaces,
@@ -26,6 +28,10 @@ const ARROWS: Record<string, [number, number]> = {
   ArrowDown: [0, 1],
 };
 
+/** A new medallion: 28 mm across, 30 mm above its point, the photo centred. */
+const MEDALLION_DIAMETER_MM = 28;
+const MEDALLION_OFFSET_MM = { dx: 0, dy: -30 };
+
 const setPlaces = (places: MapPlace[]) => void updateSpec({ places });
 
 /** One place: shown, its name (renamable), label shown, label position, removal of a clicked one. */
@@ -34,11 +40,15 @@ function PlaceRow({
   spec,
   geometry,
   box,
+  medallions,
+  onPickPhoto,
 }: {
   row: Row;
   spec: MapSpec;
   geometry: MapGeometry | null;
   box: { w: number; h: number };
+  medallions: boolean;
+  onPickPhoto: (placeId: string) => void;
 }) {
   const { index, place } = row;
   const patch = (p: Partial<MapPlace>) => setPlaces(patchPlace(spec.places, index, p));
@@ -54,6 +64,16 @@ function PlaceRow({
         dy: 0,
       };
     patch({ labelOffset: { dx: from.dx + dir[0] * step, dy: from.dy + dir[1] * step } });
+  };
+  const nudgePhoto = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const dir = ARROWS[e.key];
+    if (!dir || !place.photo) return;
+    e.preventDefault();
+    const step = e.shiftKey ? NUDGE_BIG_MM : NUDGE_MM;
+    const { dx, dy } = place.photo.offset;
+    patch({
+      photo: { ...place.photo, offset: { dx: dx + dir[0] * step, dy: dy + dir[1] * step } },
+    });
   };
   return (
     <li className="map-place">
@@ -122,6 +142,39 @@ function PlaceRow({
       ) : (
         <span />
       )}
+      {medallions && (
+        <div className="map-place__photo">
+          <button
+            type="button"
+            className="button map-place__btn"
+            aria-label={place.photo ? t.photoChange(place.label) : t.photo(place.label)}
+            onClick={() => onPickPhoto(place.id)}
+          >
+            {t.photoButton}
+          </button>
+          {place.photo && (
+            <>
+              <button
+                type="button"
+                className="button map-place__btn"
+                aria-label={t.photoNudge(place.label)}
+                title={t.photoNudgeHint}
+                onKeyDown={nudgePhoto}
+              >
+                ↔
+              </button>
+              <button
+                type="button"
+                className="button map-place__btn"
+                aria-label={t.photoRemove(place.label)}
+                onClick={() => patch({ photo: null })}
+              >
+                {t.photoRemoveText}
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </li>
   );
 }
@@ -132,12 +185,16 @@ function Group({
   spec,
   geometry,
   box,
+  medallions,
+  onPickPhoto,
 }: {
   title: string;
   rows: Row[];
   spec: MapSpec;
   geometry: MapGeometry | null;
   box: { w: number; h: number };
+  medallions: boolean;
+  onPickPhoto: (placeId: string) => void;
 }) {
   if (rows.length === 0) return null;
   return (
@@ -145,7 +202,15 @@ function Group({
       <h3 className="map-places__title">{title}</h3>
       <ul className="map-places__list">
         {rows.map((row) => (
-          <PlaceRow key={row.index} row={row} spec={spec} geometry={geometry} box={box} />
+          <PlaceRow
+            key={row.index}
+            row={row}
+            spec={spec}
+            geometry={geometry}
+            box={box}
+            medallions={medallions}
+            onPickPhoto={onPickPhoto}
+          />
         ))}
       </ul>
     </section>
@@ -229,15 +294,62 @@ export function PlacesPanel({
   box: { w: number; h: number };
 }) {
   const groups = groupPlaces(spec.places);
+  const book = useEditor((s) => s.book);
+  // the place whose photo is being chosen
+  const [picking, setPicking] = useState<string | null>(null);
+  const choose = (asset: AssetRef) => {
+    const s = mapDialogStore.getState().spec;
+    const at = s?.places.findIndex((p) => p.id === picking) ?? -1;
+    const place = s?.places[at];
+    setPicking(null);
+    if (!s || !place) return;
+    // a second pick keeps where the medallion was put and how big it is
+    const photo = place.photo
+      ? { ...place.photo, assetId: asset.id }
+      : {
+          assetId: asset.id,
+          offset: { ...MEDALLION_OFFSET_MM },
+          diameter: MEDALLION_DIAMETER_MM,
+          crop: { scale: 1, cx: 0.5, cy: 0.5 },
+        };
+    void updateSpec({ places: patchPlace(s.places, at, { photo }) });
+  };
+  const group = (title: string, rows: Row[]) => (
+    <Group
+      title={title}
+      rows={rows}
+      spec={spec}
+      geometry={geometry}
+      box={box}
+      medallions={spec.medallions}
+      onPickPhoto={setPicking}
+    />
+  );
   return (
     <fieldset className="map-places" aria-label={t.title}>
       <legend>{t.title}</legend>
+      <label className="map-places__switch" title={t.medallionsHint}>
+        <input
+          type="checkbox"
+          checked={spec.medallions}
+          onChange={(e) => void updateSpec({ medallions: e.target.checked })}
+        />
+        {t.medallions}
+      </label>
       {spec.places.length === 0 && <p className="field__help">{t.empty}</p>}
-      <Group title={t.cities} rows={groups.cities} spec={spec} geometry={geometry} box={box} />
-      <Group title={t.sights} rows={groups.sights} spec={spec} geometry={geometry} box={box} />
-      <Group title={t.custom} rows={groups.custom} spec={spec} geometry={geometry} box={box} />
+      {group(t.cities, groups.cities)}
+      {group(t.sights, groups.sights)}
+      {group(t.custom, groups.custom)}
       <AddPlace spec={spec} />
       <p className="field__help">{t.hint}</p>
+      {picking !== null && book && (
+        <PhotoChoice
+          book={book}
+          hint={t.pickHint}
+          onChoose={choose}
+          onClose={() => setPicking(null)}
+        />
+      )}
     </fieldset>
   );
 }
