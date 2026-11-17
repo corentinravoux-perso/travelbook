@@ -170,10 +170,12 @@ export const fr = {
       remove: (name: string) => `Supprimer ${name}`,
       autoPosition: 'Position automatique',
       autoPositionOf: (name: string) => `Position automatique de ${name}`,
+      autoPositionText: 'Auto',
       size: (name: string) => `Taille de l’icône de ${name} (mm)`,
       sizeHint: 'Vide : taille du style.',
       nudge: (name: string, direction: string) => `Déplacer l’étiquette de ${name} ${direction}`,
-      nudgeHint: 'Un clic : 0,5 mm (Maj + clic : 2 mm). Ou glissez l’étiquette sur l’aperçu.',
+      nudgeHint:
+        'Clic ou flèches : déplacer de 0,5 mm (Maj : 2 mm). Ou glissez l’étiquette sur l’aperçu.',
       labelCaption: 'Étiquette',
       photoCaption: 'Médaillon',
       directions: {
@@ -203,7 +205,8 @@ export const fr = {
       pickHint: 'Cliquez sur une photo pour en faire le médaillon du lieu.',
       photoNudge: (name: string, direction: string) =>
         `Déplacer le médaillon de ${name} ${direction}`,
-      photoNudgeHint: 'Un clic : 0,5 mm (Maj + clic : 2 mm). Ou glissez le médaillon sur l’aperçu.',
+      photoNudgeHint:
+        'Clic ou flèches : déplacer de 0,5 mm (Maj : 2 mm). Ou glissez le médaillon sur l’aperçu.',
     },
     route: {
       title: 'Itinéraire',
