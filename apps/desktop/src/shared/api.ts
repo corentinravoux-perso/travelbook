@@ -5,6 +5,8 @@ import type {
   Book,
   Element,
   Licence,
+  MapPreset,
+  MapStyle,
   PreflightIssue,
   Template,
   Theme,
@@ -69,8 +71,11 @@ export interface OpenedProject extends ProjectInfo {
   missing: string[];
 }
 
-/** Assets the user brings in as files; photos have their own import. */
-export type ImportedAssetKind = Exclude<AssetRef['kind'], 'photo'>;
+/**
+ * Assets the user brings in as files; photos have their own import, and a map's geometry is
+ * written by main from what the map dialog bakes, never imported from a file.
+ */
+export type ImportedAssetKind = Exclude<AssetRef['kind'], 'photo' | 'map'>;
 
 /** What a user library item is: a file the user keeps across albums. */
 export type LibraryItemKind = 'sticker' | 'background' | 'font' | 'template';
@@ -292,6 +297,41 @@ export interface BundledBackground {
   licence: Licence;
 }
 
+/** What `maps.loadPack` gives: the pack's text, or why there is none. */
+export type PackResult =
+  | { ok: true; json: string }
+  /**
+   * `offline`: not kept on this computer and the download did not answer (no network, or the
+   * release does not have it); `checksum`: the download is not the file the app expects (nothing
+   * is kept); `unknown`: no fine pack exists for that subject.
+   */
+  | { ok: false; reason: 'offline' | 'checksum' | 'unknown' };
+
+/** The map maker's data and the user's own map styles ("modèles"). */
+export interface MapsApi {
+  /**
+   * Keep the baked geometry of a map in the open project's `assets/` as `assets/<sha16>.json`
+   * (kind `map`, id `map-<sha16>`, once per content) with its ODbL licence, which the album's
+   * credits list. The renderer adds the asset to its book (`store.apply`). `json` is a JSON object.
+   */
+  saveGeometry(json: string, meta: { name: string }): Promise<AssetRef>;
+  /**
+   * The fine region pack of a subject id (`US`, `US-AK`, `FR-MET`): the copy shipped with the app,
+   * else the one kept after a download, else a download from the geodata release (sha256 checked).
+   */
+  loadPack(subjectId: string): Promise<PackResult>;
+  /**
+   * The user's styles, by name. The built-in presets are not here: they are the files of
+   * `resources/maps/presets/`, served as `tb://resource/maps/presets/<id>.json`.
+   */
+  listStyles(): Promise<MapPreset[]>;
+  /** Keep a style under a name, as a new style with its own id (a user id starts with `user-`). */
+  saveStyle(name: string, style: MapStyle): Promise<MapPreset>;
+  /** Rejects when the id is not one of the user's styles. */
+  renameStyle(id: string, name: string): Promise<void>;
+  deleteStyle(id: string): Promise<void>;
+}
+
 /** Elements on the system clipboard (`application/x-travelbook`), with what they need. */
 export interface ClipboardPayload {
   /** Where they were copied from: pasting back there shifts them so they do not hide the originals. */
@@ -371,7 +411,16 @@ export interface ExportApi {
  * `window.tb`. Every method talks to the main process, which validates what it receives. Methods
  * that need a project fail unless one was created or opened.
  */
+/** The language of the application menu bar (the interface itself stays French). */
+export type MenuLanguage = 'fr' | 'en';
+
 export interface TbApi {
+  settings: {
+    /** `'fr'` until the user picks English. */
+    menuLanguage(): Promise<MenuLanguage>;
+    /** Store the choice and rebuild the menu bar at once. */
+    setMenuLanguage(language: MenuLanguage): Promise<void>;
+  };
   project: {
     /** `null` when the user cancels the folder dialog. */
     create(options: CreateProjectOptions): Promise<ProjectInfo | null>;
@@ -380,6 +429,11 @@ export interface TbApi {
     /** Replace `book.json`. Main also remembers the book for `snapshot`. */
     save(book: Book): Promise<void>;
     recent(): Promise<RecentProject[]>;
+    /**
+     * Copy the album in `dir` next to itself as "<title> (copie)" with a new book id; does not open
+     * it. Rejects when the folder is not an album or the copy fails (nothing is left behind).
+     */
+    duplicate(dir: string): Promise<ProjectInfo>;
     /** Copy the book as last saved (or opened) into `history/`. */
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
     listSnapshots(): Promise<SnapshotInfo[]>;
@@ -435,6 +489,7 @@ export interface TbApi {
     palette(assetIds: string[]): Promise<string[]>;
   };
   library: LibraryApi;
+  maps: MapsApi;
   clipboard: {
     writeElements(payload: ClipboardPayload): Promise<void>;
     /**

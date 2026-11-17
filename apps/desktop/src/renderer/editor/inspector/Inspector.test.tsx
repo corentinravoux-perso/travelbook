@@ -8,9 +8,11 @@ import {
   type Book,
   type PhotoElement,
 } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { MASK_PRESETS } from '@travelbook/render';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editorStore } from '../../store/editor';
+import { ICONS } from '../../theme/icons';
 import { fr } from '../../strings/fr';
 import { Inspector } from './Inspector';
 
@@ -224,7 +226,7 @@ describe('Inspector', () => {
   describe('common section and tabs', () => {
     it('moves the selected element when X is typed, as one undo step', () => {
       render(<Inspector />);
-      const x = screen.getByLabelText('X');
+      const x = screen.getByLabelText('Horizontal');
       fireEvent.focus(x);
       fireEvent.change(x, { target: { value: '30' } });
       fireEvent.blur(x);
@@ -236,7 +238,7 @@ describe('Inspector', () => {
 
     it('takes a decimal comma and rejects what is not a number', () => {
       render(<Inspector />);
-      const y = screen.getByLabelText('Y') as HTMLInputElement;
+      const y = screen.getByLabelText('Vertical') as HTMLInputElement;
       fireEvent.change(y, { target: { value: '12,5' } });
       fireEvent.blur(y);
       expect(photos()[0]!.y).toBe(12.5);
@@ -250,7 +252,7 @@ describe('Inspector', () => {
       render(<Inspector />);
       fireEvent.click(screen.getByRole('button', { name: 'Verrouiller' }));
       expect(photos()[0]!.locked).toBe(true);
-      expect((screen.getByLabelText('X') as HTMLInputElement).disabled).toBe(true);
+      expect((screen.getByLabelText('Horizontal') as HTMLInputElement).disabled).toBe(true);
       expect(screen.getByRole('button', { name: 'Déverrouiller' })).toBeTruthy();
     });
 
@@ -280,6 +282,56 @@ describe('Inspector', () => {
       expect(screen.getByTestId('history')).toBeTruthy();
       fireEvent.click(screen.getByRole('tab', { name: 'Propriétés' }));
       expect(screen.getByTestId('photo-inspector')).toBeTruthy();
+    });
+  });
+
+  describe('map', () => {
+    const map = { ...mapElement(), id: 'the-map' };
+    beforeEach(() => {
+      const spreadId = state().currentSpreadId!;
+      act(() => {
+        state().apply((book) => addElement(book, spreadId, map), 'Carte');
+        state().select([map.id]);
+      });
+    });
+
+    it('offers the common section and the way into the map dialog', () => {
+      render(<Inspector />);
+      expect(screen.getByRole('heading', { name: 'Carte' })).toBeTruthy();
+      expect((screen.getByLabelText(fr.inspector.x) as HTMLInputElement).value).toBe('10');
+      expect((screen.getByLabelText(fr.inspector.width) as HTMLInputElement).value).toBe('150');
+      expect(screen.getByLabelText(fr.inspector.opacity)).toBeTruthy();
+      expect(screen.getByRole('button', { name: fr.maps.edit })).toBeTruthy();
+      expect(screen.queryByTestId('photo-inspector')).toBeNull();
+      expect(screen.queryByLabelText('Épaisseur')).toBeNull();
+    });
+
+    it('lists the map in the layers with its own icon and its label', () => {
+      vi.stubGlobal('tb', {
+        project: { save: () => Promise.resolve(), listSnapshots: () => Promise.resolve([]) },
+      });
+      render(<Inspector />);
+      fireEvent.click(screen.getByRole('tab', { name: 'Calques' }));
+      const row = screen.getByText('Carte · TH').closest('li, [role="option"], div')!;
+      const pathOf = (body: string) => /\sd="([^"]+)"/.exec(body)![1];
+      expect(row.querySelector('svg.icon path')!.getAttribute('d')).toBe(pathOf(ICONS.map));
+      expect(pathOf(ICONS.map)).not.toBe(pathOf(ICONS['layout-grid']));
+    });
+
+    it('sets the opacity of the map', () => {
+      render(<Inspector />);
+      fireEvent.change(screen.getByLabelText(fr.inspector.opacity), { target: { value: '0.4' } });
+      const el = state().book!.spreads[1]!.elements.find((e) => e.id === map.id)!;
+      expect(el.opacity).toBe(0.4);
+    });
+
+    it('resizes the map without keeping its ratio', () => {
+      render(<Inspector />);
+      const width = screen.getByLabelText(fr.inspector.width);
+      fireEvent.change(width, { target: { value: '120' } });
+      fireEvent.blur(width);
+      const el = state().book!.spreads[1]!.elements.find((e) => e.id === map.id)!;
+      expect([el.w, el.h]).toEqual([120, 200]);
     });
   });
 });

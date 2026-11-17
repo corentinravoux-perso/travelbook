@@ -1,4 +1,5 @@
 import { newBook, newElement, type Book, type PreflightIssue } from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { describe, expect, it } from 'vitest';
 import type { ExportOptions } from '../../shared/api';
 import {
@@ -135,6 +136,35 @@ describe('pre-flight issues', () => {
     const where = locate(withPhoto, { kind: 'missingAsset', assetId: 'photo-a' }, labels);
     expect(where.file).toBe('plage.jpg');
     expect(where.target).toEqual({ spreadId: spread.id, elementId: photo.id });
+  });
+
+  it('points a missing map at the map, and does not block the export', () => {
+    const map = { ...mapElement(), id: 'the-map' };
+    const withMap: Book = {
+      ...book,
+      spreads: book.spreads.map((s) =>
+        s.id === spread.id ? { ...s, elements: [...s.elements, map] } : s,
+      ),
+    };
+    const issue: PreflightIssue = { kind: 'missingMap', spreadId: spread.id, elementId: 'the-map' };
+    expect(locate(withMap, issue, labels)).toEqual({
+      place: 'pages 2 et 3',
+      file: null,
+      target: { spreadId: spread.id, elementId: 'the-map' },
+    });
+    expect(isBlocking(issue)).toBe(false);
+  });
+
+  it('points a missing medallion photo at the map that shows it', () => {
+    const map = { ...mapElement(), id: 'the-map' }; // its second place carries photo-1
+    const withMap: Book = {
+      ...book,
+      spreads: book.spreads.map((s) =>
+        s.id === spread.id ? { ...s, elements: [...s.elements, map] } : s,
+      ),
+    };
+    const where = locate(withMap, { kind: 'missingAsset', assetId: 'photo-1' }, labels);
+    expect(where.target).toEqual({ spreadId: spread.id, elementId: 'the-map' });
   });
 
   it('has no target for a page rule or an element that is gone', () => {

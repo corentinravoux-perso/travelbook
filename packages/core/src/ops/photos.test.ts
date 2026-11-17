@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { AssetRef, Book, PhotoElement } from '../schema';
 import { OpError } from './errors';
-import { assetUsage, fillSlot, removePhotos, setCrop, swapPhotos, unusedAssets } from './photos';
+import { mapElement } from '../map/test-helpers';
+import {
+  assetUsage,
+  elementAssetIds,
+  fillSlot,
+  removePhotos,
+  setCrop,
+  swapPhotos,
+  unusedAssets,
+} from './photos';
 import { freshBook, inner, photo, shape, useCounterIds } from './test-helpers';
 
 useCounterIds();
@@ -174,6 +183,55 @@ describe('assetUsage / unusedAssets', () => {
     const book = freshBook(1);
     inner(book).elements.push(photo('e', 0, 0, 10, 10, null));
     expect(assetUsage(book)).toEqual({});
+  });
+});
+
+describe('assets of a map element', () => {
+  /** A map whose second place carries the medallion photo `photo-1`, as `mapElement()` builds it. */
+  const mapWith = (id: string) => ({ ...mapElement(), id });
+
+  it('lists the geometry, then the photo of each place that has one', () => {
+    const map = mapElement();
+    map.places[0]!.photo = { ...map.places[1]!.photo!, assetId: 'photo-0' };
+    expect(elementAssetIds(map)).toEqual(['map-0123456789abcdef', 'photo-0', 'photo-1']);
+  });
+
+  it('lists only the geometry for a map with no photo, and nothing for a shape', () => {
+    const map = mapElement();
+    map.places[1]!.photo = null;
+    expect(elementAssetIds(map)).toEqual(['map-0123456789abcdef']);
+    expect(elementAssetIds(shape('sh', 0, 0, 1, 1))).toEqual([]);
+  });
+
+  it('counts the geometry and the medallion photos as placements', () => {
+    const book = freshBook(2);
+    book.assets = {
+      'map-0123456789abcdef': asset('map-0123456789abcdef', 'map'),
+      'photo-1': asset('photo-1'),
+      a1: asset('a1'),
+    };
+    inner(book, 0).elements.push(mapWith('m1'), photo('p1', 0, 0, 10, 10, 'a1'));
+    book.cover.elements.push(mapWith('m2'));
+    expect(assetUsage(book)).toEqual({ 'map-0123456789abcdef': 2, 'photo-1': 2, a1: 1 });
+  });
+
+  it('counts a medallion photo even while the medallions are off, so it is never "unused"', () => {
+    const book = freshBook(1);
+    book.assets = {
+      'map-0123456789abcdef': asset('map-0123456789abcdef', 'map'),
+      'photo-1': asset('photo-1'),
+      spare: asset('spare'),
+    };
+    const map = mapWith('m1');
+    map.medallions = false;
+    inner(book).elements.push(map);
+    expect(unusedAssets(book)).toEqual(['spare']);
+  });
+
+  it('lists the geometry of a map that was deleted as unused', () => {
+    const book = freshBook(1);
+    book.assets = { 'map-0123456789abcdef': asset('map-0123456789abcdef', 'map') };
+    expect(unusedAssets(book)).toEqual(['map-0123456789abcdef']);
   });
 });
 

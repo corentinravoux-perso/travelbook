@@ -1,6 +1,6 @@
 import { access, mkdir, readFile, rm } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { BookFormatError, migrate, newBook, type Book } from '@travelbook/core';
+import { BookFormatError, bookForSave, migrate, newBook, type Book } from '@travelbook/core';
 import { writeFileAtomic } from './atomic-write';
 import { addRecentProject } from './recent';
 
@@ -45,7 +45,7 @@ async function makeProjectFolder(parentDir: string, name: string): Promise<strin
 }
 
 /** The recent list is a convenience: failing to update it must not fail the project operation. */
-async function noteRecent(dir: string, book: Book): Promise<void> {
+export async function noteRecent(dir: string, book: Book): Promise<void> {
   try {
     await addRecentProject({ dir, title: book.title });
   } catch (error) {
@@ -53,9 +53,13 @@ async function noteRecent(dir: string, book: Book): Promise<void> {
   }
 }
 
-/** Replace `book.json` atomically: a failure leaves the previous file untouched. */
+/**
+ * Replace `book.json` atomically: a failure leaves the previous file untouched. The file is
+ * `bookForSave(book)`: the format version of what it holds (2 with a map, else 1) and no geometry
+ * asset of a map that is gone, whatever the book in memory says.
+ */
 export function saveBook(dir: string, book: Book): Promise<void> {
-  return writeFileAtomic(join(dir, BOOK_FILE), JSON.stringify(book, null, 2) + '\n');
+  return writeFileAtomic(join(dir, BOOK_FILE), JSON.stringify(bookForSave(book), null, 2) + '\n');
 }
 
 export async function createProject(opts: {
@@ -71,7 +75,7 @@ export async function createProject(opts: {
   return { dir, book };
 }
 
-async function readBook(dir: string): Promise<Book> {
+export async function readBook(dir: string): Promise<Book> {
   let text: string;
   try {
     text = await readFile(join(dir, BOOK_FILE), 'utf8');

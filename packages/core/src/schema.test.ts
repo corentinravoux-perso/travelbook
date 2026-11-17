@@ -9,19 +9,29 @@ import {
   type Background,
   type Book,
   type Element,
+  type MapElement,
   type PhotoElement,
   type Spread,
   BookFormatError,
   BookSchema,
+  bookForSave,
+  bookSchemaVersion,
+  DEFAULT_MAP_STYLE,
   migrate,
   newBook,
   newElement,
   newSpread,
   pageCount,
+  removeElements,
   setIdSource,
 } from './index';
+import { mapAsset, mapElement } from './map/test-helpers';
 
 const rect = { x: 1, y: 2, w: 30, h: 40 };
+
+/** A raw document edited by key, as a test saves an album the way another release would. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Raw = Record<string, any>;
 
 describe('newBook', () => {
   it('builds a valid default book', () => {
@@ -218,13 +228,232 @@ describe('migrate', () => {
     const b = newBook({ title: 'T' });
     expect(migrate(b)).toEqual(b);
   });
-  it('rejects a newer version', () => {
-    const b = { ...newBook({ title: 'T' }), schemaVersion: 2 };
-    expect(() => migrate(b)).toThrow(/version plus récente/);
+  it('accepts a version 2 book and keeps its version', () => {
+    const b = { ...newBook({ title: 'T' }), schemaVersion: 2 as const };
+    b.cover.elements.push(mapElement());
+    expect(migrate(b)).toEqual(b);
+    expect(migrate(b).schemaVersion).toBe(2);
+  });
+  describe('map styles (spec 7.9)', () => {
+    /** An album as an older or newer release saved it: map styles edited on the raw JSON. */
+    function saved(edit: (style: Raw) => void): Raw {
+      const b = JSON.parse(
+        JSON.stringify({ ...newBook({ title: 'T', innerSpreads: 1 }), schemaVersion: 2 }),
+      ) as Raw;
+      b['cover'].elements.push(JSON.parse(JSON.stringify(mapElement())));
+      b['spreads'][1].elements.push({ ...JSON.parse(JSON.stringify(mapElement())), id: 'map-2' });
+      for (const spread of [b['cover'], b['spreads'][1]]) {
+        edit(spread.elements.find((e: Raw) => e['type'] === 'map').style);
+      }
+      return b;
+    }
+    const mapsOf = (b: Book): MapElement[] =>
+      [b.cover, ...b.spreads]
+        .flatMap((s) => s.elements)
+        .filter((e): e is MapElement => e.type === 'map');
+
+    it('opens an album whose map style lacks lakes and has an unknown token, filled from the defaults', () => {
+      const raw = saved((style) => {
+        delete style['lakes'];
+        style['sparkle'] = { amount: 3 };
+        style['label'].shadow = true;
+      });
+      const maps = mapsOf(migrate(raw));
+      expect(maps).toHaveLength(2);
+      for (const map of maps) {
+        expect(map.style).toEqual(DEFAULT_MAP_STYLE);
+        expect(Object.keys(map.style)).not.toContain('sparkle');
+      }
+    });
+
+    it('keeps the tokens the album has', () => {
+      const raw = saved((style) => {
+        delete style['sizes'];
+        style['land'].fill = '#223344';
+      });
+      const [map] = mapsOf(migrate(raw));
+      expect(map?.style.land.fill).toBe('#223344');
+      expect(map?.style.sizes).toEqual(DEFAULT_MAP_STYLE.sizes);
+    });
+
+    it('fills a map element that has no style at all', () => {
+      const raw = saved(() => {});
+      for (const e of raw['cover'].elements) delete e['style'];
+      expect(mapsOf(migrate(raw))[0]?.style).toEqual(DEFAULT_MAP_STYLE);
+    });
+
+    it('does not edit the raw document it was given', () => {
+      const raw = saved((style) => delete style['lakes']);
+      const before = JSON.stringify(raw);
+      migrate(raw);
+      expect(JSON.stringify(raw)).toBe(before);
+    });
+
+    it('still reports a broken element outside the style as a BookFormatError', () => {
+      const raw = saved((style) => delete style['lakes']);
+      for (const e of raw['cover'].elements) e['opacity'] = 2;
+      expect(() => migrate(raw)).toThrow(BookFormatError);
+    });
+
+    it('still reports a document without spreads, or with a cover that is no spread, as a BookFormatError', () => {
+      const raw = saved(() => {});
+      delete raw['spreads'];
+      expect(() => migrate(raw)).toThrow(BookFormatError);
+      expect(() => migrate({ schemaVersion: 2, cover: 'x', spreads: [null] })).toThrow(
+        BookFormatError,
+      );
+    });
+  });
+  it('rejects a newer version with the update message', () => {
+    const b = { ...newBook({ title: 'T' }), schemaVersion: 3 };
+    expect(() => migrate(b)).toThrow(BookFormatError);
+    expect(() => migrate(b)).toThrow(/Cet album a été créé avec une version plus récente/);
+    expect(() => migrate(b)).toThrow(/format 3/);
+  });
+  it('rejects a version that never existed', () => {
+    expect(() => migrate({ ...newBook({ title: 'T' }), schemaVersion: 0 })).toThrow(
+      /Version de format inconnue : 0/,
+    );
   });
   it('reports invalid v1 content as BookFormatError', () => {
     const b = { ...newBook({ title: 'T' }), bleed: -1 };
     expect(() => migrate(b)).toThrow(BookFormatError);
+  });
+});
+
+describe('bookSchemaVersion', () => {
+  const withMap = (book: Book, where: 'cover' | 'inner'): Book => {
+    const copy = JSON.parse(JSON.stringify(book)) as Book;
+    (where === 'cover' ? copy.cover : copy.spreads[1]!).elements.push(mapElement());
+    return copy;
+  };
+  const fresh = (): Book => newBook({ title: 'T', innerSpreads: 2 });
+
+  it('is 1 for an album without a map, whatever version it carries', () => {
+    expect(bookSchemaVersion(fresh())).toBe(1);
+    expect(bookSchemaVersion({ ...fresh(), schemaVersion: 2 })).toBe(1);
+  });
+
+  it('is 2 with a map on the cover', () => {
+    expect(bookSchemaVersion(withMap(fresh(), 'cover'))).toBe(2);
+  });
+
+  it('is 2 with a map on an inner spread', () => {
+    expect(bookSchemaVersion(withMap(fresh(), 'inner'))).toBe(2);
+  });
+
+  it('is 1 again after the only map is removed', () => {
+    const book = withMap(fresh(), 'cover');
+    const gone = removeElements(book, book.cover.id, [book.cover.elements[0]!.id]);
+    expect(bookSchemaVersion(gone)).toBe(1);
+  });
+
+  it('stays 2 while another map is left', () => {
+    const book = withMap(withMap(fresh(), 'cover'), 'inner');
+    const gone = removeElements(book, book.cover.id, [book.cover.elements[0]!.id]);
+    expect(bookSchemaVersion(gone)).toBe(2);
+  });
+
+  it('is not changed by the factory: a new book is version 1', () => {
+    expect(fresh().schemaVersion).toBe(1);
+  });
+});
+
+describe('bookForSave', () => {
+  const fresh = (): Book => newBook({ title: 'T', innerSpreads: 2 });
+  const plainAsset = (id: string, kind: AssetRef['kind']): AssetRef => ({
+    id,
+    kind,
+    file: `files/${id}`,
+    originalName: id,
+    sha256: 'x',
+  });
+  /** A book with `map` on the cover (or an inner spread) and the given assets registered. */
+  function bookWith(where: 'cover' | 'inner', assets: AssetRef[]): Book {
+    const book = fresh();
+    (where === 'cover' ? book.cover : book.spreads[1]!).elements.push(mapElement());
+    for (const a of assets) book.assets[a.id] = a;
+    return book;
+  }
+  const kindsOf = (book: Book): string[] => Object.values(book.assets).map((a) => a.kind);
+
+  it('keeps the geometry asset of a map that is there, and stamps 2', () => {
+    const saved = bookForSave(bookWith('inner', [mapAsset()]));
+    expect(Object.keys(saved.assets)).toEqual([mapAsset().id]);
+    expect(saved.schemaVersion).toBe(2);
+  });
+
+  it('counts a map on the cover', () => {
+    const saved = bookForSave(bookWith('cover', [mapAsset()]));
+    expect(Object.keys(saved.assets)).toEqual([mapAsset().id]);
+    expect(saved.schemaVersion).toBe(2);
+  });
+
+  it('drops the geometry of a deleted map, and stamps 1: nothing a release without maps refuses', () => {
+    const book = bookWith('cover', [mapAsset()]);
+    const gone = removeElements(book, book.cover.id, [book.cover.elements[0]!.id]);
+    expect(Object.keys(gone.assets)).toEqual([mapAsset().id]);
+    const saved = bookForSave(gone);
+    expect(saved.assets).toEqual({});
+    expect(saved.schemaVersion).toBe(1);
+  });
+
+  it('drops the old geometry of a map that was baked again, and keeps the new one', () => {
+    const book = bookWith('cover', [mapAsset(), mapAsset('map-fedcba9876543210')]);
+    book.cover.elements = [{ ...mapElement(), geometryAssetId: 'map-fedcba9876543210' }];
+    const saved = bookForSave(book);
+    expect(Object.keys(saved.assets)).toEqual(['map-fedcba9876543210']);
+    expect(saved.schemaVersion).toBe(2);
+  });
+
+  it('keeps the geometry of every map left, whichever spread holds it', () => {
+    const book = bookWith('cover', [mapAsset(), mapAsset('map-fedcba9876543210')]);
+    book.spreads[1]!.elements.push({
+      ...mapElement(),
+      id: 'map-2',
+      geometryAssetId: 'map-fedcba9876543210',
+    });
+    book.assets['map-orphan'] = mapAsset('map-orphan');
+    expect(Object.keys(bookForSave(book).assets).sort()).toEqual([
+      'map-0123456789abcdef',
+      'map-fedcba9876543210',
+    ]);
+  });
+
+  it('leaves the assets of every other kind alone, used or not', () => {
+    const others = (['photo', 'sticker', 'background', 'pattern', 'font'] as const).map((kind) =>
+      plainAsset(`unused-${kind}`, kind),
+    );
+    const gone = bookWith('cover', [...others, mapAsset()]);
+    gone.cover.elements = [];
+    const saved = bookForSave(gone);
+    expect(Object.keys(saved.assets).sort()).toEqual(others.map((a) => a.id).sort());
+    expect(kindsOf(saved)).not.toContain('map');
+    expect(saved.assets).toEqual(Object.fromEntries(others.map((a) => [a.id, a])));
+  });
+
+  it('does not touch an album without maps, but for its version', () => {
+    const book = { ...fresh(), schemaVersion: 2 as const };
+    book.assets['a'] = plainAsset('a', 'photo');
+    const saved = bookForSave(book);
+    expect(saved).toEqual({ ...book, schemaVersion: 1 });
+  });
+
+  it('never changes the book it is given, so undo keeps the map and its geometry', () => {
+    const book = bookWith('cover', [mapAsset(), plainAsset('a', 'photo')]);
+    book.cover.elements = [];
+    const before = JSON.stringify(book);
+    const saved = bookForSave(book);
+    expect(saved).not.toBe(book);
+    expect(JSON.stringify(book)).toBe(before);
+    expect(book.assets[mapAsset().id]).toBeDefined();
+    expect(book.schemaVersion).toBe(1);
+  });
+
+  it('writes a book migrate reads back, with or without a map', () => {
+    for (const book of [fresh(), bookWith('cover', [mapAsset()])]) {
+      expect(migrate(bookForSave(book))).toEqual(bookForSave(book));
+    }
   });
 });
 

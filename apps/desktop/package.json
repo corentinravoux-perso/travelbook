@@ -26,9 +26,11 @@
     "dist:win": "npm run build && electron-builder --win nsis --publish never",
     "stickers": "node scripts/build-sticker-packs.ts",
     "draw-stickers": "node scripts/stickers/draw-stickers.ts",
-    "fonts": "node scripts/build-fonts.ts"
+    "fonts": "node scripts/build-fonts.ts",
+    "maps": "node scripts/maps/build-geodata.ts"
   },
   "devDependencies": {
+    "@duckdb/node-api": "2.0.0-r.1",
     "@fontsource/abril-fatface": "5.3.0",
     "@fontsource/alfa-slab-one": "5.3.0",
     "@fontsource/amatic-sc": "5.3.0",
@@ -110,6 +112,7 @@
     "electron-vite": "6.0.0",
     "emojibase-data": "18.0.0",
     "jsdom": "31.0.0",
+    "mapshaper": "0.8.1",
     "roughjs": "4.6.6",
     "vite": "8.3.8"
   },

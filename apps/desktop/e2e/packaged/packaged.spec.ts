@@ -16,7 +16,7 @@ import sharp from 'sharp';
 import { newElement, type Book } from '@travelbook/core';
 import { ensureFixtures, fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import type { TbApi } from '../../src/shared/api';
-import { createFromHome, pickFolders } from '../home';
+import { createFromHome, openAlbumCard, pickFolders } from '../home';
 import { expectNoMainErrors, launchPackaged, requirePackagedApp } from '../packagedApp';
 
 type Win = { tb: TbApi };
@@ -145,7 +145,7 @@ test('the saved book exports a page as a JPEG with its photo and fonts', async (
   const { app, stderr } = await launchPackaged(userData);
   try {
     const page: Page = await app.firstWindow();
-    await page.getByRole('button', { name: new RegExp(TITLE) }).click();
+    await openAlbumCard(page, new RegExp(TITLE));
     await expect(page.getByRole('img', { name: 'Double page 1' })).toBeVisible();
 
     const outDir = join(work, 'files');

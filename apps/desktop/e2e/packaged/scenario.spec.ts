@@ -18,7 +18,7 @@ import sharp from 'sharp';
 import type { Book, Element, Spread } from '@travelbook/core';
 import { stressPhoto } from '../../../../tests/fixtures/make-stress-book';
 import type { TbApi } from '../../src/shared/api';
-import { createFromHome, pickFolders } from '../home';
+import { createFromHome, openAlbumCard, pickFolders } from '../home';
 import {
   expectNoMainErrors,
   launchPackaged,
@@ -350,7 +350,7 @@ test('reopened, the book is the one that was saved', async () => {
   const { app, stderr } = await launchPackaged(userData);
   try {
     const page = await app.firstWindow();
-    await page.getByRole('button', { name: new RegExp(TITLE) }).click();
+    await openAlbumCard(page, new RegExp(TITLE));
     await expect(page.getByRole('img', { name: 'Double page 1' })).toBeVisible();
     await expect(page.locator('.photos__count, .photo-thumb').first()).toBeVisible();
 

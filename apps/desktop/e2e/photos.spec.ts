@@ -14,7 +14,7 @@ import {
   fixturePath,
   type FixtureName,
 } from '../../../tests/fixtures/make-fixtures';
-import { createFromHome, pickFolders } from './home';
+import { createFromHome, openAlbumCard, pickFolders } from './home';
 import { launchApp } from './launch';
 
 /** The e2e build exposes the editor store (see `App.tsx`). */
@@ -661,7 +661,7 @@ test('importing the same photo again puts a missing original back', async () => 
     await exited;
     app = await launchApp(userData);
     const again = await app.firstWindow();
-    await again.getByRole('button', { name: /Perdu/ }).click();
+    await openAlbumCard(again, /Perdu/);
     const missing = again.getByRole('status', { name: 'Un fichier original est introuvable' });
     await expect(missing).toContainText('small.jpg');
 

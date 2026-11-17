@@ -10,6 +10,8 @@ import { BackgroundsPanel } from '../panels/BackgroundsPanel';
 import { StickersPanel } from '../panels/StickersPanel';
 import { TemplatesPanel } from '../panels/TemplatesPanel';
 import { ShapesPanel } from '../panels/ShapesPanel';
+import { MapsPanel } from '../panels/MapsPanel';
+import { MapDialog } from '../maps/MapDialog';
 import { TextPanel } from '../panels/TextPanel';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
@@ -48,6 +50,7 @@ const PANEL_ICONS: Record<PanelId, IconName> = {
   backgrounds: 'background',
   text: 'letter-t',
   shapes: 'triangle-square-circle',
+  maps: 'map',
 };
 
 /**
@@ -128,6 +131,7 @@ export function Shell() {
       </div>
       <CreditsDialog />
       <PosterDialog />
+      <MapDialog />
       {overview && <Overview />}
       {preview && <Preview />}
     </>
@@ -335,6 +339,8 @@ function Panel({
         <BackgroundsPanel />
       ) : panel === 'stickers' ? (
         <StickersPanel />
+      ) : panel === 'maps' ? (
+        <MapsPanel />
       ) : (
         <p className="shell-empty">{fr.shell.panelEmpty}</p>
       )}

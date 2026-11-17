@@ -3,6 +3,7 @@ import {
   clipboard,
   ClipboardItem,
   dialog,
+  Menu,
   shell,
   type BrowserWindow,
   type OpenDialogOptions,
@@ -10,7 +11,16 @@ import {
 import type { CloseChoice } from './close-guard';
 import { fr } from '../renderer/strings/fr';
 import { createExportWindow } from './export/exportWindow';
+import { menuTemplate } from './app-menu';
 import type { Host } from './ipc';
+import type { MenuLanguage } from '../shared/api';
+
+/** Build the application menu bar in `language` and install it. */
+export function applyAppMenu(language: MenuLanguage): void {
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate(menuTemplate(language, process.platform, app.name)),
+  );
+}
 
 /** Extensions the photo import takes (see `PHOTO_EXTENSIONS` in `photos/import.ts`). */
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
@@ -55,6 +65,7 @@ export function createElectronHost(
     openExternal: (url) => shell.openExternal(url),
     showInFolder: (path) => shell.showItemInFolder(path),
     version: () => app.getVersion(),
+    applyMenu: applyAppMenu,
     captureJpeg: async (rect, longEdge) => {
       const win = window();
       if (!win) throw new Error('No window to capture');

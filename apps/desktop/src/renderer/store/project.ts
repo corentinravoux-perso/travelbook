@@ -7,6 +7,7 @@ import type {
   RecentProject,
   SnapshotInfo,
 } from '../../shared/api';
+import { geometryCache } from '../maps/geometryCache';
 import { captureCoverThumb, createCoverThumbs } from '../editor/coverThumb';
 import { editorStore, type EditorStore } from './editor';
 
@@ -17,7 +18,7 @@ export const SNAPSHOT_NOTE_MS = 2500;
 
 export type View = 'home' | 'editor';
 /** What failed on the home screen; the text is in `fr.home`. */
-export type ProjectError = 'create' | 'open';
+export type ProjectError = 'create' | 'open' | 'duplicate';
 export type SnapshotNote = 'saved' | 'failed';
 
 export interface ProjectState {
@@ -36,6 +37,8 @@ export interface ProjectState {
   createProject(options: CreateProjectOptions): Promise<boolean>;
   /** Open the book in `dir` (or the one a folder dialog gives) and show it; false if not shown. */
   openProject(dir?: string): Promise<boolean>;
+  /** Copy the album in `dir` as "<title> (copie)" and refresh the list, without opening it. */
+  duplicateProject(dir: string): Promise<boolean>;
   /** Save the open book, then show the home screen. A failed save keeps the editor on screen. */
   goHome(): Promise<void>;
   dismissMissing(): void;
@@ -55,6 +58,7 @@ export interface ProjectStoreDeps {
     create(options: CreateProjectOptions): Promise<ProjectInfo | null>;
     open(dir?: string): Promise<OpenedProject | null>;
     recent(): Promise<RecentProject[]>;
+    duplicate(dir: string): Promise<ProjectInfo>;
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
   };
 }
@@ -96,6 +100,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         const opened = await editor.getState().openWith(open);
         if (opened) {
           snapshotBase = opened.book;
+          geometryCache.clear(); // ids are content addresses: another album may differ
           set({ view: 'editor', missing: opened.missing ?? [], snapshotNote: null });
         }
         return opened;
@@ -129,6 +134,21 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
       async openProject(dir) {
         return (await show('open', () => api.open(dir))) !== null;
       },
+      async duplicateProject(dir) {
+        if (get().busy) return false;
+        set({ busy: true, error: null });
+        try {
+          await api.duplicate(dir);
+        } catch (error) {
+          console.warn('Could not duplicate the album:', error);
+          set({ error: 'duplicate' });
+          return false;
+        } finally {
+          set({ busy: false });
+        }
+        await get().refreshRecent();
+        return true;
+      },
       async goHome() {
         try {
           await editor.getState().flush();
@@ -137,6 +157,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         }
         await flushCover?.(); // never rejects: the thumbnail is a cache
         set({ view: 'home' });
+        geometryCache.clear();
         await get().refreshRecent();
       },
       dismissMissing() {
@@ -187,6 +208,7 @@ export const projectStore = createProjectStore({
     create: (o) => window.tb.project.create(o),
     open: (d) => window.tb.project.open(d),
     recent: () => window.tb.project.recent(),
+    duplicate: (d) => window.tb.project.duplicate(d),
     snapshot: (l) => window.tb.project.snapshot(l),
   },
 });

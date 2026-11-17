@@ -1,5 +1,5 @@
 import type { Book, PreflightIssue } from '@travelbook/core';
-import { pageCount } from '@travelbook/core';
+import { elementAssetIds, pageCount } from '@travelbook/core';
 import type { ExportOptions } from '../../shared/api';
 import { findSpread } from '../store/editor';
 import { pageNumbers } from '../editor/pages';
@@ -152,14 +152,18 @@ export interface IssueWhere {
 /**
  * The place of an issue as the user reads it ("page 4", "pages 4 et 5", "couverture"), and the
  * element "voir" goes to. A missing original has no place of its own: it points at the first
- * photo that uses it.
+ * photo (or map, for a medallion) that uses it.
  */
 export function locate(book: Book, issue: PreflightIssue, labels: SpreadLabel): IssueWhere {
   if (issue.kind === 'pageRule') return { place: null, file: null, target: null };
   if (issue.kind === 'missingAsset') {
     const file = book.assets[issue.assetId]?.originalName ?? issue.assetId;
     for (const spread of [book.cover, ...book.spreads]) {
-      const el = spread.elements.find((e) => e.type === 'photo' && e.assetId === issue.assetId);
+      const el = spread.elements.find(
+        (e) =>
+          (e.type === 'photo' && e.assetId === issue.assetId) ||
+          (e.type === 'map' && elementAssetIds(e).includes(issue.assetId)),
+      );
       if (el) {
         return {
           place: placeOf(book, spread.id, labels),

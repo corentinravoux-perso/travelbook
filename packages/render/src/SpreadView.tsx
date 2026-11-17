@@ -9,6 +9,7 @@ import {
 } from '@travelbook/core';
 import type { ReactElement, ReactNode } from 'react';
 import { Background } from './Background';
+import { MapView } from './elements/MapView';
 import { PhotoView } from './elements/PhotoView';
 import { ShapeView } from './elements/ShapeView';
 import { StickerView } from './elements/StickerView';
@@ -47,6 +48,17 @@ function drawElement(el: Element, p: SpreadViewProps): ReactElement | null {
       return <ShapeView key={el.id} el={el} />;
     case 'text':
       return <TextView key={el.id} el={el} quality={p.quality} />;
+    case 'map':
+      return (
+        <MapView
+          key={el.id}
+          el={el}
+          geometry={p.mapGeometry?.(el.geometryAssetId) ?? null}
+          quality={p.quality}
+          assetUrl={p.assetUrl}
+          hasAsset={(id) => p.book.assets[id] !== undefined}
+        />
+      );
   }
 }
 

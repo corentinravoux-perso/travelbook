@@ -53,13 +53,29 @@ function backgroundAssets(bg: Background | undefined): string[] {
   return bg && (bg.kind === 'image' || bg.kind === 'pattern') ? [bg.assetId] : [];
 }
 
-function elementAsset(el: Element): string | null {
-  return el.type === 'photo' || el.type === 'sticker' ? el.assetId : null;
+/**
+ * The assets an element places, one id per placement: a photo's or sticker's file; for a map its
+ * baked geometry, then the photo of each place that has one (a medallion), also while the
+ * medallions are switched off, so that turning them on never finds a photo missing or unused.
+ * An empty slot or a blank sticker places nothing.
+ */
+export function elementAssetIds(el: Element): string[] {
+  switch (el.type) {
+    case 'photo':
+    case 'sticker':
+      return el.assetId ? [el.assetId] : [];
+    case 'map':
+      return [el.geometryAssetId, ...el.places.flatMap((p) => (p.photo ? [p.photo.assetId] : []))];
+    case 'text':
+    case 'shape':
+      return [];
+  }
 }
 
 /**
- * Placements per asset id: photo and sticker elements, and image and pattern backgrounds, on
- * the cover and on every spread. An asset with no placement is absent from the record.
+ * Placements per asset id: photo and sticker elements, the geometry and medallion photos of maps,
+ * and image and pattern backgrounds, on the cover and on every spread. An asset with no
+ * placement is absent from the record.
  */
 export function assetUsage(book: Book): Record<string, number> {
   const usage: Record<string, number> = {};
@@ -67,7 +83,7 @@ export function assetUsage(book: Book): Record<string, number> {
     if (assetId) usage[assetId] = (usage[assetId] ?? 0) + 1;
   };
   for (const spread of [book.cover, ...book.spreads]) {
-    for (const el of spread.elements) count(elementAsset(el));
+    for (const el of spread.elements) elementAssetIds(el).forEach(count);
     const { left, right, spread: across } = spread.background;
     for (const bg of [left, right, across]) backgroundAssets(bg).forEach(count);
   }
