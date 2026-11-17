@@ -1,7 +1,12 @@
 import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { newBook, type MapGeometry, type Spread } from '@travelbook/core';
 import { describe, expect, it, vi } from 'vitest';
-import { GEOMETRY_TIMEOUT_MS, createGeometryCache, preloadMapGeometries } from './geometryCache';
+import {
+  GEOMETRY_RETRY_AFTER_MS,
+  GEOMETRY_TIMEOUT_MS,
+  createGeometryCache,
+  preloadMapGeometries,
+} from './geometryCache';
 
 const geometry: MapGeometry = {
   version: 1,
@@ -125,6 +130,72 @@ describe('geometry cache lifetime', () => {
       await vi.advanceTimersByTimeAsync(GEOMETRY_TIMEOUT_MS);
       await expect(pending).resolves.toBe('missing');
       expect(cache.peek('map-a')).toBe('missing');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('geometry cache retry after a timeout', () => {
+  /** A fetch that stalls while `stalled` is true, then answers with the geometry. */
+  function stallingCache() {
+    const state = { stalled: true };
+    const { cache, fetchMock } = cacheWith(() =>
+      state.stalled ? new Promise<Response>(() => undefined) : json(geometry),
+    );
+    return { cache, fetchMock, state };
+  }
+
+  it('fetches again on the next load once the disk answers', async () => {
+    vi.useFakeTimers();
+    try {
+      const { cache, fetchMock, state } = stallingCache();
+      const first = cache.load('map-a');
+      await vi.advanceTimersByTimeAsync(GEOMETRY_TIMEOUT_MS);
+      await expect(first).resolves.toBe('missing');
+      state.stalled = false;
+      await expect(cache.load('map-a')).resolves.toEqual(geometry);
+      expect(cache.peek('map-a')).toEqual(geometry);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('peek retries on a later render, keeps showing missing meanwhile, then notifies', async () => {
+    vi.useFakeTimers();
+    try {
+      const { cache, fetchMock, state } = stallingCache();
+      const listener = vi.fn();
+      cache.subscribe(listener);
+      expect(cache.peek('map-a')).toBeNull();
+      await vi.advanceTimersByTimeAsync(GEOMETRY_TIMEOUT_MS);
+      expect(cache.peek('map-a')).toBe('missing');
+      // The render that the failure triggers does not refetch at once.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      state.stalled = false;
+      await vi.advanceTimersByTimeAsync(GEOMETRY_RETRY_AFTER_MS);
+      expect(cache.peek('map-a')).toBe('missing');
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(cache.peek('map-a')).toEqual(geometry);
+      expect(listener).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps a 404 or a schema failure as missing, without fetching again', async () => {
+    vi.useFakeTimers();
+    try {
+      for (const body of [json('', 404), json({ version: 1, paths: {} })]) {
+        const { cache, fetchMock } = cacheWith(() => body.clone());
+        expect(await cache.load('map-a')).toBe('missing');
+        await vi.advanceTimersByTimeAsync(GEOMETRY_RETRY_AFTER_MS * 10);
+        expect(cache.peek('map-a')).toBe('missing');
+        expect(await cache.load('map-a')).toBe('missing');
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+      }
     } finally {
       vi.useRealTimers();
     }
