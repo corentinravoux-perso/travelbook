@@ -62,19 +62,43 @@ export interface MapDialogState {
   status: 'idle' | 'applying' | 'failed';
   error: string | null;
   /** Specs before the last edits, oldest first (Ctrl+Z); emptied by a new subject. */
-  past: MapSpec[];
+  past: HistoryEntry[];
   /** Specs undone, the next one to redo first (Ctrl+Maj+Z, Ctrl+Y). */
-  future: MapSpec[];
+  future: HistoryEntry[];
+}
+
+/** An undo step: the spec, and whether its places were still the derived defaults. */
+export interface HistoryEntry {
+  spec: MapSpec;
+  derived: string | null;
 }
 
 /** Undo steps the dialog keeps. */
 const HISTORY_LIMIT = 100;
-/**
- * Edits of the same fields closer together than this make one undo step: a drag, a slider, the
- * wheel zoom, typing a name.
- */
+/** Wheel zooms (frame changes outside any gesture) closer than this are one undo step. */
 export const UNDO_MERGE_MS = 700;
-let lastEdit: { keys: string; at: number } | null = null;
+/**
+ * The last recorded edit: its fields, when, and the edit group it was made in (`null`: none). An
+ * edit group is a gesture (a press until its release, the focus of a text field): all its
+ * edits are one undo step.
+ */
+let lastEdit: { keys: string; at: number; group: number | null } | null = null;
+/** Open edit groups by reason, and the number of the newest one. */
+const openGroups = new Set<'pointer' | 'focus'>();
+let group = 0;
+/** Changes at every undo, redo, new subject and close: an edit still waiting is then dropped. */
+let edits = 0;
+
+/** A gesture starts (a press in the dialog, the focus of a text field): its edits are one step. */
+export function beginEditGroup(reason: 'pointer' | 'focus'): void {
+  openGroups.add(reason);
+  group += 1;
+}
+
+/** The gesture of `reason` ends; the next edit outside any gesture is a step of its own. */
+export function endEditGroup(reason: 'pointer' | 'focus'): void {
+  openGroups.delete(reason);
+}
 
 const idle = (): MapDialogState => ({
   open: false,
@@ -341,6 +365,8 @@ export function closeMapDialog(): void {
   stopBakeWorker();
   forgetBake();
   lastEdit = null;
+  openGroups.clear();
+  edits += 1;
   mapDialogStore.setState(idle(), true);
 }
 
@@ -352,6 +378,7 @@ export async function openMapDialog(target?: MapTarget): Promise<void> {
   const mine = ++choice;
   derivedPlaces = null;
   lastEdit = null;
+  edits += 1;
   const index = await loadSubjectIndex();
   if (mine !== choice) return;
   const book = editorStore.getState().book;
@@ -423,6 +450,7 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
     future: [],
   });
   lastEdit = null;
+  edits += 1;
   await syncPackFallback();
 }
 
@@ -431,6 +459,7 @@ export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
   const first = mapDialogStore.getState().spec;
   if (!first) return;
   const mine = choice;
+  const mineEdit = edits;
   const rederives = (spec: MapSpec): boolean =>
     patch.subject !== undefined &&
     patch.places === undefined &&
@@ -442,9 +471,11 @@ export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
     rederives(first) && patch.subject!.regions.length > 0
       ? await baseOrNull(first.subject.id)
       : null;
-  if (mine !== choice) return;
+  // an undo, a redo or a new subject came while waiting: this edit no longer applies
+  if (mine !== choice || mineEdit !== edits) return;
   const { spec } = mapDialogStore.getState();
   if (!spec) return;
+  const before: HistoryEntry = { spec, derived: derivedPlaces };
   const next = { ...spec, ...patch };
   // the regions changed and the places are still the defaults: derive the defaults again
   if (rederives(spec)) {
@@ -461,12 +492,20 @@ export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
   }
   const keys = Object.keys(patch).sort().join();
   const now = Date.now();
-  const merge = lastEdit !== null && lastEdit.keys === keys && now - lastEdit.at < UNDO_MERGE_MS;
-  lastEdit = { keys, at: now };
+  const inGroup = openGroups.size > 0 ? group : null;
+  const merge =
+    lastEdit !== null &&
+    (inGroup !== null
+      ? lastEdit.group === inGroup
+      : lastEdit.group === null &&
+        keys === 'frame' &&
+        lastEdit.keys === 'frame' &&
+        now - lastEdit.at < UNDO_MERGE_MS);
+  lastEdit = { keys, at: now, group: inGroup };
   const { past } = mapDialogStore.getState();
   mapDialogStore.setState({
     spec: next,
-    past: merge ? past : [...past, spec].slice(-HISTORY_LIMIT),
+    past: merge ? past : [...past, before].slice(-HISTORY_LIMIT),
     future: [],
   });
   // settles once the fine pack of the chosen regions is in (when the regions changed)
@@ -475,15 +514,20 @@ export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
 
 const regionsKey = (spec: MapSpec): string => [...spec.subject.regions].sort().join();
 
-/** Go back to `to`; the fine pack follows when the regions differ. */
+/**
+ * Go back to `to` (its spec and whether its places were the defaults); an edit still waiting is
+ * dropped; the fine pack follows when the regions differ.
+ */
 async function restoreSpec(
-  to: MapSpec,
+  to: HistoryEntry,
   history: Pick<MapDialogState, 'past' | 'future'>,
 ): Promise<void> {
   const { spec } = mapDialogStore.getState();
   lastEdit = null;
-  mapDialogStore.setState({ spec: to, ...history });
-  if (spec && regionsKey(spec) !== regionsKey(to)) await syncPackFallback();
+  edits += 1;
+  derivedPlaces = to.derived;
+  mapDialogStore.setState({ spec: to.spec, ...history });
+  if (spec && regionsKey(spec) !== regionsKey(to.spec)) await syncPackFallback();
 }
 
 /** Ctrl+Z in the dialog: the spec before the last edit. False when there is nothing to undo. */
@@ -491,7 +535,8 @@ export async function undoMapEdit(): Promise<boolean> {
   const { spec, past, future, status } = mapDialogStore.getState();
   const previous = past.at(-1);
   if (!spec || !previous || status === 'applying') return false;
-  await restoreSpec(previous, { past: past.slice(0, -1), future: [spec, ...future] });
+  const now: HistoryEntry = { spec, derived: derivedPlaces };
+  await restoreSpec(previous, { past: past.slice(0, -1), future: [now, ...future] });
   return true;
 }
 
@@ -500,7 +545,11 @@ export async function redoMapEdit(): Promise<boolean> {
   const { spec, past, future, status } = mapDialogStore.getState();
   const next = future[0];
   if (!spec || !next || status === 'applying') return false;
-  await restoreSpec(next, { past: [...past, spec].slice(-HISTORY_LIMIT), future: future.slice(1) });
+  const now: HistoryEntry = { spec, derived: derivedPlaces };
+  await restoreSpec(next, {
+    past: [...past, now].slice(-HISTORY_LIMIT),
+    future: future.slice(1),
+  });
   return true;
 }
 
