@@ -179,6 +179,28 @@ describe('credits of maps', () => {
     expect(creditEntries(book).filter((e) => e.title === 'Cartes')).toHaveLength(1);
   });
 
+  it('credits GeoNames once when a map has a place taken from it, cover included', () => {
+    const book = bookWithMaps();
+    expect(creditEntries(book).some((e) => e.title === 'GeoNames')).toBe(false);
+    const gn = (el: (typeof book.cover.elements)[number]) =>
+      el.type === 'map'
+        ? {
+            ...el,
+            places: el.places.map((p) => ({
+              ...p,
+              source: { kind: 'city' as const, ref: 'gn:1609350' },
+            })),
+          }
+        : el;
+    book.cover.elements = book.cover.elements.map(gn);
+    book.spreads[1]!.elements = book.spreads[1]!.elements.map(gn);
+    const entries = creditEntries(book).filter((e) => e.title === 'GeoNames');
+    expect(entries).toHaveLength(1);
+    expect(creditLine(entries[0]!)).toBe('GeoNames, CC BY 4.0 (https://www.geonames.org/)');
+    expect(entries[0]!.requiresAttribution).toBe(true);
+    expect(entries[0]!.url).toBe('https://www.geonames.org/');
+  });
+
   it('lists a medallion photo only when it carries a licence', () => {
     const entries = creditEntries(bookWithMaps());
     expect(entries.map((e) => e.title).sort()).toEqual(['Cartes', 'Phuket']);

@@ -1248,6 +1248,33 @@ describe('maps', () => {
 
   afterEach(() => setMapsResourcesDir(null));
 
+  describe('history of a pruned map', () => {
+    it('reading a snapshot whose map asset left the book serves the asset again', async () => {
+      const created = await create();
+      const asset = await call<AssetRef>(CHANNEL.mapsSaveGeometry, geometry, { name: 'Thaïlande' });
+      const withMap = structuredClone(created.book);
+      const map = { ...mapElement(), geometryAssetId: asset.id };
+      withMap.cover.elements = [map];
+      withMap.assets = { [asset.id]: asset };
+      await call(CHANNEL.projectSave, withMap);
+      const info = await call<SnapshotInfo>(CHANNEL.projectSnapshot, 'manual');
+      // The map is deleted: the save prunes its geometry asset from book.json.
+      const without = structuredClone(withMap);
+      without.cover.elements = [];
+      await call(CHANNEL.projectSave, without);
+      closeSession();
+      await call<OpenedProject>(CHANNEL.projectOpen, created.dir);
+      const roots = () => tbRoots(currentSession(), { libraryDir: '/lib', resourcesDir: '/res' });
+      expect(resolveTbUrl(`tb://asset/${asset.id}?v=original`, roots())).toMatchObject({
+        ok: false,
+      });
+      await call<Book>(CHANNEL.projectReadSnapshot, info.id);
+      expect(resolveTbUrl(`tb://asset/${asset.id}?v=original`, roots())).toMatchObject({
+        ok: true,
+      });
+    });
+  });
+
   describe('saveGeometry', () => {
     it('keeps the geometry in the open album, with the ODbL licence, and indexes the asset', async () => {
       const created = await create();

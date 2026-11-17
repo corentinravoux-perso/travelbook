@@ -158,7 +158,8 @@ the sticker manifest or `apps/desktop/resources/LICENCES.json`, and a test fails
 Online sources are used only when you search them, with no account and no key, and send a
 `travelbook/<version>` user agent: Iconify (icon sets), Openverse (PNG stickers) and Wikimedia
 Commons (drawings), each result with its own licence, and the Fontsource catalogue for fonts.
-Nothing else leaves your machine. Permission requests such as camera or location are always refused.
+GitHub Releases serve the fine map packs of the countries that are not bundled, downloaded only
+when you choose a region of such a country. Nothing else leaves your machine. Permission requests such as camera or location are always refused.
 
 ## Clean room
 
