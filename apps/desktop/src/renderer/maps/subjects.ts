@@ -160,36 +160,23 @@ export async function loadTopology(file: string, fetchFn: Fetch = fetch): Promis
 /** Why the fine outline of a subject was not used: see `PackResult`. */
 export type PackFallback = 'offline' | 'checksum' | 'unknown';
 
-/** What a subject is baked from. */
-export interface SubjectData {
-  base: MapTopology;
-  /** The fine pack; `null` when the subject has none or it could not be had. */
+/** The fine pack of a subject. */
+export interface FinePack {
+  /** `null` when the subject lists none or it could not be had. */
   pack: MapTopology | null;
   /** Why `pack` is null although the index lists one; `null` otherwise. */
   packFallback: PackFallback | null;
 }
 
 /**
- * The base file of a subject and, when the index lists a fine pack for it, the pack through
- * `maps.loadPack`. A pack that cannot be had never fails the load: the base file stands in and
- * `packFallback` says why. Rejects when the subject is unknown or its base file cannot be read.
+ * The fine pack of a subject through `maps.loadPack`, only when the index lists one. It never
+ * rejects: a pack that cannot be had is `null` with the reason in `packFallback`.
  */
-export async function loadSubjectData(
+export async function loadFinePack(
   subjectId: string,
-  fetchFn: Fetch = fetch,
-): Promise<SubjectData> {
-  const subject = getSubject(subjectId, await loadSubjectIndex(fetchFn));
-  if (!subject) throw new Error(`Unknown map subject "${subjectId}"`);
-  const [base, fine] = await Promise.all([
-    loadTopology(subject.file, fetchFn),
-    subject.pack ? finePack(subject.id) : Promise.resolve({ pack: null, packFallback: null }),
-  ]);
-  return { base, ...fine };
-}
-
-async function finePack(
-  subjectId: string,
-): Promise<{ pack: MapTopology | null; packFallback: PackFallback | null }> {
+  index: SubjectIndex | null = loaded,
+): Promise<FinePack> {
+  if (!getSubject(subjectId, index)?.pack) return { pack: null, packFallback: null };
   try {
     const result = await window.tb.maps.loadPack(subjectId);
     if (!result.ok) return { pack: null, packFallback: result.reason };
@@ -197,4 +184,14 @@ async function finePack(
   } catch {
     return { pack: null, packFallback: 'offline' };
   }
+}
+
+/** The base file of a subject. Rejects when the subject is unknown or the file cannot be read. */
+export async function loadSubjectBase(
+  subjectId: string,
+  fetchFn: Fetch = fetch,
+): Promise<MapTopology> {
+  const subject = getSubject(subjectId, await loadSubjectIndex(fetchFn));
+  if (!subject) throw new Error(`Unknown map subject "${subjectId}"`);
+  return loadTopology(subject.file, fetchFn);
 }
