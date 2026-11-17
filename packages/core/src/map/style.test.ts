@@ -68,13 +68,18 @@ describe('normalizeStyle', () => {
     expect(normalizeStyle({}).sizes.marker).toBe(4);
   });
 
-  it('gives a style saved before the word spacing token the tighter default', () => {
+  it('keeps a map saved before the word spacing token as it was drawn (0); new maps get -0.1', () => {
     const old = JSON.parse(JSON.stringify(DEFAULT_MAP_STYLE));
     delete old.label.wordSpacingEm;
     old.label.letterSpacingEm = 0.05;
     const style = normalizeStyle(old);
-    expect(style.label.wordSpacingEm).toBe(-0.1);
+    expect(style.label.wordSpacingEm).toBe(0);
     expect(style.label.letterSpacingEm).toBe(0.05);
+    expect(normalizeStyle({}).label.wordSpacingEm).toBe(-0.1);
+    expect(DEFAULT_MAP_STYLE.label.wordSpacingEm).toBe(-0.1);
+    const set = JSON.parse(JSON.stringify(DEFAULT_MAP_STYLE));
+    set.label.wordSpacingEm = 0.2;
+    expect(normalizeStyle(set).label.wordSpacingEm).toBe(0.2);
   });
 
   it('is idempotent', () => {
@@ -109,7 +114,13 @@ describe('normalizeStyle', () => {
 
     it('keep the given tokens of a half-written section', () => {
       const out = normalizeStyle({ label: { font: 'Kalam', sizePt: 11 } });
-      expect(out.label).toEqual({ ...DEFAULT_MAP_STYLE.label, font: 'Kalam', sizePt: 11 });
+      // labels without a word spacing were saved before the token: 0, as they were drawn
+      expect(out.label).toEqual({
+        ...DEFAULT_MAP_STYLE.label,
+        font: 'Kalam',
+        sizePt: 11,
+        wordSpacingEm: 0,
+      });
     });
   });
 
