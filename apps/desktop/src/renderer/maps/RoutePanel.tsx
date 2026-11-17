@@ -178,10 +178,10 @@ export function RoutePanel({ spec }: { spec: MapSpec }) {
   const shown = spec.places.filter((p) => p.shown);
   // legs as displayed: the same repair as an edit, without writing it
   const view = route ? repairRoute(route) : null;
-  // the number each stop shows: the numbered ones count, from 1
+  // the number each stop shows, as on the map: numbered stops of shown places count, from 1
   let count = 0;
-  const badges = (route?.stops ?? []).map((_, i) =>
-    route?.numbered && view && stopNumbered(view, i) ? ++count : null,
+  const badges = (route?.stops ?? []).map((id, i) =>
+    route?.numbered && view && stopNumbered(view, i) && byId.get(id)?.shown ? ++count : null,
   );
   return (
     <fieldset className="map-places map-route" aria-label={t.title}>
