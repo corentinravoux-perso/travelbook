@@ -24,6 +24,10 @@ ipcRenderer.on(CLOSE_REQUEST_CHANNEL, (_event: IpcRendererEvent, id: number) => 
 });
 
 const tb: TbApi = {
+  settings: {
+    menuLanguage: () => ipcRenderer.invoke(CHANNEL.settingsMenuLanguage),
+    setMenuLanguage: (language) => ipcRenderer.invoke(CHANNEL.settingsSetMenuLanguage, language),
+  },
   project: {
     create: (options) => ipcRenderer.invoke(CHANNEL.projectCreate, options),
     open: (dir) => ipcRenderer.invoke(CHANNEL.projectOpen, dir),
@@ -32,6 +36,7 @@ const tb: TbApi = {
     snapshot: (label) => ipcRenderer.invoke(CHANNEL.projectSnapshot, label),
     listSnapshots: () => ipcRenderer.invoke(CHANNEL.projectListSnapshots),
     readSnapshot: (id) => ipcRenderer.invoke(CHANNEL.projectReadSnapshot, id),
+    duplicate: (dir) => ipcRenderer.invoke(CHANNEL.projectDuplicate, dir),
     reveal: () => ipcRenderer.invoke(CHANNEL.projectReveal),
     pickFolder: () => ipcRenderer.invoke(CHANNEL.projectPickFolder),
     captureCover: (rect) => ipcRenderer.invoke(CHANNEL.projectCaptureCover, rect),
@@ -89,6 +94,14 @@ const tb: TbApi = {
       list: () => ipcRenderer.invoke(CHANNEL.libraryTemplateList),
       delete: (templateId) => ipcRenderer.invoke(CHANNEL.libraryTemplateDelete, templateId),
     },
+  },
+  maps: {
+    saveGeometry: (json, meta) => ipcRenderer.invoke(CHANNEL.mapsSaveGeometry, json, meta),
+    loadPack: (subjectId) => ipcRenderer.invoke(CHANNEL.mapsLoadPack, subjectId),
+    listStyles: () => ipcRenderer.invoke(CHANNEL.mapsListStyles),
+    saveStyle: (name, style) => ipcRenderer.invoke(CHANNEL.mapsSaveStyle, name, style),
+    renameStyle: (id, name) => ipcRenderer.invoke(CHANNEL.mapsRenameStyle, id, name),
+    deleteStyle: (id) => ipcRenderer.invoke(CHANNEL.mapsDeleteStyle, id),
   },
   clipboard: {
     writeElements: (payload) => ipcRenderer.invoke(CHANNEL.clipboardWrite, payload),

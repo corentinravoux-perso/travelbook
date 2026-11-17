@@ -96,5 +96,8 @@ export function layerName(book: Book, el: Element): string {
       return fr.shapes[(el as ShapeElement).shape];
     case 'sticker':
       return fr.layers.sticker;
+    case 'map':
+      // The element stores the subject's id, not its name: the map dialog can name the layer.
+      return fr.layers.mapNamed(el.subject.id);
   }
 }

@@ -787,6 +787,66 @@
       "author": "Corentin Ravoux",
       "licence": "MIT",
       "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "maps/presets/ardoise.json",
+        "maps/presets/carnet.json",
+        "maps/presets/crayon.json",
+        "maps/presets/encre.json",
+        "maps/presets/pastel.json",
+        "maps/presets/safran.json"
+      ],
+      "source": "travelbook",
+      "author": "Corentin Ravoux",
+      "licence": "MIT",
+      "url": "https://github.com/corentinravoux/travelbook"
+    },
+    {
+      "files": [
+        "maps/index.json",
+        "maps/packs/GB.topo.json",
+        "maps/packs/GR.topo.json",
+        "maps/packs/IT.topo.json",
+        "maps/packs/US.topo.json",
+        "maps/places-overrides.json",
+        "maps/places/FR.json",
+        "maps/places/GB.json",
+        "maps/places/GR.json",
+        "maps/places/IT.json",
+        "maps/places/PE.json",
+        "maps/places/TH.json",
+        "maps/places/US.json",
+        "maps/subjects/FR-GF.topo.json",
+        "maps/subjects/FR-GP.topo.json",
+        "maps/subjects/FR-MET.topo.json",
+        "maps/subjects/FR-MQ.topo.json",
+        "maps/subjects/FR-RE.topo.json",
+        "maps/subjects/FR-YT.topo.json",
+        "maps/subjects/GB.topo.json",
+        "maps/subjects/GR.topo.json",
+        "maps/subjects/IT.topo.json",
+        "maps/subjects/PE.topo.json",
+        "maps/subjects/TH.topo.json",
+        "maps/subjects/US-AK.topo.json",
+        "maps/subjects/US-HI.topo.json",
+        "maps/subjects/US.topo.json"
+      ],
+      "source": "Overture Maps Foundation, divisions theme",
+      "author": "© OpenStreetMap contributors, Overture Maps Foundation",
+      "licence": "ODbL 1.0",
+      "url": "https://docs.overturemaps.org/attribution/",
+      "requiresAttribution": true,
+      "note": "Outlines derived from Overture Maps division_area (ODbL 1.0). The lakes object of each subject is Natural Earth 10m lakes, public domain (https://github.com/nvkelso/natural-earth-vector). The places files (maps/places/) combine Natural Earth populated places, public domain, with Wikidata, CC0 (sights, https://www.wikidata.org/wiki/Wikidata:Licensing), and, for countries where Natural Earth lists fewer than 8 cities, GeoNames, CC BY 4.0 (https://www.geonames.org/, attribution required). The packs (maps/packs/) are the regions of the same Overture divisions, simplified more finely."
+    },
+    {
+      "files": ["maps/world.topo.json"],
+      "source": "Natural Earth, 10m physical vectors, land",
+      "author": "Natural Earth contributors",
+      "licence": "Public domain",
+      "url": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "requiresAttribution": false,
+      "note": "The coarse world land that fills the far context of a map, beyond the neighbours of each subject (https://github.com/nvkelso/natural-earth-vector)."
     }
   ]
 }

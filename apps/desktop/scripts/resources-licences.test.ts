@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
+import { MAP_LICENCE } from '@travelbook/core';
 import { describe, expect, it } from 'vitest';
 
 const RESOURCES_DIR = join(import.meta.dirname, '../resources');
@@ -93,7 +94,9 @@ describe('the licences of resources/', () => {
   it('record our own files as the author and under the licence of the repository', () => {
     const own = read<{ entries: ({ files: string[] } & Licence)[] }>(LICENCES_FILE);
     expect(own.entries.length).toBeGreaterThan(0);
-    for (const entry of own.entries) {
+    // The map outlines are not our own work: Overture data, ODbL (checked in maps/geodata.test.ts).
+    const ours = own.entries.filter((e) => !e.files.every((f) => f.startsWith('maps/')));
+    for (const entry of ours) {
       expect(entry).toMatchObject({
         source: 'travelbook',
         author: 'Corentin Ravoux',
@@ -101,5 +104,16 @@ describe('the licences of resources/', () => {
         url: 'https://github.com/corentinravoux/travelbook',
       });
     }
+  });
+
+  it('records the map outlines under the licence the app credits a map with', () => {
+    const own = read<{ entries: ({ files: string[] } & Licence)[] }>(LICENCES_FILE);
+    const outline = own.entries.find((e) => e.files.includes('maps/subjects/TH.topo.json'));
+    expect(outline).toMatchObject({
+      source: MAP_LICENCE.source,
+      author: MAP_LICENCE.author,
+      licence: MAP_LICENCE.licence,
+      url: MAP_LICENCE.url,
+    });
   });
 });

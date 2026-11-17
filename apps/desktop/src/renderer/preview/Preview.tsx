@@ -13,6 +13,7 @@ import {
   turn,
   type CutZones,
 } from './previewModel';
+import { useMapGeometryLookup } from '../maps/geometryCache';
 import './Preview.css';
 
 /** Room kept round the spread, in px. */
@@ -91,6 +92,7 @@ const KEYS: Record<string, (index: number, count: number) => number> = {
  * The editor behind it is inert.
  */
 export function Preview() {
+  const mapGeometry = useMapGeometryLookup();
   const book = useEditor((s) => s.book);
   const [index, setIndex] = useState(() => {
     const { book: b, currentSpreadId } = editorStore.getState();
@@ -216,6 +218,7 @@ export function Preview() {
                 spread={spread}
                 quality="preview"
                 assetUrl={assetUrl}
+                mapGeometry={mapGeometry}
                 showEmptySlots={false}
                 {...(zones ? { clip: sheet } : {})}
               />

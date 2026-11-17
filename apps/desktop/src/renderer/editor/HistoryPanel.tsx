@@ -7,6 +7,7 @@ import { useProject } from '../store/project';
 import { fr } from '../strings/fr';
 import { assetUrl } from './assetUrl';
 import { spreadName } from './pages';
+import { geometryCache, useMapGeometryLookup } from '../maps/geometryCache';
 import './HistoryPanel.css';
 
 const t = fr.history;
@@ -27,6 +28,7 @@ type Snapshot = { status: 'loading' } | { status: 'error' } | { status: 'ready';
 
 /** One spread of a snapshot, drawn by the single renderer at the size of the dialog. */
 function SnapshotSpread({ book, spread }: { book: Book; spread: Spread }) {
+  const mapGeometry = useMapGeometryLookup();
   const size = spreadSize(book, spread);
   const scale = PREVIEW_HEIGHT / (size.h * MM_TO_PX);
   return (
@@ -35,7 +37,13 @@ function SnapshotSpread({ book, spread }: { book: Book; spread: Spread }) {
       style={{ width: size.w * MM_TO_PX * scale, height: PREVIEW_HEIGHT }}
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0' }}>
-        <SpreadView book={book} spread={spread} quality="preview" assetUrl={assetUrl} />
+        <SpreadView
+          book={book}
+          spread={spread}
+          quality="preview"
+          assetUrl={assetUrl}
+          mapGeometry={mapGeometry}
+        />
       </div>
     </div>
   );
@@ -66,7 +74,12 @@ function SnapshotDialog({
     if (dialog && !dialog.open) dialog.showModal();
     let cancelled = false;
     window.tb.project.readSnapshot(info.id).then(
-      (book) => !cancelled && setSnapshot({ status: 'ready', book }),
+      (book) => {
+        if (cancelled) return;
+        // A geometry the open album lost (pruned) was cached as missing: the read re-indexed it.
+        geometryCache.clear();
+        setSnapshot({ status: 'ready', book });
+      },
       () => !cancelled && setSnapshot({ status: 'error' }),
     );
     return () => {
@@ -80,6 +93,7 @@ function SnapshotDialog({
 
   const restore = () => {
     if (!book) return;
+    geometryCache.clear();
     editorStore.getState().apply(() => book, t.undoRestore(when));
     ref.current?.close();
   };

@@ -2,6 +2,7 @@ import { newBook, type Book } from '@travelbook/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OpenedProject, ProjectInfo, SnapshotInfo } from '../../shared/api';
 import { createEditorStore } from './editor';
+import { geometryCache } from '../maps/geometryCache';
 import { createProjectStore, SNAPSHOT_NOTE_MS } from './project';
 
 const retitle =
@@ -22,6 +23,7 @@ function setup(flushCover?: () => Promise<void>) {
     create: vi.fn<(o: { name: string }) => Promise<ProjectInfo | null>>(),
     open: vi.fn<(dir?: string) => Promise<OpenedProject | null>>(),
     recent: vi.fn(() => Promise.resolve([])),
+    duplicate: vi.fn<(dir: string) => Promise<ProjectInfo>>(),
     snapshot: vi.fn((label: SnapshotInfo['label']) => Promise.resolve(info(label))),
   };
   const store = createProjectStore({ editor, api, flushCover });
@@ -206,6 +208,57 @@ describe('project store', () => {
       store.getState().startAutoSnapshots(1000);
       await vi.advanceTimersByTimeAsync(2000);
       expect(api.snapshot).toHaveBeenCalledTimes(1); // the manual one only
+    });
+  });
+});
+
+describe('project store and the geometry cache', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('forgets the cached geometries when an album is created or opened', async () => {
+    const clear = vi.spyOn(geometryCache, 'clear');
+    const { store, api } = setup();
+    const book = newBook({ title: 'A' });
+    api.create.mockResolvedValue({ dir: '/albums/a.travelbook', book });
+    await store.getState().createProject({ name: 'A' });
+    expect(clear).toHaveBeenCalledTimes(1);
+    api.open.mockResolvedValue(opened(book));
+    await store.getState().openProject('/albums/x.travelbook');
+    expect(clear).toHaveBeenCalledTimes(2);
+  });
+
+  it('forgets them when going home', async () => {
+    const clear = vi.spyOn(geometryCache, 'clear');
+    const { store, api } = setup();
+    api.open.mockResolvedValue(opened(newBook({ title: 'A' })));
+    await store.getState().openProject('/albums/x.travelbook');
+    clear.mockClear();
+    await store.getState().goHome();
+    expect(clear).toHaveBeenCalledTimes(1);
+  });
+
+  describe('duplicateProject', () => {
+    it('copies through the api, refreshes the list and stays on the home screen', async () => {
+      const { store, api } = setup();
+      api.duplicate.mockResolvedValue({
+        dir: '/albums/x-copie.travelbook',
+        book: newBook({ title: 'X (copie)' }),
+      });
+      expect(await store.getState().duplicateProject('/albums/x.travelbook')).toBe(true);
+      expect(api.duplicate).toHaveBeenCalledWith('/albums/x.travelbook');
+      expect(api.recent).toHaveBeenCalled();
+      expect(store.getState().view).toBe('home');
+      expect(store.getState().busy).toBe(false);
+      expect(store.getState().error).toBeNull();
+    });
+
+    it('records a "duplicate" error when the copy fails', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { store, api } = setup();
+      api.duplicate.mockRejectedValue(new Error('disk full'));
+      expect(await store.getState().duplicateProject('/albums/x.travelbook')).toBe(false);
+      expect(store.getState().error).toBe('duplicate');
+      expect(store.getState().busy).toBe(false);
     });
   });
 });

@@ -1,0 +1,57 @@
+{
+  "TH": {
+    "rename": { "wd:Q865097": "Sukhothaï" },
+    "add": [
+      {
+        "ref": "wd:Q724970",
+        "kind": "sight",
+        "category": "religieux",
+        "name": "Wat Arun",
+        "lon": 100.4889,
+        "lat": 13.7437,
+        "rank": 2
+      },
+      {
+        "ref": "wd:Q1059910",
+        "kind": "sight",
+        "category": "religieux",
+        "name": "Wat Pho",
+        "lon": 100.4927,
+        "lat": 13.7465,
+        "rank": 4
+      },
+      {
+        "ref": "wd:Q669271",
+        "kind": "sight",
+        "category": "montagne",
+        "name": "Doi Suthep",
+        "lon": 98.9217,
+        "lat": 18.8047,
+        "rank": 9
+      },
+      {
+        "ref": "wd:Q1760520",
+        "kind": "sight",
+        "category": "nature",
+        "name": "parc national de Khao Sok",
+        "lon": 98.5333,
+        "lat": 8.9167,
+        "rank": 12
+      }
+    ]
+  },
+  "PE": {
+    "drop": ["wd:Q2744878", "wd:Q1554172", "wd:Q568661", "wd:Q2351926"],
+    "add": [
+      {
+        "ref": "wd:Q1107685",
+        "kind": "sight",
+        "category": "nature",
+        "name": "Canyon de Colca",
+        "lon": -71.98,
+        "lat": -15.62,
+        "rank": 5
+      }
+    ]
+  }
+}

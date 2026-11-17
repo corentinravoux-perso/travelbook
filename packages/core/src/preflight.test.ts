@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { newBook, newElement } from './factory';
 import { freshBook, inner, photo, shape, useCounterIds } from './ops/test-helpers';
 import { clone } from './ops/util';
+import { mapElement } from './map/test-helpers';
+import type { MapElement } from './map/types';
 import { preflight, type PreflightIssue } from './preflight';
 import type { AssetRef, Book, Element, Spread, TextElement } from './schema';
 
@@ -234,6 +236,75 @@ describe('preflight', () => {
     it('ignores a sticker that has no asset yet', () => {
       const { book, files } = cleanBook();
       place(book.spreads[1]!, newElement('sticker', { x: 10, y: 10, w: 20, h: 20 }));
+      expect(preflight(book, files)).toEqual([]);
+    });
+  });
+
+  describe('map', () => {
+    const mapAsset = (id: string): AssetRef => ({
+      id,
+      kind: 'map',
+      file: `assets/${id}.json`,
+      originalName: `${id}.json`,
+      sha256: id,
+    });
+    const GEOMETRY = 'map-0123456789abcdef';
+
+    /** A clean book with a map on inner spread 1: its geometry and its medallion photo exist. */
+    function mapBook(): { book: Book; files: Set<string>; spread: Spread; map: MapElement } {
+      const { book, files } = cleanBook();
+      book.assets[GEOMETRY] = mapAsset(GEOMETRY);
+      book.assets['photo-1'] = asset('photo-1', 'originals/photo-1.jpg', { w: 900, h: 900 });
+      for (const f of [`assets/${GEOMETRY}.json`, 'originals/photo-1.jpg']) files.add(f);
+      const spread = book.spreads[1]!;
+      const map = mapElement();
+      place(spread, map);
+      return { book, files, spread, map };
+    }
+
+    it('reports nothing for a map whose geometry and medallion photos are there', () => {
+      const { book, files, map } = mapBook();
+      map.medallions = true;
+      expect(preflight(book, files)).toEqual([]);
+    });
+
+    it('warns "missingMap" when the geometry is not in the book', () => {
+      const { book, files, spread } = mapBook();
+      delete book.assets[GEOMETRY];
+      expect(preflight(book, files)).toEqual([
+        { kind: 'missingMap', spreadId: spread.id, elementId: 'map-1' },
+      ]);
+    });
+
+    it('warns "missingMap" when the geometry file is gone, once per map, and not "missingAsset"', () => {
+      const { book, files, spread } = mapBook();
+      files.delete(`assets/${GEOMETRY}.json`);
+      place(book.cover, { ...mapElement(), id: 'map-2' });
+      expect(preflight(book, files)).toEqual([
+        { kind: 'missingMap', spreadId: book.cover.id, elementId: 'map-2' },
+        { kind: 'missingMap', spreadId: spread.id, elementId: 'map-1' },
+      ]);
+    });
+
+    it('checks the medallion photos like any photo, when the medallions are drawn', () => {
+      const { book, files, map } = mapBook();
+      map.medallions = true;
+      files.delete('originals/photo-1.jpg');
+      expect(preflight(book, files)).toEqual([{ kind: 'missingAsset', assetId: 'photo-1' }]);
+      delete book.assets['photo-1'];
+      expect(preflight(book, files)).toEqual([{ kind: 'missingAsset', assetId: 'photo-1' }]);
+    });
+
+    it('does not check the medallion photos while the medallions are off', () => {
+      const { book, files } = mapBook();
+      files.delete('originals/photo-1.jpg');
+      expect(preflight(book, files)).toEqual([]);
+    });
+
+    it('ignores a hidden map', () => {
+      const { book, files, map } = mapBook();
+      delete book.assets[GEOMETRY];
+      map.hidden = true;
       expect(preflight(book, files)).toEqual([]);
     });
   });

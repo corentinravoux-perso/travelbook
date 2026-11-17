@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { MapElementSchema } from './map/schema';
+import type { MapElement } from './map/types';
+import { color, elementBase, id, mm, nonNegMm, unit } from './schemaPrimitives';
 
 /** Millimetres. Text sizes are the only values in points (`fontSizePt`). */
 export type Mm = number;
@@ -20,7 +23,7 @@ export interface Licence {
 
 export interface AssetRef {
   id: string;
-  kind: 'photo' | 'sticker' | 'background' | 'pattern' | 'font';
+  kind: 'photo' | 'sticker' | 'background' | 'pattern' | 'font' | 'map';
   /** Path relative to the project folder. */
   file: string;
   originalName: string;
@@ -131,7 +134,7 @@ export interface ShapeElement extends ElementBase {
   points: number;
 }
 
-export type Element = PhotoElement | TextElement | StickerElement | ShapeElement;
+export type Element = PhotoElement | TextElement | StickerElement | ShapeElement | MapElement;
 
 export type Background =
   | { kind: 'color'; color: string }
@@ -167,7 +170,8 @@ export interface Spread {
 }
 
 export interface Book {
-  schemaVersion: 1;
+  /** 2 when the album holds a map element, else 1: see `bookSchemaVersion`. */
+  schemaVersion: 1 | 2;
   id: string;
   title: string;
   format: { width: Mm; height: Mm };
@@ -185,12 +189,6 @@ export interface Book {
 
 // --- zod schemas ---------------------------------------------------------
 
-const mm = z.number().finite();
-const nonNegMm = mm.min(0);
-const unit = z.number().min(0).max(1);
-const color = z.string();
-const id = z.string().min(1);
-
 export const LicenceSchema = z.object({
   source: z.string(),
   author: z.string().optional(),
@@ -201,7 +199,7 @@ export const LicenceSchema = z.object({
 
 export const AssetRefSchema = z.object({
   id,
-  kind: z.enum(['photo', 'sticker', 'background', 'pattern', 'font']),
+  kind: z.enum(['photo', 'sticker', 'background', 'pattern', 'font', 'map']),
   file: z.string().min(1),
   originalName: z.string(),
   sha256: z.string(),
@@ -219,20 +217,6 @@ export const AssetRefSchema = z.object({
 
 const ShadowSchema = z.object({ dx: mm, dy: mm, blur: nonNegMm, color });
 const StrokeSchema = z.object({ width: nonNegMm, color });
-
-const elementBase = {
-  id,
-  x: mm,
-  y: mm,
-  w: nonNegMm,
-  h: nonNegMm,
-  rotation: z.number().finite(),
-  opacity: unit,
-  locked: z.boolean(),
-  hidden: z.boolean(),
-  name: z.string().optional(),
-  groupId: z.string().optional(),
-};
 
 const PhotoSchema = z.object({
   ...elementBase,
@@ -308,6 +292,7 @@ export const ElementSchema = z.discriminatedUnion('type', [
   TextSchema,
   StickerSchema,
   ShapeSchema,
+  MapElementSchema,
 ]);
 
 export const BackgroundSchema = z.discriminatedUnion('kind', [
@@ -349,7 +334,7 @@ export const SpreadSchema = z.object({
 
 export const BookSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
     id,
     title: z.string(),
     format: z.object({ width: mm.positive(), height: mm.positive() }),

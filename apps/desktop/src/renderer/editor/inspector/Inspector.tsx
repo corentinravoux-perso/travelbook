@@ -4,6 +4,7 @@ import { fr } from '../../strings/fr';
 import { Icon } from '../../theme/Icon';
 import { HistoryPanel } from '../HistoryPanel';
 import { LayersPanel } from '../LayersPanel';
+import { MapInspector } from './MapInspector';
 import { CommonSection } from './CommonSection';
 import { PageInspector } from './PageInspector';
 import { PhotoInspector } from './PhotoInspector';
@@ -52,6 +53,9 @@ function Properties() {
       )}
       {only?.type === 'sticker' && (
         <StickerInspector key={`type:${key}`} book={book} spreadId={spread.id} element={only} />
+      )}
+      {only?.type === 'map' && (
+        <MapInspector key={`type:${key}`} spreadId={spread.id} element={only} />
       )}
       {only?.type === 'shape' && (
         <ShapeInspector key={`type:${key}`} spreadId={spread.id} element={only} />

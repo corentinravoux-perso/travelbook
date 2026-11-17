@@ -54,7 +54,7 @@ test('typing X in the inspector moves the element, and the page shows the page w
     const box = (await page.locator('.canvas-paper').boundingBox())!;
     const at = await pagePx(page, 30, 30);
     await page.mouse.click(box.x + at.x, box.y + at.y);
-    const x = inspector.getByLabel('X', { exact: true });
+    const x = inspector.getByLabel('Horizontal', { exact: true });
     await expect(x).toHaveValue('20');
     await x.fill('30');
     await x.press('Enter');

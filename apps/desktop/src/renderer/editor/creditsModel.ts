@@ -1,4 +1,6 @@
 import {
+  MAP_LICENCE,
+  elementAssetIds,
   newElement,
   pageBox,
   spreadSize,
@@ -22,13 +24,14 @@ export interface CreditEntry {
   requiresAttribution: boolean;
 }
 
-/** The ids of the assets the book draws: on an element, or as a background. */
+/**
+ * The ids of the assets the book draws: on an element (a map's geometry and medallion photos
+ * included), or as a background.
+ */
 export function usedAssetIds(book: Book): Set<string> {
   const used = new Set<string>();
   for (const spread of [book.cover, ...book.spreads]) {
-    for (const el of spread.elements) {
-      if ((el.type === 'photo' || el.type === 'sticker') && el.assetId) used.add(el.assetId);
-    }
+    for (const el of spread.elements) for (const id of elementAssetIds(el)) used.add(id);
     for (const bg of Object.values(spread.background)) {
       if (bg && (bg.kind === 'image' || bg.kind === 'pattern')) used.add(bg.assetId);
     }
@@ -36,13 +39,40 @@ export function usedAssetIds(book: Book): Set<string> {
   return used;
 }
 
-const titleOf = (asset: AssetRef): string => asset.originalName.replace(/\.[A-Za-z0-9]{1,5}$/, '');
+/** A map's geometry is credited as "Cartes" whichever places the album maps: one entry for all. */
+const titleOf = (asset: AssetRef): string =>
+  asset.kind === 'map'
+    ? fr.credits.mapTitle
+    : asset.originalName.replace(/\.[A-Za-z0-9]{1,5}$/, '');
+
+/** GeoNames (CC BY 4.0) names the cities of countries Natural Earth covers thinly: credited once. */
+const GEONAMES_ENTRY: CreditEntry = {
+  assetId: 'geonames',
+  title: 'GeoNames',
+  licence: 'CC BY 4.0',
+  source: 'https://www.geonames.org/',
+  url: 'https://www.geonames.org/',
+  requiresAttribution: true,
+};
+
+/** Whether a map of the album (cover included) has a place taken from GeoNames (`ref` `gn:…`). */
+function usesGeoNames(book: Book): boolean {
+  return [book.cover, ...book.spreads].some((spread) =>
+    spread.elements.some(
+      (el) =>
+        el.type === 'map' &&
+        el.places.some((p) => p.source.kind !== 'custom' && p.source.ref.startsWith('gn:')),
+    ),
+  );
+}
 
 /**
  * The licences of every asset the book uses. Photos are left out unless they carry licence data
  * (a photo of the user's own has none); any other asset is listed, as the user's own file when it
- * has no licence. Two assets with the same title, author, licence and source page are listed once;
- * the list is ordered by title.
+ * has no licence. A map geometry always comes from Overture and OpenStreetMap, so one saved
+ * without licence data is credited with `MAP_LICENCE`: the attribution is owed all the same. Two
+ * assets with the same title, author, licence and source page are listed once (so the geometries
+ * of all the album's maps make one ODbL entry); the list is ordered by title.
  */
 export function creditEntries(book: Book): CreditEntry[] {
   const used = usedAssetIds(book);
@@ -51,7 +81,7 @@ export function creditEntries(book: Book): CreditEntry[] {
   for (const id of used) {
     const asset = book.assets[id];
     if (asset === undefined) continue;
-    const licence = asset.licence;
+    const licence = asset.licence ?? (asset.kind === 'map' ? MAP_LICENCE : undefined);
     if (licence === undefined && asset.kind === 'photo') continue;
     const key = [
       licence?.author ?? '',
@@ -70,6 +100,7 @@ export function creditEntries(book: Book): CreditEntry[] {
       requiresAttribution: licence?.requiresAttribution ?? false,
     });
   }
+  if (usesGeoNames(book)) entries.push(GEONAMES_ENTRY);
   return entries.sort(
     (a, b) => a.title.localeCompare(b.title, 'fr') || a.assetId.localeCompare(b.assetId),
   );

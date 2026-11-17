@@ -20,3 +20,11 @@ export async function createFromHome(
   await dialog.getByRole('radio', { name: new RegExp(format) }).check({ force: true });
   await dialog.getByRole('button', { name: 'Créer le livre' }).click();
 }
+
+/**
+ * Open an album from the home screen's recent list by its title. Scoped to the album card, so the
+ * "Dupliquer <titre>" button, whose name also contains the title, never matches.
+ */
+export async function openAlbumCard(page: Page, title: string | RegExp): Promise<void> {
+  await page.locator('button.album').filter({ hasText: title }).click();
+}

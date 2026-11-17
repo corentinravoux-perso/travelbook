@@ -64,6 +64,7 @@ export const ICON_NAMES = [
   'layout',
   'layout-grid',
   'letter-t',
+  'map',
   'moon',
   'pencil',
   'photo',

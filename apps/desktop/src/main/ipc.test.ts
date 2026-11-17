@@ -4,13 +4,24 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { IpcMain, IpcMainInvokeEvent } from 'electron';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { newBook, newElement, type AssetRef, type Book, type Template } from '@travelbook/core';
+import {
+  DEFAULT_MAP_STYLE,
+  MAP_LICENCE,
+  newBook,
+  newElement,
+  type AssetRef,
+  type Book,
+  type MapPreset,
+  type Template,
+} from '@travelbook/core';
+import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import { fixturePath } from '../../../../tests/fixtures/make-fixtures';
 import { CHANNEL, PROGRESS_CHANNEL, type InvokeChannel } from '../shared/channels';
 import type {
   ImportReport,
   LibraryItem,
   OpenedProject,
+  PackResult,
   ProjectInfo,
   RecentProject,
   SnapshotInfo,
@@ -26,6 +37,7 @@ import {
 import { setBundledResourcesDir, type BundledTemplates } from './library/templates';
 import { addToLibrary, listLibrary } from './library/userLibrary';
 import { setFontCatalogue, setFontsResourcesDir } from './library/fonts';
+import { setMapsResourcesDir } from './maps/packs';
 import { setStickerService, type StickerService } from './library/stickers/service';
 import { SourceError } from './library/stickers/source';
 import { recentProjects } from './project/recent';
@@ -66,6 +78,7 @@ beforeEach(async () => {
     openExternal: vi.fn<Host['openExternal']>(async () => undefined),
     showInFolder: vi.fn<Host['showInFolder']>(),
     version: vi.fn<Host['version']>(() => '1.2.3'),
+    applyMenu: vi.fn<Host['applyMenu']>(),
     captureJpeg: vi.fn<Host['captureJpeg']>(async () => new Uint8Array([0xff, 0xd8, 0xff, 0xd9])),
     openExportRenderer: vi.fn<Host['openExportRenderer']>(async () => {
       throw new Error('no export window in this test');
@@ -252,6 +265,52 @@ describe('project', () => {
       expect(session && knownAssets(session)).toEqual({ abc: asset });
     });
 
+    describe('a map', () => {
+      const geometry: AssetRef = {
+        id: 'map-0123456789abcdef',
+        kind: 'map',
+        file: 'assets/0123456789abcdef.json',
+        originalName: 'Thaïlande.json',
+        sha256: 'x',
+        licence: {
+          source: 'Overture Maps',
+          author: '© OpenStreetMap contributors, Overture Maps Foundation',
+          licence: 'ODbL 1.0',
+          url: 'https://opendatacommons.org/licenses/odbl/1-0/',
+          requiresAttribution: true,
+        },
+      };
+
+      it('saves an asset of kind map and indexes it', async () => {
+        const created = await create();
+        await call(CHANNEL.projectSave, { ...created.book, assets: { [geometry.id]: geometry } });
+        const session = currentSession();
+        expect(session && knownAssets(session)).toEqual({ [geometry.id]: geometry });
+      });
+
+      it('saves a book holding a map element as album format 2', async () => {
+        const created = await create();
+        const book: Book = {
+          ...created.book,
+          cover: { ...created.book.cover, elements: [mapElement()] },
+          assets: { [geometry.id]: geometry },
+        };
+        await call(CHANNEL.projectSave, book);
+        const onDisk = JSON.parse(await readFile(join(created.dir, 'book.json'), 'utf8')) as Book;
+        expect(onDisk.schemaVersion).toBe(2);
+        expect(onDisk.cover.elements).toEqual([mapElement()]);
+      });
+
+      it('rejects a map element that breaks the schema, and leaves book.json alone', async () => {
+        const created = await create();
+        const before = await readFile(join(created.dir, 'book.json'), 'utf8');
+        const bad = { ...mapElement(), projection: 'robinson' };
+        const book = { ...created.book, cover: { ...created.book.cover, elements: [bad] } };
+        await expect(call(CHANNEL.projectSave, book)).rejects.toThrow(/project:save/);
+        expect(await readFile(join(created.dir, 'book.json'), 'utf8')).toBe(before);
+      });
+    });
+
     it('rejects when no project is open', async () => {
       await expect(call(CHANNEL.projectSave, newBook({ title: 'x' }))).rejects.toThrow(
         /No project is open/,
@@ -327,6 +386,48 @@ describe('project', () => {
     const b = await create('B');
     const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
     expect(recent.map((r) => r.dir)).toEqual([b.dir, a.dir]);
+  });
+
+  describe('menu language', () => {
+    it('is French by default', async () => {
+      expect(await call(CHANNEL.settingsMenuLanguage)).toBe('fr');
+    });
+
+    it('persists the choice and rebuilds the menu at once', async () => {
+      await call(CHANNEL.settingsSetMenuLanguage, 'en');
+      expect(host.applyMenu).toHaveBeenCalledExactlyOnceWith('en');
+      expect(await call(CHANNEL.settingsMenuLanguage)).toBe('en');
+    });
+
+    it.each([['de'], [1], [undefined]])('rejects %j', async (bad) => {
+      await expect(call(CHANNEL.settingsSetMenuLanguage, bad)).rejects.toThrow(
+        /settings:setMenuLanguage/,
+      );
+      expect(host.applyMenu).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('duplicate', () => {
+    it('copies an album next to itself and lists the copy, without opening it', async () => {
+      const original = await create('Islande');
+      const copy = await call<{ dir: string; book: { id: string; title: string } }>(
+        CHANNEL.projectDuplicate,
+        original.dir,
+      );
+      expect(copy.book.title).toBe('Islande (copie)');
+      expect(copy.book.id).not.toBe(original.book.id);
+      const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(recent.map((r) => r.dir)).toContain(copy.dir);
+    });
+
+    it.each([
+      ['no argument', []],
+      ['a relative path', ['albums/x']],
+      ['a number', [1]],
+      ['an extra argument', ['/tmp/x', 'y']],
+    ] as const)('rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.projectDuplicate, ...args)).rejects.toThrow(/project:duplicate/);
+    });
   });
 
   describe('cover thumbnail', () => {
@@ -805,6 +906,20 @@ describe('assets', () => {
       expect(await call(CHANNEL.assetsPalette, [])).toEqual([]);
     });
 
+    it('skips a map: its file is geometry, not an image', async () => {
+      const created = await create();
+      const geometry: AssetRef = {
+        id: 'map-0123456789abcdef',
+        kind: 'map',
+        file: 'assets/0123456789abcdef.json',
+        originalName: 'Thaïlande.json',
+        sha256: 'x',
+      };
+      await writeFile(join(created.dir, geometry.file), '{"version":1}');
+      await call(CHANNEL.projectSave, { ...created.book, assets: { [geometry.id]: geometry } });
+      expect(await call(CHANNEL.assetsPalette, [geometry.id])).toEqual([]);
+    });
+
     it('rejects an asset the project does not hold', async () => {
       await create();
       await expect(call(CHANNEL.assetsPalette, ['nope'])).rejects.toThrow(/Unknown asset: nope/);
@@ -1149,6 +1264,162 @@ describe('fonts', () => {
       JSON.parse(await readFile(join(created.dir, 'book.json'), 'utf8')).spreads[1].elements,
     ).toHaveLength(1);
     warn.mockRestore();
+  });
+});
+
+describe('maps', () => {
+  const RESOURCES = join(import.meta.dirname, '../../resources');
+  const geometry = JSON.stringify({
+    version: 1,
+    projection: { kind: 'mercator', rotate: [0, 0, 0], k: 600, tx: 500, ty: 300 },
+    bounds: [
+      [0, 0],
+      [1000, 600],
+    ],
+    remoteBounds: [
+      [0, 0],
+      [1000, 600],
+    ],
+    paths: {
+      land: 'M0 0H1000V600H0Z',
+      outline: 'M0 0H1000V600H0Z',
+      regions: 'M500 0V600',
+      selected: 'M0 0H500V600H0Z',
+      neighbours: 'M-50 0H0V600H-50Z',
+      lakes: 'M400 200h50v50h-50Z',
+    },
+  });
+
+  afterEach(() => setMapsResourcesDir(null));
+
+  describe('history of a pruned map', () => {
+    it('reading a snapshot whose map asset left the book serves the asset again', async () => {
+      const created = await create();
+      const asset = await call<AssetRef>(CHANNEL.mapsSaveGeometry, geometry, { name: 'Thaïlande' });
+      const withMap = structuredClone(created.book);
+      const map = { ...mapElement(), geometryAssetId: asset.id };
+      withMap.cover.elements = [map];
+      withMap.assets = { [asset.id]: asset };
+      await call(CHANNEL.projectSave, withMap);
+      const info = await call<SnapshotInfo>(CHANNEL.projectSnapshot, 'manual');
+      // The map is deleted: the save prunes its geometry asset from book.json.
+      const without = structuredClone(withMap);
+      without.cover.elements = [];
+      await call(CHANNEL.projectSave, without);
+      closeSession();
+      await call<OpenedProject>(CHANNEL.projectOpen, created.dir);
+      const roots = () => tbRoots(currentSession(), { libraryDir: '/lib', resourcesDir: '/res' });
+      expect(resolveTbUrl(`tb://asset/${asset.id}?v=original`, roots())).toMatchObject({
+        ok: false,
+      });
+      await call<Book>(CHANNEL.projectReadSnapshot, info.id);
+      expect(resolveTbUrl(`tb://asset/${asset.id}?v=original`, roots())).toMatchObject({
+        ok: true,
+      });
+    });
+  });
+
+  describe('saveGeometry', () => {
+    it('keeps the geometry in the open album, with the ODbL licence, and indexes the asset', async () => {
+      const created = await create();
+      const asset = await call<AssetRef>(CHANNEL.mapsSaveGeometry, geometry, { name: 'Thaïlande' });
+      expect(asset).toMatchObject({ kind: 'map', originalName: 'Thaïlande.json' });
+      expect(asset.id).toMatch(/^map-[0-9a-f]{16}$/);
+      expect(asset.licence).toEqual(MAP_LICENCE);
+      expect(await readFile(join(created.dir, asset.file), 'utf8')).toBe(geometry);
+      expect(currentSession()?.assets.get(asset.id)).toEqual(asset);
+      // The same geometry again: the same asset, one file.
+      expect(await call(CHANNEL.mapsSaveGeometry, geometry, { name: 'Thaïlande' })).toEqual(asset);
+      expect(await readdir(join(created.dir, 'assets'))).toHaveLength(1);
+    });
+
+    it('needs an open album', async () => {
+      await expect(call(CHANNEL.mapsSaveGeometry, geometry, { name: 'x' })).rejects.toThrow(
+        /No project is open/,
+      );
+    });
+
+    it('checks what it is given: text, a name, nothing else', async () => {
+      await create();
+      await expect(call(CHANNEL.mapsSaveGeometry, { paths: [] }, { name: 'x' })).rejects.toThrow(
+        /maps:saveGeometry/,
+      );
+      await expect(call(CHANNEL.mapsSaveGeometry, '', { name: 'x' })).rejects.toThrow(
+        /maps:saveGeometry/,
+      );
+      await expect(call(CHANNEL.mapsSaveGeometry, geometry, { name: '' })).rejects.toThrow(
+        /maps:saveGeometry/,
+      );
+      await expect(
+        call(CHANNEL.mapsSaveGeometry, geometry, { name: 'x', file: '/etc/passwd' }),
+      ).rejects.toThrow(/maps:saveGeometry/);
+      await expect(call(CHANNEL.mapsSaveGeometry, '[1]', { name: 'x' })).rejects.toThrow(
+        /JSON object/,
+      );
+      await expect(
+        call(CHANNEL.mapsSaveGeometry, JSON.stringify({ v: 1, paths: [] }), { name: 'x' }),
+      ).rejects.toThrow(/not a map geometry/);
+    });
+  });
+
+  describe('loadPack', () => {
+    it('gives the pack that ships with the app, and says unknown for a subject without one', async () => {
+      setMapsResourcesDir(RESOURCES);
+      const us = await call<PackResult>(CHANNEL.mapsLoadPack, 'US');
+      expect(us.ok).toBe(true);
+      expect(await call(CHANNEL.mapsLoadPack, 'ZZ')).toEqual({ ok: false, reason: 'unknown' });
+    });
+
+    it('checks the subject id', async () => {
+      await expect(call(CHANNEL.mapsLoadPack, '../etc/passwd')).rejects.toThrow(/maps:loadPack/);
+      await expect(call(CHANNEL.mapsLoadPack, '')).rejects.toThrow(/maps:loadPack/);
+      await expect(call(CHANNEL.mapsLoadPack, 42)).rejects.toThrow(/maps:loadPack/);
+      await expect(call(CHANNEL.mapsLoadPack)).rejects.toThrow(/maps:loadPack/);
+    });
+  });
+
+  describe('styles', () => {
+    const style = { ...DEFAULT_MAP_STYLE, land: { ...DEFAULT_MAP_STYLE.land, fill: '#123456' } };
+
+    it('saves, lists, renames and deletes the user styles', async () => {
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([]);
+      const saved = await call<MapPreset>(CHANNEL.mapsSaveStyle, ' Mon carnet ', style);
+      expect(saved).toMatchObject({ name: 'Mon carnet', style });
+      expect(saved.id).toMatch(/^user-/);
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([saved]);
+      await call(CHANNEL.mapsRenameStyle, saved.id, 'Renommé');
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([{ ...saved, name: 'Renommé' }]);
+      await call(CHANNEL.mapsDeleteStyle, saved.id);
+      expect(await call(CHANNEL.mapsListStyles)).toEqual([]);
+    });
+
+    it('needs no open album: the styles belong to the app', async () => {
+      await expect(call(CHANNEL.mapsSaveStyle, 'x', style)).resolves.toMatchObject({ name: 'x' });
+    });
+
+    it('checks what it is given', async () => {
+      await expect(call(CHANNEL.mapsListStyles, 1)).rejects.toThrow(/maps:listStyles/);
+      await expect(call(CHANNEL.mapsSaveStyle, '', style)).rejects.toThrow(/maps:saveStyle/);
+      await expect(call(CHANNEL.mapsSaveStyle, 'x'.repeat(101), style)).rejects.toThrow(
+        /maps:saveStyle/,
+      );
+      await expect(call(CHANNEL.mapsSaveStyle, 'x', { styleVersion: 1 })).rejects.toThrow(
+        /maps:saveStyle/,
+      );
+      await expect(call(CHANNEL.mapsRenameStyle, 'carnet', 'x')).rejects.toThrow(
+        /maps:renameStyle/,
+      );
+      await expect(call(CHANNEL.mapsRenameStyle, 'user-a', '  ')).rejects.toThrow(
+        /maps:renameStyle/,
+      );
+      await expect(call(CHANNEL.mapsDeleteStyle, '../user-a')).rejects.toThrow(/maps:deleteStyle/);
+    });
+
+    it('rejects renaming a style that does not exist', async () => {
+      await expect(call(CHANNEL.mapsRenameStyle, 'user-gone', 'x')).rejects.toThrow(
+        /Unknown style/,
+      );
+    });
   });
 });
 
