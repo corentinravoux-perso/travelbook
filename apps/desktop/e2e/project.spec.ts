@@ -3,7 +3,7 @@ import type { AssetRef, Book } from '@travelbook/core';
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createFromHome, pickFolders } from './home';
+import { createFromHome, openAlbumCard, pickFolders } from './home';
 import { launchApp } from './launch';
 
 /** The e2e build exposes the editor store (see `App.tsx`). */
@@ -76,7 +76,7 @@ test('a 240 × 320 book opens on an empty first spread and comes back from the r
     await closeWindowAndWait(app);
     app = await launchApp(userData);
     const again = await app.firstWindow();
-    const card = again.getByRole('button', { name: /Islande 2026/ });
+    const card = again.locator('button.album').filter({ hasText: /Islande 2026/ });
     await expect(card).toBeVisible();
     await card.click();
     await expect(topBar(again)).toContainText('240 × 320 mm');
@@ -105,7 +105,7 @@ test('closing the window right after an edit saves it', async () => {
     app = await launchApp(userData);
     const again = await app.firstWindow();
     // The recent list keeps the title the album had when it was opened.
-    await again.getByRole('button', { name: /Brouillon/ }).click();
+    await openAlbumCard(again, /Brouillon/);
     await expect(topBar(again)).toContainText('Modifié à la fermeture');
   } finally {
     await app.close().catch(() => {});
@@ -174,7 +174,7 @@ test('missing originals are listed in a notice that can be dismissed', async () 
 
     app = await launchApp(userData);
     const again = await app.firstWindow();
-    await again.getByRole('button', { name: /Orphelin/ }).click();
+    await openAlbumCard(again, /Orphelin/);
     const notice = again.getByRole('status', { name: 'Un fichier original est introuvable' });
     await expect(notice).toContainText('IMG_0042.jpg');
     await notice.getByRole('button', { name: 'Fermer cet avertissement' }).click();

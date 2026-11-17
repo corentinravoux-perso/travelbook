@@ -6,7 +6,7 @@ import sharp from 'sharp';
 import { newElement, type AssetRef } from '@travelbook/core';
 import type { TbApi } from '../src/shared/api';
 import { evalEditor } from './editorHelpers';
-import { pickFolders } from './home';
+import { openAlbumCard, pickFolders } from './home';
 import { launchApp } from './launch';
 
 type Win = { tb: TbApi };
@@ -23,7 +23,7 @@ let app: ElectronApplication | undefined;
 async function openEditor(): Promise<Page> {
   app = await launchApp(userData);
   const page = await app.firstWindow();
-  await page.getByRole('button', { name: /Livre export/ }).click();
+  await openAlbumCard(page, /Livre export/);
   await expect(page.getByRole('img', { name: 'Double page 1' })).toBeVisible();
   return page;
 }

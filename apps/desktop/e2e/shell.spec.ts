@@ -2,7 +2,7 @@ import { expect, test, type ElectronApplication, type Page } from '@playwright/t
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createFromHome, pickFolders } from './home';
+import { createFromHome, openAlbumCard, pickFolders } from './home';
 import { launchApp } from './launch';
 
 let work: string;
@@ -142,7 +142,7 @@ test('panel and inspector widths follow their handles and survive a restart', as
   app = await launchApp(userData);
   try {
     const page = await app.firstWindow();
-    await page.getByRole('button', { name: /Album de test/ }).click();
+    await openAlbumCard(page, /Album de test/);
     await expect(page.getByRole('separator', { name: 'Largeur du panneau' })).toHaveAttribute(
       'aria-valuenow',
       '440',
@@ -195,7 +195,7 @@ test('the panel and the inspector fold away and open again, and stay so after a 
     await exited;
     app = await launchApp(userData);
     page = await app.firstWindow();
-    await page.getByRole('button', { name: /Album de test/ }).click();
+    await openAlbumCard(page, /Album de test/);
     await expect(page.getByRole('banner', { name: 'Barre du haut' })).toBeVisible();
     await expect(page.locator('#shell-panel')).toBeHidden();
     const strip = page.getByRole('complementary', { name: 'Inspecteur' });
