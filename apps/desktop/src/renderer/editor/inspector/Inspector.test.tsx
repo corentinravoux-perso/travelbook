@@ -295,12 +295,13 @@ describe('Inspector', () => {
       });
     });
 
-    it('offers the common section only: name of the type, position, size, opacity', () => {
+    it('offers the common section and the way into the map dialog', () => {
       render(<Inspector />);
       expect(screen.getByRole('heading', { name: 'Carte' })).toBeTruthy();
       expect((screen.getByLabelText(fr.inspector.x) as HTMLInputElement).value).toBe('10');
       expect((screen.getByLabelText(fr.inspector.width) as HTMLInputElement).value).toBe('150');
       expect(screen.getByLabelText(fr.inspector.opacity)).toBeTruthy();
+      expect(screen.getByRole('button', { name: fr.maps.edit })).toBeTruthy();
       expect(screen.queryByTestId('photo-inspector')).toBeNull();
       expect(screen.queryByLabelText('Épaisseur')).toBeNull();
     });

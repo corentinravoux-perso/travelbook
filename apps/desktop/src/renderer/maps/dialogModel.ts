@@ -25,6 +25,8 @@ import {
   type PackFallback,
   type FinePack,
 } from './subjects';
+import { stopBakeWorker } from './bakeClient';
+import { forgetBake } from './previewBake';
 
 /** What the dialog edits: the map element without its box, its name and its baked geometry. */
 export type MapSpec = Pick<
@@ -267,6 +269,8 @@ export function closeMapDialog(): void {
   choice += 1;
   loadedBase = null;
   loadedPack = null;
+  stopBakeWorker();
+  forgetBake();
   mapDialogStore.setState(idle(), true);
 }
 

@@ -116,6 +116,14 @@ export function projectPlace(p: ProjectionParams, lon: number, lat: number): [nu
   return [clamp(out[0]), clamp(out[1])];
 }
 
+/** Degrees at a point of the plane of the baked paths (the inverse of `projectPlace`). Always finite. */
+export function unprojectPlace(p: ProjectionParams, x: number, y: number): [number, number] {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return [0, 0];
+  const out = d3Projection(p).invert?.([x, y]);
+  if (!out || !Number.isFinite(out[0]) || !Number.isFinite(out[1])) return [0, 0];
+  return [out[0], Math.max(-90, Math.min(90, out[1]))];
+}
+
 /**
  * Where the map goes in a box of `box` mm: a unit coordinate `(x, y)` is at
  * `(x * scale + dx, y * scale + dy)` mm. The default frame fits the subject's `bounds` (or the

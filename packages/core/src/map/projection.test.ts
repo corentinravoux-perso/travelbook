@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { chooseProjection, projectPlace, type ProjectionParams } from './projection';
+import {
+  chooseProjection,
+  projectPlace,
+  unprojectPlace,
+  type ProjectionParams,
+} from './projection';
 
 const params = (bbox: [number, number, number, number]): ProjectionParams => ({
   ...chooseProjection(bbox, 'auto'),
@@ -107,5 +112,20 @@ describe('projectPlace', () => {
     expect(projectPlace(mercator, 10, 90).every(Number.isFinite)).toBe(true);
     const conic = { ...p, ...chooseProjection([-125, 24, -66, 49], 'auto') };
     expect(projectPlace(conic, 0, -90).every(Number.isFinite)).toBe(true);
+  });
+});
+
+describe('unprojectPlace', () => {
+  it('is the inverse of projectPlace', () => {
+    const p = params([97.3, 5.6, 105.6, 20.5]);
+    const [x, y] = projectPlace(p, 100.5, 13.75);
+    const [lon, lat] = unprojectPlace(p, x, y);
+    expect(lon).toBeCloseTo(100.5, 4);
+    expect(lat).toBeCloseTo(13.75, 4);
+  });
+
+  it('gives finite degrees for a point that cannot be inverted', () => {
+    const p = params([97.3, 5.6, 105.6, 20.5]);
+    expect(unprojectPlace(p, Number.NaN, 4).every(Number.isFinite)).toBe(true);
   });
 });

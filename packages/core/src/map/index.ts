@@ -13,6 +13,7 @@ export {
   chooseProjection,
   fitFrame,
   projectPlace,
+  unprojectPlace,
   type Bounds,
   type MapGeometry,
   type ProjectionParams,

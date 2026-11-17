@@ -21,11 +21,12 @@ import {
   type MapSpec,
 } from './dialogModel';
 import { geometryCache } from './geometryCache';
+import { geometryKey, rememberedBake } from './previewBake';
 import { getSubject, loadSubjectIndex, loadTopology } from './subjects';
 
 /** The shared coarse world land (far context), read once. A failed read is retried next time. */
 let world: Promise<MapTopology | null> | null = null;
-const worldLand = (): Promise<MapTopology | null> => {
+export const worldLand = (): Promise<MapTopology | null> => {
   world ??= loadTopology('world.topo.json').catch(() => {
     world = null;
     return null;
@@ -78,15 +79,19 @@ export async function applyMap(state: MapDialogState): Promise<void> {
       worldLand(),
     ]);
     if (!live()) return;
-    const geometry = bakeGeometry(
-      base,
-      fine?.pack ?? null,
-      spec.subject,
-      spec.projection,
-      spec.style.rough,
-      spec.style.outline.detail,
-      far,
-    );
+    const pack = fine?.pack ?? null;
+    // the preview baked these very inputs: use its geometry instead of baking a second time
+    const geometry =
+      rememberedBake(geometryKey(spec, pack !== null, far !== null)) ??
+      bakeGeometry(
+        base,
+        pack,
+        spec.subject,
+        spec.projection,
+        spec.style.rough,
+        spec.style.outline.detail,
+        far,
+      );
     const title = name.trim() || subject.name;
     const asset = await window.tb.maps.saveGeometry(JSON.stringify(geometry), { name: title });
     // a re-bake keeps the id when the geometry is the same, and a failed read may be cached

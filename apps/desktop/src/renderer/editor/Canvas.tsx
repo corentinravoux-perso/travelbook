@@ -30,6 +30,7 @@ import { TextToolbar } from './TextToolbar';
 import { MIN_DRAWN_MM, roundRect } from './draw';
 import { useDraw } from './useDraw';
 import { useShortcuts } from './shortcuts';
+import { openMapDialog } from '../maps/dialogModel';
 import {
   elementAt,
   enclosedBy,
@@ -241,6 +242,8 @@ export function Canvas() {
       editorStore.getState().enterCrop(hit.id);
     } else if (hit?.type === 'text' && hit.id !== editingId) {
       editorStore.getState().enterTextEdit(hit.id);
+    } else if (hit?.type === 'map' && !hit.locked) {
+      void openMapDialog({ spreadId: spread.id, elementId: hit.id });
     }
   };
 

@@ -12,7 +12,15 @@ import { createStore, useStore, type StoreApi } from 'zustand';
 export const SAVE_DELAY_MS = 1000;
 
 /** The panels the rail switches between, in rail order. */
-export const PANELS = ['photos', 'templates', 'stickers', 'backgrounds', 'text', 'shapes'] as const;
+export const PANELS = [
+  'photos',
+  'templates',
+  'stickers',
+  'backgrounds',
+  'text',
+  'shapes',
+  'maps',
+] as const;
 export type PanelId = (typeof PANELS)[number];
 
 /** What a drag on the canvas does: select, pan, draw a text box, or draw a shape (`shapeKind`). */
