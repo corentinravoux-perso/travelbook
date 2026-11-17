@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, utimes } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -101,6 +101,15 @@ describe('saveGeometryAsset', () => {
       );
     }
     await expect(readdir(join(project, 'assets'))).rejects.toThrow();
+  });
+
+  it('touches a file it reuses, so a purge running meanwhile keeps it', async () => {
+    const asset = await saveGeometryAsset(project, geometry, { name: 'Thaïlande' });
+    const past = new Date(Date.now() - 3_600_000);
+    await utimes(join(project, asset.file), past, past);
+    const before = Date.now();
+    await saveGeometryAsset(project, geometry, { name: 'Thaïlande' });
+    expect((await stat(join(project, asset.file))).mtimeMs).toBeGreaterThanOrEqual(before - 1_000);
   });
 
   it('caps the size in bytes, not in characters', async () => {

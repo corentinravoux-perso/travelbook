@@ -3,6 +3,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { BookFormatError, bookForSave, migrate, newBook, type Book } from '@travelbook/core';
 import { writeFileAtomic } from './atomic-write';
 import { addRecentProject } from './recent';
+import { purgeGeometries } from '../maps/purge-geometries';
 
 export interface ProjectHandle {
   dir: string;
@@ -110,6 +111,7 @@ async function isPresent(dir: string, file: string): Promise<boolean> {
 /**
  * Open a project folder: migrate its book, drop a leftover `book.json.tmp` from an interrupted
  * save, recreate `cache/` if it is gone, and list the assets whose original file is missing.
+ * Map geometries that neither the book nor a snapshot uses are deleted in the background.
  */
 export async function openProject(dir: string): Promise<ProjectHandle & { missing: string[] }> {
   const book = await readBook(dir);
@@ -120,5 +122,9 @@ export async function openProject(dir: string): Promise<ProjectHandle & { missin
     if (!(await isPresent(dir, asset.file))) missing.push(id);
   }
   await noteRecent(dir, book);
+  // Old map geometries go in the background: a failure is logged, never in the way of the open.
+  void purgeGeometries(dir, book).catch((error: unknown) =>
+    console.warn('Could not purge the unused map geometries:', error),
+  );
   return { dir, book, missing };
 }

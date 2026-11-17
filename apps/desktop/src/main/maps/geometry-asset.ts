@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
-import { mkdir, stat } from 'node:fs/promises';
+import { mkdir, stat, utimes } from 'node:fs/promises';
 import { join } from 'node:path';
 import { MAP_LICENCE, MapGeometrySchema, type AssetRef } from '@travelbook/core';
 import { ID_LENGTH } from '../photos/import';
-import { writeFileAtomic } from '../project/atomic-write';
+import { serialize, writeFileAtomic } from '../project/atomic-write';
+import { geometryLock } from './purge-geometries';
 
 /** Largest geometry text kept, in bytes (a whole country is a few hundred kB). */
 export const MAX_GEOMETRY_BYTES = 20 * 1024 * 1024;
@@ -43,14 +44,21 @@ export async function saveGeometryAsset(
   const hash16 = sha256.slice(0, ID_LENGTH);
   const file = `assets/${hash16}.json`;
   const stored = join(dir, file);
-  const there = await stat(stored).then(
-    () => true,
-    () => false,
-  );
-  if (!there) {
-    await mkdir(join(dir, 'assets'), { recursive: true });
-    await writeFileAtomic(stored, bytes);
-  }
+  // Under the purge's lock, and an existing file is touched: the purge keeps what was written
+  // or reused after it started, so a geometry placed while it runs is never deleted.
+  await serialize(geometryLock(dir), async () => {
+    const there = await stat(stored).then(
+      () => true,
+      () => false,
+    );
+    if (there) {
+      const now = new Date();
+      await utimes(stored, now, now);
+    } else {
+      await mkdir(join(dir, 'assets'), { recursive: true });
+      await writeFileAtomic(stored, bytes);
+    }
+  });
   return {
     id: `map-${hash16}`,
     kind: 'map',
