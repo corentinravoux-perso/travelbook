@@ -53,6 +53,7 @@ const index = JSON.parse(read('index.json')) as Parameters<typeof setSubjectInde
 
 let packReply: { ok: true; json: string } | { ok: false; reason: 'offline' };
 const listStyles = vi.fn(async () => [] as { id: string; name: string; style: unknown }[]);
+const loadPack = vi.fn(async (): Promise<unknown> => packReply);
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
@@ -70,11 +71,14 @@ beforeEach(async () => {
   vi.mocked(bake).mockClear();
   vi.mocked(applyMap).mockClear();
   listStyles.mockClear();
+  loadPack.mockClear();
+  loadPack.mockImplementation(async () => packReply);
   packReply = { ok: false, reason: 'offline' };
   setSubjectIndex(index);
   (window as unknown as { tb: unknown }).tb = {
     project: { save: () => Promise.resolve() },
-    maps: { loadPack: vi.fn(async () => packReply), listStyles },
+    maps: { loadPack, listStyles },
+    library: { fonts: { list: async () => [] } },
   };
   vi.stubGlobal(
     'fetch',
@@ -421,6 +425,56 @@ describe('a region subject', () => {
     expect(within(dialog()).getByText(/Italie/)).toBeTruthy();
   });
 
+  it('says exactly "Contour détaillé indisponible hors ligne" and the map can still be placed', async () => {
+    await openFromPanel();
+    await pick('sicile', 'Sicile');
+    await waitFor(() =>
+      expect(within(dialog()).getByRole('status').textContent).toBe(
+        'Contour détaillé indisponible hors ligne : contour du pays utilisé.',
+      ),
+    );
+    await waitFor(() => expect(drawn()).not.toBeNull());
+    const place = within(dialog()).getByRole('button', { name: t.place }) as HTMLButtonElement;
+    expect(place.disabled).toBe(false);
+    fireEvent.click(place);
+    expect(vi.mocked(applyMap)).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['checksum', t.packFallback.checksum],
+    ['unknown', t.packFallback.unknown],
+  ])('a %s failure has its own sentence', async (reason, sentence) => {
+    packReply = { ok: false, reason } as never;
+    await openFromPanel();
+    await pick('sicile', 'Sicile');
+    await waitFor(() => expect(within(dialog()).getByRole('status').textContent).toBe(sentence));
+    expect(sentence).not.toBe(t.packFallback.offline);
+  });
+
+  it('shows a progress line while the fine pack loads, then nothing once it is in', async () => {
+    let release: (value: unknown) => void = () => undefined;
+    loadPack.mockImplementationOnce(() => new Promise((r) => (release = r)));
+    await openFromPanel();
+    await pick('sicile', 'Sicile');
+    await waitFor(() =>
+      expect(within(dialog()).getByRole('status').textContent).toBe(t.packLoading),
+    );
+    await act(async () => release({ ok: false, reason: 'offline' }));
+    await waitFor(() =>
+      expect(within(dialog()).getByRole('status').textContent).toBe(t.packFallback.offline),
+    );
+  });
+
+  it('choosing a region later calls maps.loadPack; a whole-country map never does', async () => {
+    await openFromPanel();
+    await pick('ital', 'Italie');
+    await waitFor(() => expect(drawn()).not.toBeNull());
+    expect(loadPack).not.toHaveBeenCalled();
+    const region = (await mapDialogStore.getState().spec)!;
+    await act(() => updateSpec({ subject: { ...region.subject, regions: ['IT-82'] } }));
+    await waitFor(() => expect(loadPack).toHaveBeenCalledWith('IT'));
+  });
+
   it('a whole-country map says nothing about a pack', async () => {
     await openFromPanel();
     await pick('thai', 'Thaïlande');
@@ -440,5 +494,59 @@ describe('placing', () => {
     fireEvent.click(within(dialog()).getByRole('button', { name: t.cancel }));
     await waitFor(() => expect(mapDialogStore.getState().open).toBe(false));
     expect(vi.mocked(applyMap)).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the sections of the dialog', () => {
+  async function thai() {
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    await waitFor(() => expect(drawn()).not.toBeNull());
+  }
+  const tab = (name: string) => within(dialog()).getByRole('tab', { name });
+
+  it('is a tablist of Lieux, Itinéraire and Style; one panel at a time, Lieux first', async () => {
+    await thai();
+    const list = within(dialog()).getByRole('tablist', { name: t.tabs });
+    expect(
+      within(list)
+        .getAllByRole('tab')
+        .map((n) => n.textContent),
+    ).toEqual(['Lieux', 'Itinéraire', 'Style']);
+    expect(tab('Lieux').getAttribute('aria-selected')).toBe('true');
+    const panel = within(dialog()).getByRole('tabpanel');
+    expect(panel.getAttribute('aria-labelledby')).toBe(tab('Lieux').id);
+    expect(tab('Lieux').getAttribute('aria-controls')).toBe(panel.id);
+    expect(within(dialog()).queryByRole('group', { name: t.route.title })).toBeNull();
+    fireEvent.click(tab('Itinéraire'));
+    expect(within(dialog()).getByRole('group', { name: t.route.title })).toBeTruthy();
+    expect(within(dialog()).queryByRole('group', { name: t.places.title })).toBeNull();
+  });
+
+  it('arrow keys, Home and End move between the tabs (roving tabindex)', async () => {
+    await thai();
+    expect([tab('Lieux').tabIndex, tab('Itinéraire').tabIndex, tab('Style').tabIndex]).toEqual([
+      0, -1, -1,
+    ]);
+    fireEvent.keyDown(tab('Lieux'), { key: 'ArrowRight' });
+    expect(tab('Itinéraire').getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(tab('Itinéraire'), { key: 'End' });
+    expect(tab('Style').getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(tab('Style'), { key: 'ArrowRight' });
+    expect(tab('Lieux').getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(tab('Lieux'), { key: 'ArrowLeft' });
+    expect(tab('Style').getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(tab('Style'), { key: 'Home' });
+    expect(tab('Lieux').getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('keeps the preview, the layers and the actions in view whichever tab is open', async () => {
+    await thai();
+    for (const name of ['Itinéraire', 'Style', 'Lieux']) {
+      fireEvent.click(tab(name));
+      expect(preview()).toBeTruthy();
+      expect(within(dialog()).getByRole('checkbox', { name: t.layerRegions })).toBeTruthy();
+      expect(within(dialog()).getByRole('button', { name: t.place })).toBeTruthy();
+    }
   });
 });

@@ -73,6 +73,7 @@ beforeEach(async () => {
   (window as unknown as { tb: unknown }).tb = {
     project: { save: () => Promise.resolve() },
     maps: { loadPack: vi.fn(async () => packReply), listStyles },
+    library: { fonts: { list: async () => [] } },
   };
   vi.stubGlobal(
     'fetch',
@@ -113,13 +114,12 @@ async function pick(query: string, hit: string) {
 const spec = () => mapDialogStore.getState().spec!;
 const drawn = () => dialog().querySelector('[data-layer="land"]');
 
-const places = () => within(dialog()).getByRole('group', { name: t.places.title });
-
 async function ready() {
   await openFromPanel();
   await pick('thai', 'Thaïlande');
   await waitFor(() => expect(drawn()).not.toBeNull());
   await waitFor(() => expect(within(dialog()).queryByText(t.baking)).toBeNull());
+  fireEvent.click(within(dialog()).getByRole('tab', { name: t.tabNames.route }));
   vi.mocked(bake).mockClear();
 }
 const settle = () => act(() => new Promise<void>((r) => setTimeout(r, 30)));
@@ -128,6 +128,13 @@ const r = t.route;
 const panel = () => within(dialog()).getByRole('group', { name: r.title });
 const idOf = (label: string) => spec().places.find((p) => p.label === label)!.id;
 const route = () => spec().route;
+/** Show the Lieux tab to reach a place, then come back to the itinerary. */
+const withPlaces = <T,>(act: (places: HTMLElement) => T): T => {
+  fireEvent.click(within(dialog()).getByRole('tab', { name: t.tabNames.places }));
+  const result = act(within(dialog()).getByRole('group', { name: t.places.title }));
+  fireEvent.click(within(dialog()).getByRole('tab', { name: t.tabNames.route }));
+  return result;
+};
 const addStopByName = (name: string) =>
   fireEvent.change(within(panel()).getByRole('combobox', { name: r.addLabel }), {
     target: { value: idOf(name) },
@@ -142,7 +149,9 @@ describe('the itinerary panel', () => {
     const select = within(panel()).getByRole('combobox', { name: r.addLabel });
     const names = Array.from(select.querySelectorAll('option')).map((o) => o.textContent);
     expect(names).toContain('Bangkok');
-    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.show('Hat Yai') }));
+    withPlaces((p) =>
+      fireEvent.click(within(p).getByRole('checkbox', { name: t.places.show('Hat Yai') })),
+    );
     const after = Array.from(
       within(panel()).getByRole('combobox', { name: r.addLabel }).querySelectorAll('option'),
     ).map((o) => o.textContent);
@@ -274,6 +283,8 @@ describe('the itinerary panel', () => {
     expect(bend.disabled).toBe(true);
     fireEvent.change(within(panel()).getByLabelText(r.curve(1)), { target: { value: 'courbe' } });
     expect(route()!.legs[0]!.curve).toBe('courbe');
+    // a curve with no bend would look straight: it starts with a gentle one
+    expect(route()!.legs[0]!.bend).toBeCloseTo(0.3);
     expect(bend.disabled).toBe(false);
     fireEvent.change(bend, { target: { value: '0.6' } });
     expect(route()!.legs[0]!.bend).toBeCloseTo(0.6);
@@ -298,7 +309,9 @@ describe('the itinerary panel', () => {
     await ready();
     addStopByName('Bangkok');
     addStopByName('Chiang Mai');
-    fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.show('Chiang Mai') }));
+    withPlaces((p) =>
+      fireEvent.click(within(p).getByRole('checkbox', { name: t.places.show('Chiang Mai') })),
+    );
     expect(route()!.stops).toHaveLength(2);
     const row = within(panel())
       .getByRole('button', { name: r.remove(2, 'Chiang Mai') })

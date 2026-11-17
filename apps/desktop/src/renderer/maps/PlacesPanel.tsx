@@ -70,6 +70,27 @@ function PlaceRow({
         onChange={(e) => patch({ label: e.target.value })}
       />
       <input
+        type="number"
+        className="input map-place__size"
+        aria-label={t.size(place.label)}
+        title={t.sizeHint}
+        min={1}
+        max={20}
+        step={0.5}
+        placeholder={String(spec.style.sizes.marker)}
+        value={place.markerSize ?? ''}
+        disabled={!place.shown}
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          patch({
+            markerSize:
+              e.target.value.trim() === '' || !Number.isFinite(n)
+                ? null
+                : Math.min(20, Math.max(1, n)),
+          });
+        }}
+      />
+      <input
         type="checkbox"
         aria-label={t.labelShow(place.label)}
         checked={place.labelShown}

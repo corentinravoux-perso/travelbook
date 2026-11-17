@@ -17,11 +17,10 @@ import {
   placePointMm,
 } from './placesModel';
 
-/** The largest the preview is drawn, in CSS px. */
+/** The width the preview is drawn at when its room cannot be measured, in CSS px. */
 const MAX_W = 620;
-const MAX_H = 440;
-/** On a short window the preview takes this share of its height at most, so the buttons stay in view. */
-const MAX_H_SHARE = 0.4;
+/** The size the preview is drawn at when its room cannot be measured (jsdom, first paint). */
+const FALLBACK_H = 320;
 /** One wheel notch (`deltaY` 100) zooms by this factor. */
 const ZOOM_PER_NOTCH = Math.exp(0.15);
 /** A press that moves less than this is a click, not a drag. */
@@ -110,6 +109,27 @@ export function usePreviewGeometry(spec: MapSpec | null): {
   return { geometry, busy, failed: !busy && settled !== null && settled.geometry === null };
 }
 
+/** The size of the element in CSS px, followed as the dialog is resized; `null` until it has one. */
+function useRoom(ref: React.RefObject<HTMLElement | null>): { w: number; h: number } | null {
+  const [room, setRoom] = useState<{ w: number; h: number } | null>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof ResizeObserver === 'undefined') return;
+    const read = () => {
+      const w = Math.floor(node.clientWidth);
+      const h = Math.floor(node.clientHeight);
+      setRoom((was) =>
+        w > 0 && h > 0 ? (was && was.w === w && was.h === h ? was : { w, h }) : null,
+      );
+    };
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [ref]);
+  return room;
+}
+
 /**
  * The map as it will be placed, drawn by the real renderer in the proportions of its box. The
  * wheel zooms about the pointer, dragging pans; both set `frame` and never bake again.
@@ -128,8 +148,12 @@ export function MapPreview({
 }) {
   const book = useEditor((s) => s.book);
   const surface = useRef<HTMLDivElement>(null);
-  const maxH = Math.min(MAX_H, Math.max(220, Math.round(window.innerHeight * MAX_H_SHARE)));
-  const zoomPx = Math.min(MAX_W / (box.w * MM_TO_PX), maxH / (box.h * MM_TO_PX));
+  const area = useRef<HTMLDivElement>(null);
+  const room = useRoom(area);
+  // as large as the room allows, at the aspect ratio of the box
+  const maxW = room ? room.w : MAX_W;
+  const maxH = room ? room.h : FALLBACK_H;
+  const zoomPx = Math.min(maxW / (box.w * MM_TO_PX), maxH / (box.h * MM_TO_PX));
   const pxPerMm = MM_TO_PX * zoomPx;
   const width = Math.round(box.w * pxPerMm);
   const height = Math.round(box.h * pxPerMm);
@@ -275,26 +299,30 @@ export function MapPreview({
 
   if (!book) return null;
   return (
-    <div
-      ref={surface}
-      className="map-preview"
-      role="group"
-      aria-label={fr.maps.preview}
-      aria-busy={busy}
-      style={{ width, height }}
-      onPointerDown={onPointerDown}
-    >
-      <div className="map-preview__paper" style={{ transform: `scale(${zoomPx})` }}>
-        <SpreadView
-          book={book}
-          spread={spread}
-          clip={{ x: 0, y: 0, w: box.w, h: box.h }}
-          quality="thumb"
-          mapGeometry={() => geometry}
-          assetUrl={assetUrl}
-        />
+    <div ref={area} className="map-preview-area">
+      <div className="map-preview-fit">
+        <div
+          ref={surface}
+          className="map-preview"
+          role="group"
+          aria-label={fr.maps.preview}
+          aria-busy={busy}
+          style={{ width, height }}
+          onPointerDown={onPointerDown}
+        >
+          <div className="map-preview__paper" style={{ transform: `scale(${zoomPx})` }}>
+            <SpreadView
+              book={book}
+              spread={spread}
+              clip={{ x: 0, y: 0, w: box.w, h: box.h }}
+              quality="thumb"
+              mapGeometry={() => geometry}
+              assetUrl={assetUrl}
+            />
+          </div>
+          {busy && <span className="map-preview__busy">{fr.maps.baking}</span>}
+        </div>
       </div>
-      {busy && <span className="map-preview__busy">{fr.maps.baking}</span>}
     </div>
   );
 }
