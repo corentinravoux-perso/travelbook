@@ -5,7 +5,7 @@ import { assetUrl } from '../editor/assetUrl';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
 import { bake, debounceMs } from './bakeClient';
-import { subjectBase, subjectPack, updateSpec, type MapSpec } from './dialogModel';
+import { mapDialogStore, subjectBase, subjectPack, updateSpec, type MapSpec } from './dialogModel';
 import { worldLand } from './mapActions';
 import { panFrame, zoomFrame } from './previewFrame';
 import { geometryKey, rememberBake, rememberedBake } from './previewBake';
@@ -159,9 +159,10 @@ export function MapPreview({
     if (!node) return;
     // not passive: a wheel turn over the preview must not scroll the dialog
     const onWheel = (e: WheelEvent) => {
-      const { spec: s, geometry: g, box: b, pxPerMm: k } = live.current;
+      const { geometry: g, box: b, pxPerMm: k } = live.current;
+      const s = mapDialogStore.getState().spec;
       e.preventDefault();
-      if (!g) return;
+      if (!g || !s) return;
       const rect = node.getBoundingClientRect();
       const factor = Math.pow(ZOOM_PER_NOTCH, -e.deltaY / 100);
       const at: [number, number] = [(e.clientX - rect.left) / k, (e.clientY - rect.top) / k];
@@ -178,8 +179,10 @@ export function MapPreview({
     let last = { x: e.clientX, y: e.clientY };
     let moved = false;
     const move = (ev: PointerEvent) => {
-      const { spec: s, geometry: g, box: b, pxPerMm: k } = live.current;
-      if (!g) return;
+      const { geometry: g, box: b, pxPerMm: k } = live.current;
+      // the frame is read from the store: the previous move may not have been rendered yet
+      const s = mapDialogStore.getState().spec;
+      if (!g || !s) return;
       const dx = ev.clientX - last.x;
       const dy = ev.clientY - last.y;
       if (!moved && Math.hypot(dx, dy) < DRAG_SLOP_PX) return;

@@ -43,7 +43,7 @@ const { applyMap } = await import('./mapActions');
 const { MapDialog } = await import('./MapDialog');
 const { MapsPanel } = await import('../panels/MapsPanel');
 const { MapInspector } = await import('../editor/inspector/MapInspector');
-const { closeMapDialog, mapDialogStore, openMapDialog } = await import('./dialogModel');
+const { closeMapDialog, mapDialogStore, openMapDialog, updateSpec } = await import('./dialogModel');
 const { setSubjectIndex } = await import('./subjects');
 
 const t = fr.maps;
@@ -179,6 +179,58 @@ describe('opening from the Cartes panel', () => {
       (page.width - 2 * book.safeMargin) / (page.height - 2 * book.safeMargin),
       2,
     );
+  });
+});
+
+describe('preset chips', () => {
+  const chip = (name: string) =>
+    within(dialog()).getByRole('button', { name }) as HTMLButtonElement;
+
+  it('marks the preset the style equals, and none once the style is edited', async () => {
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    // a new map starts in carnet
+    await waitFor(() => expect(chip('Carnet').getAttribute('aria-pressed')).toBe('true'));
+    expect(chip('Ardoise').getAttribute('aria-pressed')).toBe('false');
+    await waitFor(() => expect(chip('Ardoise').disabled).toBe(false));
+    fireEvent.click(chip('Ardoise'));
+    await waitFor(() => expect(chip('Ardoise').getAttribute('aria-pressed')).toBe('true'));
+    expect(chip('Carnet').getAttribute('aria-pressed')).toBe('false');
+    const style = spec().style;
+    await act(() => updateSpec({ style: { ...style, land: { ...style.land, fill: '#123456' } } }));
+    await waitFor(() => expect(chip('Ardoise').getAttribute('aria-pressed')).toBe('false'));
+    for (const name of ['Safran', 'Carnet', 'Encre', 'Crayon', 'Pastel']) {
+      expect(chip(name).getAttribute('aria-pressed')).toBe('false');
+    }
+  });
+
+  it('a fresh dialog starts in carnet, whatever the last one used', async () => {
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    await waitFor(() => expect(chip('Pastel').disabled).toBe(false));
+    fireEvent.click(chip('Pastel'));
+    await waitFor(() => expect(chip('Pastel').getAttribute('aria-pressed')).toBe('true'));
+    cleanup();
+    closeMapDialog();
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    // a pick keeps the style the user had set in the same dialog, a fresh dialog starts in carnet
+    await waitFor(() => expect(chip('Carnet').getAttribute('aria-pressed')).toBe('true'));
+  });
+});
+
+describe('the native cancel of the dialog', () => {
+  it('is blocked while the map is being placed, and closes the dialog otherwise', async () => {
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    mapDialogStore.setState({ status: 'applying' });
+    const blocked = new Event('cancel', { cancelable: true });
+    dialog().dispatchEvent(blocked);
+    expect(blocked.defaultPrevented).toBe(true);
+    mapDialogStore.setState({ status: 'idle' });
+    const free = new Event('cancel', { cancelable: true });
+    dialog().dispatchEvent(free);
+    expect(free.defaultPrevented).toBe(false);
   });
 });
 

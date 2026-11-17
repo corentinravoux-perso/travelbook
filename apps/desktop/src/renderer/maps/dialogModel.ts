@@ -119,6 +119,31 @@ export function defaultPlaces(places: BundledPlace[], frameAreaMm2: number): Map
 }
 
 /**
+ * The candidates of a subject limited to its chosen regions: those inside the bbox of one of them
+ * (the bboxes of the index). A point-in-region test would need the region geometry, which is in
+ * the fine pack and is not always there; the bbox is what the dialog has at once, so a place just
+ * outside a coast but inside a neighbouring bbox can still be a candidate. No region: all.
+ */
+export function placesInRegions(
+  places: BundledPlace[],
+  subject: IndexSubject | null,
+  regionIds: string[],
+): BundledPlace[] {
+  const boxes = (subject?.regions ?? []).filter((r) => regionIds.includes(r.id)).map((r) => r.bbox);
+  if (boxes.length === 0) return places;
+  return places.filter((p) =>
+    boxes.some(([w, s, e, n]) => p.lat >= s && p.lat <= n && p.lon >= w && p.lon <= e),
+  );
+}
+
+/** A place list without ids, to tell whether the user changed the defaults. */
+const placesSignature = (places: MapPlace[]): string =>
+  JSON.stringify(places.map((p) => ({ ...p, id: null })));
+
+/** The signature of the defaults last derived; `null` for a reopened map (never re-derived). */
+let derivedPlaces: string | null = null;
+
+/**
  * Where a new map goes: the page in view (the other one when it has none) inset by the album's
  * safe margin. `null` when the spread does not exist.
  */
@@ -269,6 +294,7 @@ export function closeMapDialog(): void {
   choice += 1;
   loadedBase = null;
   loadedPack = null;
+  derivedPlaces = null;
   stopBakeWorker();
   forgetBake();
   mapDialogStore.setState(idle(), true);
@@ -280,6 +306,7 @@ export function closeMapDialog(): void {
  */
 export async function openMapDialog(target?: MapTarget): Promise<void> {
   const mine = ++choice;
+  derivedPlaces = null;
   const index = await loadSubjectIndex();
   if (mine !== choice) return;
   const book = editorStore.getState().book;
@@ -319,6 +346,8 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
   const base = newSpec(subject);
   if (regionId !== undefined) base.subject.regions = [regionId];
   const previous = mapDialogStore.getState().spec;
+  const places = defaultPlaces(placesInRegions(bundled, subject, base.subject.regions), area);
+  derivedPlaces = placesSignature(places);
   mapDialogStore.setState({
     name: subject.name,
     bundled,
@@ -333,7 +362,7 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
             background: previous.background,
           }
         : {}),
-      places: defaultPlaces(bundled, area),
+      places,
     },
     packFallback: null,
     status: 'idle',
@@ -346,7 +375,21 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
 export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
   const { spec } = mapDialogStore.getState();
   if (!spec) return;
-  mapDialogStore.setState({ spec: { ...spec, ...patch } });
+  const next = { ...spec, ...patch };
+  const regionsChanged =
+    patch.subject !== undefined &&
+    patch.places === undefined &&
+    [...patch.subject.regions].sort().join() !== [...spec.subject.regions].sort().join();
+  // the regions changed and the places are still the defaults: derive the defaults again
+  if (regionsChanged && derivedPlaces !== null && placesSignature(spec.places) === derivedPlaces) {
+    const subject = getSubject(spec.subject.id);
+    next.places = defaultPlaces(
+      placesInRegions(mapDialogStore.getState().bundled, subject, next.subject.regions),
+      reopenedArea() ?? frameArea(),
+    );
+    derivedPlaces = placesSignature(next.places);
+  }
+  mapDialogStore.setState({ spec: next });
   // settles once the fine pack of the chosen regions is in (when the regions changed)
   if (patch.subject) await syncPackFallback();
 }

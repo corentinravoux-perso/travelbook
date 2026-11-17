@@ -1,4 +1,4 @@
-import { fitFrame, type MapGeometry } from '@travelbook/core';
+import { chooseProjection, fitFrame, type MapGeometry } from '@travelbook/core';
 import { describe, expect, it } from 'vitest';
 import { MAX_ZOOM, MIN_ZOOM, panFrame, zoomFrame } from './previewFrame';
 
@@ -64,5 +64,33 @@ describe('zoomFrame', () => {
     expect(frame.scale).toBeCloseTo(1.5, 9);
     const fit = fitFrame(geometry, box, frame, true);
     expect(fit.scale).toBeCloseTo(fitFrame(geometry, box, null, true).scale * 1.5, 9);
+  });
+});
+
+describe('a frame on a projection rotated across the antimeridian (Fiji)', () => {
+  const fiji: MapGeometry = {
+    ...geometry,
+    projection: { ...chooseProjection([177, -21, -178, -16], 'auto'), k: 900, tx: 500, ty: 300 },
+  };
+
+  it('pan then fitFrame moves the land by the dragged distance', () => {
+    const before = fitFrame(fiji, box, null, false);
+    const frame = panFrame(fiji, box, null, false, 20, 10);
+    expect(frame.center.every(Number.isFinite)).toBe(true);
+    const after = fitFrame(fiji, box, frame, false);
+    expect(after.scale).toBeCloseTo(before.scale, 8);
+    expect(after.dx - before.dx).toBeCloseTo(20, 4);
+    expect(after.dy - before.dy).toBeCloseTo(10, 4);
+  });
+
+  it('zoom about a point keeps it fixed, after a pan that crossed 180 degrees', () => {
+    const panned = panFrame(fiji, box, null, false, -400, 0);
+    const at: [number, number] = [30, 50];
+    const before = fitFrame(fiji, box, panned, false);
+    const unit = [(at[0] - before.dx) / before.scale, (at[1] - before.dy) / before.scale];
+    const frame = zoomFrame(fiji, box, panned, false, 3, at);
+    const after = fitFrame(fiji, box, frame, false);
+    expect(unit[0]! * after.scale + after.dx).toBeCloseTo(at[0], 4);
+    expect(unit[1]! * after.scale + after.dy).toBeCloseTo(at[1], 4);
   });
 });
