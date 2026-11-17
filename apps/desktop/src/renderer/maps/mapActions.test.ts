@@ -183,30 +183,56 @@ describe('applyMap, new map', () => {
   });
 
   it.each(['offline', 'checksum', 'unknown'] as const)(
-    'bakes from the base file when the pack is %s, and says why',
+    'bakes from the base file when the pack is %s, and the dialog says why from the pick on',
     async (reason) => {
       packReply = { ok: false, reason };
       await openMapDialog();
-      await pickSubject('TH');
-      let fallback: unknown;
-      const stop = mapDialogStore.subscribe((s) => (fallback = s.packFallback ?? fallback));
+      await pickSubject('IT');
+      expect(mapDialogStore.getState().packFallback).toBe(reason);
       await applyMap(mapDialogStore.getState());
-      stop();
-      expect(fallback).toBe(reason);
       expect(maps(editorStore.getState().book!)).toHaveLength(1);
+      // nothing is left after the dialog closes
+      expect(mapDialogStore.getState().packFallback).toBeNull();
     },
   );
 
   it('treats a throwing pack call as offline', async () => {
     loadPack.mockRejectedValueOnce(new Error('ipc'));
     await openMapDialog();
-    await pickSubject('TH');
-    let fallback: unknown;
-    const stop = mapDialogStore.subscribe((s) => (fallback = s.packFallback ?? fallback));
+    await pickSubject('IT');
+    expect(mapDialogStore.getState().packFallback).toBe('offline');
     await applyMap(mapDialogStore.getState());
-    stop();
-    expect(fallback).toBe('offline');
     expect(maps(editorStore.getState().book!)).toHaveLength(1);
+  });
+
+  it('asks for a pack only when the index lists one: no pack, no call and no fallback', async () => {
+    // every subject of the shipped index lists a pack: take it off Thailand
+    setSubjectIndex({
+      subjects: index.subjects.map((x) => ({ ...x, pack: undefined })),
+    });
+    packReply = { ok: false, reason: 'unknown' };
+    await openMapDialog();
+    await pickSubject('TH');
+    expect(loadPack).not.toHaveBeenCalled();
+    expect(mapDialogStore.getState().packFallback).toBeNull();
+    await applyMap(mapDialogStore.getState());
+    expect(loadPack).not.toHaveBeenCalled();
+  });
+
+  it('loads the subject data once: the pick loads it, the apply reuses it', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    await applyMap(mapDialogStore.getState());
+    expect(loadPack).toHaveBeenCalledTimes(1);
+  });
+
+  it('preselects the region of a search hit', async () => {
+    const sicily = index.subjects
+      .find((x) => x.id === 'IT')!
+      .regions!.find((r) => r.name === 'Sicile')!;
+    await openMapDialog();
+    await pickSubject('IT', sicily.id);
+    expect(mapDialogStore.getState().spec!.subject.regions).toEqual([sicily.id]);
   });
 
   it('does nothing without a subject', async () => {
@@ -229,6 +255,72 @@ describe('applyMap, new map', () => {
       error: 'disk full',
     });
     expect(editorStore.getState().notice).toBe(fr.maps.applyFailed);
+  });
+});
+
+describe('applyMap, concurrency and cancel', () => {
+  it('a double apply from a stale snapshot makes one map and one undo step', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const snapshot = mapDialogStore.getState();
+    await Promise.all([applyMap(snapshot), applyMap(snapshot)]);
+    expect(maps(editorStore.getState().book!)).toHaveLength(1);
+    expect(labels()).toEqual([fr.maps.undoCreate]);
+    expect(saveGeometry).toHaveBeenCalledTimes(1);
+  });
+
+  it('closing the dialog during the apply adds no map', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const done = applyMap(mapDialogStore.getState());
+    closeMapDialog();
+    await done;
+    expect(maps(editorStore.getState().book!)).toHaveLength(0);
+    expect(labels()).toEqual([]);
+  });
+
+  it('does not close a dialog opened while the apply ran', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const done = applyMap(mapDialogStore.getState());
+    closeMapDialog();
+    await openMapDialog();
+    await done;
+    expect(mapDialogStore.getState().open).toBe(true);
+    expect(maps(editorStore.getState().book!)).toHaveLength(0);
+  });
+
+  it('a failure after the dialog was closed touches nothing', async () => {
+    saveGeometry.mockImplementationOnce(async () => {
+      closeMapDialog();
+      throw new Error('late');
+    });
+    await openMapDialog();
+    await pickSubject('TH');
+    await applyMap(mapDialogStore.getState());
+    expect(mapDialogStore.getState()).toMatchObject({ open: false, status: 'idle', error: null });
+    expect(editorStore.getState().notice).toBeNull();
+  });
+
+  it('puts the map on the spread in view when the apply started', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    const done = applyMap(mapDialogStore.getState());
+    editorStore.getState().goToSpread(book.spreads[1]!.id);
+    await done;
+    expect(book.spreads[0]!.id).toBe(spreadId);
+    expect(editorStore.getState().book!.spreads[0]!.elements.some((e) => e.type === 'map')).toBe(
+      true,
+    );
+  });
+
+  it('checks the page before baking: no page, no asset', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    editorStore.setState({ currentSpreadId: 'nope' });
+    await applyMap(mapDialogStore.getState());
+    expect(saveGeometry).not.toHaveBeenCalled();
+    expect(mapDialogStore.getState().status).toBe('failed');
   });
 });
 
@@ -279,6 +371,13 @@ describe('applyMap, reopened map', () => {
     expect(now.geometryAssetId).toBe(saved[0]!.id);
     expect(labels()).toEqual([fr.maps.undoUpdate]);
     expect(editorStore.getState().book!.assets[saved[0]!.id]).toBeDefined();
+  });
+
+  it('keeps a name typed in the dialog', async () => {
+    await reopen();
+    mapDialogStore.setState({ name: 'Autre nom' });
+    await applyMap(mapDialogStore.getState());
+    expect(maps(editorStore.getState().book!)[0]!.name).toBe('Autre nom');
   });
 
   it('is undone in one step', async () => {

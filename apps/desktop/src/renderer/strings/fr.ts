@@ -103,12 +103,12 @@ export const fr = {
     hint: 'Glissez une double page pour la déplacer (ou Alt + flèche). Le + entre deux doubles pages en insère une. Échap pour fermer.',
     insert: 'Insérer une double page ici',
   },
-  // Cover editing: the spine zone.
   maps: {
     undoCreate: 'Créer une carte',
     undoUpdate: 'Modifier la carte',
     applyFailed: "La carte n'a pas pu être créée.",
   },
+  // Cover editing: the spine zone.
   poster: {
     open: 'Créer une affiche…',
     title: 'Créer une affiche',
