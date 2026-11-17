@@ -55,8 +55,10 @@ function giveUp(error: Error): void {
   broken = true;
   worker?.terminate();
   worker = null;
-  for (const job of pending.values()) job.reject(error);
+  for (const job of [...pending.values()]) job.reject(error);
   pending.clear();
+  waiting?.reject(error);
+  waiting = null;
 }
 
 function start(): Worker | null {
@@ -94,13 +96,18 @@ function bakeHere(input: BakeInput): MapGeometry {
   );
 }
 
-/**
- * Bake a geometry off the main thread when a worker is available. A worker that fails falls back
- * to the main thread for this job and every later one.
- */
-export async function bake(input: BakeInput): Promise<MapGeometry> {
-  const w = start();
-  if (!w) return bakeHere(input);
+interface Job {
+  input: BakeInput;
+  resolve(g: MapGeometry): void;
+  reject(e: Error): void;
+}
+
+/** The job the worker is on, and the newest one waiting behind it (older waiting jobs are dropped). */
+let running: Job | null = null;
+let waiting: Job | null = null;
+
+function dispatch(w: Worker, job: Job): void {
+  const { input } = job;
   const id = ++nextId;
   const request: BakeRequest = {
     id,
@@ -112,16 +119,52 @@ export async function bake(input: BakeInput): Promise<MapGeometry> {
   if (sent.base !== input.base) request.base = input.base;
   if (sent.pack !== input.pack) request.pack = input.pack;
   if (sent.world !== input.world) request.world = input.world;
+  sent = { base: input.base, pack: input.pack, world: input.world };
+  running = job;
+  pending.set(id, {
+    resolve: (g) => {
+      pending.delete(id);
+      running = null;
+      job.resolve(g);
+      next(w);
+    },
+    reject: (e) => {
+      pending.delete(id);
+      running = null;
+      job.reject(e);
+      next(w);
+    },
+  });
+  w.postMessage(request);
+}
+
+/** Start the waiting job, if any, once the worker is free. */
+function next(w: Worker): void {
+  if (running || !waiting || worker !== w) return;
+  const job = waiting;
+  waiting = null;
+  dispatch(w, job);
+}
+
+/**
+ * Bake a geometry off the main thread when a worker is available. One job runs at a time; a job
+ * still waiting when a newer one arrives is dropped (it rejects with "Superseded"). A worker that
+ * fails falls back to the main thread for this job and every later one.
+ */
+export async function bake(input: BakeInput): Promise<MapGeometry> {
+  const w = start();
+  if (!w) return bakeHere(input);
   try {
-    const geometry = await new Promise<MapGeometry>((resolve, reject) => {
-      pending.set(id, { resolve, reject });
-      w.postMessage(request);
-      sent = { base: input.base, pack: input.pack, world: input.world };
+    return await new Promise<MapGeometry>((resolve, reject) => {
+      waiting?.reject(new Error('Superseded'));
+      waiting = { input, resolve, reject };
+      next(w);
     });
-    return geometry;
   } catch (error) {
     // the worker died under this job: a failed bake is the worker's, not the data's
-    if (broken) return bakeHere(input);
+    if (broken && !(error instanceof Error && error.message === 'Superseded')) {
+      return bakeHere(input);
+    }
     throw error;
   }
 }
@@ -130,6 +173,9 @@ export async function bake(input: BakeInput): Promise<MapGeometry> {
 export function stopBakeWorker(): void {
   worker?.terminate();
   worker = null;
-  for (const job of pending.values()) job.reject(new Error('Closed'));
+  for (const job of [...pending.values()]) job.reject(new Error('Closed'));
   pending.clear();
+  waiting?.reject(new Error('Closed'));
+  waiting = null;
+  running = null;
 }

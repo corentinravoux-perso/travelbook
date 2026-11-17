@@ -109,6 +109,10 @@ test('the map dialog: Thailand in carnet, pan and zoom, place, reopen; a region 
       console.log(`preview latency IT/Sicile (pick to land drawn): ${ms} ms`);
       await expect(page.locator('.map-preview[aria-busy="false"]')).toBeVisible();
       await expect(dialog.getByText(/Italie/).first()).toBeVisible();
+      // the places are Sicily's own
+      const preview = dialog.getByLabel('Aperçu de la carte');
+      await expect(preview).toContainText('Palerme');
+      await expect(preview).not.toContainText('Rome');
       await page.screenshot({ path: shot('task16-sicile') });
     });
 

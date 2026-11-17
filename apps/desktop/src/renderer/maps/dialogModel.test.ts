@@ -231,3 +231,46 @@ describe('reopening a map', () => {
     expect(() => specOf({ ...bad, subject: { ...bad.subject, id: 'XX' } }, null)).not.toThrow();
   });
 });
+
+describe('default places of a region subject', () => {
+  const labels = () => mapDialogStore.getState().spec!.places.map((p) => p.label);
+
+  it('keeps the places inside the chosen regions: Sicily has Palerme and Catane, not Rome', async () => {
+    await openMapDialog();
+    await pickSubject('IT', 'IT-82');
+    expect(labels()).toEqual(expect.arrayContaining(['Palerme', 'Catane']));
+    expect(labels()).not.toContain('Rome');
+    expect(labels()).not.toContain('Naples');
+  });
+
+  it('a whole-country pick is unchanged: Rome is in', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    expect(labels()).toContain('Rome');
+  });
+
+  it('choosing a region re-derives the defaults while the places were not edited', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    const spec = mapDialogStore.getState().spec!;
+    await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
+    expect(labels()).toContain('Palerme');
+    expect(labels()).not.toContain('Rome');
+    // and back to the whole country
+    await updateSpec({
+      subject: { ...mapDialogStore.getState().spec!.subject, regions: [] },
+    });
+    expect(labels()).toContain('Rome');
+  });
+
+  it('leaves the places alone once the user changed them', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    const spec = mapDialogStore.getState().spec!;
+    const edited = spec.places.map((p, i) => (i === 1 ? { ...p, label: 'Mon lieu' } : p));
+    await updateSpec({ places: edited });
+    await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
+    expect(labels()).toContain('Mon lieu');
+    expect(labels()).toContain('Rome');
+  });
+});

@@ -1,4 +1,4 @@
-import { normalizeStyle, type MapPreset } from '@travelbook/core';
+import { normalizeStyle, type MapPreset, type MapStyle } from '@travelbook/core';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -137,10 +137,39 @@ function SubjectLine({ spec }: { spec: MapSpec }) {
   );
 }
 
-/** The six built-in styles, then the user's own. A chip copies the style into the map. */
-function Presets() {
+/** The built-in styles, read once per dialog (`resources/maps/presets/<id>.json`). */
+function useBuiltInStyles(): Record<string, MapStyle> {
+  const [styles, setStyles] = useState<Record<string, MapStyle>>({});
+  useEffect(() => {
+    let live = true;
+    void Promise.all(
+      BUILT_IN.map(async (id) => {
+        try {
+          const response = await fetch(`${MAPS_BASE}presets/${id}.json`);
+          if (!response.ok) throw new Error(String(response.status));
+          return [id, normalizeStyle(((await response.json()) as MapPreset).style)] as const;
+        } catch (error) {
+          console.error('Loading a map preset failed', error);
+          return null;
+        }
+      }),
+    ).then((list) => {
+      if (live) setStyles(Object.fromEntries(list.filter((e) => e !== null)));
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  return styles;
+}
+
+/**
+ * The six built-in styles, then the user's own. A chip copies the style into the map; the chip
+ * whose style equals the map's current one is pressed, none once it was edited.
+ */
+function Presets({ style }: { style: MapStyle | null }) {
   const [mine, setMine] = useState<MapPreset[]>([]);
-  const [pressed, setPressed] = useState<string | null>(null);
+  const builtIn = useBuiltInStyles();
   useEffect(() => {
     let live = true;
     window.tb.maps
@@ -151,19 +180,10 @@ function Presets() {
       live = false;
     };
   }, []);
-  const apply = async (id: string, style: unknown) => {
-    setPressed(id);
-    await updateSpec({ style: normalizeStyle(style) });
-  };
-  const builtIn = async (id: string) => {
-    try {
-      const response = await fetch(`${MAPS_BASE}presets/${id}.json`);
-      if (!response.ok) throw new Error(String(response.status));
-      await apply(id, ((await response.json()) as MapPreset).style);
-    } catch (error) {
-      console.error('Loading a map preset failed', error);
-    }
-  };
+  const same = (candidate: unknown): boolean =>
+    style !== null &&
+    candidate !== undefined &&
+    JSON.stringify(style) === JSON.stringify(normalizeStyle(candidate));
   return (
     <div className="map-chips" role="group" aria-label={t.presetsGroup}>
       {BUILT_IN.map((id) => (
@@ -171,8 +191,9 @@ function Presets() {
           key={id}
           type="button"
           className="map-chip"
-          aria-pressed={pressed === id}
-          onClick={() => void builtIn(id)}
+          aria-pressed={same(builtIn[id])}
+          disabled={builtIn[id] === undefined}
+          onClick={() => void updateSpec({ style: normalizeStyle(builtIn[id]) })}
         >
           {t.presetNames[id]}
         </button>
@@ -182,8 +203,8 @@ function Presets() {
           key={p.id}
           type="button"
           className="map-chip"
-          aria-pressed={pressed === p.id}
-          onClick={() => void apply(p.id, p.style)}
+          aria-pressed={same(p.style)}
+          onClick={() => void updateSpec({ style: normalizeStyle(p.style) })}
         >
           {p.name}
         </button>
@@ -192,7 +213,6 @@ function Presets() {
   );
 }
 
-/** The layers and the background. Off until a subject is picked. */
 function Layers({ spec }: { spec: MapSpec | null }) {
   const flag = (key: 'showRegions' | 'showNeighbours' | 'includeRemote', label: string) => (
     <label className="check">
@@ -251,7 +271,7 @@ function MapForm() {
         </h2>
         <SubjectSearch />
         {spec && <SubjectLine spec={spec} />}
-        <Presets />
+        <Presets style={spec?.style ?? null} />
       </header>
 
       <div className="map-dialog__body">
@@ -330,6 +350,10 @@ export function MapDialog() {
       className="dialog dialog--map"
       aria-labelledby="map-title"
       onClose={closeMapDialog}
+      onCancel={(e) => {
+        // Escape must not drop a map that is being placed: the apply goes on
+        if (mapDialogStore.getState().status === 'applying') e.preventDefault();
+      }}
     >
       <MapForm />
     </dialog>
