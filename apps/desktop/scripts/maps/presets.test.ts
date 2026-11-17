@@ -125,6 +125,7 @@ describe('resources/maps/presets', () => {
           color: '#111111',
           case: 'none',
           letterSpacingEm: 0,
+          wordSpacingEm: -0.1,
           halo: { color: '#ffffff', width: 0.9 },
         },
         markers: {
@@ -144,6 +145,7 @@ describe('resources/maps/presets', () => {
           color: '#1b2a49',
           case: 'upper',
           letterSpacingEm: 0.14,
+          wordSpacingEm: -0.1,
           halo: { color: '#fff4e0', width: 0.8 },
         },
         markers: {
@@ -163,6 +165,7 @@ describe('resources/maps/presets', () => {
           color: '#4a2f1a',
           case: 'none',
           letterSpacingEm: 0,
+          wordSpacingEm: -0.1,
           halo: { color: '#fbf4e2', width: 0.8 },
         },
         markers: {

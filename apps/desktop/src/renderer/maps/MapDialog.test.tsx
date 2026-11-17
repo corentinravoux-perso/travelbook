@@ -575,6 +575,57 @@ describe('the sections of the dialog', () => {
     expect(within(dialog()).queryByRole('group', { name: t.places.title })).toBeNull();
   });
 
+  it('Ctrl+Z undoes the last edit of the dialog, Ctrl+Y redoes it; a text field keeps its keys', async () => {
+    await thai();
+    const box = () =>
+      within(dialog()).getByRole('checkbox', {
+        name: t.places.show('Bangkok'),
+      }) as HTMLInputElement;
+    expect(box().checked).toBe(true);
+    fireEvent.click(box());
+    expect(box().checked).toBe(false);
+    fireEvent.keyDown(box(), { key: 'z', ctrlKey: true });
+    await waitFor(() => expect(box().checked).toBe(true));
+    fireEvent.keyDown(box(), { key: 'y', ctrlKey: true });
+    await waitFor(() => expect(box().checked).toBe(false));
+    const search = within(dialog()).getByRole('searchbox', { name: t.places.addLabel });
+    const typed = fireEvent.keyDown(search, { key: 'z', ctrlKey: true });
+    expect(typed).toBe(true); // not prevented: the field undoes its own text
+    expect(box().checked).toBe(false);
+  });
+
+  it('keeps the place search when switching to Style and back', async () => {
+    await thai();
+    const search = () => within(dialog()).getByRole('searchbox', { name: t.places.addLabel });
+    fireEvent.change(search(), { target: { value: 'pho' } });
+    const offers = () =>
+      within(dialog())
+        .queryAllByRole('option')
+        .map((n) => n.textContent);
+    await waitFor(() => expect(offers().length).toBeGreaterThan(0));
+    const before = offers();
+    fireEvent.click(tab('Style'));
+    expect(within(dialog()).queryByRole('searchbox', { name: t.places.addLabel })).toBeNull();
+    fireEvent.click(tab('Lieux'));
+    expect((search() as HTMLInputElement).value).toBe('pho');
+    expect(offers()).toEqual(before);
+  });
+
+  it('a hidden tab catches up with the edits made while it was hidden', async () => {
+    await thai();
+    fireEvent.click(tab('Style'));
+    const spec = mapDialogStore.getState().spec!;
+    await act(() =>
+      updateSpec({
+        places: spec.places.map((p) => (p.label === 'Bangkok' ? { ...p, label: 'Krung Thep' } : p)),
+      }),
+    );
+    fireEvent.click(tab('Lieux'));
+    expect(
+      within(dialog()).getByRole('textbox', { name: t.places.rename('Krung Thep') }),
+    ).toBeTruthy();
+  });
+
   it('arrow keys, Home and End move between the tabs (roving tabindex)', async () => {
     await thai();
     expect([tab('Lieux').tabIndex, tab('Itinéraire').tabIndex, tab('Style').tabIndex]).toEqual([

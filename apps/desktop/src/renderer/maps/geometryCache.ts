@@ -7,6 +7,12 @@ export type GeometryState = MapGeometry | null | 'missing';
 /** Longest a geometry file may take to read: a stalled read becomes `'missing'`. */
 export const GEOMETRY_TIMEOUT_MS = 15_000;
 
+/**
+ * A read that timed out is tried again by the next `load`, or by the next `peek` once this long
+ * has passed since it gave up (a render right after the failure does not refetch in a loop).
+ */
+export const GEOMETRY_RETRY_AFTER_MS = 5_000;
+
 export interface GeometryCache {
   /** The geometry of an asset. Never rejects: a geometry that cannot be read is `'missing'`. */
   load(assetId: string): Promise<MapGeometry | 'missing'>;
@@ -24,16 +30,24 @@ export interface GeometryCache {
   version(): number;
 }
 
+/** Why a read gave no geometry: a stall is worth another try, a bad file is not. */
+type Failure = 'timeout' | 'invalid';
+
 type Entry =
-  | { state: 'loading'; promise: Promise<MapGeometry | 'missing'> }
   | {
-      state: 'done';
-      value: MapGeometry | 'missing';
-    };
+      state: 'loading';
+      promise: Promise<MapGeometry | 'missing'>;
+      /** What `peek` shows meanwhile: `'missing'` while a timed-out read is retried. */
+      shown: 'missing' | null;
+    }
+  | { state: 'done'; value: MapGeometry }
+  | { state: 'done'; value: 'missing'; failure: Failure; at: number };
 
 /**
  * A geometry is a file of the album, read once per id through `urlOf` and checked against
- * `MapGeometrySchema`. A failed read (404, network, bad JSON, bad shape) is cached as `'missing'`.
+ * `MapGeometrySchema`. A failed read (404, network, bad JSON, bad shape) is cached as `'missing'`;
+ * a read that stalled past the timeout is `'missing'` too, but tried again later (see
+ * `GEOMETRY_RETRY_AFTER_MS`), so a map comes back once the disk answers.
  */
 export function createGeometryCache(options: {
   urlOf(assetId: string): string;
@@ -47,25 +61,25 @@ export function createGeometryCache(options: {
     for (const listener of [...listeners]) listener();
   };
 
-  async function read(assetId: string): Promise<MapGeometry | 'missing'> {
+  async function read(assetId: string): Promise<MapGeometry | Failure> {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const stalled = new Promise<'missing'>((resolve) => {
+    const stalled = new Promise<'timeout'>((resolve) => {
       timer = setTimeout(() => {
         controller.abort();
-        resolve('missing');
+        resolve('timeout');
       }, GEOMETRY_TIMEOUT_MS);
     });
-    const reading = (async (): Promise<MapGeometry | 'missing'> => {
+    const reading = (async (): Promise<MapGeometry | Failure> => {
       try {
         const response = await (options.fetch ?? fetch)(options.urlOf(assetId), {
           signal: controller.signal,
         });
-        if (!response.ok) return 'missing';
+        if (!response.ok) return 'invalid';
         const parsed = MapGeometrySchema.safeParse(await response.json());
-        return parsed.success ? parsed.data : 'missing';
+        return parsed.success ? parsed.data : 'invalid';
       } catch {
-        return 'missing';
+        return 'invalid';
       }
     })();
     try {
@@ -75,19 +89,31 @@ export function createGeometryCache(options: {
     }
   }
 
+  const timedOut = (known: Entry | undefined): boolean =>
+    known?.state === 'done' && known.value === 'missing' && known.failure === 'timeout';
+
   function load(assetId: string): Promise<MapGeometry | 'missing'> {
     const known = entries.get(assetId);
     if (known?.state === 'loading') return known.promise;
-    if (known?.state === 'done') return Promise.resolve(known.value);
-    const promise = read(assetId).then((value) => {
+    if (known?.state === 'done' && !timedOut(known)) return Promise.resolve(known.value);
+    const promise = read(assetId).then((result) => {
+      const value = typeof result === 'string' ? 'missing' : result;
       // An invalidation during the read replaced the entry: this answer is stale.
       if (entries.get(assetId) === entry) {
-        entries.set(assetId, { state: 'done', value });
+        entries.set(
+          assetId,
+          typeof result === 'string'
+            ? { state: 'done', value: 'missing', failure: result, at: Date.now() }
+            : { state: 'done', value: result },
+        );
         bump();
+        // Nothing else may draw the page again: notify once the retry is allowed, so the views
+        // peek again and the read is tried anew.
+        if (result === 'timeout') setTimeout(bump, GEOMETRY_RETRY_AFTER_MS);
       }
       return value;
     });
-    const entry: Entry = { state: 'loading', promise };
+    const entry: Entry = { state: 'loading', promise, shown: known ? 'missing' : null };
     entries.set(assetId, entry);
     return promise;
   }
@@ -96,9 +122,19 @@ export function createGeometryCache(options: {
     load,
     peek(assetId) {
       const known = entries.get(assetId);
-      if (known?.state === 'done') return known.value;
-      if (known === undefined) void load(assetId);
-      return null;
+      if (known === undefined) {
+        void load(assetId);
+        return null;
+      }
+      if (known.state === 'loading') return known.shown;
+      if (
+        known.value === 'missing' &&
+        known.failure === 'timeout' &&
+        Date.now() - known.at >= GEOMETRY_RETRY_AFTER_MS
+      ) {
+        void load(assetId);
+      }
+      return known.value;
     },
     invalidate(assetId) {
       if (entries.delete(assetId)) bump();

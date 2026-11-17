@@ -33,6 +33,44 @@ const LABEL_GAP = 0.8;
 /** A badge's digits fill this fraction of its diameter. */
 const BADGE_TEXT = 0.55;
 const VEHICLE_FLIP_ANGLE = 90;
+/** The "Carte introuvable" text: 10 pt at most, within this fraction of the frame. */
+const MISSING_PT = 10;
+const MISSING_FILL = 0.9;
+
+/**
+ * Lines and font size (mm) of the missing-map text in a `w` × `h` mm frame: one line at 10 pt
+ * when it fits, otherwise broken at the space nearest its middle, shrunk until the longest line
+ * fits the width and the lines the height.
+ */
+export function missingTextLayout(
+  label: string,
+  w: number,
+  h: number,
+): { lines: string[]; size: number } {
+  const base = MISSING_PT * PT_MM;
+  const maxW = w * MISSING_FILL;
+  const maxH = h * MISSING_FILL;
+  const fit = (lines: string[]): number => {
+    const longest = Math.max(1, ...lines.map((l) => l.length));
+    return Math.max(
+      0,
+      Math.min(base, maxW / (longest * GLYPH_EM), maxH / (lines.length * LABEL_LINE)),
+    );
+  };
+  const one = [label];
+  if (fit(one) >= base) return { lines: one, size: base };
+  let two: string[] | null = null;
+  let best = Infinity;
+  for (let i = label.indexOf(' '); i !== -1; i = label.indexOf(' ', i + 1)) {
+    const off = Math.abs(i - label.length / 2);
+    if (off < best) {
+      best = off;
+      two = [label.slice(0, i), label.slice(i + 1)];
+    }
+  }
+  if (two && fit(two) > fit(one)) return { lines: two, size: fit(two) };
+  return { lines: one, size: fit(one) };
+}
 /** A medallion leader is at least this wide, mm, even with a ring of width 0. */
 const LEADER_MIN_WIDTH = 0.2;
 
@@ -59,7 +97,10 @@ const paint = (c: string | null): string => c ?? 'none';
 const posDashes = (dash: number[] | null): string | undefined => {
   if (!dash) return undefined;
   const d = dash.map((n) => Math.max(0, finite(n)));
-  return d.length > 0 && d.reduce((a, b) => a + b, 0) > 0 ? d.map(round).join(' ') : undefined;
+  // `(n) => round(n)`, not `round`: `map` would pass the index as the number of decimals.
+  return d.length > 0 && d.reduce((a, b) => a + b, 0) > 0
+    ? d.map((n) => round(n)).join(' ')
+    : undefined;
 };
 
 const cased = (text: string, mode: 'none' | 'upper' | 'lower'): string =>
@@ -139,6 +180,7 @@ export function MapView({
   const h = Math.max(0, finite(el.h));
 
   if (geometry === 'missing') {
+    const text = missingTextLayout(missingLabel, w, h);
     return (
       <Frame el={el}>
         <defs>
@@ -159,14 +201,28 @@ export function MapView({
           y={f(h / 2)}
           textAnchor="middle"
           dominantBaseline="central"
-          fontSize={f(10 * PT_MM)}
+          fontSize={f(text.size)}
           fontFamily="sans-serif"
           fill="#6b6558"
           stroke="#ffffff"
-          strokeWidth={1}
+          strokeWidth={f(Math.min(1, text.size * 0.28))}
           paintOrder="stroke"
         >
-          {missingLabel}
+          {text.lines.length === 1
+            ? text.lines[0]
+            : text.lines.map((line, i) => (
+                <tspan
+                  key={i}
+                  x={f(w / 2)}
+                  dy={f(
+                    i === 0
+                      ? (-(text.lines.length - 1) / 2) * LABEL_LINE * text.size
+                      : LABEL_LINE * text.size,
+                  )}
+                >
+                  {line}
+                </tspan>
+              ))}
         </text>
       </Frame>
     );
@@ -223,7 +279,7 @@ export function MapView({
     : [];
 
   const numbers =
-    el.route && el.route.numbered ? routeNumbers(el.route) : new Map<string, number[]>();
+    el.route && el.route.numbered ? routeNumbers(el.route, places) : new Map<string, number[]>();
   const badgeD = Math.max(0, finite(style.sizes.badge) * z);
 
   // With regions chosen, the rest of the subject is context (neighbours look) and the chosen
@@ -252,12 +308,18 @@ export function MapView({
     if (!p.shown || !p.labelShown) return;
     const text = cased(p.label, style.label.case);
     const chars = Array.from(text).length;
+    const spaces = text.split(' ').length - 1;
     labelBoxes.push({
       id: p.id,
       // The true point: `labelOffset` is measured from it for every marker kind.
       x,
       y,
-      w: chars * labelPt * (GLYPH_EM + finite(style.label.letterSpacingEm)),
+      w: Math.max(
+        0,
+        labelPt *
+          (chars * (GLYPH_EM + finite(style.label.letterSpacingEm)) +
+            spaces * finite(style.label.wordSpacingEm)),
+      ),
       h: labelPt * LABEL_LINE,
       rank: i,
       fixed: p.labelOffset ? { dx: p.labelOffset.dx * z, dy: p.labelOffset.dy * z } : undefined,
@@ -531,6 +593,7 @@ export function MapView({
               }
               fontSize={f(labelPt)}
               letterSpacing={`${f(style.label.letterSpacingEm)}em`}
+              wordSpacing={`${f(style.label.wordSpacingEm)}em`}
               fill={style.label.color}
               stroke={halo.width > 0 ? halo.color : undefined}
               strokeWidth={halo.width > 0 ? f(halo.width * z) : undefined}

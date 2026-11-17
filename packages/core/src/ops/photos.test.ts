@@ -262,4 +262,29 @@ describe('removePhotos', () => {
     book.assets['st'] = asset('st', 'sticker');
     expect(removePhotos(book, ['st', 'nope'])).toBe(book);
   });
+
+  it('clears the medallions that showed a removed photo, on spreads and on the cover', () => {
+    const book = freshBook(1);
+    book.assets = {
+      'map-0123456789abcdef': asset('map-0123456789abcdef', 'map'),
+      'photo-1': asset('photo-1'),
+      'photo-2': asset('photo-2'),
+    };
+    const onSpread = { ...mapElement(), id: 'm1' };
+    onSpread.places[0]!.photo = { ...onSpread.places[1]!.photo!, assetId: 'photo-2' };
+    const onCover = { ...mapElement(), id: 'm2' };
+    inner(book).elements.push(onSpread, photo('p1', 0, 0, 10, 10, 'photo-1'));
+    book.cover.elements.push(onCover);
+    const next = removePhotos(book, ['photo-1']);
+    const spreadMap = inner(next).elements.find((e) => e.id === 'm1') as typeof onSpread;
+    const coverMap = next.cover.elements.find((e) => e.id === 'm2') as typeof onCover;
+    expect(spreadMap.places[1]!.photo).toBeNull();
+    expect(spreadMap.places[0]!.photo?.assetId).toBe('photo-2');
+    expect(coverMap.places[1]!.photo).toBeNull();
+    // The map itself is otherwise unchanged.
+    expect({ ...spreadMap, places: [] }).toEqual({ ...onSpread, places: [] });
+    expect(spreadMap.places[1]).toEqual({ ...onSpread.places[1], photo: null });
+    expect((inner(next).elements.find((e) => e.id === 'p1') as PhotoElement).assetId).toBeNull();
+    expect(assetUsage(next)['photo-1']).toBeUndefined();
+  });
 });

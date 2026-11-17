@@ -77,6 +77,9 @@ beforeEach(async () => {
     pickFont: vi.fn<Host['pickFont']>(async () => null),
     openExternal: vi.fn<Host['openExternal']>(async () => undefined),
     showInFolder: vi.fn<Host['showInFolder']>(),
+    trashItem: vi.fn<Host['trashItem']>(async (path) => {
+      await rm(path, { recursive: true, force: true });
+    }),
     version: vi.fn<Host['version']>(() => '1.2.3'),
     applyMenu: vi.fn<Host['applyMenu']>(),
     captureJpeg: vi.fn<Host['captureJpeg']>(async () => new Uint8Array([0xff, 0xd8, 0xff, 0xd9])),
@@ -404,6 +407,53 @@ describe('project', () => {
         /settings:setMenuLanguage/,
       );
       expect(host.applyMenu).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('delete', () => {
+    it('trashes an album of the recent list and takes it out of the list', async () => {
+      const kept = await create('Japon');
+      const gone = await create('Islande');
+      await call(CHANNEL.projectOpen, kept.dir); // the open album is another one
+      await call(CHANNEL.projectDelete, gone.dir);
+      expect(host.trashItem).toHaveBeenCalledExactlyOnceWith(gone.dir);
+      const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(recent.map((r) => r.dir)).toEqual([kept.dir]);
+    });
+
+    it('refuses the open album, and a folder that is not in the recent list', async () => {
+      const open = await create('Islande');
+      await call(CHANNEL.projectOpen, open.dir);
+      await expect(call(CHANNEL.projectDelete, open.dir)).rejects.toThrow(/open album/);
+      closeSession();
+      await expect(call(CHANNEL.projectDelete, join(albums, 'ailleurs'))).rejects.toThrow(
+        /recent list/,
+      );
+      expect(host.trashItem).not.toHaveBeenCalled();
+    });
+
+    it('trashes nothing when the folder no longer holds an album', async () => {
+      const album = await create('Islande');
+      closeSession();
+      await rm(join(album.dir, 'book.json'));
+      await expect(call(CHANNEL.projectDelete, album.dir)).rejects.toThrow();
+      expect(host.trashItem).not.toHaveBeenCalled();
+    });
+
+    it('only takes a folder that is already gone out of the list', async () => {
+      const album = await create('Islande');
+      closeSession();
+      await rm(album.dir, { recursive: true });
+      await call(CHANNEL.projectDelete, album.dir);
+      expect(host.trashItem).not.toHaveBeenCalled();
+      expect(await call<RecentProject[]>(CHANNEL.projectRecent)).toEqual([]);
+    });
+
+    it.each([
+      ['no argument', []],
+      ['a relative path', ['albums/x']],
+    ] as const)('rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.projectDelete, ...args)).rejects.toThrow(/project:delete/);
     });
   });
 

@@ -3,8 +3,9 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MAP_LICENCE } from '@travelbook/core';
+import { MAP_LICENCE, newBook } from '@travelbook/core';
 import { MAX_GEOMETRY_BYTES, saveGeometryAsset } from './geometry-asset';
+import { purgeGeometries } from './purge-geometries';
 
 let work: string;
 let project: string;
@@ -101,6 +102,13 @@ describe('saveGeometryAsset', () => {
       );
     }
     await expect(readdir(join(project, 'assets'))).rejects.toThrow();
+  });
+
+  it('tells a purge running in the folder about a file it writes or reuses', async () => {
+    const running = purgeGeometries(project, newBook({ title: 'T' }));
+    const asset = await saveGeometryAsset(project, geometry, { name: 'Thaïlande' });
+    expect(await running).not.toContain(asset.file.slice('assets/'.length));
+    expect(await readdir(join(project, 'assets'))).toEqual([asset.file.slice('assets/'.length)]);
   });
 
   it('caps the size in bytes, not in characters', async () => {

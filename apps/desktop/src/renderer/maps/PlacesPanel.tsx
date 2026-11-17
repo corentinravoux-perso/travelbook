@@ -54,7 +54,8 @@ const PAD: { key: keyof typeof t.directions; glyph: string; dir: [number, number
 
 /**
  * Four arrow buttons that move something by `NUDGE_MM` per click (`NUDGE_BIG_MM` with Shift); the
- * arrow keys do the same while one of them has the focus.
+ * arrow keys do the same while one of them has the focus. The hint describes each button (screen
+ * readers) and shows under the pad while the focus is in it (a click focuses the button).
  */
 function NudgePad({
   caption,
@@ -71,12 +72,23 @@ function NudgePad({
   onMove: (dx: number, dy: number) => void;
   children?: React.ReactNode;
 }) {
+  const hintId = useId();
+  const [focused, setFocused] = useState(false);
   const step = (shift: boolean, dir: [number, number]) => {
     const mm = shift ? NUDGE_BIG_MM : NUDGE_MM;
     onMove(dir[0] * mm, dir[1] * mm);
   };
   return (
-    <span className="map-nudge" role="group" aria-label={caption} title={hint}>
+    <span
+      className="map-nudge"
+      role="group"
+      aria-label={caption}
+      title={hint}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+      }}
+    >
       <span className="map-nudge__caption">{caption}</span>
       {PAD.map(({ key, glyph, dir }) => (
         <button
@@ -84,8 +96,13 @@ function NudgePad({
           type="button"
           className="button map-nudge__btn"
           aria-label={label(t.directions[key])}
+          aria-describedby={hintId}
           disabled={disabled}
-          onClick={(e) => step(e.shiftKey, dir)}
+          onClick={(e) => {
+            // A click does not focus a button everywhere (WebKit): focus it, the keys then work.
+            e.currentTarget.focus();
+            step(e.shiftKey, dir);
+          }}
           onKeyDown={(e) => {
             const arrow = ARROWS[e.key];
             if (!arrow) return;
@@ -97,6 +114,9 @@ function NudgePad({
         </button>
       ))}
       {children}
+      <span id={hintId} className="map-nudge__hint" hidden={!focused}>
+        {hint}
+      </span>
     </span>
   );
 }
@@ -233,7 +253,7 @@ function PlaceRow({
             disabled={place.labelOffset === null}
             onClick={() => patch({ labelOffset: null })}
           >
-            A
+            {t.autoPositionText}
           </button>
         </NudgePad>
       </div>
