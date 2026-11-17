@@ -1,7 +1,7 @@
 {
   "name": "travelbook",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Desktop app for composing printed travel photo albums.",
   "license": "MIT",
   "author": "Corentin Ravoux",

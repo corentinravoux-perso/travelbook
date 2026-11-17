@@ -5,7 +5,22 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-17
+
 ### Added
+
+- Cartes: a map maker ("Créer une carte…" in the Cartes panel, "Modifier la carte…" on a
+  placed map). Vector maps of 272 countries and regions from bundled Overture Maps data
+  (ODbL), drawn offline: cities and sights, places added by a click, labels to drag, a
+  numbered itinerary with six travel modes (voiture, bus, train, avion, bateau, à pied),
+  straight or curved legs with their vehicle, photo medallions, six styles (Carnet, Ardoise,
+  Safran, Encre, Crayon, Pastel) and templates of one's own. Detailed regional outlines are
+  downloaded on first use; the map works offline with the country outline. The map dialog
+  has its own undo (Ctrl+Z, Ctrl+Maj+Z, Ctrl+Y), a stop can go without a number, and the
+  space between the words of a label can be set. The ODbL credit is listed in "Crédits des
+  images".
+- Home: "Supprimer" under each album moves its folder to the system trash, after a
+  confirmation; the album leaves the recent list. A copy in progress shows "Duplication…".
 
 - Affiches: Machu Picchu, a new Peru poster (Géant): Huayna Picchu over the citadel, its
   terraces, a woolly llama in a woven blanket and an Inca wall, modelled in volume with ink
@@ -170,7 +185,8 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 
-[Unreleased]: https://github.com/corentinravoux/travelbook/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/corentinravoux/travelbook/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/corentinravoux/travelbook/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/corentinravoux/travelbook/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/corentinravoux/travelbook/releases/tag/v1.0.0
 [0.1.0]: https://github.com/corentinravoux/travelbook/releases/tag/v0.1.0
