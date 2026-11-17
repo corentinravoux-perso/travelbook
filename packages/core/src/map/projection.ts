@@ -135,6 +135,15 @@ export function unprojectPlace(p: ProjectionParams, x: number, y: number): [numb
  * the same after a resize.
  * A frame that cannot be used is the default frame. The result is always finite, `scale > 0`.
  */
+/**
+ * How far the user zoomed, as a multiple of the default fit: 1 with no frame. The marks drawn over
+ * the land (markers, labels, route, medallions) are scaled by it, so a zoom magnifies the whole map.
+ */
+export function frameZoom(frame: { scale: number } | null): number {
+  if (!frame || !(frame.scale > 0) || !Number.isFinite(frame.scale)) return 1;
+  return Math.min(ZOOM_LIMIT, Math.max(1 / ZOOM_LIMIT, frame.scale));
+}
+
 export function fitFrame(
   g: MapGeometry,
   box: { w: number; h: number },
@@ -163,7 +172,7 @@ export function fitFrame(
     Number.isFinite(frame.center[0]) &&
     Number.isFinite(frame.center[1])
   ) {
-    scale = base * Math.min(ZOOM_LIMIT, Math.max(1 / ZOOM_LIMIT, frame.scale));
+    scale = base * frameZoom(frame);
     [cx, cy] = projectPlace(g.projection, frame.center[0], frame.center[1]);
   }
   return { scale, dx: w / 2 - scale * cx, dy: h / 2 - scale * cy };

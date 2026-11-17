@@ -177,7 +177,8 @@ describe('the itinerary panel', () => {
     addStopByName('Bangkok');
     addStopByName('Chiang Mai');
     addStopByName('Bangkok');
-    expect(badge('Bangkok')).toBe('1,3');
+    // a stop the trip comes back to keeps its first number only
+    expect(badge('Bangkok')).toBe('1');
     expect(dialog().querySelector('.map-preview')!.innerHTML).not.toMatch(/NaN/);
   });
 

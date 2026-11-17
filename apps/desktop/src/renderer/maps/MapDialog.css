@@ -1,18 +1,20 @@
 /* "Créer une carte". Chrome from the tokens only; the map carries its own colours. */
 .dialog.dialog--map {
   /* Two classes: the base `.dialog` (560 px) is loaded after this file. */
-  width: min(1180px, calc(100vw - 2 * var(--s7)));
-  height: min(860px, calc(100vh - 2 * var(--s7)));
-  max-height: calc(100vh - 2 * var(--s7));
+  /* as large as the window: the preview is the point of the dialog */
+  width: calc(100vw - 2 * var(--s5));
+  max-width: none;
+  height: calc(100vh - 2 * var(--s5));
+  max-height: calc(100vh - 2 * var(--s5));
   overflow: hidden;
 }
 /* The header and the actions stay put; the stage (preview) and the tab panel fill the rest. */
 .map-dialog {
   display: flex;
   flex-direction: column;
-  gap: var(--s5);
+  gap: var(--s4);
   height: 100%;
-  padding: var(--s6) var(--s7);
+  padding: var(--s5) var(--s6);
 }
 .map-dialog__head {
   display: flex;
@@ -124,9 +126,16 @@
   gap: var(--s3);
   min-height: 240px;
   margin: 0;
-  padding: var(--s5);
+  padding: var(--s3);
   border-radius: var(--r2);
   background: var(--ground);
+}
+.map-dialog__caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  align-items: center;
+  justify-content: center;
 }
 .map-preview-area {
   position: relative;
@@ -212,9 +221,16 @@
   background: none;
 }
 
-.map-preview__paper [data-label] {
+/* what can be dragged on its own; the rest of the map is a surface to pan */
+.map-preview__paper [data-label],
+.map-preview__paper [data-medallion],
+.map-preview__paper [data-place][data-custom] {
   pointer-events: auto;
   cursor: move;
+}
+/* a medallion is grabbed anywhere inside its ring, not only on the photo */
+.map-preview__paper [data-medallion] [data-ring] {
+  pointer-events: all;
 }
 .map-dialog__main {
   display: grid;
@@ -330,7 +346,7 @@
 }
 .map-place {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 4.2rem auto auto auto 1.6rem;
+  grid-template-columns: auto minmax(0, 1fr) 4.2rem auto 1.6rem;
   gap: var(--s3);
   align-items: center;
 }
@@ -505,7 +521,36 @@
 .map-place__photo {
   grid-column: 2 / -1;
   display: flex;
+  flex-wrap: wrap;
   gap: var(--s3);
+  align-items: center;
+}
+/* a place's second line: its type, its marker, where its label is */
+.map-place__more {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s3);
+  align-items: center;
+}
+.map-place__select {
+  flex: 1 1 7rem;
+  width: auto;
+  min-width: 0;
+}
+.map-nudge {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+.map-nudge__caption {
+  margin-right: var(--s2);
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+.map-nudge__btn {
+  min-width: 1.6rem;
+  padding-inline: var(--s2);
 }
 .map-dialog {
   position: relative;

@@ -1,4 +1,4 @@
-import { fitFrame, newId, projectPlace, unprojectPlace } from '@travelbook/core';
+import { fitFrame, newId, placeKind, projectPlace, unprojectPlace } from '@travelbook/core';
 import type { MapGeometry, MapPlace, MapTopology } from '@travelbook/core';
 import { fr } from '../strings/fr';
 import { placesInRegions, placeFromBundled } from './dialogModel';
@@ -43,6 +43,7 @@ export function nearestBundled(
 /** A custom place at a point: named after the nearest bundled place, else "Nouveau lieu". */
 export function customPlaceAt(bundled: BundledPlace[], lon: number, lat: number): MapPlace {
   return {
+    // a bundled 'city' carries no `kind`: the click is drawn as a custom place
     ...placeFromBundled({ ref: '', kind: 'city', name: '', lon, lat, rank: 0 }),
     id: newId(),
     source: { kind: 'custom' },
@@ -115,13 +116,15 @@ export function lonLatAtMm(
 }
 
 /**
- * The offset (mm, from the point to the centre of the label) the label is drawn at now, read from
- * the preview; `null` when the label is not drawn or the place has no point.
+ * The offset (mm at zoom 1, from the point to the centre of the label) the label is drawn at now,
+ * read from the preview; `null` when the label is not drawn or the place has no point. `zoom` is
+ * the frame's (`frameZoom`): the preview draws offsets that many times larger.
  */
 export function drawnLabelOffset(
   root: ParentNode,
   placeId: string,
   point: [number, number] | null,
+  zoom = 1,
 ): { dx: number; dy: number } | null {
   if (!point) return null;
   const node = Array.from(root.querySelectorAll('[data-label]')).find(
@@ -130,7 +133,7 @@ export function drawnLabelOffset(
   const x = Number(node?.getAttribute('x'));
   const y = Number(node?.getAttribute('y'));
   if (!node || !Number.isFinite(x) || !Number.isFinite(y)) return null;
-  return { dx: x - point[0], dy: y - point[1] };
+  return { dx: (x - point[0]) / zoom, dy: (y - point[1]) / zoom };
 }
 
 /** The place at `index` replaced by its patched copy; the other places are kept as they are. */
@@ -148,16 +151,21 @@ export interface Row {
   place: MapPlace;
 }
 
-/** Villes (capital and cities), Sites (sights) and Personnalisés (clicked), in list order. */
+/**
+ * Villes (capital and cities), Sites (sights) and Lieux ajoutés, in list order, by what the place
+ * is drawn as (`placeKind`): a clicked place made a city is listed with the cities.
+ */
 export function groupPlaces(places: MapPlace[]): {
   cities: Row[];
   sights: Row[];
   custom: Row[];
 } {
-  const rows = places.map((place, index) => ({ index, place }));
+  const rows = places.map((place, index) => ({ index, place, kind: placeKind(place) }));
+  const pick = (keep: (k: string) => boolean): Row[] =>
+    rows.filter((r) => keep(r.kind)).map(({ index, place }) => ({ index, place }));
   return {
-    cities: rows.filter((r) => r.place.source.kind === 'city'),
-    sights: rows.filter((r) => r.place.source.kind === 'sight'),
-    custom: rows.filter((r) => r.place.source.kind !== 'city' && r.place.source.kind !== 'sight'),
+    cities: pick((k) => k === 'capital' || k === 'city'),
+    sights: pick((k) => k === 'sight'),
+    custom: pick((k) => k === 'custom'),
   };
 }

@@ -35,7 +35,7 @@
       "font": "Kalam",
       "weight": 400,
       "italicSights": false,
-      "sizePt": 10,
+      "sizePt": 12,
       "color": "#2f2c28",
       "case": "none",
       "letterSpacingEm": 0,
@@ -129,9 +129,9 @@
       "ringWidth": 0.7
     },
     "sizes": {
-      "marker": 3,
-      "badge": 5,
-      "vehicle": 6
+      "marker": 4,
+      "badge": 6.5,
+      "vehicle": 8
     },
     "rough": {
       "seed": 7,

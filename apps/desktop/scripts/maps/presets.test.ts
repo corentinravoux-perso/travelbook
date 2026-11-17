@@ -109,7 +109,10 @@ describe('resources/maps/presets', () => {
   });
 
   describe('the approved pilot looks', () => {
-    /** The tokens of the pilot (`presets.json` of the research folder), `colour` spelt `color`. */
+    /**
+     * The tokens of the pilot (`presets.json` of the research folder), `colour` spelt `color`.
+     * Label sizes were raised by the owner on 2026-11-17 (9.5 -> 11.5, 12.5 -> 14 pt).
+     */
     const pilot: Record<string, Partial<MapStyle>> = {
       ardoise: {
         land: { fill: '#5b5f66', stroke: '#ffffff', width: 0.3 },
@@ -118,7 +121,7 @@ describe('resources/maps/presets', () => {
           font: 'Libre Baskerville',
           weight: 700,
           italicSights: false,
-          sizePt: 9.5,
+          sizePt: 11.5,
           color: '#111111',
           case: 'none',
           letterSpacingEm: 0,
@@ -137,7 +140,7 @@ describe('resources/maps/presets', () => {
           font: 'Bebas Neue',
           weight: 400,
           italicSights: false,
-          sizePt: 12.5,
+          sizePt: 14,
           color: '#1b2a49',
           case: 'upper',
           letterSpacingEm: 0.14,
@@ -156,7 +159,7 @@ describe('resources/maps/presets', () => {
           font: 'Lora',
           weight: 700,
           italicSights: true,
-          sizePt: 9.5,
+          sizePt: 11.5,
           color: '#4a2f1a',
           case: 'none',
           letterSpacingEm: 0,

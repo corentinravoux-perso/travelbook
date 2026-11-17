@@ -234,7 +234,7 @@ describe('MapView', () => {
       return text?.getAttribute('font-size');
     });
     expect(sizes[0]).toBe(sizes[1]);
-    expect(Number(sizes[0])).toBeCloseTo(9.5 * PT_MM, 3);
+    expect(Number(sizes[0])).toBeCloseTo(DEFAULT_MAP_STYLE.label.sizePt * PT_MM, 3);
   });
 
   it('gives the label a halo: a stroke under the fill', () => {
@@ -276,6 +276,80 @@ describe('MapView', () => {
       places: [place('a', 0, 0, { markerSize: 8 }), place('b', 5, 0)],
     });
     expect(first(own)).toBeCloseTo(8, 4);
+  });
+
+  it('magnifies the marks over the land with the zoom of the frame', () => {
+    const marks = (frame: MapElement['frame']) => {
+      const { layer } = draw(
+        mapEl({
+          frame,
+          medallions: true,
+          places: [
+            place('a', -5, 0, {
+              labelOffset: { dx: 4, dy: -2 },
+              photo: {
+                assetId: 'p',
+                offset: { dx: 0, dy: -30 },
+                diameter: 20,
+                crop: { scale: 1, cx: 0.5, cy: 0.5 },
+              },
+            }),
+            place('b', 5, 0),
+          ],
+          route: {
+            stops: ['a', 'b'],
+            legs: [{ mode: 'train', curve: 'droit', bend: 0, icon: true }],
+            numbered: true,
+          },
+        }),
+      );
+      const marker = layer('markers')?.querySelector('[data-place="a"]') as Element;
+      const label = layer('labels')?.querySelector('[data-label="a"]') as Element;
+      const ring = layer('medallions')?.querySelector(
+        '[data-medallion="a"] [data-ring]',
+      ) as Element;
+      const badge = layer('badges')?.querySelector('[data-badge="a"] circle') as Element;
+      const leg = layer('route')?.querySelector('path[data-leg]') as Element;
+      const translate = /translate\(([-\d.e]+) ([-\d.e]+)\)/.exec(
+        marker.getAttribute('transform') ?? '',
+      )!;
+      const [px, py] = [Number(translate[1]), Number(translate[2])];
+      return {
+        marker: scaleOf(marker),
+        font: Number(label.getAttribute('font-size')),
+        labelDx: Number(label.getAttribute('x')) - px,
+        r: Number(ring.getAttribute('r')),
+        ringDy: Number(ring.getAttribute('cy')) - py,
+        badge: Number(badge.getAttribute('r')),
+        leg: Number(leg.getAttribute('stroke-width')),
+      };
+    };
+    const one = marks(null);
+    const three = marks({ center: [0, 0], scale: 3 });
+    expect(three.marker).toBeCloseTo(3 * one.marker, 3);
+    expect(three.font).toBeCloseTo(3 * one.font, 3);
+    expect(three.labelDx).toBeCloseTo(3 * one.labelDx, 3);
+    expect(three.r).toBeCloseTo(3 * one.r, 3);
+    expect(three.ringDy).toBeCloseTo(3 * one.ringDy, 3);
+    expect(three.badge).toBeCloseTo(3 * one.badge, 3);
+    expect(three.leg).toBeCloseTo(3 * one.leg, 3);
+    // a zoom of 1 draws the stored sizes
+    expect(marks({ center: [0, 0], scale: 1 })).toEqual(one);
+  });
+
+  it('draws a place with the marker of its own kind, else of its source', () => {
+    const el = mapEl({
+      places: [
+        place('a', -5, 0, { kind: 'sight' }),
+        place('b', 5, 0),
+        place('c', 0, 0, { source: { kind: 'sight', ref: 'x' } }),
+      ],
+    });
+    const { layer } = draw(el);
+    const d = (id: string) =>
+      layer('markers')?.querySelector(`[data-place="${id}"]`)?.getAttribute('d');
+    expect(d('a')).toBe(d('c'));
+    expect(d('a')).not.toBe(d('b'));
   });
 
   it('skips a hidden place and an unlabelled one', () => {
@@ -320,7 +394,7 @@ describe('MapView', () => {
     );
   });
 
-  it('numbers the stops with badges, a repeated stop gets both numbers', () => {
+  it('numbers the stops with badges, a repeated stop keeps its first number only', () => {
     const el = mapEl({
       places: [place('a', -5, 0), place('b', 5, 0)],
       route: {
@@ -334,7 +408,7 @@ describe('MapView', () => {
     });
     const { layer } = draw(el);
     const badges = layer('badges')?.querySelectorAll('[data-badge]') ?? [];
-    expect(Array.from(badges).map((b) => b.textContent)).toEqual(['1,3', '2']);
+    expect(Array.from(badges).map((b) => b.textContent)).toEqual(['1', '2']);
     const off = draw({
       ...el,
       route: { ...(el.route as NonNullable<MapElement['route']>), numbered: false },
