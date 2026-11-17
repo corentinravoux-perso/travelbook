@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { chooseProjection, projectPlace, type ProjectionParams } from './projection';
+import {
+  chooseProjection,
+  projectPlace,
+  unprojectPlace,
+  type ProjectionParams,
+} from './projection';
 
 const params = (bbox: [number, number, number, number]): ProjectionParams => ({
   ...chooseProjection(bbox, 'auto'),
@@ -108,4 +113,70 @@ describe('projectPlace', () => {
     const conic = { ...p, ...chooseProjection([-125, 24, -66, 49], 'auto') };
     expect(projectPlace(conic, 0, -90).every(Number.isFinite)).toBe(true);
   });
+});
+
+describe('unprojectPlace', () => {
+  it('is the inverse of projectPlace', () => {
+    const p = params([97.3, 5.6, 105.6, 20.5]);
+    const [x, y] = projectPlace(p, 100.5, 13.75);
+    const [lon, lat] = unprojectPlace(p, x, y);
+    expect(lon).toBeCloseTo(100.5, 4);
+    expect(lat).toBeCloseTo(13.75, 4);
+  });
+
+  it('gives finite degrees for a point that cannot be inverted', () => {
+    const p = params([97.3, 5.6, 105.6, 20.5]);
+    expect(unprojectPlace(p, Number.NaN, 4).every(Number.isFinite)).toBe(true);
+  });
+});
+
+describe('unprojectPlace, every projection kind', () => {
+  const wrap = (lon: number) => ((((lon + 180) % 360) + 360) % 360) - 180;
+  const cases: [string, ProjectionParams, [number, number][]][] = [
+    [
+      'conicConformal',
+      {
+        kind: 'conicConformal',
+        rotate: [-2, 0, 0],
+        parallels: [43, 49],
+        k: 900,
+        tx: 300,
+        ty: 400,
+      },
+      [
+        [2.35, 48.85],
+        [-4.5, 47.9],
+        [7.5, 43.7],
+      ],
+    ],
+    [
+      'mercator',
+      { kind: 'mercator', rotate: [-100, 0, 0], k: 500, tx: 200, ty: 250 },
+      [
+        [100.5, 13.75],
+        [98.4, 7.9],
+        [105, 20],
+      ],
+    ],
+    [
+      'Fiji, rotated across the antimeridian',
+      { ...chooseProjection([177, -21, -178, -16], 'auto'), k: 800, tx: 100, ty: 100 },
+      [
+        [178.0, -18.1],
+        [179.9, -17],
+        [-179.2, -16.7],
+        [-178.1, -19.5],
+      ],
+    ],
+  ];
+  for (const [name, p, points] of cases) {
+    it(`inverts projectPlace for ${name}`, () => {
+      for (const [lon, lat] of points) {
+        const [x, y] = projectPlace(p, lon, lat);
+        const [lon2, lat2] = unprojectPlace(p, x, y);
+        expect(wrap(lon2 - lon)).toBeCloseTo(0, 4);
+        expect(lat2).toBeCloseTo(lat, 4);
+      }
+    });
+  }
 });

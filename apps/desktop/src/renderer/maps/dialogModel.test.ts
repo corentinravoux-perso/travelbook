@@ -13,6 +13,7 @@ import {
   newMapBox,
   openMapDialog,
   pickSubject,
+  placesInRegions,
   specOf,
   updateSpec,
 } from './dialogModel';
@@ -229,5 +230,129 @@ describe('reopening a map', () => {
       specOf({ ...bad, route: { stops: ['ghost'], legs: [], numbered: false } }, null).route,
     ).toBeNull();
     expect(() => specOf({ ...bad, subject: { ...bad.subject, id: 'XX' } }, null)).not.toThrow();
+  });
+});
+
+describe('default places of a region subject', () => {
+  const labels = () => mapDialogStore.getState().spec!.places.map((p) => p.label);
+
+  it('keeps the places inside the chosen regions: Sicily has Palerme and Catane, not Rome', async () => {
+    await openMapDialog();
+    await pickSubject('IT', 'IT-82');
+    expect(labels()).toEqual(expect.arrayContaining(['Palerme', 'Catane']));
+    expect(labels()).not.toContain('Rome');
+    expect(labels()).not.toContain('Naples');
+  });
+
+  it('a whole-country pick is unchanged: Rome is in', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    expect(labels()).toContain('Rome');
+  });
+
+  it('choosing a region re-derives the defaults while the places were not edited', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    const spec = mapDialogStore.getState().spec!;
+    await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
+    expect(labels()).toContain('Palerme');
+    expect(labels()).not.toContain('Rome');
+    // and back to the whole country
+    await updateSpec({
+      subject: { ...mapDialogStore.getState().spec!.subject, regions: [] },
+    });
+    expect(labels()).toContain('Rome');
+  });
+
+  it('leaves the places alone once the user changed them', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    const spec = mapDialogStore.getState().spec!;
+    const edited = spec.places.map((p, i) => (i === 1 ? { ...p, label: 'Mon lieu' } : p));
+    await updateSpec({ places: edited });
+    await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
+    expect(labels()).toContain('Mon lieu');
+    expect(labels()).toContain('Rome');
+  });
+});
+
+describe('placesInRegions', () => {
+  const subjectOf = (id: string) => getSubject(id)!;
+  const placesOf = (iso: string) => JSON.parse(read(`places/${iso}.json`)).places as BundledPlace[];
+  const baseOf = (id: string) => JSON.parse(read(`subjects/${id}.topo.json`));
+  const names = (id: string, iso: string, regions: string[], withBase = true) =>
+    placesInRegions(placesOf(iso), subjectOf(id), regions, withBase ? baseOf(id) : null).map(
+      (p) => p.name,
+    );
+
+  it('Sicily keeps Messine, Palerme and Catane, and not Reggio de Calabre or Rome', () => {
+    const sicily = names('IT', 'IT', ['IT-82']);
+    expect(sicily).toEqual(expect.arrayContaining(['Palerme', 'Catane', 'Messine']));
+    expect(sicily).not.toContain('Reggio de Calabre');
+    expect(sicily).not.toContain('Rome');
+  });
+
+  it('Reggio de Calabre belongs to Calabria', () => {
+    expect(names('IT', 'IT', ['IT-78'])).toContain('Reggio de Calabre');
+  });
+
+  it('coastal places just outside a simplified polygon stay with their region', () => {
+    expect(names('IT', 'IT', ['IT-52'])).toContain('Livourne');
+    expect(names('IT', 'IT', ['IT-88'])).toContain('Olbia');
+  });
+
+  it('an island place stays with its region: Mykonos in the Southern Aegean', () => {
+    expect(names('GR', 'GR', ['GR-L'])).toContain('Mykonos');
+    expect(names('GR', 'GR', ['GR-I'])).not.toContain('Mykonos');
+  });
+
+  it('a place in the sea 30 km offshore belongs to no region', () => {
+    const sight: BundledPlace = {
+      ref: 'wd:test',
+      kind: 'sight',
+      name: 'Épave',
+      lon: 14.0,
+      lat: 36.3,
+      rank: 0,
+    };
+    for (const id of ['IT-82', 'IT-78']) {
+      expect(placesInRegions([sight], subjectOf('IT'), [id], baseOf('IT'))).toEqual([]);
+    }
+  });
+
+  it('two chosen regions keep the places of both', () => {
+    const both = names('IT', 'IT', ['IT-82', 'IT-78']);
+    expect(both).toEqual(expect.arrayContaining(['Palerme', 'Reggio de Calabre']));
+  });
+
+  it('falls back to the bbox when the base has no region geometry', () => {
+    const empty = { ...baseOf('IT'), objects: {} };
+    const list = placesInRegions(placesOf('IT'), subjectOf('IT'), ['IT-82'], empty).map(
+      (p) => p.name,
+    );
+    expect(list).toContain('Reggio de Calabre');
+    expect(list).not.toContain('Rome');
+  });
+
+  it('without a base it is the bbox test', () => {
+    expect(names('IT', 'IT', ['IT-82'], false)).toContain('Reggio de Calabre');
+  });
+
+  it('a Sicily pick leaves Reggio di Calabre out of the default places', async () => {
+    await openMapDialog();
+    await pickSubject('IT', 'IT-82');
+    const labels = mapDialogStore.getState().spec!.places.map((p) => p.label);
+    expect(labels).toContain('Messine');
+    expect(labels).not.toContain('Reggio de Calabre');
+  });
+
+  it('choosing the region later does the same', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    const spec = mapDialogStore.getState().spec!;
+    await updateSpec({ subject: { ...spec.subject, regions: ['IT-82'] } });
+    const labels = mapDialogStore.getState().spec!.places.map((p) => p.label);
+    expect(labels).toContain('Palerme');
+    expect(labels).not.toContain('Reggio de Calabre');
   });
 });
