@@ -1,4 +1,4 @@
-import { normalizeStyle, type MapPreset, type MapStyle } from '@travelbook/core';
+import { normalizeStyle, type MapGeometry, type MapPreset, type MapStyle } from '@travelbook/core';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -16,6 +16,8 @@ import { applyMap } from './mapActions';
 import { MapPreview, usePreviewGeometry } from './MapPreview';
 import { PlacesPanel } from './PlacesPanel';
 import { RoutePanel } from './RoutePanel';
+import { StylePanel } from './StylePanel';
+import { styleTemplatesStore, useStyleTemplates } from './styleTemplates';
 import {
   MAPS_BASE,
   getSubject,
@@ -170,17 +172,10 @@ function useBuiltInStyles(): Record<string, MapStyle> {
  * whose style equals the map's current one is pressed, none once it was edited.
  */
 function Presets({ style }: { style: MapStyle | null }) {
-  const [mine, setMine] = useState<MapPreset[]>([]);
+  const mine = useStyleTemplates((s) => s.mine);
   const builtIn = useBuiltInStyles();
   useEffect(() => {
-    let live = true;
-    window.tb.maps
-      .listStyles()
-      .then((list) => live && setMine(list))
-      .catch(() => live && setMine([]));
-    return () => {
-      live = false;
-    };
+    void styleTemplatesStore.getState().load();
   }, []);
   const same = (candidate: unknown): boolean =>
     style !== null &&
@@ -260,6 +255,82 @@ function Layers({ spec }: { spec: MapSpec | null }) {
   );
 }
 
+type TabId = 'places' | 'route' | 'style';
+const TABS: TabId[] = ['places', 'route', 'style'];
+
+/**
+ * The sections of the right column: a tablist (arrows, Home and End move; only the open tab is in
+ * the tab order) with one tabpanel at a time. The preview next to it stays in view.
+ */
+function Sections({
+  spec,
+  geometry,
+  box,
+}: {
+  spec: MapSpec;
+  geometry: MapGeometry | null;
+  box: { w: number; h: number };
+}) {
+  const [tab, setTab] = useState<TabId>('places');
+  const base = useId();
+  const refs = useRef<Record<TabId, HTMLButtonElement | null>>({
+    places: null,
+    route: null,
+    style: null,
+  });
+  const go = (id: TabId) => {
+    setTab(id);
+    refs.current[id]?.focus();
+  };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const at = TABS.indexOf(tab);
+    const next: Record<string, number> = {
+      ArrowRight: (at + 1) % TABS.length,
+      ArrowLeft: (at + TABS.length - 1) % TABS.length,
+      Home: 0,
+      End: TABS.length - 1,
+    };
+    const to = next[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    go(TABS[to]!);
+  };
+  return (
+    <div className="map-sections">
+      <div className="map-tabs" role="tablist" aria-label={t.tabs} onKeyDown={onKeyDown}>
+        {TABS.map((id) => (
+          <button
+            key={id}
+            ref={(node) => {
+              refs.current[id] = node;
+            }}
+            type="button"
+            role="tab"
+            id={`${base}-tab-${id}`}
+            aria-selected={tab === id}
+            aria-controls={`${base}-panel`}
+            tabIndex={tab === id ? 0 : -1}
+            className="map-tab"
+            onClick={() => setTab(id)}
+          >
+            {t.tabNames[id]}
+          </button>
+        ))}
+      </div>
+      <div
+        className="map-tabpanel"
+        role="tabpanel"
+        id={`${base}-panel`}
+        aria-labelledby={`${base}-tab-${tab}`}
+      >
+        {tab === 'places' && <PlacesPanel spec={spec} geometry={geometry} box={box} />}
+        {tab === 'route' && <RoutePanel spec={spec} />}
+        {tab === 'style' && <StylePanel spec={spec} />}
+      </div>
+    </div>
+  );
+}
+
 function MapForm() {
   const state = useMapDialog((s) => s);
   const { spec } = state;
@@ -277,45 +348,53 @@ function MapForm() {
         <Presets style={spec?.style ?? null} />
       </header>
 
-      <div className="map-dialog__body">
-        {spec ? (
-          <>
-            <div className="map-dialog__main">
-              <figure className="map-dialog__preview">
-                <MapPreview spec={spec} box={box} geometry={geometry} busy={busy} />
-                <figcaption className="field__help">{t.previewHint}</figcaption>
-              </figure>
-              <div className="map-dialog__side">
-                <PlacesPanel spec={spec} geometry={geometry} box={box} />
-                <RoutePanel spec={spec} />
-              </div>
-            </div>
+      {spec ? (
+        <div className="map-dialog__main">
+          <div className="map-dialog__stage">
+            <figure className="map-dialog__preview">
+              <MapPreview spec={spec} box={box} geometry={geometry} busy={busy} />
+              <figcaption className="field__help">{t.previewHint}</figcaption>
+            </figure>
             {failed && (
               <p className="dialog__error" role="alert">
                 {t.bakeFailed}
               </p>
             )}
-            {state.packFallback && (
+            {state.packLoading && (
+              <p className="field__help map-dialog__fallback" role="status">
+                {t.packLoading}
+              </p>
+            )}
+            {!state.packLoading && state.packFallback && (
               <p className="field__help map-dialog__fallback" role="status">
                 {t.packFallback[state.packFallback]}
               </p>
             )}
-          </>
-        ) : (
-          <p className="map-dialog__empty">{t.pickFirst}</p>
-        )}
-        <div className="map-dialog__options">
-          <Layers spec={spec} />
-          <button
-            type="button"
-            className="button"
-            disabled={!spec || spec.frame === null}
-            onClick={() => void updateSpec({ frame: null })}
-          >
-            {t.recenter}
-          </button>
+            <div className="map-dialog__options">
+              <Layers spec={spec} />
+              <button
+                type="button"
+                className="button"
+                disabled={spec.frame === null}
+                onClick={() => void updateSpec({ frame: null })}
+              >
+                {t.recenter}
+              </button>
+            </div>
+          </div>
+          <Sections spec={spec} geometry={geometry} box={box} />
         </div>
-      </div>
+      ) : (
+        <div className="map-dialog__main map-dialog__main--empty">
+          <p className="map-dialog__empty">{t.pickFirst}</p>
+          <div className="map-dialog__options">
+            <Layers spec={null} />
+            <button type="button" className="button" disabled>
+              {t.recenter}
+            </button>
+          </div>
+        </div>
+      )}
 
       {state.status === 'failed' && (
         <p className="dialog__error" role="alert">

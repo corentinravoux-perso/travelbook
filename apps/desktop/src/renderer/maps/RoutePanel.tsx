@@ -118,7 +118,11 @@ function LegRow({ route, index }: { route: MapRoute; index: number }) {
         className="input"
         aria-label={t.curve(n)}
         value={leg.curve}
-        onChange={(e) => patch({ curve: e.target.value as 'droit' | 'courbe' })}
+        onChange={(e) => {
+          const curve = e.target.value as 'droit' | 'courbe';
+          // a curve with no bend looks straight: start with a gentle one
+          patch(curve === 'courbe' && leg.bend === 0 ? { curve, bend: 0.3 } : { curve });
+        }}
       >
         <option value="droit">{t.curves.droit}</option>
         <option value="courbe">{t.curves.courbe}</option>
