@@ -1,4 +1,5 @@
 export * from './types';
+export { placeKind } from './place';
 export { MAP_LICENCE } from './licence';
 export {
   MAP_LEG_MODES,
@@ -8,10 +9,17 @@ export {
   MapGeometrySchema,
   MapStyleSchema,
 } from './schema';
-export { DEFAULT_MAP_STYLE, normalizeStyle, type MapPreset } from './style';
+export {
+  DEFAULT_MAP_STYLE,
+  normalizeStyle,
+  styleColours,
+  withTemplateColours,
+  type MapPreset,
+} from './style';
 export {
   chooseProjection,
   fitFrame,
+  frameZoom,
   projectPlace,
   unprojectPlace,
   type Bounds,

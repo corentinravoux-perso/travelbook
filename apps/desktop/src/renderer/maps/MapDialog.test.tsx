@@ -208,6 +208,35 @@ describe('preset chips', () => {
     }
   });
 
+  it('a chip changes the colours only: sizes, fonts and markers the user chose are kept', async () => {
+    await openFromPanel();
+    await pick('thai', 'Thaïlande');
+    await waitFor(() => expect(chip('Safran').disabled).toBe(false));
+    const style = spec().style;
+    await act(() =>
+      updateSpec({
+        style: {
+          ...style,
+          sizes: { marker: 7, badge: 9, vehicle: 11 },
+          label: { ...style.label, sizePt: 14 },
+          rough: { seed: 4, roughness: 2 },
+        },
+      }),
+    );
+    fireEvent.click(chip('Safran'));
+    await waitFor(() => expect(chip('Safran').getAttribute('aria-pressed')).toBe('true'));
+    const after = spec().style;
+    expect(after.sizes).toEqual({ marker: 7, badge: 9, vehicle: 11 });
+    expect(after.label.sizePt).toBe(14);
+    expect(after.label.font).toBe(style.label.font);
+    expect(after.label.case).toBe(style.label.case);
+    expect(after.markers.city.kind).toBe(style.markers.city.kind);
+    expect(after.outline.width).toBe(style.outline.width);
+    expect(after.rough).toEqual({ seed: 4, roughness: 2 });
+    // the colours are Safran's
+    expect(after.land.fill).not.toBe(style.land.fill);
+  });
+
   it('a fresh dialog starts in carnet, whatever the last one used', async () => {
     await openFromPanel();
     await pick('thai', 'Thaïlande');
@@ -280,11 +309,15 @@ describe('what re-bakes and what does not', () => {
     expect(vi.mocked(bake)).not.toHaveBeenCalled();
   });
 
-  it('a preset with a rough outline does bake again', async () => {
+  it('a preset brings its colours only: Crayon keeps a clean outline and does not bake', async () => {
     await ready();
-    fireEvent.click(within(dialog()).getByRole('button', { name: 'Crayon' }));
-    await waitFor(() => expect(spec().style.rough).not.toBeNull());
-    await waitFor(() => expect(vi.mocked(bake)).toHaveBeenCalledTimes(1));
+    const crayon = within(dialog()).getByRole('button', { name: 'Crayon' }) as HTMLButtonElement;
+    await waitFor(() => expect(crayon.disabled).toBe(false));
+    fireEvent.click(crayon);
+    await waitFor(() => expect(crayon.getAttribute('aria-pressed')).toBe('true'));
+    expect(spec().style.rough).toBeNull();
+    await settle();
+    expect(vi.mocked(bake)).not.toHaveBeenCalled();
   });
 
   it('the neighbours switch bakes again', async () => {

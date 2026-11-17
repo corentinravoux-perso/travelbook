@@ -17,6 +17,11 @@ export interface MapPlace {
   lon: number;
   lat: number;
   label: string;
+  /**
+   * What the place is drawn and listed as. Absent: from its source (a bundled city is a city, a
+   * sight a sight, a click a custom place); see `placeKind`.
+   */
+  kind?: MapPlaceKind;
   shown: boolean;
   labelShown: boolean;
   /** `null`: the style's marker for the place's kind. */

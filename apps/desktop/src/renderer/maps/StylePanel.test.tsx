@@ -198,10 +198,20 @@ describe('every token has a control that edits the style', () => {
     expect(spec().style.rough).toBeNull();
   });
 
-  it('editing a style leaves the six chips pressed on none', async () => {
+  it('editing a colour leaves the six chips pressed on none; a size or a case does not', async () => {
     await ready();
-    fireEvent.change(within(panel()).getByLabelText(s.case), { target: { value: 'upper' } });
     const chips = within(dialog()).getByRole('group', { name: t.presetsGroup });
+    fireEvent.change(within(panel()).getByLabelText(s.case), { target: { value: 'upper' } });
+    await waitFor(() =>
+      expect(within(chips).queryAllByRole('button', { pressed: true })).toHaveLength(1),
+    );
+    fireEvent.change(
+      within(panel()).getByLabelText(`${s.groups.land} : ${s.fill}`, {
+        selector: 'input[type=color]',
+      }),
+      { target: { value: '#123456' } },
+    );
+    expect(spec().style.land.fill).toBe('#123456');
     expect(within(chips).queryAllByRole('button', { pressed: true })).toHaveLength(0);
   });
 });
@@ -383,7 +393,7 @@ describe('user templates', () => {
       {
         id: 'user-1',
         name: 'Vieux',
-        style: { label: { case: 'lower', sizePt: 14 } },
+        style: { label: { case: 'lower', sizePt: 14, color: '#123456' } },
       } as unknown as MapPreset,
     ];
     await ready();
@@ -394,9 +404,10 @@ describe('user templates', () => {
     expect(renameStyle).not.toHaveBeenCalled();
     const chips = within(dialog()).getByRole('group', { name: t.presetsGroup });
     fireEvent.click(within(chips).getByRole('button', { name: 'Vieux' }));
-    await waitFor(() => expect(spec().style.label.sizePt).toBe(14));
-    expect(spec().style.label.case).toBe('lower');
-    // completed from the defaults
+    // its colours come in, completed from the defaults; the map's sizes and case stay
+    await waitFor(() => expect(spec().style.label.color).toBe('#123456'));
+    expect(spec().style.label.sizePt).toBe(9.5);
+    expect(spec().style.label.case).toBe('none');
     expect(spec().style.land.width).toBeGreaterThan(0);
   });
 });

@@ -304,8 +304,127 @@ describe('the preview click', () => {
   });
 });
 
+describe("a place's type and marker", () => {
+  const groupOf = (heading: string) =>
+    within(within(places()).getByRole('heading', { name: heading }).parentElement!);
+
+  it('a clicked place can be made a city or a sight: listed and drawn as one', async () => {
+    await ready();
+    const [x, y] = pxOf(101.2, 16.0);
+    click(x, y);
+    await waitFor(() => expect(spec().places.at(-1)!.label).toBe(t.places.newPlace));
+    const id = spec().places.at(-1)!.id;
+    const type = () =>
+      within(places()).getByRole('combobox', {
+        name: t.places.kind(t.places.newPlace),
+      }) as HTMLSelectElement;
+    expect(type().value).toBe('custom');
+    fireEvent.change(type(), { target: { value: 'city' } });
+    expect(spec().places.at(-1)!.kind).toBe('city');
+    expect(
+      groupOf(t.places.cities).getByRole('checkbox', { name: t.places.show(t.places.newPlace) }),
+    ).toBeTruthy();
+    // still the user's: it keeps its delete button
+    expect(
+      groupOf(t.places.cities).getByRole('button', { name: t.places.remove(t.places.newPlace) }),
+    ).toBeTruthy();
+    // drawn with the city marker of the style
+    const marker = () => markers().find((n) => n.getAttribute('data-place') === id)!;
+    const cityMarker = markers().find(
+      (n) =>
+        n.getAttribute('data-place') ===
+        spec().places.find((p) => !p.kind && p.source.kind === 'city')!.id,
+    )!;
+    expect(marker().getAttribute('d')).toBe(cityMarker.getAttribute('d'));
+    fireEvent.change(type(), { target: { value: 'sight' } });
+    expect(
+      groupOf(t.places.sights).getByRole('checkbox', { name: t.places.show(t.places.newPlace) }),
+    ).toBeTruthy();
+  });
+
+  it('the marker of a place overrides the style; empty goes back to it', async () => {
+    await ready();
+    const bangkok = () => spec().places.find((p) => p.label === 'Bangkok')!;
+    const select = () =>
+      within(places()).getByRole('combobox', {
+        name: t.places.marker('Bangkok'),
+      }) as HTMLSelectElement;
+    expect(select().value).toBe('');
+    fireEvent.change(select(), { target: { value: 'star' } });
+    expect(bangkok().marker).toBe('star');
+    fireEvent.change(select(), { target: { value: '' } });
+    expect(bangkok().marker).toBeNull();
+    expect(bake).not.toHaveBeenCalled();
+  });
+
+  it('the bundled capital is drawn as a capital', async () => {
+    await ready();
+    const capital = spec().places.find((p) => p.label === 'Bangkok')!;
+    expect(capital.kind).toBe('capital');
+    expect(
+      (
+        within(places()).getByRole('combobox', {
+          name: t.places.kind('Bangkok'),
+        }) as HTMLSelectElement
+      ).value,
+    ).toBe('capital');
+  });
+
+  it('a clicked place is dragged on the preview; the frame does not move', async () => {
+    await ready();
+    const [x, y] = pxOf(101.2, 16.0);
+    click(x, y);
+    await waitFor(() => expect(spec().places.at(-1)!.label).toBe(t.places.newPlace));
+    const id = spec().places.at(-1)!.id;
+    const node = markers().find((n) => n.getAttribute('data-place') === id)!;
+    expect(node.hasAttribute('data-custom')).toBe(true);
+    const before = spec().places.find((p) => p.id === id)!;
+    const [x0, y0] = pxOf(before.lon, before.lat);
+    fireEvent.pointerDown(node, { clientX: 100, clientY: 100, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 130, clientY: 80, pointerId: 1 });
+    fireEvent.pointerUp(window, { clientX: 130, clientY: 80, pointerId: 1 });
+    const moved = spec().places.find((p) => p.id === id)!;
+    // the place follows the pointer: 30 px right, 20 px up
+    const [x1, y1] = pxOf(moved.lon, moved.lat);
+    expect(x1 - x0).toBeCloseTo(30, 0);
+    expect(y1 - y0).toBeCloseTo(-20, 0);
+    expect(moved.label).toBe(t.places.newPlace);
+    expect(spec().frame).toBeNull();
+    // a bundled marker is not draggable
+    const bangkok = spec().places.find((p) => p.label === 'Bangkok')!;
+    expect(
+      markers()
+        .find((n) => n.getAttribute('data-place') === bangkok.id)!
+        .hasAttribute('data-custom'),
+    ).toBe(false);
+  });
+});
+
 describe('label position', () => {
   const bangkok = () => spec().places.find((p) => p.label === 'Bangkok')!;
+
+  it('at zoom 2 the label is drawn at twice its offset, and a drag moves it by half', async () => {
+    await ready();
+    await updateSpec({ frame: { center: [101, 13], scale: 2 } });
+    await updateSpec({
+      places: spec().places.map((p) =>
+        p.label === 'Bangkok' ? { ...p, labelOffset: { dx: 5, dy: -3 } } : p,
+      ),
+    });
+    const s = editorStore.getState();
+    const box = newMapBox(s.book!, s.currentSpreadId!, s.activePage)!;
+    const point = placePointMm(GEOMETRY, box, spec(), bangkok().lon, bangkok().lat)!;
+    const node = labelText('Bangkok')!;
+    expect(Number(node.getAttribute('x')) - point[0]).toBeCloseTo(10, 3);
+    expect(Number(node.getAttribute('y')) - point[1]).toBeCloseTo(-6, 3);
+    const k = parseFloat(preview().style.width) / box.w;
+    fireEvent.pointerDown(node, { clientX: 100, clientY: 100, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 100 + 4 * k, clientY: 100, pointerId: 1 });
+    fireEvent.pointerUp(window, { clientX: 100 + 4 * k, clientY: 100, pointerId: 1 });
+    // client px are whole numbers: 0.01 mm
+    expect(bangkok().labelOffset!.dx).toBeCloseTo(7, 2);
+    expect(bangkok().labelOffset!.dy).toBeCloseTo(-3, 2);
+  });
 
   it('dragging a label stores labelOffset in mm from the point', async () => {
     await ready();
@@ -351,7 +470,8 @@ describe('label position', () => {
 
   it('arrow keys nudge the label by 0.5 mm (Shift 2 mm) without a mouse', async () => {
     await ready();
-    const nudge = within(places()).getByRole('button', { name: t.places.nudge('Bangkok') });
+    const right = t.places.nudge('Bangkok', t.places.directions.right);
+    const nudge = within(places()).getByRole('button', { name: right });
     nudge.focus();
     fireEvent.keyDown(nudge, { key: 'ArrowRight' });
     const first = bangkok().labelOffset!;
@@ -359,6 +479,20 @@ describe('label position', () => {
     expect(bangkok().labelOffset!.dx).toBeCloseTo(first.dx + 0.5, 6);
     fireEvent.keyDown(nudge, { key: 'ArrowDown', shiftKey: true });
     expect(bangkok().labelOffset!.dy).toBeCloseTo(first.dy + 2, 6);
+  });
+
+  it('the arrow buttons move the label on a click (Shift + click 2 mm)', async () => {
+    await ready();
+    const button = (d: keyof typeof t.places.directions) =>
+      within(places()).getByRole('button', {
+        name: t.places.nudge('Bangkok', t.places.directions[d]),
+      });
+    fireEvent.click(button('left'));
+    const first = bangkok().labelOffset!;
+    fireEvent.click(button('left'));
+    expect(bangkok().labelOffset!.dx).toBeCloseTo(first.dx - 0.5, 6);
+    fireEvent.click(button('up'), { shiftKey: true });
+    expect(bangkok().labelOffset!.dy).toBeCloseTo(first.dy - 2, 6);
   });
 
   it('does not bake', async () => {
@@ -419,14 +553,15 @@ describe('places of a region subject', () => {
     await waitFor(() => expect(drawn()).not.toBeNull());
     // Sicily's own places are all on the map by default: take one off, it is offered first
     await updateSpec({ places: spec().places.filter((p) => p.label !== 'Syracuse') });
-    const options = await within(places()).findAllByRole('option');
+    const offer = within(within(places()).getByRole('listbox', { name: t.places.add }));
+    const options = await offer.findAllByRole('option');
     expect(options[0]!.getAttribute('aria-label')).toBe('Syracuse');
     expect(options[0]!.textContent).not.toContain(t.places.outOfRegion);
     expect(options.slice(1).every((o) => o.textContent!.includes(t.places.outOfRegion))).toBe(true);
     fireEvent.change(within(places()).getByRole('searchbox', { name: t.places.addLabel }), {
       target: { value: 'rome' },
     });
-    const rOption = await within(places()).findByRole('option', { name: /Rome/ });
+    const rOption = await offer.findByRole('option', { name: /Rome/ });
     expect(rOption.textContent).toContain(t.places.outOfRegion);
     fireEvent.click(rOption);
     expect(spec().places.some((p) => p.label === 'Rome')).toBe(true);
@@ -550,11 +685,19 @@ describe('photo medallions', () => {
     await ready();
     fireEvent.click(within(places()).getByRole('checkbox', { name: t.places.medallions }));
     await pickPhoto();
-    const nudge = within(places()).getByRole('button', { name: t.places.photoNudge('Bangkok') });
+    const nudge = within(places()).getByRole('button', {
+      name: t.places.photoNudge('Bangkok', t.places.directions.right),
+    });
     fireEvent.keyDown(nudge, { key: 'ArrowRight' });
     expect(bangkok().photo!.offset).toEqual({ dx: 0.5, dy: -30 });
     fireEvent.keyDown(nudge, { key: 'ArrowDown', shiftKey: true });
     expect(bangkok().photo!.offset).toEqual({ dx: 0.5, dy: -28 });
+    fireEvent.click(
+      within(places()).getByRole('button', {
+        name: t.places.photoNudge('Bangkok', t.places.directions.up),
+      }),
+    );
+    expect(bangkok().photo!.offset).toEqual({ dx: 0.5, dy: -28.5 });
   });
 
   it('"Retirer la photo" clears it', async () => {

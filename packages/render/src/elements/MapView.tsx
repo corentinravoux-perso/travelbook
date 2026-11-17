@@ -1,7 +1,9 @@
 import {
   fitFrame,
+  frameZoom,
   legPath,
   MM_TO_PX,
+  placeKind,
   placeLabels,
   projectPlace,
   PT_MM,
@@ -12,7 +14,6 @@ import {
   type MapElement,
   type MapGeometry,
   type MapPlace,
-  type MapPlaceKind,
   type MapRouteStyle,
 } from '@travelbook/core';
 import { useId, type ReactElement, type ReactNode } from 'react';
@@ -117,7 +118,9 @@ function Frame(p: { el: MapElement; children: ReactNode }): ReactElement {
 
 /**
  * A map, drawn as SVG in mm (like a shape). The geometry is fitted to the element's box, so a
- * resize shows more or less of the map; strokes stay in mm and labels in pt at any size.
+ * resize shows more or less of the map; strokes stay in mm and labels in pt at any size. The
+ * user's zoom (`frameZoom`) magnifies the marks drawn over the land with it: markers, labels,
+ * badges, route, vehicles and medallions, with their offsets. Their stored sizes are at zoom 1.
  * Everything drawn is guarded against non-finite numbers: a bad spec skips, it never throws.
  * SpreadView does not pass `missingLabel`: render cannot import the renderer's fr.ts, so the
  * default is the French string itself.
@@ -180,6 +183,8 @@ export function MapView({
   const { style } = el;
   const fit = fitFrame(geometry, { w, h }, el.frame, el.subject.includeRemote);
   const s = fit.scale;
+  /** The user's zoom: every mark over the land is drawn this many times its size. */
+  const z = frameZoom(el.frame);
   const toMm = (lon: number, lat: number): [number, number] => {
     const [x, y] = projectPlace(geometry.projection, lon, lat);
     return [x * s + fit.dx, y * s + fit.dy];
@@ -196,13 +201,11 @@ export function MapView({
   const places = el.places.filter(
     (p) => Number.isFinite(p.lon) && Number.isFinite(p.lat) && !seen.has(p.id) && seen.add(p.id),
   );
-  const kindOf = (p: MapPlace): MapPlaceKind =>
-    p.source.kind === 'custom' ? 'custom' : p.source.kind === 'sight' ? 'sight' : 'city';
   const markerOf = (p: MapPlace) => {
-    const ms = style.markers[kindOf(p)];
+    const ms = style.markers[placeKind(p)];
     const base =
       p.markerSize !== null && Number.isFinite(p.markerSize) ? p.markerSize : style.sizes.marker;
-    const d = Math.max(0, finite(base) * finite(ms.scale, 1));
+    const d = Math.max(0, finite(base) * finite(ms.scale, 1) * z);
     return { ms, d, kind: p.marker ?? ms.kind };
   };
   const at = new Map(places.map((p) => [p.id, toMm(p.lon, p.lat)]));
@@ -212,16 +215,16 @@ export function MapView({
     ? places.flatMap((p) => {
         const ph = p.photo;
         if (!p.shown || !ph) return [];
-        const r = finite(ph.diameter) / 2;
+        const r = (finite(ph.diameter) / 2) * z;
         if (!(r > 0) || !Number.isFinite(ph.offset.dx) || !Number.isFinite(ph.offset.dy)) return [];
         const [x, y] = at.get(p.id) as [number, number];
-        return [{ p, ph, r, x, y, cx: x + ph.offset.dx, cy: y + ph.offset.dy }];
+        return [{ p, ph, r, x, y, cx: x + ph.offset.dx * z, cy: y + ph.offset.dy * z }];
       })
     : [];
 
   const numbers =
     el.route && el.route.numbered ? routeNumbers(el.route) : new Map<string, number[]>();
-  const badgeD = Math.max(0, finite(style.sizes.badge));
+  const badgeD = Math.max(0, finite(style.sizes.badge) * z);
 
   // With regions chosen, the rest of the subject is context (neighbours look) and the chosen
   // regions get the land look; with none chosen the land is drawn as is.
@@ -233,7 +236,7 @@ export function MapView({
   // Labels, obstacles.
   const obstacles: LabelObstacle[] = [];
   const labelBoxes: LabelBox[] = [];
-  const labelPt = Math.max(0, finite(style.label.sizePt)) * PT_MM;
+  const labelPt = Math.max(0, finite(style.label.sizePt)) * PT_MM * z;
   places.forEach((p, i) => {
     const [x, y] = at.get(p.id) as [number, number];
     const { d, kind } = markerOf(p);
@@ -257,8 +260,8 @@ export function MapView({
       w: chars * labelPt * (GLYPH_EM + finite(style.label.letterSpacingEm)),
       h: labelPt * LABEL_LINE,
       rank: i,
-      fixed: p.labelOffset ? { dx: p.labelOffset.dx, dy: p.labelOffset.dy } : undefined,
-      gap: size / 2 + LABEL_GAP,
+      fixed: p.labelOffset ? { dx: p.labelOffset.dx * z, dy: p.labelOffset.dy * z } : undefined,
+      gap: size / 2 + LABEL_GAP * z,
     });
   });
   // A disc is an obstacle through its bounding square.
@@ -392,7 +395,7 @@ export function MapView({
               x2={f(m.x)}
               y2={f(m.y)}
               stroke={style.label.color}
-              strokeWidth={f(Math.max(finite(style.medallion.ringWidth), LEADER_MIN_WIDTH))}
+              strokeWidth={f(Math.max(finite(style.medallion.ringWidth), LEADER_MIN_WIDTH) * z)}
               strokeLinecap="round"
             />
           );
@@ -405,9 +408,9 @@ export function MapView({
           const path = legPath(a, b, seg.leg);
           if (!path.d) return null;
           const rs = routeStyle(seg.leg.mode);
-          const dash = posDashes(rs.dash);
+          const dash = posDashes(rs.dash?.map((n) => n * z) ?? null);
           const dotted = rs.dash?.some((n) => n > 0 && n < 0.05) ?? false;
-          const vehicleD = Math.max(0, finite(style.sizes.vehicle));
+          const vehicleD = Math.max(0, finite(style.sizes.vehicle) * z);
           const flip = Math.abs(finite(path.angle)) > VEHICLE_FLIP_ANGLE;
           const walker = seg.leg.mode === 'pied';
           const rotate = walker ? 0 : finite(path.angle);
@@ -423,7 +426,7 @@ export function MapView({
                 d={path.d}
                 fill="none"
                 stroke={rs.color}
-                strokeWidth={f(rs.width)}
+                strokeWidth={f(rs.width * z)}
                 strokeDasharray={dash}
                 strokeLinecap={dotted ? 'round' : 'butt'}
               />
@@ -454,6 +457,7 @@ export function MapView({
             <path
               key={p.id}
               data-place={p.id}
+              data-custom={p.source.kind === 'custom' ? '' : undefined}
               d={glyph.d}
               fillRule="evenodd"
               fill={ms.color}
@@ -471,7 +475,8 @@ export function MapView({
               const nums = numbers.get(p.id);
               if (!p.shown || !nums) return null;
               const [x, y] = at.get(p.id) as [number, number];
-              const text = nums.join(',');
+              // a stop the trip comes back to keeps the number of its first visit only
+              const text = String(nums[0]);
               const k = Math.min(1, 2 / Math.max(1, text.length));
               return (
                 <g key={p.id} data-badge={p.id}>
@@ -481,7 +486,7 @@ export function MapView({
                     r={f(badgeD / 2)}
                     fill={style.badge.fill}
                     stroke={paint(style.badge.stroke)}
-                    strokeWidth={style.badge.stroke ? 0.3 : undefined}
+                    strokeWidth={style.badge.stroke ? f(0.3 * z) : undefined}
                   />
                   <text
                     x={f(x)}
@@ -522,13 +527,13 @@ export function MapView({
               fontFamily={style.label.font}
               fontWeight={style.label.weight}
               fontStyle={
-                style.label.italicSights && p.source.kind === 'sight' ? 'italic' : undefined
+                style.label.italicSights && placeKind(p) === 'sight' ? 'italic' : undefined
               }
               fontSize={f(labelPt)}
               letterSpacing={`${f(style.label.letterSpacingEm)}em`}
               fill={style.label.color}
               stroke={halo.width > 0 ? halo.color : undefined}
-              strokeWidth={halo.width > 0 ? f(halo.width) : undefined}
+              strokeWidth={halo.width > 0 ? f(halo.width * z) : undefined}
               strokeLinejoin="round"
               paintOrder="stroke"
             >
@@ -569,7 +574,7 @@ export function MapView({
                 r={f(m.r)}
                 fill="none"
                 stroke={style.medallion.ringColor}
-                strokeWidth={f(style.medallion.ringWidth)}
+                strokeWidth={f(style.medallion.ringWidth * z)}
               />
             </g>
           );
