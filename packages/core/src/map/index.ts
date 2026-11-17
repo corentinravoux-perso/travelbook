@@ -12,8 +12,8 @@ export {
 export {
   DEFAULT_MAP_STYLE,
   normalizeStyle,
-  styleColours,
-  withTemplateColours,
+  templateLook,
+  withTemplateLook,
   type MapPreset,
 } from './style';
 export {
