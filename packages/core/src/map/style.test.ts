@@ -19,8 +19,8 @@ describe('DEFAULT_MAP_STYLE', () => {
     expect(DEFAULT_MAP_STYLE.styleVersion).toBe(1);
   });
 
-  it('sizes the marks 3, 5 and 6 mm, with the full outline detail and clean lines', () => {
-    expect(DEFAULT_MAP_STYLE.sizes).toEqual({ marker: 3, badge: 5, vehicle: 6 });
+  it('sizes the marks 4, 6.5 and 8 mm, with the full outline detail and clean lines', () => {
+    expect(DEFAULT_MAP_STYLE.sizes).toEqual({ marker: 4, badge: 6.5, vehicle: 8 });
     expect(DEFAULT_MAP_STYLE.outline.detail).toBe(1);
     expect(DEFAULT_MAP_STYLE.rough).toBeNull();
   });
@@ -65,7 +65,7 @@ describe('normalizeStyle', () => {
     expect(style['route'].voiture.dash).toEqual([2.2, 1.5]);
     const again = normalizeStyle({});
     again.sizes.marker = 9;
-    expect(normalizeStyle({}).sizes.marker).toBe(3);
+    expect(normalizeStyle({}).sizes.marker).toBe(4);
   });
 
   it('is idempotent', () => {

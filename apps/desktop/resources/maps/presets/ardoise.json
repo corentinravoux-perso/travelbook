@@ -32,7 +32,7 @@
       "font": "Libre Baskerville",
       "weight": 700,
       "italicSights": false,
-      "sizePt": 9.5,
+      "sizePt": 11.5,
       "color": "#111111",
       "case": "none",
       "letterSpacingEm": 0,
@@ -126,9 +126,9 @@
       "ringWidth": 0.6
     },
     "sizes": {
-      "marker": 3,
-      "badge": 5,
-      "vehicle": 6
+      "marker": 4,
+      "badge": 6.5,
+      "vehicle": 8
     },
     "rough": null
   }

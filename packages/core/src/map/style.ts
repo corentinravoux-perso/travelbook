@@ -23,7 +23,7 @@ export const DEFAULT_MAP_STYLE: MapStyle = {
     font: 'Lora',
     weight: 700,
     italicSights: true,
-    sizePt: 9.5,
+    sizePt: 11.5,
     color: '#4a2f1a',
     case: 'none',
     letterSpacingEm: 0,
@@ -45,7 +45,7 @@ export const DEFAULT_MAP_STYLE: MapStyle = {
   },
   badge: { fill: '#e2571e', text: '#ffffff', stroke: '#fbf4e2', font: 'Caveat', weight: 700 },
   medallion: { ringColor: '#ffffff', ringWidth: 0.6 },
-  sizes: { marker: 3, badge: 5, vehicle: 6 },
+  sizes: { marker: 4, badge: 6.5, vehicle: 8 },
   rough: null,
 };
 

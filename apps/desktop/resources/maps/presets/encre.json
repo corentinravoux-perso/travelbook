@@ -32,7 +32,7 @@
       "font": "Inter",
       "weight": 400,
       "italicSights": true,
-      "sizePt": 8,
+      "sizePt": 9.5,
       "color": "#111111",
       "case": "none",
       "letterSpacingEm": 0.02,
@@ -126,9 +126,9 @@
       "ringWidth": 0.3
     },
     "sizes": {
-      "marker": 2.5,
-      "badge": 4.5,
-      "vehicle": 5
+      "marker": 3.5,
+      "badge": 6,
+      "vehicle": 7
     },
     "rough": null
   }

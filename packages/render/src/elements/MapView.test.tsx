@@ -234,7 +234,7 @@ describe('MapView', () => {
       return text?.getAttribute('font-size');
     });
     expect(sizes[0]).toBe(sizes[1]);
-    expect(Number(sizes[0])).toBeCloseTo(9.5 * PT_MM, 3);
+    expect(Number(sizes[0])).toBeCloseTo(DEFAULT_MAP_STYLE.label.sizePt * PT_MM, 3);
   });
 
   it('gives the label a halo: a stroke under the fill', () => {
