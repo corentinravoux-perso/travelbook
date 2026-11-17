@@ -41,7 +41,7 @@ const { bake } = await import('./bakeClient');
 const { applyMap } = await import('./mapActions');
 const { MapDialog } = await import('./MapDialog');
 const { MapsPanel } = await import('../panels/MapsPanel');
-const { closeMapDialog, mapDialogStore } = await import('./dialogModel');
+const { closeMapDialog, mapDialogStore, updateSpec } = await import('./dialogModel');
 const { styleTemplatesStore } = await import('./styleTemplates');
 const { STYLE_GROUPS } = await import('./styleModel');
 const { setSubjectIndex } = await import('./subjects');
@@ -203,6 +203,79 @@ describe('every token has a control that edits the style', () => {
     fireEvent.change(within(panel()).getByLabelText(s.case), { target: { value: 'upper' } });
     const chips = within(dialog()).getByRole('group', { name: t.presetsGroup });
     expect(within(chips).queryAllByRole('button', { pressed: true })).toHaveLength(0);
+  });
+});
+
+describe('dashes, typed numbers and colours', () => {
+  it('"Continu" can be chosen again after a dash', async () => {
+    await ready();
+    const dash = within(panel()).getByLabelText(`${s.groups.regions} : ${s.dash}`);
+    fireEvent.change(dash, { target: { value: 'dashed' } });
+    expect(spec().style.regions.dash).toEqual([2.2, 1.5]);
+    fireEvent.change(dash, { target: { value: 'solid' } });
+    expect(spec().style.regions.dash).toBeNull();
+    const mode = within(panel()).getByLabelText(`${t.route.modes.voiture} : ${s.dash}`);
+    fireEvent.change(mode, { target: { value: 'solid' } });
+    expect(spec().style.route.voiture.dash).toBeNull();
+  });
+
+  it('typing "12" into a field whose minimum is 4 is not rewritten on the way', async () => {
+    await ready();
+    const size = within(panel()).getByLabelText(s.sizePt) as HTMLInputElement;
+    fireEvent.change(size, { target: { value: '1' } });
+    expect(size.value).toBe('1');
+    expect(spec().style.label.sizePt).toBe(9.5);
+    fireEvent.change(size, { target: { value: '12' } });
+    expect(size.value).toBe('12');
+    expect(spec().style.label.sizePt).toBe(12);
+  });
+
+  it('typing "0.5" into a marker scale (minimum 0.2) and "0,5" with a French comma', async () => {
+    await ready();
+    const scale = within(panel()).getByLabelText(
+      `${s.markerKinds['city']} : ${s.scale}`,
+    ) as HTMLInputElement;
+    fireEvent.change(scale, { target: { value: '0.' } });
+    expect(scale.value).toBe('0.');
+    fireEvent.change(scale, { target: { value: '0.5' } });
+    expect(scale.value).toBe('0.5');
+    expect(spec().style.markers.city.scale).toBe(0.5);
+    fireEvent.change(scale, { target: { value: '0,7' } });
+    expect(scale.value).toBe('0,7');
+    expect(spec().style.markers.city.scale).toBe(0.7);
+  });
+
+  it('a value out of range is clamped when the field is left, not before', async () => {
+    await ready();
+    const size = within(panel()).getByLabelText(s.sizePt) as HTMLInputElement;
+    fireEvent.change(size, { target: { value: '99' } });
+    expect(spec().style.label.sizePt).toBe(9.5);
+    fireEvent.blur(size);
+    expect(size.value).toBe('40');
+    expect(spec().style.label.sizePt).toBe(40);
+  });
+
+  it('the field follows a change from outside (a preset)', async () => {
+    await ready();
+    const size = within(panel()).getByLabelText(s.sizePt) as HTMLInputElement;
+    fireEvent.change(size, { target: { value: '12' } });
+    await act(() =>
+      updateSpec({ style: { ...spec().style, label: { ...spec().style.label, sizePt: 20 } } }),
+    );
+    expect(size.value).toBe('20');
+  });
+
+  it('"aucun" turned off restores the colour that was there, even a non-hex one', async () => {
+    await ready();
+    const st = spec().style;
+    await act(() =>
+      updateSpec({ style: { ...st, land: { ...st.land, stroke: 'rgb(10, 20, 30)' } } }),
+    );
+    const off = within(panel()).getByLabelText(`${s.groups.land} : ${s.stroke} (${s.none})`);
+    fireEvent.click(off);
+    expect(spec().style.land.stroke).toBeNull();
+    fireEvent.click(off);
+    expect(spec().style.land.stroke).toBe('rgb(10, 20, 30)');
   });
 });
 
