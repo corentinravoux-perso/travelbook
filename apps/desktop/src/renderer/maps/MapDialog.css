@@ -376,7 +376,7 @@
 }
 .map-stop {
   display: grid;
-  grid-template-columns: 1.4rem 1fr auto auto auto;
+  grid-template-columns: 1.4rem 1fr auto auto auto auto;
   gap: var(--s3);
   align-items: center;
   cursor: grab;

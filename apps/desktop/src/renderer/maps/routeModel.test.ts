@@ -1,6 +1,15 @@
 import type { MapLeg, MapRoute } from '@travelbook/core';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LEG, addStop, moveStop, removeStop, repairRoute, setLeg } from './routeModel';
+import {
+  DEFAULT_LEG,
+  addStop,
+  moveStop,
+  removeStop,
+  repairRoute,
+  setLeg,
+  setStopNumbered,
+  stopNumbered,
+} from './routeModel';
 
 const leg = (mode: MapLeg['mode']): MapLeg => ({ ...DEFAULT_LEG, mode });
 const route = (stops: string[], modes: MapLeg['mode'][]): MapRoute => ({
@@ -90,6 +99,33 @@ describe('moveStop: a stop keeps the leg that arrives at it', () => {
   it('same index, or out of range, changes nothing', () => {
     expect(moveStop(base(), 1, 1)).toEqual(base());
     expect(moveStop(base(), 1, 5)).toEqual(base());
+  });
+});
+
+describe('per-stop numbers', () => {
+  const base = () => route(['a', 'b', 'c'], ['avion', 'bus']);
+  it('a route without flags numbers every stop; one flag per stop once set', () => {
+    expect([0, 1, 2].map((i) => stopNumbered(base(), i))).toEqual([true, true, true]);
+    const r = setStopNumbered(base(), 1, false);
+    expect(r.unnumbered).toEqual([false, true, false]);
+    expect(stopNumbered(r, 1)).toBe(false);
+    expect(setStopNumbered(r, 1, true).unnumbered).toEqual([false, false, false]);
+  });
+  it('the flag follows its stop when moved, removed, or a stop is added', () => {
+    const r = setStopNumbered(base(), 1, false);
+    expect(moveStop(r, 1, 2).unnumbered).toEqual([false, false, true]);
+    expect(removeStop(r, 0)!.unnumbered).toEqual([true, false]);
+    expect(addStop(r, 'd').unnumbered).toEqual([false, true, false, false]);
+  });
+  it('repair pads and trims the flags, and leaves a route without flags without', () => {
+    expect(repairRoute({ ...base(), unnumbered: [true] }).unnumbered).toEqual([true, false, false]);
+    expect(repairRoute({ ...base(), unnumbered: [false, false, false, true] }).unnumbered).toEqual([
+      false,
+      false,
+      false,
+    ]);
+    expect('unnumbered' in repairRoute(base())).toBe(false);
+    expect('unnumbered' in addStop(base(), 'd')).toBe(false);
   });
 });
 

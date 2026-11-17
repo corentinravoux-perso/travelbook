@@ -51,13 +51,19 @@ export function legPath(
   };
 }
 
-/** Place id to the numbers of its stops, from 1 (a place visited twice has both). */
+/**
+ * Place id to the numbers of its stops, from 1 (a place visited twice has both). A stop marked
+ * in `route.unnumbered` gets no number and the next numbered stop takes the one it skipped.
+ */
 export function routeNumbers(route: MapRoute): Map<string, number[]> {
   const out = new Map<string, number[]>();
+  let n = 0;
   route.stops.forEach((id, i) => {
+    if (route.unnumbered?.[i] === true) return;
+    n += 1;
     const numbers = out.get(id);
-    if (numbers) numbers.push(i + 1);
-    else out.set(id, [i + 1]);
+    if (numbers) numbers.push(n);
+    else out.set(id, [n]);
   });
   return out;
 }

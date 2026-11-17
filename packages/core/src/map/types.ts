@@ -55,6 +55,11 @@ export interface MapRoute {
   /** `legs[i]` goes from `stops[i]` to `stops[i + 1]`. */
   legs: MapLeg[];
   numbered: boolean;
+  /**
+   * `unnumbered[i]`: stop `i` shows no number (a stop on the way); the numbers skip it. Absent,
+   * shorter than `stops` or `false`: numbered.
+   */
+  unnumbered?: boolean[];
 }
 
 /** Fill and stroke colours are CSS colours, or `null` for not painted. */

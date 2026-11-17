@@ -104,6 +104,14 @@ describe('routeNumbers', () => {
     expect(out.size).toBe(2);
   });
 
+  it('skips the stops marked unnumbered, the next ones taking their number', () => {
+    const out = routeNumbers({ ...route(['A', 'B', 'C', 'A']), unnumbered: [false, true] });
+    expect(out.get('A')).toEqual([1, 3]);
+    expect(out.has('B')).toBe(false);
+    expect(out.get('C')).toEqual([2]);
+    expect(routeNumbers({ ...route(['A', 'B']), unnumbered: [true, true] }).size).toBe(0);
+  });
+
   it('handles one stop and no stop', () => {
     expect(routeNumbers(route(['A'])).get('A')).toEqual([1]);
     expect(routeNumbers(route([])).size).toBe(0);
