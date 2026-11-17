@@ -15,6 +15,8 @@ import {
   mapDialogStore,
   newMapBox,
   pickSubject,
+  redoMapEdit,
+  undoMapEdit,
   updateSpec,
   useMapDialog,
   type MapSpec,
@@ -457,6 +459,27 @@ function MapForm() {
   );
 }
 
+/** Keys typed into these go to the field (its own undo), not to the dialog's history. */
+const TEXT_INPUTS = new Set(['text', 'search', 'number', 'email', 'url', 'tel', 'password']);
+function typesText(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable || target.tagName === 'TEXTAREA') return true;
+  return target instanceof HTMLInputElement && TEXT_INPUTS.has(target.type);
+}
+
+/**
+ * Ctrl+Z undoes the dialog's last edit, Ctrl+Maj+Z and Ctrl+Y redo it; the album behind is not
+ * touched (the canvas shortcuts ignore keys from a dialog). In a text field the keys stay its own.
+ */
+function onDialogKeyDown(e: React.KeyboardEvent): void {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || typesText(e.target)) return;
+  const key = e.key.toLowerCase();
+  const redo = (key === 'z' && e.shiftKey) || (key === 'y' && !e.shiftKey);
+  if (key !== 'z' && !redo) return;
+  e.preventDefault();
+  void (redo ? redoMapEdit() : undoMapEdit());
+}
+
 /** "Créer une carte": the map maker's dialog. Mounted once by the shell; `openMapDialog` opens it. */
 export function MapDialog() {
   const open = useMapDialog((s) => s.open);
@@ -477,6 +500,7 @@ export function MapDialog() {
       className="dialog dialog--map"
       aria-labelledby="map-title"
       onClose={closeMapDialog}
+      onKeyDown={onDialogKeyDown}
       onCancel={(e) => {
         // Escape must not drop a map that is being placed: the apply goes on
         if (mapDialogStore.getState().status === 'applying') e.preventDefault();

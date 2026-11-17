@@ -14,7 +14,10 @@ import {
   openMapDialog,
   pickSubject,
   placesInRegions,
+  redoMapEdit,
   specOf,
+  UNDO_MERGE_MS,
+  undoMapEdit,
   updateSpec,
 } from './dialogModel';
 import {
@@ -49,6 +52,63 @@ beforeEach(() => {
 afterEach(() => {
   closeMapDialog();
   vi.unstubAllGlobals();
+});
+
+describe('undo in the dialog', () => {
+  const spec = () => mapDialogStore.getState().spec!;
+  const later = (ms: number) => vi.setSystemTime(Date.now() + ms);
+
+  it('undoes and redoes edits one step at a time; a new edit drops the redo', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await openMapDialog();
+      await pickSubject('TH');
+      const start = spec();
+      expect(await undoMapEdit()).toBe(false);
+      await updateSpec({ medallions: true });
+      later(UNDO_MERGE_MS + 1);
+      await updateSpec({ background: '#ffffff' });
+      expect(await undoMapEdit()).toBe(true);
+      expect(spec().background).toBe(start.background);
+      expect(spec().medallions).toBe(true);
+      expect(await undoMapEdit()).toBe(true);
+      expect(spec()).toBe(start);
+      expect(await redoMapEdit()).toBe(true);
+      expect(spec().medallions).toBe(true);
+      later(UNDO_MERGE_MS + 1);
+      await updateSpec({ projection: 'mercator' });
+      expect(await redoMapEdit()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('makes one step of quick edits of the same fields (a drag, a slider)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await openMapDialog();
+      await pickSubject('TH');
+      const start = spec();
+      for (const scale of [1.2, 1.5, 2]) {
+        await updateSpec({ frame: { center: [100, 13], scale } });
+        later(100);
+      }
+      expect(mapDialogStore.getState().past).toHaveLength(1);
+      await undoMapEdit();
+      expect(spec().frame).toEqual(start.frame);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a new subject starts a new history', async () => {
+    await openMapDialog();
+    await pickSubject('TH');
+    await updateSpec({ medallions: true });
+    await pickSubject('PE');
+    expect(await undoMapEdit()).toBe(false);
+    expect(spec().subject.id).toBe('PE');
+  });
 });
 
 describe('searchSubjects', () => {
