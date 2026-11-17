@@ -481,6 +481,37 @@ describe('label position', () => {
     expect(bangkok().labelOffset!.dy).toBeCloseTo(first.dy + 2, 6);
   });
 
+  it('the nudge buttons are described by the hint, shown while the pad has the focus', async () => {
+    await ready();
+    const right = within(places()).getByRole('button', {
+      name: t.places.nudge('Bangkok', t.places.directions.right),
+    });
+    const hint = document.getElementById(right.getAttribute('aria-describedby')!)!;
+    expect(hint.textContent).toBe(t.places.nudgeHint);
+    expect(hint.textContent).toContain('flèches');
+    expect(hint.hidden).toBe(true);
+    fireEvent.click(right);
+    expect(document.activeElement).toBe(right);
+    expect(hint.hidden).toBe(false);
+    for (const d of ['left', 'up', 'down'] as const) {
+      const other = within(places()).getByRole('button', {
+        name: t.places.nudge('Bangkok', t.places.directions[d]),
+      });
+      expect(other.getAttribute('aria-describedby')).toBe(hint.id);
+    }
+    act(() => right.blur());
+    expect(hint.hidden).toBe(true);
+  });
+
+  it('the automatic position button shows a word and names its place', async () => {
+    await ready();
+    const auto = within(places()).getByRole('button', {
+      name: t.places.autoPositionOf('Bangkok'),
+    });
+    expect(auto.textContent).toBe(t.places.autoPositionText);
+    expect(auto.getAttribute('title')).toBe(t.places.autoPosition);
+  });
+
   it('the arrow buttons move the label on a click (Shift + click 2 mm)', async () => {
     await ready();
     const button = (d: keyof typeof t.places.directions) =>
