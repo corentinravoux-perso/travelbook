@@ -56,6 +56,7 @@ test('the renderer is isolated and gets only the typed API', async () => {
     'clipboard',
     'exporter',
     'library',
+    'maps',
     'photos',
     'project',
   ]);
