@@ -3,7 +3,14 @@ import { useEffect, useId, useState } from 'react';
 import { PhotoChoice } from '../panels/PhotoPicker';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
-import { mapDialogStore, subjectBase, updateSpec, useMapDialog, type MapSpec } from './dialogModel';
+import {
+  mapDialogStore,
+  placeFromBundled,
+  subjectBase,
+  updateSpec,
+  useMapDialog,
+  type MapSpec,
+} from './dialogModel';
 import {
   drawnLabelOffset,
   groupPlaces,
@@ -12,7 +19,6 @@ import {
   placePointMm,
   type Row,
 } from './placesModel';
-import { placeFromBundled } from './dialogModel';
 import { NumberField } from './NumberField';
 import { getSubject } from './subjects';
 
