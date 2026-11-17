@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { StickerSourceInfo } from '../../shared/api';
+import type { MenuLanguage, StickerSourceInfo } from '../../shared/api';
 import { fr } from '../strings/fr';
 
 const t = fr.settings;
@@ -46,6 +46,53 @@ function KeyField({ source, onSaved }: { source: StickerSourceInfo; onSaved(): v
   );
 }
 
+const MENU_LANGUAGES: readonly { value: MenuLanguage; label: string }[] = [
+  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'English' },
+];
+
+/** The language of the menu bar (the interface stays French); a change applies at once. */
+function MenuLanguageField() {
+  const [language, setLanguage] = useState<MenuLanguage>('fr');
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    window.tb.settings.menuLanguage().then(setLanguage, (error: unknown) => {
+      console.error('Reading the menu language failed', error);
+    });
+  }, []);
+  const change = (next: MenuLanguage): void => {
+    setFailed(false);
+    window.tb.settings.setMenuLanguage(next).then(
+      () => setLanguage(next),
+      (error: unknown) => {
+        console.error('Saving the menu language failed', error);
+        setFailed(true);
+      },
+    );
+  };
+  return (
+    <div className="field">
+      <label className="field__label" htmlFor="menu-language">
+        {t.menuLanguage}
+      </label>
+      <select
+        id="menu-language"
+        className="input"
+        value={language}
+        onChange={(e) => change(e.target.value as MenuLanguage)}
+      >
+        {MENU_LANGUAGES.map((l) => (
+          <option key={l.value} value={l.value}>
+            {l.label}
+          </option>
+        ))}
+      </select>
+      <span className="field__help">{t.menuLanguageHelp}</span>
+      {failed && <span className="field__help is-error">{t.menuLanguageFailed}</span>}
+    </div>
+  );
+}
+
 /**
  * Settings: the online sources and their optional keys. None of the built-in sources needs a
  * key, so the section usually says so; a source that declares `needsKey` gets a field here.
@@ -80,6 +127,7 @@ export function SettingsDialog({ onClose }: { onClose(): void }) {
         <h2 id="settings-title" className="dialog__title">
           {t.title}
         </h2>
+        <MenuLanguageField />
         <fieldset className="field settings-group">
           <legend>{t.sourcesTitle}</legend>
           <p className="field__help">{t.sourcesHelp}</p>
