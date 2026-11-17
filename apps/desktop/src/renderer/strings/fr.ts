@@ -172,6 +172,17 @@ export const fr = {
       none: 'Aucun lieu trouvé.',
       newPlace: 'Nouveau lieu',
       hint: 'Clic sur la carte : ajouter un lieu. Glisser une étiquette : la déplacer.',
+      medallions: 'Médaillons',
+      medallionsHint: 'Une photo de l’album en médaillon sur chaque lieu qui en a une.',
+      photo: (name: string) => `Photo de ${name}…`,
+      photoChange: (name: string) => `Changer la photo de ${name}…`,
+      photoRemove: (name: string) => `Retirer la photo de ${name}`,
+      photoButton: 'Photo…',
+      photoRemoveText: 'Retirer la photo',
+      pickHint: 'Cliquez sur une photo pour en faire le médaillon du lieu.',
+      photoNudge: (name: string) => `Déplacer le médaillon de ${name}`,
+      photoNudgeHint:
+        'Flèches : déplacer de 0,5 mm (Maj : 2 mm). Glisser le médaillon : le déplacer.',
     },
     route: {
       title: 'Itinéraire',

@@ -109,6 +109,7 @@ function Control({ control, spec }: { control: StyleControl; spec: MapSpec }) {
     case 'number':
       field = (
         <NumberField
+          className="input map-style__number"
           label={control.label}
           value={value as number}
           min={control.min}

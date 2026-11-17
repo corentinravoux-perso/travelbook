@@ -495,3 +495,21 @@
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
+
+/* medallions: the master switch, a place's photo buttons, the photo chooser over the dialog */
+.map-places__switch {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.map-place__photo {
+  grid-column: 2 / -1;
+  display: flex;
+  gap: var(--s3);
+}
+.map-dialog {
+  position: relative;
+}
+.map-dialog .photo-picker {
+  z-index: 10;
+}
