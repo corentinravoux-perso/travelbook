@@ -212,6 +212,71 @@ describe('posterLayout details', () => {
     expect(total * PT_MM * 0.8).toBeLessThanOrEqual(0.3 * front.h + EPS);
   });
 
+  it('sets a geant title centred, stacked, larger than empile and still within the width', () => {
+    const geant = titleOf(
+      posterLayout(b, input(spec({ layout: 'geant', title: 'Costa Rica' }))).elements,
+    );
+    const empile = titleOf(
+      posterLayout(b, input(spec({ layout: 'empile', title: 'Costa Rica' }))).elements,
+    );
+    const g = lines(geant);
+    expect(g.map((l) => l.text)).toEqual(['COSTA', 'RICA']);
+    expect(geant.align).toBe('center');
+    expect(g[0]!.pt).toBeGreaterThan(lines(empile)[0]!.pt);
+    for (const l of g) {
+      expect(measure(l.text, geant.style.fontFamily, l.pt)).toBeLessThanOrEqual(geant.w + EPS);
+    }
+    const total = g.reduce((s, l) => s + l.pt, 0);
+    expect(total * PT_MM * 0.8).toBeLessThanOrEqual(0.4 * front.h + EPS);
+  });
+
+  it('lowers a large accented title so its accent keeps clear of the trim', () => {
+    const at = (title: string, layout: 'geant' | 'classique') =>
+      titleOf(posterLayout(b, input(spec({ layout, title }))).elements);
+    const plain = at('Japon', 'geant');
+    const accented = at('Pérou', 'geant');
+    expect(accented.y).toBeGreaterThan(plain.y);
+    // The accent rises 0.13 em above the line box: it stays inside the safe margin.
+    for (const layout of ['geant', 'classique'] as const) {
+      const title = at('Pérou', layout);
+      const pt = lines(title)[0]!.pt;
+      expect(title.y - 0.13 * pt * PT_MM).toBeGreaterThanOrEqual(b.safeMargin - EPS);
+    }
+    // A title without accent keeps its place.
+    expect(plain.y).toBeCloseTo(0.05 * front.w);
+  });
+
+  it('sets a geant year larger than the usual year', () => {
+    const yearPt = (layout: 'geant' | 'classique') =>
+      (
+        named(
+          posterLayout(b, input(spec({ layout, year: '2025' }))).elements,
+          'Affiche · année',
+        )[0] as TextElement
+      ).style.fontSizePt;
+    expect(yearPt('geant')).toBeGreaterThan(1.5 * yearPt('classique'));
+  });
+
+  it('stands a tall geant illustration on the foot of the bleed', () => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'geant' }), 0.8));
+    const sticker = stickerOf(elements);
+    expect(sticker.y + sticker.h).toBeCloseTo(front.h + b.coverBleed, 6);
+    expect(sticker.x + sticker.w / 2).toBeCloseTo(front.x + front.w / 2, 6);
+  });
+
+  it('centres a wide geant illustration, edge to edge, under the title', () => {
+    const { elements } = posterLayout(b, input(spec({ layout: 'geant' }), 2));
+    const sticker = stickerOf(elements);
+    const title = titleOf(elements);
+    expect(sticker.w).toBeCloseTo(front.w, 6);
+    expect(sticker.x).toBeCloseTo(front.x, 6);
+    expect(sticker.y + sticker.h).toBeLessThan(front.h);
+    const above = sticker.y - (title.y + title.h);
+    const below = front.h - (sticker.y + sticker.h);
+    expect(above).toBeGreaterThan(0);
+    expect(below).toBeGreaterThan(0);
+  });
+
   it.each(Object.values(FORMATS))('sets the year large, in the title face (%o)', (format) => {
     const bk = book(format);
     const { elements } = posterLayout(bk, input(spec({ year: '2026', font: 'Lilita One' })));

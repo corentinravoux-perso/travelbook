@@ -25,17 +25,19 @@
   <path fill="#2b6636" d="M650 640Q588 649 512 664Q594 684 650 640z"/>
   <path fill="#3f8a46" d="M676 760Q744 783 814 736Q732 716 676 760z"/>
   <path fill="#2b6636" d="M676 760Q738 751 814 736Q732 716 676 760z"/>
-  <!-- Lemons -->
-  <path fill="#7a5232" d="M440 300h8v60h-8zM560 520h8v50h-8zM330 240h8v70h-8z"/>
-  <path fill="#f4cf3a" d="M444 340C468 350 491 388 491 420S468 490 444 502S397 452 397 420S420 350 444 340z"/>
-  <path fill="#d9a91e" d="M458 365C496 394 496 446 458 478C477 439 477 401 458 365z"/>
-  <ellipse fill="#fbe788" cx="425" cy="398" rx="8" ry="8"/>
-  <path fill="#f4cf3a" d="M564 548C592 558 620 602 620 640S592 722 564 734S508 678 508 640S536 558 564 548z"/>
-  <path fill="#d9a91e" d="M581 575C626 610 626 670 581 708C603 663 603 617 581 575z"/>
-  <ellipse fill="#fbe788" cx="542" cy="613" rx="9" ry="9"/>
-  <path fill="#f4cf3a" d="M334 300C354 310 374 343 374 370S354 430 334 442S294 397 294 370S314 310 334 300z"/>
-  <path fill="#d9a91e" d="M346 324C378 348 378 392 346 419C362 386 362 354 346 324z"/>
-  <ellipse fill="#fbe788" cx="318" cy="351" rx="6" ry="6"/>
+  <!-- Lemons, each on a short stalk from the branch -->
+  <path fill="#7a5232" d="M328 186L334 214H342L336 186z"/>
+  <path fill="#f4cf3a" d="M326 228Q338 206 350 228C394 238 396 348 351 374Q338 400 325 374C280 348 282 238 326 228z" transform="rotate(6 338 222)"/>
+  <path fill="#d9a91e" d="M350 228C394 238 396 348 351 374C369 331 372 261 350 228z" transform="rotate(6 338 222)"/>
+  <ellipse fill="#fbe788" cx="314" cy="277" rx="9" ry="17" transform="rotate(6 338 222)"/>
+  <path fill="#7a5232" d="M474 262L496 304H504L482 262z"/>
+  <path fill="#f4cf3a" d="M488 318Q500 296 512 318C564 330 567 455 513 484Q500 510 487 484C433 455 436 330 488 318z" transform="rotate(-4 500 312)"/>
+  <path fill="#d9a91e" d="M512 318C564 330 567 455 513 484C535 435 538 356 512 318z" transform="rotate(-4 500 312)"/>
+  <ellipse fill="#fbe788" cx="473" cy="374" rx="10" ry="19" transform="rotate(-4 500 312)"/>
+  <path fill="#7a5232" d="M652 498L598 536H606L660 498z"/>
+  <path fill="#f4cf3a" d="M578 550Q590 528 602 550C660 563 663 700 603 732Q590 758 577 732C517 700 520 563 578 550z" transform="rotate(10 590 544)"/>
+  <path fill="#d9a91e" d="M602 550C660 563 663 700 603 732C628 678 632 592 602 550z" transform="rotate(10 590 544)"/>
+  <ellipse fill="#fbe788" cx="561" cy="611" rx="11" ry="21" transform="rotate(10 590 544)"/>
   <!-- Blossoms -->
   <circle fill="#fbf5ea" cx="250" cy="116" r="12"/>
   <circle fill="#fbf5ea" cx="263" cy="126" r="12"/>

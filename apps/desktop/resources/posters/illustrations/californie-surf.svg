@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1100" data-tb-style="relief">
+  <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd27a"/><stop offset="0.45" stop-color="#f5843a"/><stop offset="1" stop-color="#a8401a"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9ff0ea"/><stop offset="0.45" stop-color="#2fb8c0"/><stop offset="1" stop-color="#156a78"/></linearGradient><radialGradient id="g3" cx="0.4" cy="0.1" r="0.9"><stop offset="0" stop-color="#fff0cc"/><stop offset="0.6" stop-color="#f2d39a"/><stop offset="1" stop-color="#c9a066"/></radialGradient><radialGradient id="g4" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#ffb0a0"/><stop offset="0.6" stop-color="#f0604a"/><stop offset="1" stop-color="#a8301e"/></radialGradient></defs>
+  <!-- Two boards stuck upright in a sand mound, leaning apart -->
+  <path fill="url(#g1)" d="M620 120C737.0 240 750 540 724.0 960H516.0C490 540 503.0 240 620 120z" transform="rotate(9 620 960)"/>
+  <path fill="#ffffff" d="M496.5 500H743.5V540H493.9z" transform="rotate(9 620 960)"/>
+  <path fill="#ffffff" d="M614 150H626V960H614z" opacity="0.7" transform="rotate(9 620 960)"/>
+  <path fill="#ffffff" d="M548.5 270C529.0 420 526.4 620 539.4 880" opacity="0.4" fill-rule="nonzero" stroke="#ffffff" stroke-width="14" transform="rotate(9 620 960)"/>
+  <path fill="url(#g2)" d="M400 60C526.0 180 540 480 512.0 960H288.0C260 480 274.0 180 400 60z" transform="rotate(-7 400 960)"/>
+  <path fill="#f5843a" d="M267.0 440H533.0V480H264.20000000000005z" transform="rotate(-7 400 960)"/>
+  <path fill="#ffffff" d="M394 90H406V960H394z" opacity="0.7" transform="rotate(-7 400 960)"/>
+  <path fill="#ffffff" d="M323.0 210C302.0 360 299.2 560 313.2 880" opacity="0.4" fill-rule="nonzero" stroke="#ffffff" stroke-width="14" transform="rotate(-7 400 960)"/>
+  <!-- Sand mound -->
+  <path fill="url(#g3)" d="M30 1100C-129.3 1080.2 41.4 1022.4 90 990C138.6 957.6 222.6 935.3 300 920C377.4 904.7 437.2 904.1 520 905C602.8 905.9 686.2 908.8 760 925C833.8 941.2 891.3 963.5 930 995C968.7 1026.5 1137 1081.1 975 1100C813 1118.9 189.3 1119.8 30 1100z"/>
+  <circle fill="#c9a066" opacity="0.6" cx="299.4" cy="963.4" r="2.8"/>
+  <circle fill="#c9a066" opacity="0.6" cx="237.8" cy="958.6" r="2.8"/>
+  <circle fill="#c9a066" opacity="0.6" cx="817.6" cy="1054.1" r="3.5"/>
+  <circle fill="#c9a066" opacity="0.6" cx="288.7" cy="1019.8" r="2.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="251.2" cy="963.8" r="2.4"/>
+  <circle fill="#c9a066" opacity="0.6" cx="824.9" cy="1057.8" r="3.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="728.3" cy="975.1" r="2.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="596.5" cy="1045.1" r="3.7"/>
+  <circle fill="#c9a066" opacity="0.6" cx="788.8" cy="961.3" r="3.2"/>
+  <circle fill="#c9a066" opacity="0.6" cx="630.5" cy="1015.8" r="2.4"/>
+  <circle fill="#c9a066" opacity="0.6" cx="479.9" cy="961.6" r="3.9"/>
+  <circle fill="#c9a066" opacity="0.6" cx="777.8" cy="1021.2" r="2.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="810.7" cy="1024.4" r="3.8"/>
+  <circle fill="#c9a066" opacity="0.6" cx="764.5" cy="1016.1" r="2.8"/>
+  <circle fill="#c9a066" opacity="0.6" cx="575.2" cy="1006" r="2.3"/>
+  <circle fill="#c9a066" opacity="0.6" cx="351.9" cy="1055.6" r="2.1"/>
+  <circle fill="#c9a066" opacity="0.6" cx="155.2" cy="1031.4" r="2.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="526.3" cy="1011.3" r="2.7"/>
+  <circle fill="#c9a066" opacity="0.6" cx="877.9" cy="975.4" r="2.8"/>
+  <circle fill="#c9a066" opacity="0.6" cx="274" cy="1032.2" r="2.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="390.4" cy="1047.1" r="2.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="544.5" cy="1067.6" r="2.2"/>
+  <circle fill="#c9a066" opacity="0.6" cx="166.8" cy="979.8" r="3.5"/>
+  <circle fill="#c9a066" opacity="0.6" cx="587.7" cy="980.9" r="2.7"/>
+  <circle fill="#c9a066" opacity="0.6" cx="254.9" cy="1009.7" r="2.1"/>
+  <circle fill="#c9a066" opacity="0.6" cx="649.9" cy="1066.5" r="3.9"/>
+  <circle fill="#c9a066" opacity="0.6" cx="678.5" cy="1074.8" r="2"/>
+  <circle fill="#c9a066" opacity="0.6" cx="339.6" cy="1075.6" r="3.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="431.9" cy="1072.6" r="3.2"/>
+  <circle fill="#c9a066" opacity="0.6" cx="741.6" cy="988.1" r="2.4"/>
+  <circle fill="#c9a066" opacity="0.6" cx="457.5" cy="967.7" r="2.8"/>
+  <circle fill="#c9a066" opacity="0.6" cx="851" cy="993.1" r="2"/>
+  <circle fill="#c9a066" opacity="0.6" cx="154" cy="972" r="3.6"/>
+  <circle fill="#c9a066" opacity="0.6" cx="395.7" cy="987.7" r="2.2"/>
+  <circle fill="#c9a066" opacity="0.6" cx="866.1" cy="1005.1" r="2.4"/>
+  <circle fill="#c9a066" opacity="0.6" cx="165.1" cy="957.2" r="2.3"/>
+  <circle fill="#c9a066" opacity="0.6" cx="634.4" cy="969.5" r="2.1"/>
+  <circle fill="#c9a066" opacity="0.6" cx="492.9" cy="982.4" r="4"/>
+  <circle fill="#c9a066" opacity="0.6" cx="212.9" cy="1018.8" r="3.5"/>
+  <circle fill="#c9a066" opacity="0.6" cx="431.1" cy="1078.4" r="3"/>
+  <!-- Starfish -->
+  <path fill="url(#g4)" d="M790 964C792.4 964 800 993.7 805.3 996.2C810.6 998.8 855.8 994.3 856.6 995.8C857.3 997.3 816.8 1011.1 814.7 1015.3C812.7 1019.4 833.1 1046.3 831.1 1047.2C829.2 1048.2 796.6 1027 790 1027C783.4 1027 750.8 1048.2 748.9 1047.2C746.9 1046.3 767.3 1019.4 765.3 1015.3C763.2 1011.1 722.7 997.3 723.4 995.8C724.2 994.3 769.4 998.8 774.7 996.2C780 993.7 787.6 964 790 964z"/>
+  <circle fill="#ffb0a0" cx="790" cy="996.2" r="3.5"/>
+  <circle fill="#ffb0a0" cx="790" cy="984.7" r="3.5"/>
+  <circle fill="#ffb0a0" cx="790" cy="973.2" r="3.5"/>
+  <circle fill="#ffb0a0" cx="810" cy="1005.7" r="3.5"/>
+  <circle fill="#ffb0a0" cx="826.6" cy="1002.2" r="3.5"/>
+  <circle fill="#ffb0a0" cx="843.3" cy="998.6" r="3.5"/>
+  <circle fill="#ffb0a0" cx="802.3" cy="1021.2" r="3.5"/>
+  <circle fill="#ffb0a0" cx="812.6" cy="1030.5" r="3.5"/>
+  <circle fill="#ffb0a0" cx="822.9" cy="1039.8" r="3.5"/>
+  <circle fill="#ffb0a0" cx="777.7" cy="1021.2" r="3.5"/>
+  <circle fill="#ffb0a0" cx="767.4" cy="1030.5" r="3.5"/>
+  <circle fill="#ffb0a0" cx="757.1" cy="1039.8" r="3.5"/>
+  <circle fill="#ffb0a0" cx="770" cy="1005.7" r="3.5"/>
+  <circle fill="#ffb0a0" cx="753.4" cy="1002.2" r="3.5"/>
+  <circle fill="#ffb0a0" cx="736.7" cy="998.6" r="3.5"/>
+</svg>

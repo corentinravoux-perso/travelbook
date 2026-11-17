@@ -27,6 +27,7 @@ interface EditorHandle {
     apply(op: (book: Book) => Book, label: string): void;
     flush(): Promise<void>;
     setZoom(zoom: number): void;
+    setActivePage(page: 'left' | 'right'): void;
   };
   setState(patch: { currentSpreadId?: string; selection?: string[] }): void;
 }
@@ -207,6 +208,20 @@ test('imports photos, groups them by EXIF day, and the day checkbox selects its 
     expect((await pressed()).sort()).toEqual(['day1.jpg', 'landscape.jpg', 'small.jpg']);
     await page.getByRole('checkbox', { name: /mercredi 10 juin 2026/ }).uncheck();
     expect((await pressed()).sort()).toEqual(['landscape.jpg', 'small.jpg']);
+
+    // The chevron of a day folds its photos away under the header, and unfolds them.
+    const fold = page.getByRole('button', { name: 'Replier les photos du mercredi 10 juin 2026' });
+    await expect(fold).toHaveAttribute('aria-expanded', 'true');
+    await fold.click();
+    await expect(grid.locator('.photo-thumb')).toHaveCount(3);
+    await expect(grid.locator('.photo-thumb[title="day1.jpg"]')).toHaveCount(0);
+    await expect(days).toHaveCount(3);
+    const unfold = page.getByRole('button', {
+      name: 'Déplier les photos du mercredi 10 juin 2026',
+    });
+    await expect(unfold).toHaveAttribute('aria-expanded', 'false');
+    await unfold.click();
+    await expect(grid.locator('.photo-thumb')).toHaveCount(4);
 
     // Sorting by name keeps the groups and orders each by name.
     await page.getByRole('button', { name: 'Nom', exact: true }).click();
@@ -661,5 +676,120 @@ test('importing the same photo again puts a missing original back', async () => 
     await expect(again.locator('.photo-thumb')).toHaveCount(1);
   } finally {
     await app.close().catch(() => {});
+  }
+});
+
+test('photos imported by mistake are removed from the album, frames emptied, and can come back', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await openAlbum(page, 'Oups', [slot('f', 20, 20, 100, 70)]);
+    await importPhotos(app, page, ['landscape.jpg', 'small.jpg', 'day1.jpg']);
+    await dropOnPage(page, 'small.jpg', 70, 55);
+    const placed = await savedBook(page, 'oups');
+    expect(frames(placed)[0]!.assetId).toBe(assetIdOf(placed, 'small.jpg'));
+
+    // Tick two photos: the bar counts them and asks before removing.
+    await page.locator('.photo-thumb[title="small.jpg"]').click({ modifiers: ['Control'] });
+    await page.locator('.photo-thumb[title="day1.jpg"]').click({ modifiers: ['Control'] });
+    const bar = page.getByRole('region', { name: 'Photos sélectionnées' });
+    await expect(bar).toContainText('2 photos sélectionnées');
+    await bar.getByRole('button', { name: 'Supprimer…', exact: true }).click();
+    const ask = page.getByRole('alertdialog', { name: "Supprimer 2 photos de l'album ?" });
+    await expect(ask).toContainText('1 est placée dans le livre : son cadre sera vidé.');
+    // Escape answers no.
+    await page.keyboard.press('Escape');
+    await expect(ask).toBeHidden();
+    await expect(page.locator('.photo-thumb')).toHaveCount(3);
+
+    await bar.getByRole('button', { name: 'Supprimer…', exact: true }).click();
+    await ask.getByRole('button', { name: "Supprimer de l'album", exact: true }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(1);
+    await expect(page.getByRole('status').filter({ hasText: 'supprimées' })).toContainText(
+      "2 photos supprimées de l'album.",
+    );
+    await expect
+      .poll(async () => {
+        const book = await savedBook(page, 'oups');
+        return [Object.keys(book.assets).length, frames(book)[0]!.assetId];
+      })
+      .toEqual([1, null]);
+
+    // One undo step puts both back, and the photo back in its frame.
+    await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(3);
+    await expect
+      .poll(async () => frames(await savedBook(page, 'oups'))[0]!.assetId)
+      .toBe(assetIdOf(placed, 'small.jpg'));
+
+    // The shortcut on a thumbnail asks for that photo alone; once removed, it can be imported again.
+    await page
+      .locator('.photo-cell')
+      .filter({ has: page.locator('[title="day1.jpg"]') })
+      .hover();
+    await page.getByRole('button', { name: "Supprimer day1.jpg de l'album…" }).click();
+    const one = page.getByRole('alertdialog', { name: "Supprimer 1 photo de l'album ?" });
+    await one.getByRole('button', { name: "Supprimer de l'album", exact: true }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(2);
+    await pickFiles(app, ['day1.jpg']);
+    await page.getByRole('button', { name: 'Importer des photos' }).click();
+    await expect(page.locator('.photo-thumb')).toHaveCount(3);
+  } finally {
+    await app.close();
+  }
+});
+
+test('a click puts a photo on the page or takes it off; a double-click shows it large', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    // One layout frame on the right page of the spread.
+    await openAlbum(page, 'Clic', [slot('frame', 250, 30, 120, 90)]);
+    await importPhotos(app, page, ['landscape.jpg', 'small.jpg']);
+    await evalEditor(page, (e) => e.getState().setActivePage('right'), null);
+    const thumb = (name: string) => page.locator(`.photo-thumb[title="${name}"]`);
+
+    // First click: the photo fills the empty frame of the page, and the tray marks it.
+    await thumb('small.jpg').click();
+    await expect(thumb('small.jpg')).toHaveAttribute('data-on-page', 'true');
+    await expect
+      .poll(async () => frames(await savedBook(page, 'clic'))[0]!.assetId)
+      .toBe(assetIdOf(await savedBook(page, 'clic'), 'small.jpg'));
+
+    // Another photo, with no empty frame left, gets a frame of its own.
+    await thumb('landscape.jpg').click();
+    await expect.poll(async () => frames(await savedBook(page, 'clic')).length).toBe(2);
+
+    // A second click takes it off: its own frame goes, the layout frame is only emptied.
+    await thumb('landscape.jpg').click();
+    await expect.poll(async () => frames(await savedBook(page, 'clic')).length).toBe(1);
+    await thumb('small.jpg').click();
+    await expect.poll(async () => frames(await savedBook(page, 'clic'))[0]!.assetId).toBeNull();
+    await expect(thumb('small.jpg')).not.toHaveAttribute('data-on-page', 'true');
+    // Ctrl + click ticks instead; nothing goes on the page.
+    await thumb('small.jpg').click({ modifiers: ['Control'] });
+    await expect(thumb('small.jpg')).toHaveAttribute('aria-pressed', 'true');
+    expect(frames(await savedBook(page, 'clic'))[0]!.assetId).toBeNull();
+
+    // A double-click opens the photo large and changes nothing on the page.
+    await thumb('landscape.jpg').dblclick();
+    const viewer = page.getByRole('dialog', { name: 'Photo landscape.jpg' });
+    await expect(viewer).toBeVisible();
+    await expect(viewer.getByRole('img', { name: 'landscape.jpg' })).toBeVisible();
+    await page.waitForTimeout(400);
+    expect(frames(await savedBook(page, 'clic'))).toHaveLength(1);
+    // The arrows go through the tray; the button puts the photo in view on the page.
+    await page.keyboard.press('ArrowRight');
+    const next = page.getByRole('dialog', { name: 'Photo small.jpg' });
+    await expect(next).toBeVisible();
+    await next.getByRole('button', { name: 'Mettre sur la page' }).click();
+    await expect(next.getByRole('button', { name: 'Retirer de la page' })).toBeVisible();
+    await expect.poll(async () => frames(await savedBook(page, 'clic'))[0]!.assetId).not.toBeNull();
+    await page.keyboard.press('Escape');
+    await expect(next).toBeHidden();
+  } finally {
+    await app.close();
   }
 });

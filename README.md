@@ -4,7 +4,7 @@ A desktop application for composing printed travel photo albums. Import your pho
 double pages from templates, add text, stickers and backgrounds, and export a print-ready PDF or
 one image per page. It works offline, needs no account, and never changes your original photos.
 
-**Version 0.1.0** ([CHANGELOG.md](CHANGELOG.md)). The Linux package is built and checked by the test suites
+**Version 1.1.0** ([CHANGELOG.md](CHANGELOG.md)). The Linux package is built and checked by the test suites
 ([docs/acceptance.md](docs/acceptance.md) lists what each goal rests on). The Windows installer is
 built by CI but has not been run on a real machine yet.
 
@@ -62,17 +62,26 @@ the front.
 2. **Import photos.** "Importer des photos" in the Photos panel, or drag files and folders from the
    file manager onto the window. Photos are grouped by day (from their EXIF date). Importing a
    photo the album already holds does nothing, except that a missing original is copied back.
-3. **Lay out the spreads.** Drag a photo onto a page, or pick a layout in the Modèles panel
+   A photo imported by mistake goes with the bin on its thumbnail, or by ticking photos
+   (Ctrl+click, or a day's checkbox) and "Supprimer…" in the bar under the tray. The frames that
+   showed it become empty; Ctrl+Z brings it back. The files on your computer are not touched.
+3. **Lay out the spreads.** Click a photo of the tray to put it on the page in view (a second
+   click takes it off), double-click it to see it large, or drag it onto a page, or pick a layout in the Modèles panel
    (273 templates for 1 to 16 photos, covers, chapter openings, text pages and whole spreads;
    "Mise en page aléatoire" tries another layout with the same number of photos). Crop, rotate,
    mask, add borders and shadows, and adjust the look of a photo in the inspector. A page can be
-   saved as your own template.
+   saved as your own template. Rulers in millimetres run along the top and the left of the page,
+   in the inspector's coordinates; they mark the pointer and the selection. Drag from a ruler onto
+   the page to lay a guide that elements snap to; drag it back onto its ruler, or double-click
+   it, to remove it. Guides are kept with the album and never printed. "Affichage" hides them
+   and sets the size of the rulers. The panel and the inspector fold away (the button at their
+   top) to give the page the room; a click on a tool opens the panel again.
 4. **Add text, stickers, shapes and backgrounds.** The Texte panel has five ready styles and the
    fonts (42 bundled families, your own TTF, OTF or WOFF2 files, and a search in the Fontsource
    catalogue). The Stickers panel searches 51 000 bundled stickers in French or English, online
    sources, and your own images. Fonds holds colours, gradients, patterns, textures and photos.
    For the cover, "Créer une affiche…" (in the cover tools and in Modèles) composes a poster:
-   the place in large letters, the year, and a drawing, from 43 presets for 13 destinations,
+   the place in large letters, the year, and a drawing, from 70 presets for 13 destinations,
    with a live preview; every colour, the layout and the text can be changed before it is
    applied, and the result is ordinary elements, undone in one step.
    The Cartes panel ("Créer une carte…") draws a map of a country or a region, offline: pick the
@@ -89,7 +98,9 @@ the front.
 
 The album saves itself a second after every change. The Historique tab keeps versions, one every
 ten minutes while you work and one with Ctrl+S, so an earlier state can be restored. Undo and redo
-cover the whole session. The overview (the grid button in the top bar) reorders the double pages.
+cover the whole session. The overview (the grid button in the top bar) reorders the double pages. The Calques tab of the
+inspector lists the elements of the double page: it hides, locks, renames, reorders and, with the
+bin of a row, deletes them.
 "Crédits des images" lists the licence of every sticker and background that needs one, and can
 insert the credits as text on a page.
 
@@ -125,7 +136,8 @@ An album is a folder you can copy, back up or send as a whole:
 ```
 Islande-2026.travelbook/
   book.json     the album: pages, elements, asset list (written atomically)
-  originals/    your photos, byte for byte, named by hash
+  originals/    your photos, byte for byte, named by hash (a photo removed from the album
+                keeps its file here, so an undo can show it again)
   assets/       stickers, backgrounds and fonts the album uses, with their licences
   cache/        thumbnails and previews, rebuilt when missing
   history/      the saved versions
@@ -146,11 +158,11 @@ asks for it.
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 42 font families (latin subset)                    | Fontsource packages of Google Fonts: SIL OFL 1.1 (40), Apache 2.0 (2). Each family folder carries its licence text.                                                         |
 | 51 272 stickers in 23 sets (built at release time) | Iconify icon sets, each with its own licence: MIT, Apache 2.0, CC0, CC BY 4.0 and CC BY-SA 4.0. The last two require attribution.                                           |
-| 43 poster drawings (set "Affiches") and presets    | Own work, MIT.                                                                                                                                                              |
+| 70 poster drawings (set "Affiches") and presets    | Own work, MIT.                                                                                                                                                              |
 | Map outlines and places (Cartes)                   | Overture Maps divisions and OpenStreetMap (ODbL 1.0, attribution required), Natural Earth (public domain), Wikidata (CC0), GeoNames (CC BY 4.0). Map styles: own work, MIT. |
 | 71 patterns and 24 textures                        | Generated by this repository's scripts, CC0 1.0.                                                                                                                            |
 | Templates, themes, app icon, keyword lists         | Own work, MIT.                                                                                                                                                              |
-| Interface font and icons                           | IBM Plex Sans and Source Serif 4 (SIL OFL 1.1) and Tabler Icons (MIT), see `apps/desktop/src/renderer/theme/LICENCES.md`.                                                   |
+| Interface font and icons                           | Nunito and Caveat (SIL OFL 1.1) and Tabler Icons (MIT), see `apps/desktop/src/renderer/theme/LICENCES.md`.                                                                  |
 
 The licence of every file under `apps/desktop/resources/` is in `fonts.json`, `backgrounds.json`,
 the sticker manifest or `apps/desktop/resources/LICENCES.json`, and a test fails when one is missing.

@@ -99,8 +99,15 @@ describe('poster presets', () => {
     }
   });
 
-  it('share the global design: the house face for every title', () => {
-    for (const p of presets) expect(p.spec.font, p.id).toBe('Lilita One');
+  it('have unique names (the gallery tiles are found by name)', () => {
+    const names = presets.map((p) => p.name);
+    expect(names.filter((n, i) => names.indexOf(n) !== i)).toEqual([]);
+  });
+
+  it('share the global design: Lilita One, or Anton for the Géant posters', () => {
+    for (const p of presets) {
+      expect(p.spec.font, p.id).toBe(p.spec.layout === 'geant' ? 'Anton' : 'Lilita One');
+    }
   });
 
   it('give each destination present at least 3 presets, one or more in the pixory family', () => {

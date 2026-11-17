@@ -37,7 +37,7 @@
   color: var(--ink);
 }
 .poster-chip[aria-pressed='true'] {
-  border-color: var(--invert-bg);
+  border-color: var(--accent);
   background: var(--invert-bg);
   color: var(--invert-fg);
 }
@@ -64,7 +64,7 @@
   box-shadow: var(--shadow-2);
 }
 .poster-tile[aria-pressed='true'] {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
 }
 .poster-preview {
   position: relative;
@@ -86,6 +86,79 @@
   border-right: 1px solid var(--halo);
   pointer-events: none;
 }
+/* Volume view: the poster as a closed book seen from the left (pure CSS 3D). */
+.poster-book {
+  overflow: visible;
+  perspective: 2400px;
+}
+.poster-book__body {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(-20deg);
+}
+.poster-book__front,
+.poster-book__spine {
+  position: absolute;
+  top: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+.poster-book__spine {
+  left: 0;
+  transform-origin: 100% 50%;
+  transform: rotateY(90deg);
+}
+.poster-book__shift {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-origin: 0 0;
+}
+.poster-book__gloss,
+.poster-book__spine-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* The hinge crease of a hard cover, then a faint sheen across the front. */
+.poster-book__gloss {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.22) 0,
+      rgb(255 255 255 / 0.32) 1.4%,
+      rgb(0 0 0 / 0.1) 2.8%,
+      rgb(0 0 0 / 0) 4.5%
+    ),
+    linear-gradient(
+      115deg,
+      rgb(255 255 255 / 0) 35%,
+      rgb(255 255 255 / 0.12) 50%,
+      rgb(255 255 255 / 0) 65%
+    );
+}
+.poster-book__spine-shade {
+  background: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 0.16),
+    rgb(255 255 255 / 0.14) 45%,
+    rgb(0 0 0 / 0.22)
+  );
+}
+.poster-book__shadow {
+  position: absolute;
+  left: 4%;
+  right: -2%;
+  bottom: -3%;
+  height: 6%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.28), rgb(0 0 0 / 0));
+  pointer-events: none;
+}
+.poster-dialog__view {
+  align-self: center;
+}
 .poster-dialog__body {
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(300px, 1fr);
@@ -100,8 +173,16 @@
   border-radius: var(--r2);
   background: var(--ground);
 }
-.poster-dialog__preview .poster-preview {
+.poster-dialog__preview .poster-preview:not(.poster-book) {
   box-shadow: var(--shadow-paper);
+}
+.poster-dialog__preview {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s5);
+}
+.poster-tile .poster-book {
+  margin: var(--s2) var(--s3);
 }
 .poster-dialog__form {
   display: flex;
@@ -154,8 +235,8 @@
   border-color: var(--line-strong);
 }
 .poster-drawing[aria-pressed='true'] {
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .poster-drawing img {
   max-width: 100%;
@@ -173,6 +254,79 @@
   font-size: var(--t-md);
 }
 @media (max-width: 760px) {
+  /* Volume view: the poster as a closed book seen from the left (pure CSS 3D). */
+  .poster-book {
+    overflow: visible;
+    perspective: 1600px;
+  }
+  .poster-book__body {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateY(-20deg);
+  }
+  .poster-book__front,
+  .poster-book__spine {
+    position: absolute;
+    top: 0;
+    overflow: hidden;
+    backface-visibility: hidden;
+  }
+  .poster-book__spine {
+    left: 0;
+    transform-origin: 100% 50%;
+    transform: rotateY(90deg);
+  }
+  .poster-book__shift {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transform-origin: 0 0;
+  }
+  .poster-book__gloss,
+  .poster-book__spine-shade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* The hinge crease of a hard cover, then a faint sheen across the front. */
+  .poster-book__gloss {
+    background:
+      linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.22) 0,
+        rgb(255 255 255 / 0.32) 1.4%,
+        rgb(0 0 0 / 0.1) 2.8%,
+        rgb(0 0 0 / 0) 4.5%
+      ),
+      linear-gradient(
+        115deg,
+        rgb(255 255 255 / 0) 35%,
+        rgb(255 255 255 / 0.12) 50%,
+        rgb(255 255 255 / 0) 65%
+      );
+  }
+  .poster-book__spine-shade {
+    background: linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.16),
+      rgb(255 255 255 / 0.14) 45%,
+      rgb(0 0 0 / 0.22)
+    );
+  }
+  .poster-book__shadow {
+    position: absolute;
+    left: 4%;
+    right: -2%;
+    bottom: -3%;
+    height: 6%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.28), rgb(0 0 0 / 0));
+    pointer-events: none;
+  }
+  .poster-dialog__view {
+    align-self: center;
+  }
   .poster-dialog__body {
     grid-template-columns: 1fr;
   }

@@ -29,9 +29,9 @@
   color: var(--ink);
 }
 .tpl-tab[aria-selected='true'] {
-  border-bottom-color: var(--ink);
-  font-weight: var(--w-medium);
-  color: var(--ink);
+  border-bottom-color: var(--accent);
+  font-weight: var(--w-semibold);
+  color: var(--accent-ink);
 }
 
 /* ---------- filters and spacing ---------- */
@@ -132,7 +132,7 @@
   transform: translateY(-1px);
 }
 .tpl-tile[aria-pressed='true'] {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 .tpl-box {

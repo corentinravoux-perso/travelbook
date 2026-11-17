@@ -31,7 +31,8 @@ export interface GridLayout {
 
 /**
  * Stack the groups into rows: a header (when `headers`), then the group's photos `columns` to a
- * row. `ids` of a photo row are indexes into the group's `photos`, so a row stays small whatever
+ * row, unless the group is `folded` (only its header then, so a group is never folded without
+ * one). `ids` of a photo row are indexes into the group's `photos`, so a row stays small whatever
  * the size of the book.
  */
 export function layoutRows(
@@ -39,6 +40,7 @@ export function layoutRows(
   columns: number,
   cell: number,
   headers: boolean,
+  folded: ReadonlySet<string> = new Set(),
 ): GridLayout {
   const rows: Row[] = [];
   let top = 0;
@@ -46,6 +48,7 @@ export function layoutRows(
     if (headers) {
       rows.push({ kind: 'header', key: group.key, top, height: HEADER_HEIGHT });
       top += HEADER_HEIGHT;
+      if (folded.has(group.key)) continue;
     }
     for (let start = 0; start < group.photos.length; start += columns) {
       const ids = Array.from(

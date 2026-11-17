@@ -53,6 +53,21 @@ dashed flight path with a plane), speech bubbles in the croquis line, photo corn
 frames and underlines, confetti, and French hand lettering. The lettering is converted to
 paths from the bundled OFL fonts, so no font is needed to display it.
 
+The labels (`etiquette-*`, `draw/deco-etiquettes.ts` for most of them) come in about fifty
+shapes, from flat geometric ones (oval, pill, hexagon, diamond, star, heart, cloud, arch,
+shield, pennant) through paper-craft ones (scalloped jam label, school label, index tab,
+torn paper, raffle ticket, envelope) to drawn objects (pinned note, paper clip, taped
+sheet, scroll, rosette, wax seal, chalkboard, stitched leather tag, airport luggage tag,
+gift tag with a bow). Each shape gets the palettes that suit it, dark ones (rouge, marine,
+noir, forêt) for a light text. They stay blank: the middle is left free for the text block.
+
+Torn-paper labels (`draw/deco-etiquettes-papier.ts`) are plain rectangles with no printed
+border, torn on one side, two opposite sides, a corner or all four, in five tear styles:
+`fin` (small irregular steps), `gros` (chunky), `dents` (sharp teeth), `vague` (soft wave)
+and `fibre` (a pale paper core showing along the tear). Where two torn sides meet they share
+one corner point, so no spike shows. Notebook pages (Seyès, squared, lined) are torn from a
+pad the same way, their ruling clipped to the paper.
+
 ## Rules for a new drawing
 
 - Id `<category>-<object>`, ASCII kebab case; the category prefix must be in the set's

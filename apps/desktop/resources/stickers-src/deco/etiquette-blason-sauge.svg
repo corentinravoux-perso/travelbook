@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360">
+<path d="M30 30H270V170C270 268 200 318 150 345C100 318 30 268 30 170Z" fill="#00000018" transform="translate(4 6)"/>
+<path d="M30 30H270V170C270 268 200 318 150 345C100 318 30 268 30 170Z" fill="#c9d8bf"/>
+<path d="M46 46H254V170C254 252 200 298.8 150 322.6C100 298.8 46 252 46 170Z" fill="none" stroke="#5c7d4c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150 52L154.2 62.2L165.2 63.1L156.8 70.2L159.4 80.9L150 75.2L140.6 80.9L143.2 70.2L134.8 63.1L145.8 62.2Z" fill="#5c7d4c"/>
+</svg>

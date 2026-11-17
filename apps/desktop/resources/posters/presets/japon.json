@@ -106,5 +106,86 @@
       },
       "spine": true
     }
+  },
+  {
+    "id": "japon-daruma",
+    "destination": "japon",
+    "name": "Japon, daruma",
+    "spec": {
+      "layout": "geant",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#f8e6dc",
+        "title": "#d8261c",
+        "accent": "#c99a2a",
+        "decor": "#fdf3ee",
+        "illustration": {
+          "main": "#d8261c",
+          "shade": "#d8261c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-daruma"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "japon-koi",
+    "destination": "japon",
+    "name": "Japon, carpes koï",
+    "spec": {
+      "layout": "soleil",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Lilita One",
+      "colors": {
+        "background": "#f6ece0",
+        "title": "#e0452c",
+        "accent": "#3f7a3a",
+        "decor": "#d3ecef",
+        "illustration": {
+          "main": "#e0452c",
+          "shade": "#e0452c"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-koi"
+      },
+      "spine": true
+    }
+  },
+  {
+    "id": "japon-lac-fuji",
+    "destination": "japon",
+    "name": "Japon, Fuji au bord du lac",
+    "spec": {
+      "layout": "geant",
+      "title": "JAPON",
+      "subtitle": "",
+      "year": "",
+      "font": "Anton",
+      "colors": {
+        "background": "#fbe6e9",
+        "title": "#3f5f8f",
+        "accent": "#e07890",
+        "decor": "#fbe6e9",
+        "illustration": {
+          "main": "#3f5f8f",
+          "shade": "#3f5f8f"
+        }
+      },
+      "illustration": {
+        "set": "affiches",
+        "id": "japon-lac-fuji"
+      },
+      "spine": true
+    }
   }
 ]

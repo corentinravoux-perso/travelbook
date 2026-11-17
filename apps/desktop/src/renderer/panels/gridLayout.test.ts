@@ -59,6 +59,26 @@ describe('layoutRows', () => {
     expect(rows.every((r) => r.kind === 'photos')).toBe(true);
     expect(rows).toHaveLength(2);
   });
+  it('keeps only the header of a folded group', () => {
+    const { rows, height } = layoutRows(
+      [group('a', 7), group('b', 1)],
+      3,
+      80,
+      true,
+      new Set(['a']),
+    );
+    expect(rows.map((r) => [r.kind, r.key])).toEqual([
+      ['header', 'a'],
+      ['header', 'b'],
+      ['photos', 'b'],
+    ]);
+    expect(rows[1]).toMatchObject({ top: HEADER_HEIGHT });
+    expect(height).toBe(2 * HEADER_HEIGHT + (80 + GAP));
+  });
+  it('never folds a group without headers', () => {
+    const { rows } = layoutRows([group('a', 4)], 2, 80, false, new Set(['a']));
+    expect(rows).toHaveLength(2);
+  });
   it('has no rows and no height for no photos', () => {
     expect(layoutRows([], 3, 80, true)).toEqual({ rows: [], height: 0 });
   });

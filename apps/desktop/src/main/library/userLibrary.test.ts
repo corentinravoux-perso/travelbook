@@ -336,20 +336,32 @@ describe('listLibrary', () => {
     });
 
     describe('recent', () => {
-      it('is empty while nothing was used', async () => {
-        expect(await ids({ recent: 5 })).toEqual([]);
+      it('lists the added items, newest first, while nothing was used', async () => {
+        expect(await ids({ recent: 5 })).toEqual([soleil.id, nuage.id, etoile.id]);
       });
 
-      it('returns the n most recently used, most recent first, without the unused ones', async () => {
+      it('returns the n most recently used or added, most recent first', async () => {
         at('2026-06-01T10:00:00.000Z');
         await touchUsed(etoile.id);
         at('2026-06-01T11:00:00.000Z');
         await touchUsed(soleil.id);
         at('2026-06-01T12:00:00.000Z');
         await touchUsed(etoile.id);
-        expect(await ids({ recent: 5 })).toEqual([etoile.id, soleil.id]);
+        expect(await ids({ recent: 5 })).toEqual([etoile.id, soleil.id, nuage.id]);
         expect(await ids({ recent: 1 })).toEqual([etoile.id]);
         expect(await ids({ recent: 0 })).toEqual([]);
+      });
+
+      it('puts an image imported after the last use first', async () => {
+        at('2026-06-01T10:00:00.000Z');
+        await touchUsed(etoile.id);
+        at('2026-06-01T11:00:00.000Z');
+        const lune = await addToLibrary(
+          'sticker',
+          { path: fixturePath('small.jpg'), ext: '.jpg' },
+          { title: 'Lune' },
+        );
+        expect(await ids({ recent: 2 })).toEqual([lune.id, etoile.id]);
       });
 
       it('applies the other filters first', async () => {
@@ -359,7 +371,7 @@ describe('listLibrary', () => {
         await touchUsed(soleil.id);
         await setFavourite(etoile.id, true);
         expect(await ids({ recent: 5, favourite: true })).toEqual([etoile.id]);
-        expect(await ids({ recent: 5, text: 'jour' })).toEqual([soleil.id]);
+        expect(await ids({ recent: 5, text: 'jour' })).toEqual([soleil.id, nuage.id]);
       });
 
       it('does not mix kinds', async () => {
@@ -369,7 +381,7 @@ describe('listLibrary', () => {
           { title: 'Fond' },
         );
         await touchUsed(bg.id);
-        expect(await ids({ recent: 5 })).toEqual([]);
+        expect(await ids({ recent: 5 })).not.toContain(bg.id);
         expect((await listLibrary('background', { recent: 5 })).map((i) => i.id)).toEqual([bg.id]);
       });
     });

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { findSpread, useEditor } from '../../store/editor';
 import { fr } from '../../strings/fr';
+import { Icon } from '../../theme/Icon';
 import { HistoryPanel } from '../HistoryPanel';
 import { LayersPanel } from '../LayersPanel';
 import { MapInspector } from './MapInspector';
@@ -68,25 +69,40 @@ function Properties() {
  * then the sections of its kind) or the page; Layers the stack of the spread; History the
  * snapshots of the project.
  */
-export function Inspector() {
+export function Inspector({ onFold }: { onFold?(): void } = {}) {
   const [tab, setTab] = useState<Tab>('properties');
   return (
     <div className="insp-pane">
-      <div className="insp-tabs" role="tablist" aria-label={fr.inspector.tabs}>
-        {TABS.map(([id, label]) => (
+      <div className="insp-head">
+        <div className="insp-tabs" role="tablist" aria-label={fr.inspector.tabs}>
+          {TABS.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`insp-tab-${id}`}
+              className="insp-tab"
+              aria-selected={tab === id}
+              aria-controls="insp-tabpanel"
+              onClick={() => setTab(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {onFold && (
           <button
-            key={id}
             type="button"
-            role="tab"
-            id={`insp-tab-${id}`}
-            className="insp-tab"
-            aria-selected={tab === id}
-            aria-controls="insp-tabpanel"
-            onClick={() => setTab(id)}
+            className="icon-button insp-fold"
+            aria-label={fr.shell.foldInspector}
+            title={fr.shell.foldInspector}
+            aria-expanded={true}
+            aria-controls="shell-inspector"
+            onClick={onFold}
           >
-            {label}
+            <Icon name="layout-sidebar-right-collapse" />
           </button>
-        ))}
+        )}
       </div>
       <div
         id="insp-tabpanel"
