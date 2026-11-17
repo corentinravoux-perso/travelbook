@@ -226,7 +226,7 @@ describe('Inspector', () => {
   describe('common section and tabs', () => {
     it('moves the selected element when X is typed, as one undo step', () => {
       render(<Inspector />);
-      const x = screen.getByLabelText('X');
+      const x = screen.getByLabelText('Horizontal');
       fireEvent.focus(x);
       fireEvent.change(x, { target: { value: '30' } });
       fireEvent.blur(x);
@@ -238,7 +238,7 @@ describe('Inspector', () => {
 
     it('takes a decimal comma and rejects what is not a number', () => {
       render(<Inspector />);
-      const y = screen.getByLabelText('Y') as HTMLInputElement;
+      const y = screen.getByLabelText('Vertical') as HTMLInputElement;
       fireEvent.change(y, { target: { value: '12,5' } });
       fireEvent.blur(y);
       expect(photos()[0]!.y).toBe(12.5);
@@ -252,7 +252,7 @@ describe('Inspector', () => {
       render(<Inspector />);
       fireEvent.click(screen.getByRole('button', { name: 'Verrouiller' }));
       expect(photos()[0]!.locked).toBe(true);
-      expect((screen.getByLabelText('X') as HTMLInputElement).disabled).toBe(true);
+      expect((screen.getByLabelText('Horizontal') as HTMLInputElement).disabled).toBe(true);
       expect(screen.getByRole('button', { name: 'Déverrouiller' })).toBeTruthy();
     });
 

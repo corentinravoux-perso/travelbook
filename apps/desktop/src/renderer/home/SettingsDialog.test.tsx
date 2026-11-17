@@ -21,9 +21,17 @@ const source = (over: Partial<StickerSourceInfo>): StickerSourceInfo => ({
   ...over,
 });
 
-function mock(sources: StickerSourceInfo[], setKey = vi.fn(() => Promise.resolve())) {
+function mock(
+  sources: StickerSourceInfo[],
+  setKey = vi.fn(() => Promise.resolve()),
+  menu: { language?: 'fr' | 'en'; set?: ReturnType<typeof vi.fn> } = {},
+) {
   (window as unknown as { tb: unknown }).tb = {
     library: { stickers: { sources: () => Promise.resolve(sources), setKey } },
+    settings: {
+      menuLanguage: () => Promise.resolve(menu.language ?? 'fr'),
+      setMenuLanguage: menu.set ?? vi.fn(() => Promise.resolve()),
+    },
   };
   return setKey;
 }
@@ -56,5 +64,24 @@ describe('SettingsDialog', () => {
     await screen.findByLabelText(fr.settings.keyLabel('Pexels'));
     fireEvent.click(screen.getByRole('button', { name: fr.settings.save }));
     await screen.findByText(fr.settings.keyFailed);
+  });
+
+  it('offers the menu language, French selected by default, and saves a change at once', async () => {
+    const set = vi.fn(() => Promise.resolve());
+    mock([], undefined, { set });
+    render(<SettingsDialog onClose={() => undefined} />);
+    const select = (await screen.findByLabelText(fr.settings.menuLanguage)) as HTMLSelectElement;
+    await waitFor(() => expect(select.value).toBe('fr'));
+    expect([...select.options].map((o) => o.textContent)).toEqual(['Français', 'English']);
+    fireEvent.change(select, { target: { value: 'en' } });
+    await waitFor(() => expect(set).toHaveBeenCalledWith('en'));
+    expect(select.value).toBe('en');
+  });
+
+  it('shows the stored language', async () => {
+    mock([], undefined, { language: 'en' });
+    render(<SettingsDialog onClose={() => undefined} />);
+    const select = (await screen.findByLabelText(fr.settings.menuLanguage)) as HTMLSelectElement;
+    await waitFor(() => expect(select.value).toBe('en'));
   });
 });

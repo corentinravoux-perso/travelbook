@@ -411,7 +411,16 @@ export interface ExportApi {
  * `window.tb`. Every method talks to the main process, which validates what it receives. Methods
  * that need a project fail unless one was created or opened.
  */
+/** The language of the application menu bar (the interface itself stays French). */
+export type MenuLanguage = 'fr' | 'en';
+
 export interface TbApi {
+  settings: {
+    /** `'fr'` until the user picks English. */
+    menuLanguage(): Promise<MenuLanguage>;
+    /** Store the choice and rebuild the menu bar at once. */
+    setMenuLanguage(language: MenuLanguage): Promise<void>;
+  };
   project: {
     /** `null` when the user cancels the folder dialog. */
     create(options: CreateProjectOptions): Promise<ProjectInfo | null>;
@@ -420,6 +429,11 @@ export interface TbApi {
     /** Replace `book.json`. Main also remembers the book for `snapshot`. */
     save(book: Book): Promise<void>;
     recent(): Promise<RecentProject[]>;
+    /**
+     * Copy the album in `dir` next to itself as "<title> (copie)" with a new book id; does not open
+     * it. Rejects when the folder is not an album or the copy fails (nothing is left behind).
+     */
+    duplicate(dir: string): Promise<ProjectInfo>;
     /** Copy the book as last saved (or opened) into `history/`. */
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
     listSnapshots(): Promise<SnapshotInfo[]>;

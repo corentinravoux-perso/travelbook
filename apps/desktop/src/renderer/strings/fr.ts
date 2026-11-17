@@ -865,8 +865,8 @@ export const fr = {
     selection: (count: number) => `${count} éléments`,
     typeNames: { photo: 'Photo', text: 'Texte', shape: 'Forme', sticker: 'Sticker', map: 'Carte' },
     position: 'Position et taille',
-    x: 'X',
-    y: 'Y',
+    x: 'Horizontal',
+    y: 'Vertical',
     width: 'Largeur',
     height: 'Hauteur',
     rotation: 'Rotation',
@@ -1266,6 +1266,9 @@ export const fr = {
     save: 'Enregistrer',
     close: 'Fermer',
     loadFailed: 'Les sources sont introuvables.',
+    menuLanguage: 'Langue des menus',
+    menuLanguageHelp: "Seule la barre de menus change de langue : l'interface reste en français.",
+    menuLanguageFailed: "La langue des menus n'a pas pu être enregistrée.",
   },
   // Rail entries, in rail order; also the panel titles.
   panels: {
@@ -1307,6 +1310,10 @@ export const fr = {
     openedOn: (date: string) => `Ouvert le ${date}`,
     coverAlt: (title: string) => `Couverture de ${title}`,
     createFailed: "Le livre n'a pas pu être créé. Vérifiez le dossier choisi et réessayez.",
+    duplicate: (title: string) => `Dupliquer ${title}`,
+    duplicateLabel: 'Dupliquer',
+    duplicateFailed:
+      "L'album n'a pas pu être dupliqué. Vérifiez l'espace disponible et que son dossier existe encore.",
     openFailed:
       "Le livre n'a pas pu être ouvert. Vérifiez que son dossier existe encore et réessayez.",
   },

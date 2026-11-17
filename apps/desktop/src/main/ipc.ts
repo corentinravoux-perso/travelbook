@@ -10,7 +10,13 @@ import {
   type Book,
 } from '@travelbook/core';
 import { z } from 'zod';
-import type { CaptureRect, ExportOptions, ExportProgress, LibraryItem } from '../shared/api';
+import type {
+  CaptureRect,
+  ExportOptions,
+  ExportProgress,
+  LibraryItem,
+  MenuLanguage,
+} from '../shared/api';
 import {
   CHANNEL,
   EXPORT_PROGRESS_CHANNEL,
@@ -79,6 +85,8 @@ import {
   readSnapshot,
   writeSnapshot,
 } from './project/snapshots';
+import { menuLanguage, setMenuLanguage } from './app-settings';
+import { duplicateProject } from './project/duplicate';
 import { createProject, openProject, saveBook } from './project/store';
 import {
   knownAssets,
@@ -100,6 +108,8 @@ export interface Host {
   openExternal(url: string): Promise<void>;
   showInFolder(path: string): void;
   version(): string;
+  /** Rebuild the application menu bar in this language. */
+  applyMenu(language: MenuLanguage): void;
   /** The system clipboard. */
   clipboard: ClipboardHost;
   /**
@@ -202,6 +212,8 @@ const schemas = {
     }),
   ]),
   open: z.tuple([absolutePath.optional()]),
+  duplicate: z.tuple([absolutePath]),
+  menuLanguage: z.tuple([z.enum(['fr', 'en'])]),
   save: z.tuple([BookSchema]),
   captureRect: z.tuple([captureRect]),
   snapshotLabel: z.tuple([z.enum(['auto', 'manual'])]),
@@ -345,6 +357,22 @@ export function createHandlers(host: Host): IpcHandlers {
       const opened = await openProject(dir);
       openSession(opened.dir, opened.book);
       return opened;
+    },
+
+    [CHANNEL.settingsMenuLanguage]: async (_ctx, ...args) => {
+      parseArgs(CHANNEL.settingsMenuLanguage, schemas.none, args);
+      return menuLanguage();
+    },
+
+    [CHANNEL.settingsSetMenuLanguage]: async (_ctx, ...args) => {
+      const [language] = parseArgs(CHANNEL.settingsSetMenuLanguage, schemas.menuLanguage, args);
+      await setMenuLanguage(language);
+      host.applyMenu(language);
+    },
+
+    [CHANNEL.projectDuplicate]: async (_ctx, ...args) => {
+      const [dir] = parseArgs(CHANNEL.projectDuplicate, schemas.duplicate, args);
+      return duplicateProject(dir);
     },
 
     [CHANNEL.projectPickFolder]: async (_ctx, ...args) => {
