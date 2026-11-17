@@ -43,7 +43,7 @@ linux:
       arch: [x64]
   icon: resources/icons/png
   category: Graphics
-  maintainer: Corentin Ravoux <corentin.ravoux.research@gmail.com>
+  maintainer: Corentin Ravoux <52483673+corentinravoux@users.noreply.github.com>
   # The French text of the menu entry: electron-builder writes `description` as the `Comment` of
   # the .desktop file (a `desktop.entry.Comment` would be overwritten), and `synopsis` and
   # `description` as the first line and the body of the package description.

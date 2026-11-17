@@ -13,20 +13,16 @@ function git(args: string[]): string[] | null {
   return result.stdout.split('\n').filter((line) => line !== '');
 }
 
-/** CLEANROOM.md states the rules, README.md says what the project is, docs/ records the behaviour. */
-const allowed = (file: string): boolean =>
-  file === 'CLEANROOM.md' || file === 'README.md' || file.startsWith('docs/');
-
 describe('the clean-room rule', () => {
-  it('names the other editor only in CLEANROOM.md, README.md and docs/', () => {
+  it('names the other editor in no tracked file', () => {
     const files = git(['grep', '-il', WORD]);
     if (files === null) return;
-    expect(files.filter((file) => !allowed(file))).toEqual([]);
+    expect(files).toEqual([]);
   });
 
-  it('keeps its name out of every file name outside docs/', () => {
+  it('keeps its name out of every file name', () => {
     const files = git(['ls-files']);
     if (files === null) return;
-    expect(files.filter((file) => file.toLowerCase().includes(WORD) && !allowed(file))).toEqual([]);
+    expect(files.filter((file) => file.toLowerCase().includes(WORD))).toEqual([]);
   });
 });

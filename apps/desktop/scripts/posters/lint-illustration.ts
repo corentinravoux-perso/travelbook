@@ -4,8 +4,8 @@
  * style sheet or style attribute, no link), at most five colours, written as hex; at least one
  * `tb-main` shape; every `tb-main` / `tb-shade` shape carries its own default `fill`; a `viewBox`
  * on the root. Two families: "découpé" (the default: at most five colours, a `tb-main` shape) and
- * "pixory" (`<svg data-tb-style="pixory">`: natural colours, at most eight, no role required) and
- * "relief" (`<svg data-tb-style="relief">`: modelled in volume, like "pixory" but with linear and
+ * "naturel" (`<svg data-tb-style="naturel">`: natural colours, at most eight, no role required) and
+ * "relief" (`<svg data-tb-style="relief">`: modelled in volume, like "naturel" but with linear and
  * radial gradients, `fill="url(#id)"` to a gradient of the same file, and `opacity` /
  * `fill-opacity` for highlights and soft shadows; at most sixteen hex colours, gradient stops
  * included; still no filter, mask or clip path). Pure string work, no DOM. The base-on-the-bottom-edge rule needs a render: the
@@ -33,9 +33,9 @@ const BANNED_ELEMENTS = [
   'marker',
 ];
 export const MAX_COLOURS = 5;
-export const MAX_COLOURS_PIXORY = 8;
+export const MAX_COLOURS_NATUREL = 8;
 export const MAX_COLOURS_RELIEF = 16;
-export const FAMILIES = ['decoupe', 'pixory', 'relief'] as const;
+export const FAMILIES = ['decoupe', 'naturel', 'relief'] as const;
 /** What the relief family adds to the flat families: gradients and their stops. */
 const RELIEF_ELEMENTS = new Set(['linearGradient', 'radialGradient']);
 const RELIEF_ONLY_ATTRS = new Set(['opacity', 'fill-opacity', 'stop-opacity']);
@@ -112,8 +112,8 @@ export function lintIllustration(svg: string): string[] {
   const max =
     family === 'relief'
       ? MAX_COLOURS_RELIEF
-      : family === 'pixory'
-        ? MAX_COLOURS_PIXORY
+      : family === 'naturel'
+        ? MAX_COLOURS_NATUREL
         : MAX_COLOURS;
   if (colours.size > max) {
     errors.push(`${colours.size} colours (at most ${max}): ${[...colours].join(' ')}`);
