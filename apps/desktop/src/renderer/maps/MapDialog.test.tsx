@@ -575,6 +575,23 @@ describe('the sections of the dialog', () => {
     expect(within(dialog()).queryByRole('group', { name: t.places.title })).toBeNull();
   });
 
+  it('keeps the place search when switching to Style and back', async () => {
+    await thai();
+    const search = () => within(dialog()).getByRole('searchbox', { name: t.places.addLabel });
+    fireEvent.change(search(), { target: { value: 'pho' } });
+    const offers = () =>
+      within(dialog())
+        .queryAllByRole('option')
+        .map((n) => n.textContent);
+    await waitFor(() => expect(offers().length).toBeGreaterThan(0));
+    const before = offers();
+    fireEvent.click(tab('Style'));
+    expect(within(dialog()).queryByRole('searchbox', { name: t.places.addLabel })).toBeNull();
+    fireEvent.click(tab('Lieux'));
+    expect((search() as HTMLInputElement).value).toBe('pho');
+    expect(offers()).toEqual(before);
+  });
+
   it('arrow keys, Home and End move between the tabs (roving tabindex)', async () => {
     await thai();
     expect([tab('Lieux').tabIndex, tab('Itinéraire').tabIndex, tab('Style').tabIndex]).toEqual([
