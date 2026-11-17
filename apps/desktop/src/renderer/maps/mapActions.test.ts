@@ -2,6 +2,7 @@
 import { mapElement } from '@travelbook/core/src/map/test-helpers';
 import {
   MAP_LICENCE,
+  bakeGeometry,
   addElement,
   bookForSave,
   newBook,
@@ -14,6 +15,11 @@ import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@travelbook/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@travelbook/core')>();
+  return { ...actual, bakeGeometry: vi.fn(actual.bakeGeometry) };
+});
 import { saveGeometryAsset } from '../../main/maps/geometry-asset';
 import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
@@ -172,56 +178,90 @@ describe('applyMap, new map', () => {
     expect(maps(editorStore.getState().book!)[0]!.name).toBe('Notre Thaïlande');
   });
 
-  it('bakes a region subject from its bundled fine pack', async () => {
-    await openMapDialog();
-    await pickSubject('IT');
-    updateSpec({ subject: { ...mapDialogStore.getState().spec!.subject, regions: [] } });
-    await applyMap(mapDialogStore.getState());
-    expect(loadPack).toHaveBeenCalledWith('IT');
-    expect(mapDialogStore.getState().packFallback).toBeNull();
-    expect(maps(editorStore.getState().book!)).toHaveLength(1);
-  });
+  const regionsOf = (id: string) => index.subjects.find((x) => x.id === id)!.regions!;
+  const choose = (id: string, regions: string[]) =>
+    updateSpec({ subject: { ...mapDialogStore.getState().spec!.subject, regions } });
+  const bakedPack = () => vi.mocked(bakeGeometry).mock.calls.at(-1)![1];
 
-  it.each(['offline', 'checksum', 'unknown'] as const)(
-    'bakes from the base file when the pack is %s, and the dialog says why from the pick on',
-    async (reason) => {
-      packReply = { ok: false, reason };
-      await openMapDialog();
-      await pickSubject('IT');
-      expect(mapDialogStore.getState().packFallback).toBe(reason);
-      await applyMap(mapDialogStore.getState());
-      expect(maps(editorStore.getState().book!)).toHaveLength(1);
-      // nothing is left after the dialog closes
-      expect(mapDialogStore.getState().packFallback).toBeNull();
-    },
-  );
-
-  it('treats a throwing pack call as offline', async () => {
-    loadPack.mockRejectedValueOnce(new Error('ipc'));
-    await openMapDialog();
-    await pickSubject('IT');
-    expect(mapDialogStore.getState().packFallback).toBe('offline');
-    await applyMap(mapDialogStore.getState());
-    expect(maps(editorStore.getState().book!)).toHaveLength(1);
-  });
-
-  it('asks for a pack only when the index lists one: no pack, no call and no fallback', async () => {
-    // every subject of the shipped index lists a pack: take it off Thailand
-    setSubjectIndex({
-      subjects: index.subjects.map((x) => ({ ...x, pack: undefined })),
-    });
-    packReply = { ok: false, reason: 'unknown' };
+  it('bakes a whole country from the base file alone: no pack call, no fallback', async () => {
+    packReply = { ok: false, reason: 'offline' };
     await openMapDialog();
     await pickSubject('TH');
     expect(loadPack).not.toHaveBeenCalled();
     expect(mapDialogStore.getState().packFallback).toBeNull();
     await applyMap(mapDialogStore.getState());
     expect(loadPack).not.toHaveBeenCalled();
+    expect(bakedPack()).toBeNull();
+    expect(maps(editorStore.getState().book!)).toHaveLength(1);
   });
 
-  it('loads the subject data once: the pick loads it, the apply reuses it', async () => {
+  it('bakes chosen regions from the fine pack', async () => {
     await openMapDialog();
     await pickSubject('IT');
+    await choose('IT', [regionsOf('IT')[0]!.id]);
+    expect(loadPack).toHaveBeenCalledWith('IT');
+    expect(mapDialogStore.getState().packFallback).toBeNull();
+    await applyMap(mapDialogStore.getState());
+    expect(bakedPack()).not.toBeNull();
+    expect(maps(editorStore.getState().book!)).toHaveLength(1);
+  });
+
+  it.each(['offline', 'checksum', 'unknown'] as const)(
+    'with a region chosen and the pack %s: base file baked, reason in the state at once',
+    async (reason) => {
+      packReply = { ok: false, reason };
+      await openMapDialog();
+      await pickSubject('TH');
+      await choose('TH', [regionsOf('TH')[0]!.id]);
+      expect(loadPack).toHaveBeenCalledTimes(1);
+      expect(loadPack).toHaveBeenCalledWith('TH');
+      expect(mapDialogStore.getState().packFallback).toBe(reason);
+      await applyMap(mapDialogStore.getState());
+      expect(bakedPack()).toBeNull();
+      expect(maps(editorStore.getState().book!)).toHaveLength(1);
+      // nothing is left after the dialog closes
+      expect(mapDialogStore.getState().packFallback).toBeNull();
+    },
+  );
+
+  it('un-choosing every region clears the reason; choosing again loads nothing more', async () => {
+    packReply = { ok: false, reason: 'offline' };
+    await openMapDialog();
+    await pickSubject('TH');
+    const [a] = regionsOf('TH');
+    await choose('TH', [a!.id]);
+    expect(mapDialogStore.getState().packFallback).toBe('offline');
+    await choose('TH', []);
+    expect(mapDialogStore.getState().packFallback).toBeNull();
+    await choose('TH', [a!.id]);
+    expect(mapDialogStore.getState().packFallback).toBe('offline');
+    expect(loadPack).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats a throwing pack call as offline', async () => {
+    loadPack.mockRejectedValueOnce(new Error('ipc'));
+    await openMapDialog();
+    await pickSubject('IT');
+    await choose('IT', [regionsOf('IT')[0]!.id]);
+    expect(mapDialogStore.getState().packFallback).toBe('offline');
+    await applyMap(mapDialogStore.getState());
+    expect(maps(editorStore.getState().book!)).toHaveLength(1);
+  });
+
+  it('asks for a pack only when the index lists one, even with a region chosen', async () => {
+    setSubjectIndex({ subjects: index.subjects.map((x) => ({ ...x, pack: undefined })) });
+    packReply = { ok: false, reason: 'unknown' };
+    await openMapDialog();
+    await pickSubject('TH');
+    await choose('TH', [regionsOf('TH')[0]!.id]);
+    expect(loadPack).not.toHaveBeenCalled();
+    expect(mapDialogStore.getState().packFallback).toBeNull();
+  });
+
+  it('loads the pack once: the region choice loads it, the apply reuses it', async () => {
+    await openMapDialog();
+    await pickSubject('IT');
+    await choose('IT', [regionsOf('IT')[0]!.id]);
     await applyMap(mapDialogStore.getState());
     expect(loadPack).toHaveBeenCalledTimes(1);
   });
@@ -233,6 +273,7 @@ describe('applyMap, new map', () => {
     await openMapDialog();
     await pickSubject('IT', sicily.id);
     expect(mapDialogStore.getState().spec!.subject.regions).toEqual([sicily.id]);
+    expect(loadPack).toHaveBeenCalledWith('IT');
   });
 
   it('does nothing without a subject', async () => {

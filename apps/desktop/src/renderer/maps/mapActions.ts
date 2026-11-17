@@ -15,7 +15,8 @@ import {
   dialogToken,
   mapDialogStore,
   newMapBox,
-  subjectData,
+  subjectBase,
+  subjectPack,
   type MapDialogState,
   type MapSpec,
 } from './dialogModel';
@@ -70,11 +71,16 @@ export async function applyMap(state: MapDialogState): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 0));
     const subject = getSubject(spec.subject.id, await loadSubjectIndex());
     if (!subject) throw new Error(`Unknown map subject "${spec.subject.id}"`);
-    const [data, far] = await Promise.all([subjectData(subject.id), worldLand()]);
+    const [base, fine, far] = await Promise.all([
+      subjectBase(subject.id),
+      // a whole-country map is baked from the base file alone
+      spec.subject.regions.length > 0 ? subjectPack(subject.id) : null,
+      worldLand(),
+    ]);
     if (!live()) return;
     const geometry = bakeGeometry(
-      data.base,
-      data.pack,
+      base,
+      fine?.pack ?? null,
       spec.subject,
       spec.projection,
       spec.style.rough,

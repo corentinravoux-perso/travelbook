@@ -9,6 +9,7 @@ import {
   type MapPlace,
   type Mm,
   type Rect,
+  type MapTopology,
   type Side,
 } from '@travelbook/core';
 import { createStore, useStore } from 'zustand';
@@ -16,12 +17,13 @@ import { editorStore } from '../store/editor';
 import {
   getSubject,
   loadPlaces,
-  loadSubjectData,
+  loadFinePack,
+  loadSubjectBase,
   loadSubjectIndex,
   type BundledPlace,
   type IndexSubject,
   type PackFallback,
-  type SubjectData,
+  type FinePack,
 } from './subjects';
 
 /** What the dialog edits: the map element without its box, its name and its baked geometry. */
@@ -208,29 +210,63 @@ let choice = 0;
 /** Tells whether the dialog is still the one an async job started in (open, not replaced). */
 export const dialogToken = (): number => choice;
 
-let loadedData: { id: string; promise: Promise<SubjectData> } | null = null;
+let loadedBase: { id: string; promise: Promise<MapTopology> } | null = null;
+let loadedPack: { id: string; promise: Promise<FinePack> } | null = null;
 
-/**
- * The base file and fine pack of a subject, loaded once per dialog session: the preview and the
- * apply share them. A failed load is not kept.
- */
-export function subjectData(subjectId: string): Promise<SubjectData> {
-  if (loadedData?.id === subjectId) return loadedData.promise;
+/** The base file of a subject, loaded once per dialog session. A failed load is not kept. */
+export function subjectBase(subjectId: string): Promise<MapTopology> {
+  if (loadedBase?.id === subjectId) return loadedBase.promise;
   const entry = {
     id: subjectId,
-    promise: loadSubjectData(subjectId).catch((error: unknown) => {
-      if (loadedData === entry) loadedData = null;
+    promise: loadSubjectBase(subjectId).catch((error: unknown) => {
+      if (loadedBase === entry) loadedBase = null;
       throw error;
     }),
   };
-  loadedData = entry;
+  loadedBase = entry;
   return entry.promise;
+}
+
+/**
+ * The fine pack of a subject, loaded the first time it is asked for in a dialog session (a
+ * region is chosen) and kept. Never rejects.
+ */
+export function subjectPack(subjectId: string): Promise<FinePack> {
+  if (loadedPack?.id === subjectId) return loadedPack.promise;
+  const entry = { id: subjectId, promise: loadFinePack(subjectId) };
+  loadedPack = entry;
+  return entry.promise;
+}
+
+/**
+ * Bring `packFallback` in line with the regions chosen: a whole-country map uses no pack and has
+ * no reason; with a region chosen the pack is loaded (once) and its reason shown.
+ */
+async function syncPackFallback(): Promise<void> {
+  const mine = choice;
+  const { spec } = mapDialogStore.getState();
+  if (!spec || spec.subject.regions.length === 0) {
+    if (mapDialogStore.getState().packFallback !== null)
+      mapDialogStore.setState({ packFallback: null });
+    return;
+  }
+  const { packFallback } = await subjectPack(spec.subject.id);
+  const now = mapDialogStore.getState().spec;
+  if (
+    mine === choice &&
+    now &&
+    now.subject.id === spec.subject.id &&
+    now.subject.regions.length > 0
+  ) {
+    mapDialogStore.setState({ packFallback });
+  }
 }
 
 /** Close the dialog and forget its state. */
 export function closeMapDialog(): void {
   choice += 1;
-  loadedData = null;
+  loadedBase = null;
+  loadedPack = null;
   mapDialogStore.setState(idle(), true);
 }
 
@@ -261,13 +297,9 @@ export async function openMapDialog(target?: MapTarget): Promise<void> {
     spec: specOf(el, subject),
   });
   if (subject) {
-    const [bundled, data] = await Promise.all([
-      loadPlaces(subject),
-      subjectData(subject.id).catch(() => null),
-    ]);
-    if (mine === choice) {
-      mapDialogStore.setState({ bundled, packFallback: data?.packFallback ?? null });
-    }
+    const bundled = await loadPlaces(subject);
+    if (mine === choice) mapDialogStore.setState({ bundled });
+    void syncPackFallback();
   }
 }
 
@@ -277,10 +309,7 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
   const index = await loadSubjectIndex();
   const subject = getSubject(subjectId, index);
   if (!subject || mine !== choice) return;
-  const [bundled, data] = await Promise.all([
-    loadPlaces(subject),
-    subjectData(subject.id).catch(() => null),
-  ]);
+  const bundled = await loadPlaces(subject);
   if (mine !== choice) return;
   const area = reopenedArea() ?? frameArea();
   const base = newSpec(subject);
@@ -302,16 +331,20 @@ export async function pickSubject(subjectId: string, regionId?: string): Promise
         : {}),
       places: defaultPlaces(bundled, area),
     },
-    packFallback: data?.packFallback ?? null,
+    packFallback: null,
     status: 'idle',
     error: null,
   });
+  await syncPackFallback();
 }
 
 /** Change fields of the spec. No effect before a subject is picked. */
-export function updateSpec(patch: Partial<MapSpec>): void {
+export async function updateSpec(patch: Partial<MapSpec>): Promise<void> {
   const { spec } = mapDialogStore.getState();
-  if (spec) mapDialogStore.setState({ spec: { ...spec, ...patch } });
+  if (!spec) return;
+  mapDialogStore.setState({ spec: { ...spec, ...patch } });
+  // settles once the fine pack of the chosen regions is in (when the regions changed)
+  if (patch.subject) await syncPackFallback();
 }
 
 export const setMapName = (name: string): void => mapDialogStore.setState({ name });
