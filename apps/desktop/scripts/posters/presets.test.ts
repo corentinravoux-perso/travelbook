@@ -110,16 +110,16 @@ describe('poster presets', () => {
     }
   });
 
-  it('give each destination present at least 3 presets, one or more in the pixory family', () => {
+  it('give each destination present at least 3 presets, one or more in the naturel family', () => {
     const by = new Map<string, PosterPreset[]>();
     for (const p of presets) by.set(p.destination, [...(by.get(p.destination) ?? []), p]);
     for (const [destination, list] of by) {
       expect(list.length, destination).toBeGreaterThanOrEqual(3);
-      const pixory = list.filter((p) => {
+      const naturel = list.filter((p) => {
         const ill = p.spec.illustration;
-        return 'set' in ill && /data-tb-style="pixory"/.test(svgOf(ill.id));
+        return 'set' in ill && /data-tb-style="naturel"/.test(svgOf(ill.id));
       });
-      expect(pixory.length, destination).toBeGreaterThanOrEqual(1);
+      expect(naturel.length, destination).toBeGreaterThanOrEqual(1);
     }
   });
 
