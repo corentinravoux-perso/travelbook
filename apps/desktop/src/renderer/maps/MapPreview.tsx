@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { assetUrl } from '../editor/assetUrl';
 import { useEditor } from '../store/editor';
 import { fr } from '../strings/fr';
-import { bake, debounceMs } from './bakeClient';
+import { BakeCancelled, bake, debounceMs } from './bakeClient';
 import { mapDialogStore, subjectBase, subjectPack, updateSpec, type MapSpec } from './dialogModel';
 import { worldLand } from './mapActions';
 import { panFrame, zoomFrame } from './previewFrame';
@@ -82,7 +82,8 @@ export function usePreviewGeometry(spec: MapSpec | null): {
         setKept({ subjectId, geometry });
         setSettled({ inputs, subjectId, geometry });
       } catch (error) {
-        if (!live) return;
+        // dropped on purpose (superseded, dialog closed): no failed state, nothing to report
+        if (!live || error instanceof BakeCancelled) return;
         console.error('Baking the map preview failed', error);
         setSettled({ inputs, subjectId, geometry: null });
       }

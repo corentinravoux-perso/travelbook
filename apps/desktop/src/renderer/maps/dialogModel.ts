@@ -3,7 +3,7 @@ import {
   newId,
   normalizeStyle,
   pageBox,
-  regionContains,
+  regionAssigner,
   type Book,
   type MapElement,
   type MapLeg,
@@ -119,11 +119,19 @@ export function defaultPlaces(places: BundledPlace[], frameAreaMm2: number): Map
   ].map(placeFromBundled);
 }
 
+/** The place-to-region assignment of a base file, computed once per base (a dialog session). */
+const assigners = new WeakMap<MapTopology, ReturnType<typeof regionAssigner>>();
+const assignerOf = (base: MapTopology) => {
+  if (!assigners.has(base)) assigners.set(base, regionAssigner(base));
+  return assigners.get(base) ?? null;
+};
+
 /**
- * The candidates of a subject limited to its chosen regions: first those inside the bbox of one
- * of them (the index), then, when the subject's base topology has the region's polygon, only
- * those inside it (`regionContains`, spherical). A region the base has no geometry for is judged
- * by its bbox alone. No region chosen: all places.
+ * The candidates of a subject limited to its chosen regions. With the base topology each place is
+ * assigned to ONE region (`regionAssigner`): the one whose polygon holds it, else the nearest
+ * within 10 km by distance to polygon edges, else none (dropped); nearest-wins keeps Reggio di
+ * Calabria out of Sicily. A chosen region the base has no polygon for, or no base, is judged by
+ * the index bbox of the region. No region chosen: all places.
  */
 export function placesInRegions(
   places: BundledPlace[],
@@ -133,13 +141,16 @@ export function placesInRegions(
 ): BundledPlace[] {
   const chosen = (subject?.regions ?? []).filter((r) => regionIds.includes(r.id));
   if (chosen.length === 0) return places;
-  const tests = chosen.map((r) => {
-    const [w, s, e, n] = r.bbox;
-    const inBox = (p: BundledPlace) => p.lat >= s && p.lat <= n && p.lon >= w && p.lon <= e;
-    const inShape = base ? regionContains(base, r.id) : null;
-    return (p: BundledPlace) => inBox(p) && (inShape ? inShape(p.lon, p.lat) : true);
+  const assign = base ? assignerOf(base) : null;
+  const byBox = chosen.filter((r) => !assign?.has(r.id));
+  const wanted = new Set(chosen.map((r) => r.id));
+  return places.filter((p) => {
+    const region = assign?.regionOf(p.lon, p.lat);
+    if (region && wanted.has(region)) return true;
+    return byBox.some(
+      ({ bbox: [w, s, e, n] }) => p.lat >= s && p.lat <= n && p.lon >= w && p.lon <= e,
+    );
   });
-  return places.filter((p) => tests.some((test) => test(p)));
 }
 
 /** A place list without ids, to tell whether the user changed the defaults. */
