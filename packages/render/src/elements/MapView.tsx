@@ -33,6 +33,12 @@ const LABEL_GAP = 0.8;
 /** A badge's digits fill this fraction of its diameter. */
 const BADGE_TEXT = 0.55;
 const VEHICLE_FLIP_ANGLE = 90;
+/**
+ * The leg width (mm) the dash lengths of a route style are drawn for. A wider leg scales its dashes
+ * and gaps with it: a thick dotted leg keeps its dots apart instead of merging into a solid band,
+ * so it still reads as dotted from afar. At this width or under, the dashes are as stored.
+ */
+const DASH_REF_WIDTH = 0.7;
 /** The "Carte introuvable" text: 10 pt at most, within this fraction of the frame. */
 const MISSING_PT = 10;
 const MISSING_FILL = 0.9;
@@ -470,7 +476,8 @@ export function MapView({
           const path = legPath(a, b, seg.leg);
           if (!path.d) return null;
           const rs = routeStyle(seg.leg.mode);
-          const dash = posDashes(rs.dash?.map((n) => n * z) ?? null);
+          const dashScale = Math.max(1, finite(rs.width) / DASH_REF_WIDTH) * z;
+          const dash = posDashes(rs.dash?.map((n) => n * dashScale) ?? null);
           const dotted = rs.dash?.some((n) => n > 0 && n < 0.05) ?? false;
           const vehicleD = Math.max(0, finite(style.sizes.vehicle) * z);
           const flip = Math.abs(finite(path.angle)) > VEHICLE_FLIP_ANGLE;
