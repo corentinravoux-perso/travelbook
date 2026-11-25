@@ -39,7 +39,8 @@ function cssImageUrls(root: HTMLElement): string[] {
     for (const value of [style.backgroundImage, style.maskImage, style.webkitMaskImage]) {
       for (const match of value.matchAll(/url\(\s*(["']?)(.*?)\1\s*\)/g)) {
         const url = match[2];
-        if (url && !url.startsWith('data:')) urls.add(url);
+        // `data:` is already in the page; `#id` names an element of it (an SVG mask).
+        if (url && !url.startsWith('data:') && !url.startsWith('#')) urls.add(url);
       }
     }
   }

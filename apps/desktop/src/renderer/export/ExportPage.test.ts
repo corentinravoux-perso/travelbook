@@ -54,6 +54,30 @@ describe('imagesReady', () => {
   });
 });
 
+describe('imagesReady and CSS urls', () => {
+  it('loads the url() images of the styles, not the #id of an element of the page', async () => {
+    const srcs: string[] = [];
+    class FakeImage {
+      src = '';
+      decode() {
+        srcs.push(this.src);
+        return Promise.resolve();
+      }
+    }
+    vi.stubGlobal('Image', FakeImage);
+    const host = document.createElement('div');
+    const a = document.createElement('div');
+    a.style.backgroundImage = 'url("tb://export/t/bg.png")';
+    const b = document.createElement('div');
+    b.style.backgroundImage = 'url("#tb-tint-s1")';
+    host.append(a, b);
+    document.body.append(host);
+    await imagesReady(host);
+    host.remove();
+    expect(srcs).toEqual(['tb://export/t/bg.png']);
+  });
+});
+
 describe('export page maps', () => {
   const geometry = {
     version: 1,

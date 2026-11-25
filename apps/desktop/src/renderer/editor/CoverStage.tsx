@@ -16,11 +16,20 @@ const IMAGES_TIMEOUT_MS = 700;
 
 const frame = (): Promise<void> => new Promise((done) => requestAnimationFrame(() => done()));
 
+/** Decoded once loaded: an SVG `<image>` (stickers) has no `decode` of its own. */
+function svgImage(node: Element): HTMLImageElement {
+  const image = new Image();
+  image.src = node.getAttribute('href') ?? '';
+  return image;
+}
+
 /** Resolves when every image under `root` has loaded (or failed), or after the timeout. */
 async function imagesReady(root: HTMLElement): Promise<void> {
-  const loaded = Promise.all(
-    [...root.querySelectorAll('img')].map((img) => img.decode().catch(() => undefined)),
-  );
+  const images = [
+    ...root.querySelectorAll('img'),
+    ...[...root.querySelectorAll('image')].map(svgImage),
+  ];
+  const loaded = Promise.all(images.map((img) => img.decode().catch(() => undefined)));
   await Promise.race([loaded, new Promise((done) => setTimeout(done, IMAGES_TIMEOUT_MS))]);
 }
 
