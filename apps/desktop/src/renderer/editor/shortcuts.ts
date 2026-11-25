@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { editorStore } from '../store/editor';
+import { editorStore, type EditorState } from '../store/editor';
 import { leaveTextEdit } from './textActions';
 import {
   clearSelection,
@@ -18,6 +18,7 @@ import {
 
 export type Command =
   | { kind: 'nudge'; dx: number; dy: number }
+  | { kind: 'turn'; step: -1 | 1 }
   | {
       kind:
         | 'copy'
@@ -49,7 +50,7 @@ const ARROWS: Record<string, [number, number]> = {
   ArrowDown: [0, 1],
 };
 
-const WITH_MOD: Record<string, Exclude<Command['kind'], 'nudge'>> = {
+const WITH_MOD: Record<string, Exclude<Command['kind'], 'nudge' | 'turn'>> = {
   c: 'copy',
   x: 'cut',
   v: 'paste',
@@ -60,11 +61,15 @@ const WITH_MOD: Record<string, Exclude<Command['kind'], 'nudge'>> = {
 
 /**
  * What a key press asks of the canvas, or `null`. Arrows nudge by 1 mm, 10 with Shift, 0.1 with
- * Alt. The keys `[ ] + - 0` ignore the modifiers: on a French keyboard they are typed with
- * Shift or AltGr (which reports Ctrl+Alt).
+ * Alt (with nothing selected, a plain arrow turns the page instead: `pageTurn`). Page Up and
+ * Page Down turn the page. The keys `[ ] + - 0` ignore the modifiers: on a French keyboard they
+ * are typed with Shift or AltGr (which reports Ctrl+Alt).
  */
 export function commandFor(e: KeyInfo): Command | null {
   const mod = e.ctrlKey || e.metaKey;
+  if ((e.key === 'PageUp' || e.key === 'PageDown') && !mod && !e.altKey && !e.shiftKey) {
+    return { kind: 'turn', step: e.key === 'PageUp' ? -1 : 1 };
+  }
   const arrow = ARROWS[e.key];
   if (arrow && !mod) {
     const step = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
@@ -98,6 +103,45 @@ const CROP_KEYS: ReadonlySet<Command['kind']> = new Set([
   'fit',
 ]);
 
+const PAGE_ARROWS: Record<string, -1 | 1> = {
+  ArrowLeft: -1,
+  ArrowUp: -1,
+  ArrowRight: 1,
+  ArrowDown: 1,
+};
+
+/** Widgets whose own arrow keys move inside them (tabs, lists, sliders, menus, toolbars). */
+const ARROW_WIDGETS =
+  '[role="tablist"], [role="listbox"], [role="radiogroup"], [role="menu"], [role="menubar"], ' +
+  '[role="slider"], [role="separator"], [role="grid"], [role="tree"], [role="toolbar"]';
+
+/**
+ * A plain arrow with nothing selected turns the page: left and up go back, right and down go
+ * forward. Not with a modifier, nor in a widget that uses the arrows itself.
+ */
+export function pageTurn(
+  e: KeyInfo & Pick<KeyboardEvent, 'target'>,
+  state: Pick<EditorState, 'selection'>,
+): Command | null {
+  const step = PAGE_ARROWS[e.key];
+  if (step === undefined || state.selection.length > 0) return null;
+  if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return null;
+  if (e.target instanceof Element && e.target.closest(ARROW_WIDGETS)) return null;
+  return { kind: 'turn', step };
+}
+
+/** The spread `step` away from the current one, in the strip's order (cover first), or null. */
+export function spreadAfter(
+  state: Pick<EditorState, 'book' | 'currentSpreadId'>,
+  step: -1 | 1,
+): string | null {
+  if (!state.book) return null;
+  const ids = [state.book.cover.id, ...state.book.spreads.map((s) => s.id)];
+  const at = ids.indexOf(state.currentSpreadId ?? '');
+  if (at < 0) return null;
+  return ids[at + step] ?? null;
+}
+
 /** Is the event aimed at something the user types in? Shortcuts must leave it alone. */
 export function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -109,6 +153,10 @@ function run(command: Command): void {
   switch (command.kind) {
     case 'nudge':
       return nudge(command.dx, command.dy);
+    case 'turn': {
+      const id = spreadAfter(s, command.step);
+      return id === null ? undefined : s.goToSpread(id);
+    }
     case 'copy':
       return void copySelection();
     case 'cut':
@@ -159,7 +207,7 @@ export function useShortcuts(): void {
       if (state.book === null || state.overview || state.preview) return;
       // A dialog is modal: its keys are its own (Delete must not reach the canvas behind it).
       if (e.target instanceof Element && e.target.closest('dialog')) return;
-      const command = commandFor(e);
+      const command = pageTurn(e, state) ?? commandFor(e);
       if (command === null) return;
       // Enter on a focused button presses it; it must not also start typing in a text.
       if (command.kind === 'edit' && e.target instanceof Element && e.target.closest('button, a')) {

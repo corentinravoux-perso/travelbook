@@ -218,6 +218,36 @@ describe('MapView', () => {
     }
   });
 
+  it('scales the dashes of a leg wider than 0.7 mm with its width, so dots stay apart', () => {
+    const dashOf = (width: number, scale = 1) => {
+      const base = mapEl();
+      const style = {
+        ...base.style,
+        route: { ...base.style.route, avion: { ...base.style.route.avion, width } },
+      };
+      return draw(
+        mapEl({
+          style,
+          frame: { center: [0, 0], scale },
+          route: {
+            stops: ['a', 'b'],
+            legs: [{ mode: 'avion', curve: 'droit', bend: 0, icon: false }],
+            numbered: false,
+          },
+        }),
+      )
+        .layer('route')
+        ?.querySelector('path[data-leg]')
+        ?.getAttribute('stroke-dasharray');
+    };
+    const [dot, gap] = DEFAULT_MAP_STYLE.route.avion.dash!;
+    const expected = (k: number) => `${+(dot! * k).toFixed(4)} ${+(gap! * k).toFixed(4)}`;
+    expect(dashOf(0.3)).toBe(expected(1));
+    expect(dashOf(0.7)).toBe(expected(1));
+    expect(dashOf(2.1)).toBe(expected(3));
+    expect(dashOf(2.1, 0.5)).toBe(expected(1.5));
+  });
+
   it('takes the missing label as a prop', () => {
     const { container } = render(
       <MapView

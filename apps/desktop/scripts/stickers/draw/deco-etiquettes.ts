@@ -95,6 +95,48 @@ export const PAL: Record<string, Pal> = {
     l: '#c58552',
     d: '#7a4320',
   },
+  peche: {
+    id: 'peche',
+    fr: 'pêche orange',
+    f: '#fcd3b6',
+    e: '#c0643a',
+    l: '#fee9db',
+    d: '#8f4524',
+  },
+  citron: {
+    id: 'citron',
+    fr: 'citron jaune',
+    f: '#fbef9a',
+    e: '#a68a12',
+    l: '#fdf7cf',
+    d: '#6f5c0a',
+  },
+  turquoise: {
+    id: 'turquoise',
+    fr: 'turquoise lagon bleu vert',
+    f: '#a9e2dc',
+    e: '#1f8a80',
+    l: '#d8f2ef',
+    d: '#135c55',
+  },
+  framboise: {
+    id: 'framboise',
+    fr: 'framboise rose',
+    f: '#f4a6c0',
+    e: '#b0275a',
+    l: '#fad3e0',
+    d: '#7d1a40',
+  },
+  ciel: { id: 'ciel', fr: 'bleu ciel', f: '#cfe7f8', e: '#3378b5', l: '#e9f4fc', d: '#1f5283' },
+  pistache: {
+    id: 'pistache',
+    fr: 'pistache vert',
+    f: '#d9eaa9',
+    e: '#6a8a22',
+    l: '#eef5d6',
+    d: '#4a6115',
+  },
+  sable: { id: 'sable', fr: 'sable beige', f: '#efe0c2', e: '#9a7a4a', l: '#f8f0e0', d: '#6b5230' },
   chocolat: {
     id: 'chocolat',
     fr: 'chocolat brun',
@@ -107,15 +149,16 @@ export const PAL: Record<string, Pal> = {
 
 // ---------------------------------------------------------------- geometry
 
-const r1 = (n: number): number => Math.round(n * 10) / 10;
-type Pt = [number, number];
+export const r1 = (n: number): number => Math.round(n * 10) / 10;
+export type Pt = [number, number];
 
-const poly = (pts: Pt[]): string => `M${pts.map(([x, y]) => `${r1(x)} ${r1(y)}`).join('L')}Z`;
+export const poly = (pts: Pt[]): string =>
+  `M${pts.map(([x, y]) => `${r1(x)} ${r1(y)}`).join('L')}Z`;
 
-const ellipse = (cx: number, cy: number, rx: number, ry: number): string =>
+export const ellipse = (cx: number, cy: number, rx: number, ry: number): string =>
   `M${cx - rx} ${cy}a${rx} ${ry} 0 1 0 ${2 * rx} 0a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
 
-function rrect(x: number, y: number, w: number, h: number, r: number): string {
+export function rrect(x: number, y: number, w: number, h: number, r: number): string {
   return (
     `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}` +
     `A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}` +
@@ -229,7 +272,7 @@ function ngon(cx: number, cy: number, rx: number, ry: number, n: number, rot = 0
 }
 
 /** Round scallops around a circle (a rosette or a badge). */
-function scallopCircle(cx: number, cy: number, r: number, n: number, amp: number): string {
+export function scallopCircle(cx: number, cy: number, r: number, n: number, amp: number): string {
   let d = '';
   const p = (a: number, rr: number): string =>
     `${r1(cx + Math.cos(a) * rr)} ${r1(cy + Math.sin(a) * rr)}`;
@@ -938,7 +981,7 @@ const SHAPES: Shape[] = [
     id: 'griffonnee',
     fr: 'griffonnée dessinée croquis main',
     view: '0 0 440 230',
-    pals: ['moutarde', 'rose', 'menthe'],
+    pals: ['moutarde', 'rose', 'menthe', 'peche', 'ciel'],
     draw: (c) => [
       ...hatch('M44 46H420V204H44Z', { gap: 8, angle: -50, w: 2 }),
       ...ink('M24 26H404V186H24Z', { w: 6, fill: c.f }),
@@ -949,7 +992,7 @@ const SHAPES: Shape[] = [
     id: 'griffonnee-ronde',
     fr: 'griffonnée ronde dessinée croquis main',
     view: '0 0 320 320',
-    pals: ['corail', 'bleu', 'lavande'],
+    pals: ['corail', 'bleu', 'lavande', 'citron', 'pistache'],
     draw: (c) => [
       ...hatch(circle(170, 172, 128), { gap: 9, w: 2 }),
       ...ink(circle(156, 156, 132), { w: 6, fill: c.f }),

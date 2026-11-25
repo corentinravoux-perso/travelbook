@@ -5,6 +5,24 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-25
+
+### Added
+
+- Pages: with nothing selected, the arrow keys turn the pages of the editor (left and up go
+  back, right and down go forward, cover first); Page Up and Page Down always turn them.
+- Stickers: 56 more hand-drawn labels in the Déco set ("griffonnée"): oval, speech and
+  thought bubbles, cloud, heart, scalloped badge, ticket, luggage tag, banner, arrow sign,
+  spiral notebook, arch and stitched rectangle, in seven new pastel colours (pêche, citron,
+  turquoise, framboise, ciel, pistache, sable) and the existing ones.
+
+### Fixed
+
+- Stickers: pulling an edge handle stretches the sticker; it used to keep its proportions
+  inside a wider or taller box. The corners still keep the ratio.
+- Cartes: the dashes and dots of a leg wider than 0.7 mm grow with its width, so a thick
+  plane or boat leg stays dotted and readable from afar instead of merging into a band.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added
@@ -185,7 +203,8 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 
-[Unreleased]: https://github.com/corentinravoux-perso/travelbook/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/corentinravoux-perso/travelbook/releases/tag/v1.0.0

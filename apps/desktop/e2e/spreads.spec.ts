@@ -88,6 +88,19 @@ test('adds, moves and deletes spreads and the numbering follows', async () => {
       .poll(() => stripIds(page))
       .toEqual([ids[0], ids[1], ids[2], moved, ...ids.slice(4)]);
 
+    // The arrows turn the pages when nothing is selected, Page Up and Page Down too.
+    const current = () =>
+      page.locator('.shell-strip .tile[aria-current="true"]').getAttribute('data-spread-id');
+    await expect.poll(current).toBe(moved);
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(current).toBe(ids[4]);
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(current).toBe(moved);
+    await page.keyboard.press('PageUp');
+    await expect.poll(current).toBe(ids[2]);
+    await page.keyboard.press('PageDown');
+    await expect.poll(current).toBe(moved);
+
     // Delete one: the moved spread is the one shown.
     await page.getByRole('button', { name: 'Supprimer la double page' }).click();
     await expect(strip.getByText('26 pages')).toBeVisible();

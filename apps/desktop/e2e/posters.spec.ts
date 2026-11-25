@@ -47,12 +47,23 @@ test('a Japan poster from the cover editor reaches the cover, its export and the
       await expect(dialog.locator('.poster-dialog__preview .poster-preview')).toBeVisible();
       // The torii is recolourable: once recoloured, the preview shows its own copy, which the
       // page's Content-Security-Policy must let through.
-      const drawing = dialog.locator('.poster-dialog__preview img');
+      // A sticker is an SVG <image> (it stretches with its box): its href is loaded as an <img>
+      // would be, under the same img-src rule.
+      const drawing = dialog.locator('.poster-dialog__preview image');
       await expect
-        .poll(() => drawing.evaluate((el: HTMLImageElement) => el.src.startsWith('tb:')))
+        .poll(() => drawing.evaluate((el) => el.getAttribute('href')?.startsWith('tb:')))
         .toBe(false);
       await expect
-        .poll(() => drawing.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0))
+        .poll(() =>
+          drawing.evaluate(async (el) => {
+            const image = new Image();
+            image.src = el.getAttribute('href') ?? '';
+            return image.decode().then(
+              () => image.naturalWidth > 0,
+              () => false,
+            );
+          }),
+        )
         .toBe(true);
       await page.screenshot({ path: test.info().outputPath('dialog.png') });
     });

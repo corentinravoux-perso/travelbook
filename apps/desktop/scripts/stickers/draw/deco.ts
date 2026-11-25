@@ -18,6 +18,7 @@ import {
   stroke,
   tidy,
 } from './core.ts';
+import { ETIQUETTES_GRIFFONNEES } from './deco-etiquettes-griffonnees.ts';
 import { ETIQUETTES_PAPIER } from './deco-etiquettes-papier.ts';
 import { ETIQUETTES } from './deco-etiquettes.ts';
 import { font, textOnCircle, textPath, textWidth } from './text.ts';
@@ -346,7 +347,7 @@ for (const l of LABELS) {
   }
 }
 
-for (const d of [...ETIQUETTES, ...ETIQUETTES_PAPIER]) add(d);
+for (const d of [...ETIQUETTES, ...ETIQUETTES_GRIFFONNEES, ...ETIQUETTES_PAPIER]) add(d);
 
 // ---------------------------------------------------------------- travel stamps
 
