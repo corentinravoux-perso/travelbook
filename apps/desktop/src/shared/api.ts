@@ -359,6 +359,11 @@ export interface ExportOptions {
   perSpread: boolean;
   /** The cover as three files (front, back, spine) or as one flat sheet. */
   coverMode: 'flat' | 'panels';
+  /**
+   * PDF route, with `includeCover`: one PDF, the front cover as its first page and the back cover
+   * as its last (the spine is left out). Absent means false.
+   */
+  coverAsPages?: boolean;
   /** Absolute path of the folder the files go to. */
   outDir: string;
 }

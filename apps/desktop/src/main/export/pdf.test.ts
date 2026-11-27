@@ -15,7 +15,13 @@ import { newBook, type Book } from '@travelbook/core';
 import type { ExportOptions } from '../../shared/api';
 import type { ExportRenderer } from './images';
 import { ExportCancelledError, cancelExport } from './images';
-import { RASTER_FALLBACK_DPI, assemblePdf, runPdfExport, type PdfPageInput } from './pdf';
+import {
+  RASTER_FALLBACK_DPI,
+  assemblePdf,
+  coverAsPagesTargets,
+  runPdfExport,
+  type PdfPageInput,
+} from './pdf';
 import { STAGING_PREFIX } from './staging';
 
 const PT = 72 / 25.4;
@@ -308,6 +314,49 @@ describe('runPdfExport', () => {
     expect(cw).toBeCloseTo(2 * 210 + 6, 6);
     const [, , dw] = await boxMm(bytes, 'MediaBox', 2);
     expect(dw).toBeCloseTo(420, 6);
+  });
+
+  it('with the cover as pages, writes one <slug>.pdf: front cover, the pages, back cover', async () => {
+    const b = { ...book(), coverBleed: 10 };
+    const calls: string[] = [];
+    const report = await runPdfExport(
+      b,
+      work,
+      options({ includeCover: true, coverAsPages: true, pages: { from: 1, to: 2 } }),
+      deps(calls),
+    );
+    expect(report.files).toEqual([join(work, 'out', 'mon-album.pdf')]);
+    expect(report.pages).toBe(4);
+    // Every page, the covers included, is a page with the pages' 3 mm bleed.
+    expect(calls).toEqual(Array(4).fill('print 216x303'));
+    const bytes = new Uint8Array(await readFile(report.files[0]!));
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(4);
+    for (const n of [0, 3]) {
+      const [, , tw, th] = await boxMm(bytes, 'TrimBox', n);
+      expect([tw, th]).toEqual([expect.closeTo(210, 6), expect.closeTo(297, 6)]);
+    }
+    expect(await readdir(join(work, 'out'))).toEqual(['mon-album.pdf']);
+  });
+
+  it('cuts the front cover first and the back cover last, the spine left out', () => {
+    const b = book();
+    const targets = coverAsPagesTargets(b, options({ includeCover: true, coverAsPages: true }));
+    expect(targets.map((t) => t.name)).toEqual([
+      'couverture-avant',
+      'page-001',
+      'page-002',
+      'page-003',
+      'couverture-dos',
+    ]);
+    // Front: right of the 6 mm spine; back: the left panel.
+    expect(targets[0]).toMatchObject({
+      spreadId: b.cover.id,
+      clip: { x: 213, y: -3, w: 216, h: 303 },
+    });
+    expect(targets.at(-1)).toMatchObject({
+      spreadId: b.cover.id,
+      clip: { x: -3, y: -3, w: 216, h: 303 },
+    });
   });
 
   it('captures a page at 600 dpi and embeds it when it is sent to the raster fallback', async () => {

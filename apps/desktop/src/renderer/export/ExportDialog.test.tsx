@@ -74,6 +74,21 @@ describe('ExportDialog start', () => {
     expect(await screen.findByRole('button', { name: 'Ouvrir le dossier' })).toBeTruthy();
   });
 
+  it('exports the cover as first and last pages when its box is ticked, and greys it without the cover', async () => {
+    await open();
+    const box = screen.getByRole('checkbox', { name: /Couverture en première et dernière pages/ });
+    expect((box as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(box);
+    fireEvent.click(screen.getByRole('button', { name: 'Exporter' }));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    expect(run.mock.calls[0]![0]).toMatchObject({ includeCover: true, coverAsPages: true });
+    cleanup();
+    await open();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Inclure la couverture' }));
+    const greyed = screen.getByRole('checkbox', { name: /Couverture en première/ });
+    expect((greyed as HTMLInputElement).disabled).toBe(true);
+  });
+
   it('refuses to start when the album cannot be saved, and says so', async () => {
     flush.mockRejectedValue(new Error('disk full'));
     await open('/out', 'La vérification n’a pas pu être faite.');

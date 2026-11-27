@@ -622,6 +622,27 @@ test('the screen reading preset is one file, cover first, 150 dpi, no bleed and 
   expect(images[0]).toMatchObject({ width: Math.round((160 * 150) / 25.4) });
 });
 
+test('with the cover as pages: one PDF, the front cover first and the back cover last', async () => {
+  const outDir = join(work, 'cover-pages');
+  const report = await exportWith({
+    outDir,
+    includeCover: true,
+    coverAsPages: true,
+    pages: { from: 1, to: 2 },
+  });
+  expect(report.files).toEqual([join(outDir, 'export-pdf.pdf')]);
+  const file = report.files[0]!;
+  expect(await poppler('pdfinfo', file)).toMatch(/Pages:\s+4\b/);
+  for (const n of [1, 4]) {
+    const [w, h] = await box(file, 'MediaBox', n);
+    expect([w, h]).toEqual([expect.closeTo(216, 2), expect.closeTo(303, 2)]);
+    const [tw, th] = await box(file, 'TrimBox', n);
+    expect([tw, th]).toEqual([expect.closeTo(210, 2), expect.closeTo(297, 2)]);
+  }
+  // Page 2 is page 1 of the album: its photo.
+  expect(await pdfImages(file, 2)).not.toEqual([]);
+});
+
 test('a missing original rejects with its name and the page, and leaves no file', async () => {
   const outDir = join(work, 'missing');
   await rm(join(projectDir, photoAsset.file));

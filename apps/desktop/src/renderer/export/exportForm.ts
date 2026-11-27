@@ -26,6 +26,7 @@ export interface FormState {
   jpegQuality: number;
   perSpread: boolean;
   coverMode: ExportOptions['coverMode'];
+  coverAsPages: boolean;
   outDir: string;
 }
 
@@ -48,6 +49,7 @@ export function fromOptions(o: ExportOptions): FormState {
     jpegQuality: o.jpegQuality,
     perSpread: o.perSpread,
     coverMode: o.coverMode,
+    coverAsPages: o.coverAsPages ?? false,
     outDir: o.outDir,
   };
 }
@@ -58,8 +60,9 @@ const wholeNumber = (text: string): number | null => {
 };
 
 /**
- * The options the fields stand for, or the fields that are wrong. Crop marks only exist on the
- * PDF route and are dropped without it; a JPEG quality only means something for JPEG.
+ * The options the fields stand for, or the fields that are wrong. Crop marks and the cover as
+ * first and last pages only exist on the PDF route and are dropped without it; a JPEG quality
+ * only means something for JPEG.
  */
 export function toOptions(
   f: FormState,
@@ -99,6 +102,7 @@ export function toOptions(
       jpegQuality: f.jpegQuality,
       perSpread: f.perSpread,
       coverMode: f.coverMode,
+      coverAsPages: f.route === 'pdf' && f.includeCover && f.coverAsPages,
       outDir: f.outDir.trim(),
     },
   };
@@ -119,6 +123,7 @@ export function sameOptions(a: ExportOptions, b: ExportOptions, withFolder: bool
       o.jpegQuality,
       o.perSpread,
       o.coverMode,
+      o.coverAsPages ?? false,
       withFolder ? o.outDir : '',
     ]);
   return key(a) === key(b);

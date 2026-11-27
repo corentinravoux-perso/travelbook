@@ -431,6 +431,9 @@ export const fr = {
     pagesTo: 'Dernière page',
     pagesHelp: (count: number) => `Le livre compte ${count} pages.`,
     includeCover: 'Inclure la couverture',
+    coverAsPages: 'Couverture en première et dernière pages (un seul PDF)',
+    coverAsPagesHelp:
+      'La face avant ouvre le PDF, le dos le ferme ; la tranche est laissée de côté.',
     resolution: 'Résolution',
     res150: '150 ppp',
     res300: '300 ppp',

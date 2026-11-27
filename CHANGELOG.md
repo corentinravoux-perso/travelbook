@@ -5,6 +5,12 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Export: a "Couverture en première et dernière pages (un seul PDF)" box on the PDF route.
+  With the cover included, the export is one file, `<album>.pdf`: the front cover, the pages,
+  then the back cover, each the size of a page (the spine is left out).
+
 ## [1.3.1] - 2026-11-27
 
 ### Added
