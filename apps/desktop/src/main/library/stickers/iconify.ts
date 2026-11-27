@@ -9,12 +9,16 @@ import {
 } from './source';
 
 const API = 'https://api.iconify.design';
-/** Iconify's search takes a limit of 32 to 999; one page is 48 icons. */
+/** One page is 48 icons. */
 export const ICONIFY_PAGE_SIZE = 48;
+/** Iconify's search finds at most this many icons (its `limit` goes from 32 to 999). */
+export const ICONIFY_MAX_LIMIT = 999;
 
 const AnswerSchema = z.object({
   icons: z.array(z.string()),
   limit: z.number(),
+  /** How many icons the search found, at most `limit`. */
+  total: z.number().optional(),
   collections: z
     .record(
       z.string(),
@@ -51,8 +55,13 @@ export function createIconifySource(http: SourceHttp): StickerSource {
     label: 'Iconify',
     needsKey: false,
     async search(q, page) {
+      // `limit` is how many icons the whole search finds, and `start` where the answer begins
+      // among them: page n asks for the first 48 n icons, from the 48 (n − 1)th. A `start` that
+      // is not below `limit` is refused (400).
       const start = Math.max(0, page - 1) * ICONIFY_PAGE_SIZE;
-      const url = `${API}/search?query=${encodeURIComponent(q)}&limit=${ICONIFY_PAGE_SIZE}&start=${start}`;
+      if (start >= ICONIFY_MAX_LIMIT) return { items: [], hasMore: false };
+      const limit = Math.min(start + ICONIFY_PAGE_SIZE, ICONIFY_MAX_LIMIT);
+      const url = `${API}/search?query=${encodeURIComponent(q)}&limit=${limit}&start=${start}`;
       const answer = await http.json(url, AnswerSchema);
       const items: StickerHit[] = [];
       for (const icon of answer.icons) {
@@ -79,7 +88,14 @@ export function createIconifySource(http: SourceHttp): StickerSource {
           mono: set.palette === false,
         });
       }
-      return { items, hasMore: answer.icons.length >= answer.limit };
+      // The search stopped at its limit (which Iconify may round): there may be more. It reports
+      // a smaller total when it found everything.
+      const found = answer.total ?? start + answer.icons.length;
+      return {
+        items,
+        hasMore:
+          answer.icons.length > 0 && found >= answer.limit && answer.limit < ICONIFY_MAX_LIMIT,
+      };
     },
     async fetch(hit) {
       const match = ICON_ID.exec(hit.id);

@@ -5,6 +5,7 @@ import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import { ThemeToggle } from '../editor/ThemeToggle';
 import { DeleteAlbumDialog } from './DeleteAlbumDialog';
+import { RenameAlbumDialog } from './RenameAlbumDialog';
 import { NewProjectDialog } from './NewProjectDialog';
 import { SettingsDialog } from './SettingsDialog';
 import './Home.css';
@@ -51,8 +52,15 @@ export function Home() {
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleting, setDeleting] = useState<RecentProject | null>(null);
-  const { refreshRecent, openProject, createProject, duplicateProject, deleteProject } =
-    projectStore.getState();
+  const [renaming, setRenaming] = useState<RecentProject | null>(null);
+  const {
+    refreshRecent,
+    openProject,
+    createProject,
+    duplicateProject,
+    deleteProject,
+    renameProject,
+  } = projectStore.getState();
 
   useEffect(() => {
     void refreshRecent();
@@ -153,6 +161,20 @@ export function Home() {
                   <div className="album__actions">
                     <button
                       type="button"
+                      className="button album__rename"
+                      disabled={busy}
+                      aria-label={fr.home.rename(project.title)}
+                      title={fr.home.rename(project.title)}
+                      onClick={() => {
+                        projectStore.setState({ error: null });
+                        setRenaming(project);
+                      }}
+                    >
+                      <Icon name="pencil" />
+                      {fr.home.renameLabel}
+                    </button>
+                    <button
+                      type="button"
                       className="button album__duplicate"
                       disabled={busy}
                       aria-label={fr.home.duplicate(project.title)}
@@ -194,6 +216,20 @@ export function Home() {
           onConfirm={() =>
             void deleteProject(deleting.dir).then((done) => {
               if (done) setDeleting(null);
+            })
+          }
+        />
+      )}
+
+      {renaming && (
+        <RenameAlbumDialog
+          project={renaming}
+          busy={busy}
+          failed={error === 'rename'}
+          onClose={() => setRenaming(null)}
+          onSubmit={(title) =>
+            void renameProject(renaming.dir, title).then((done) => {
+              if (done) setRenaming(null);
             })
           }
         />

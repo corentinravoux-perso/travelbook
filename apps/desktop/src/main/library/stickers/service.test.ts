@@ -147,6 +147,24 @@ describe('online search and thumbnails', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
+  it('draws an SVG thumbnail at full size, however small it says it is', async () => {
+    // Iconify's SVGs are 1em by 1em: drawn at that size, the tile was a 12-pixel blur.
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">' +
+      '<path fill="currentColor" d="M0 0h24v24H0z"/></svg>';
+    const fetchImpl = vi.fn(async () => new Response(svg));
+    const svc = make({
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      search: async () => ({
+        items: [hitOf('a', 'https://api.example.org/mdi/a.svg')],
+        hasMore: false,
+      }),
+    });
+    const { items } = await svc.search({ source: 'fake', q: 'x', page: 1 });
+    const meta = await sharp(await svc.thumb(items[0]!.thumbUrl.split('/').pop()!)).metadata();
+    expect([meta.format, meta.width, meta.height]).toEqual(['webp', 256, 256]);
+  });
+
   it('downloads a thumbnail once when the tile and the opacity check ask for it together', async () => {
     // Each tile asks for its picture and for its opacity at the same moment: two downloads of
     // the same file doubled the requests and drew Wikimedia's rate limit.

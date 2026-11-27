@@ -26,6 +26,7 @@ import {
   type PanelWidths,
   type PanelsFolded,
 } from './layout';
+import { AlbumTitle } from './AlbumTitle';
 import { BookSettings } from './BookSettings';
 import { Canvas } from './Canvas';
 import { PosterDialog } from '../posters/PosterDialog';
@@ -162,9 +163,7 @@ function TopBar() {
       {title !== undefined && (
         <>
           <span className="shell-sep" />
-          <span className="shell-top__title" title={title}>
-            {title}
-          </span>
+          <AlbumTitle title={title} />
           {format !== undefined && (
             <span className="shell-top__format">
               {fr.shell.formatCaption(format.width, format.height)}

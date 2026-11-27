@@ -123,12 +123,42 @@ describe('adapters map a recorded answer', () => {
     );
   });
 
-  it('iconify: asks for the next page with start', async () => {
-    const { fetchImpl, calls } = fakeFetch(() => json('{"icons":[],"limit":48,"collections":{}}'));
+  it('iconify: asks for a later page as the end of a longer search (limit is the whole search)', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => json('{"icons":[],"limit":144,"collections":{}}'));
     await createIconifySource(httpFor('iconify', fetchImpl)).search('é à', 3);
+    // `start=96&limit=48` would be a 400: Iconify refuses a start that is not below the limit.
     expect(calls[0]?.url).toBe(
-      'https://api.iconify.design/search?query=%C3%A9%20%C3%A0&limit=48&start=96',
+      'https://api.iconify.design/search?query=%C3%A9%20%C3%A0&limit=144&start=96',
     );
+  });
+
+  it('iconify: there is more while the search stops at its limit, not once it found everything', async () => {
+    const answer = JSON.parse(await recorded('iconify-search-suitcase.json'));
+    const page = (icons: number, limit: number, total: number) => {
+      const id = answer.icons[0] as string;
+      return JSON.stringify({ ...answer, icons: Array(icons).fill(id), limit, total });
+    };
+    const more = async (body: string, n: number) => {
+      const { fetchImpl } = fakeFetch(() => json(body));
+      return (await createIconifySource(httpFor('iconify', fetchImpl)).search('cactus', n)).hasMore;
+    };
+    expect(await more(page(48, 96, 96), 2)).toBe(true);
+    // asked for 144, Iconify answers its rounded limit 128 and the 124 icons it found
+    expect(await more(page(28, 128, 124), 3)).toBe(false);
+    expect(await more(page(0, 48, 0), 1)).toBe(false);
+  });
+
+  it('iconify: stops at the 999 icons a search can find', async () => {
+    const { fetchImpl, calls } = fakeFetch(() =>
+      json('{"icons":["mdi:cactus"],"limit":999,"total":999,"collections":{}}'),
+    );
+    const source = createIconifySource(httpFor('iconify', fetchImpl));
+    expect((await source.search('cactus', 21)).hasMore).toBe(false);
+    expect(calls[0]?.url).toBe(
+      'https://api.iconify.design/search?query=cactus&limit=999&start=960',
+    );
+    expect(await source.search('cactus', 22)).toEqual({ items: [], hasMore: false });
+    expect(calls).toHaveLength(1);
   });
 
   it('openverse: PNG hits with their CC licence and author', async () => {

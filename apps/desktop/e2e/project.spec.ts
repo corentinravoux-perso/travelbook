@@ -86,6 +86,44 @@ test('a 240 × 320 book opens on an empty first spread and comes back from the r
   }
 });
 
+test('an album is renamed from the top bar and from the home screen; its folder keeps its name', async () => {
+  const app = await launchApp(userData);
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await createFromHome(page, 'Islande');
+    await expect(topBar(page)).toContainText('Enregistré');
+
+    // In the editor: a click on the title, a new one, Enter. It is saved like any edit.
+    await topBar(page).getByRole('button', { name: 'Renommer l’album Islande' }).click();
+    const field = topBar(page).getByRole('textbox', { name: 'Titre de l’album' });
+    await expect(field).toBeFocused();
+    await field.fill('Islande 2026');
+    await field.press('Enter');
+    await expect(topBar(page).getByRole('button', { name: /Islande 2026/ })).toBeVisible();
+    await expect.poll(async () => (await readBook('islande')).title).toBe('Islande 2026');
+
+    // On the home screen the card shows it, and its "Renommer" asks for another one.
+    await page.getByRole('button', { name: 'Accueil' }).click();
+    const card = page.locator('button.album').filter({ hasText: 'Islande 2026' });
+    await expect(card).toBeVisible();
+    await page.getByRole('button', { name: 'Renommer Islande 2026' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Renommer l’album' });
+    await expect(dialog.getByLabel('Titre')).toHaveValue('Islande 2026');
+    await dialog.getByLabel('Titre').fill('Pérou - Alex');
+    await dialog.getByRole('button', { name: 'Renommer' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.locator('button.album').filter({ hasText: 'Pérou - Alex' })).toBeVisible();
+    expect((await readBook('islande')).title).toBe('Pérou - Alex');
+    expect(await readdir(albums)).toEqual(['islande.travelbook']);
+
+    await openAlbumCard(page, 'Pérou - Alex');
+    await expect(topBar(page)).toContainText('Pérou - Alex');
+  } finally {
+    await app.close().catch(() => {});
+  }
+});
+
 test('closing the window right after an edit saves it', async () => {
   let app = await launchApp(userData);
   try {
@@ -104,8 +142,8 @@ test('closing the window right after an edit saves it', async () => {
 
     app = await launchApp(userData);
     const again = await app.firstWindow();
-    // The recent list keeps the title the album had when it was opened.
-    await openAlbumCard(again, /Brouillon/);
+    // The home screen shows the title as saved.
+    await openAlbumCard(again, /Modifié à la fermeture/);
     await expect(topBar(again)).toContainText('Modifié à la fermeture');
   } finally {
     await app.close().catch(() => {});

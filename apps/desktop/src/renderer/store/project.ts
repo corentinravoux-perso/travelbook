@@ -18,7 +18,7 @@ export const SNAPSHOT_NOTE_MS = 2500;
 
 export type View = 'home' | 'editor';
 /** What failed on the home screen; the text is in `fr.home`. */
-export type ProjectError = 'create' | 'open' | 'duplicate' | 'delete';
+export type ProjectError = 'create' | 'open' | 'duplicate' | 'delete' | 'rename';
 export type SnapshotNote = 'saved' | 'failed';
 
 export interface ProjectState {
@@ -43,6 +43,8 @@ export interface ProjectState {
   duplicateProject(dir: string): Promise<boolean>;
   /** Move the album in `dir` to the system trash and refresh the list; false when it failed. */
   deleteProject(dir: string): Promise<boolean>;
+  /** Give the album in `dir` a new title and refresh the list; false when it failed. */
+  renameProject(dir: string, title: string): Promise<boolean>;
   /** Save the open book, then show the home screen. A failed save keeps the editor on screen. */
   goHome(): Promise<void>;
   dismissMissing(): void;
@@ -64,6 +66,7 @@ export interface ProjectStoreDeps {
     recent(): Promise<RecentProject[]>;
     duplicate(dir: string): Promise<ProjectInfo>;
     delete(dir: string): Promise<void>;
+    rename(dir: string, title: string): Promise<ProjectInfo>;
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
   };
 }
@@ -170,6 +173,21 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         await get().refreshRecent();
         return true;
       },
+      async renameProject(dir, title) {
+        if (get().busy) return false;
+        set({ busy: true, error: null });
+        try {
+          await api.rename(dir, title);
+        } catch (error) {
+          console.warn('Could not rename the album:', error);
+          set({ error: 'rename' });
+          return false;
+        } finally {
+          set({ busy: false });
+        }
+        await get().refreshRecent();
+        return true;
+      },
       async goHome() {
         try {
           await editor.getState().flush();
@@ -231,6 +249,7 @@ export const projectStore = createProjectStore({
     recent: () => window.tb.project.recent(),
     duplicate: (d) => window.tb.project.duplicate(d),
     delete: (d) => window.tb.project.delete(d),
+    rename: (d, t) => window.tb.project.rename(d, t),
     snapshot: (l) => window.tb.project.snapshot(l),
   },
 });

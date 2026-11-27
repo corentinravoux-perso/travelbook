@@ -25,6 +25,7 @@ function setup(flushCover?: () => Promise<void>) {
     recent: vi.fn(() => Promise.resolve([])),
     duplicate: vi.fn<(dir: string) => Promise<ProjectInfo>>(),
     delete: vi.fn<(dir: string) => Promise<void>>(),
+    rename: vi.fn<(dir: string, title: string) => Promise<ProjectInfo>>(),
     snapshot: vi.fn((label: SnapshotInfo['label']) => Promise.resolve(info(label))),
   };
   const store = createProjectStore({ editor, api, flushCover });
@@ -254,6 +255,28 @@ describe('project store and the geometry cache', () => {
       api.delete.mockRejectedValue(new Error('no trash'));
       expect(await store.getState().deleteProject('/albums/x.travelbook')).toBe(false);
       expect(store.getState().error).toBe('delete');
+      expect(store.getState().busy).toBe(false);
+    });
+  });
+
+  describe('renameProject', () => {
+    it('renames through the api and refreshes the list', async () => {
+      const { store, api } = setup();
+      const book = newBook({ title: 'Pérou' });
+      api.rename.mockResolvedValue({ dir: '/albums/x.travelbook', book });
+      expect(await store.getState().renameProject('/albums/x.travelbook', 'Pérou')).toBe(true);
+      expect(api.rename).toHaveBeenCalledWith('/albums/x.travelbook', 'Pérou');
+      expect(api.recent).toHaveBeenCalled();
+      expect(store.getState().busy).toBe(false);
+      expect(store.getState().error).toBeNull();
+    });
+
+    it('records a "rename" error when it fails', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { store, api } = setup();
+      api.rename.mockRejectedValue(new Error('read-only'));
+      expect(await store.getState().renameProject('/albums/x.travelbook', 'Pérou')).toBe(false);
+      expect(store.getState().error).toBe('rename');
       expect(store.getState().busy).toBe(false);
     });
   });
