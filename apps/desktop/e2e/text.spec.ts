@@ -133,7 +133,9 @@ test('the floating toolbar and the inspector show and set the same font, size an
     await toolbar.getByLabel('Police').selectOption({ label: 'Oswald' });
     await expect(inspector.getByLabel('Police')).toHaveValue("'Oswald', sans-serif");
 
-    // Part of it at another size: the inspector says the sizes differ.
+    // Part of it at another size: the inspector says the sizes differ. A click puts the caret
+    // back in the text (the font list may still hold the focus).
+    await editor.locator('.ProseMirror').click();
     await page.keyboard.press('Home');
     await page.keyboard.press('Shift+ArrowRight');
     await page.keyboard.press('Shift+ArrowRight');

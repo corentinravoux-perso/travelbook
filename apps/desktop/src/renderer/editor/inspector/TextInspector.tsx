@@ -86,7 +86,7 @@ export function TextInspector({ spreadId, element }: { spreadId: string; element
   return (
     <>
       <Section title={t.text}>
-        <div className="insp-field">
+        <div className="insp-field insp-field--font">
           <label className="insp-field__label" htmlFor="text-font">
             {t.font}
           </label>
