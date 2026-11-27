@@ -196,6 +196,8 @@ const text = (
   },
 });
 
+const ZERO = { x: 0, y: 0, w: 1, h: 1 };
+
 /** Page `n` of the fixture (10 pages); each effect to prove has a page of its own. */
 const PAGE = {
   look: 1,
@@ -266,7 +268,8 @@ function fixtureBook(base: Book, photo: AssetRef, assets: Record<string, AssetRe
       withElements(b, [sticker], {
         left: { kind: 'pattern', assetId: 'stencil', fg: '#3366aa', bg: '#f4ecd8', scale: 1 },
       }),
-      withElements(c, [], {
+      // A photo of page 7 flush with the spine: page 6's bleed reaches past the spine.
+      withElements(c, [{ ...photoEl({ x: 210, y: 100, w: 80, h: 60 }), id: 'facing' }], {
         left: {
           kind: 'image',
           assetId: 'background',
@@ -294,7 +297,11 @@ function fixtureBook(base: Book, photo: AssetRef, assets: Record<string, AssetRe
         text({ x: 230, y: 60, w: 150, h: 40 }, 'Neuf'),
       ]),
       withElements(last, [
-        text({ x: 30, y: 60, w: 150, h: 40 }, 'Fin de l’album'),
+        // A bundled font that is not one of the six of `bookFonts`.
+        {
+          ...text({ x: 30, y: 60, w: 150, h: 40 }, 'Fin de l’album'),
+          style: { ...text(ZERO, '').style, fontFamily: "'Pacifico', cursive" },
+        },
         { ...photoEl({ x: 30, y: 120, w: 150, h: 100 }), id: 'plain' },
       ]),
     ],
@@ -388,6 +395,44 @@ test('embeds every font', async () => {
   expect(rows.length).toBeGreaterThan(0);
   for (const row of rows) expect(row, row).toMatch(/\syes\s+yes\s+yes\s+\d+\s+\d+$/);
   expect(out).toContain('PlayfairDisplay');
+  // A bundled font beyond the six the export page always declares.
+  expect(out).toContain('Pacifico');
+});
+
+test("a page alone does not show the facing page's photo in its bleed past the spine", async () => {
+  // The photo of page 7 is in page 7, and not in page 6.
+  const facing = (i: PdfImage): boolean => i.width === px(80) && i.height === px(60);
+  expect((await pdfImages(interior, PAGE.backgroundTint)).filter(facing)).toHaveLength(1);
+  expect((await pdfImages(interior, PAGE.backgroundBlur)).filter(facing)).toEqual([]);
+  // Page 6's bleed past the spine (213 to 216 mm across) is paper: neither that photo nor page
+  // 7's tinted background.
+  const png = join(work, 'spine-bleed');
+  await poppler(
+    'pdftoppm',
+    '-r',
+    '100',
+    '-f',
+    String(PAGE.backgroundBlur),
+    '-l',
+    String(PAGE.backgroundBlur),
+    '-png',
+    '-singlefile',
+    interior,
+    png,
+  );
+  const { data, info } = await sharp(`${png}.png`)
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const rgb = (xMm: number, yMm: number): number[] => {
+    const i = (Math.round((yMm * 100) / 25.4) * info.width + Math.round((xMm * 100) / 25.4)) * 3;
+    return [data[i]!, data[i + 1]!, data[i + 2]!];
+  };
+  for (const y of [50, 133, 250]) {
+    for (const c of rgb(214.5, y)) expect(c, `spine bleed at ${y} mm`).toBeGreaterThan(245);
+  }
+  // Inside the trim, by the spine, the page's own background is drawn.
+  expect(Math.min(...rgb(211, 133))).toBeLessThan(245);
 });
 
 test('keeps text as text', async () => {
