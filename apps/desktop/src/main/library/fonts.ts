@@ -11,6 +11,7 @@ import {
   type Book,
   type Licence,
 } from '@travelbook/core';
+import type { FontFile } from '@travelbook/render/src/fonts.ts';
 import { z } from 'zod';
 import type { CatalogueEntry, FontCategory, FontFamily, LibraryItem } from '../../shared/api';
 import { appFetch } from '../app-fetch';
@@ -412,6 +413,24 @@ export async function addFromCatalogue(id: string, version: () => string): Promi
 // ---------------------------------------------------------------------------------------------
 // Fonts in an album.
 // ---------------------------------------------------------------------------------------------
+
+/**
+ * Every face of the bundled families named in `families` (case ignored), as `@font-face` takes
+ * them: what an export window must declare to draw those families. Other names are skipped.
+ */
+export function bundledFontFiles(families: readonly string[]): FontFile[] {
+  const wanted = new Set(families.map((f) => f.toLowerCase()));
+  return bundledFonts()
+    .filter((f) => wanted.has(f.family.toLowerCase()))
+    .flatMap((f) =>
+      f.faces.map((face) => ({
+        family: f.family,
+        weight: face.weight,
+        style: face.style,
+        url: face.url,
+      })),
+    );
+}
 
 /** The families of `families` that do not ship with the app: the only ones an album must carry. */
 export function unbundledFamilies(families: readonly string[]): string[] {

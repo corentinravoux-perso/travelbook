@@ -1,4 +1,5 @@
 import type { Book, Rect, Spread } from '@travelbook/core';
+import type { FontFile } from '@travelbook/render/src/fonts.ts';
 
 /**
  * What main hands the export window for one page (Task 7.2): the page is drawn by `SpreadView` at
@@ -21,6 +22,8 @@ export interface ExportPageJob {
    * colour (PDF route: see `bakePatternTile`). Backgrounds without an entry draw the stencil.
    */
   patternTiles?: Partial<Record<'spread' | 'left' | 'right', string>>;
+  /** Faces of the bundled fonts the album uses (`tb://resource/fonts/...`), to declare and load. */
+  fonts?: FontFile[];
 }
 
 /** What `window.__tbExport` offers main (called with `webContents.executeJavaScript`). */

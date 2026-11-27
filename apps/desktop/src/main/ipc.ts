@@ -54,6 +54,7 @@ import { runPdfExport } from './export/pdf';
 import { deletePreset, listPresets, savePreset } from './export/presets';
 import {
   addFromCatalogue,
+  bundledFontFiles,
   ensureFontsInProject,
   fontAssetsFor,
   importFontFile,
@@ -714,6 +715,7 @@ export function createHandlers(host: Host): IpcHandlers {
       const deps = {
         openRenderer: () => host.openExportRenderer(),
         onProgress: ctx.exportProgress,
+        fonts: bundledFontFiles(fontFamiliesUsed(book)),
       };
       const run = options.route === 'pdf' ? runPdfExport : runImageExport;
       const report = await run(book, session.dir, options as ExportOptions, deps);
