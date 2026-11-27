@@ -5,6 +5,19 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Albums: an album can be renamed, from its card on the home screen ("Renommer") or by
+  clicking its title in the editor's top bar (Enter keeps it, Escape drops it; one undo step).
+  The home screen shows the new title in the album's place; the folder keeps its name.
+
+### Fixed
+
+- Stickers: the Iconify thumbnails of the "En ligne" tab are sharp; they were drawn at 12 px and
+  blown up into a blur.
+- Stickers: "Afficher plus" on an Iconify search loads the next icons; it answered "La source a
+  répondu de façon inattendue".
+
 ## [1.3.0] - 2026-11-25
 
 ### Added

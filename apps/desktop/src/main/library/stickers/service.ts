@@ -32,6 +32,25 @@ export const OFFLINE_PAGE_SIZE = 60;
 /** Remote thumbnails are shrunk to this long edge (px) before they are cached and shown. */
 export const THUMB_EDGE = 256;
 const MAX_THUMB_BYTES = 8 * 1024 * 1024;
+/** sharp draws an SVG at 72 dpi unless told otherwise: one CSS pixel per pixel. */
+const SVG_DENSITY = 72;
+/**
+ * The cache key of a thumbnail. `v2`: SVGs drawn at full size since 2026-11-27; a `v1` entry of
+ * an SVG holds a blur, and is never read again.
+ */
+const thumbCacheKey = (url: string): string => `v2 ${url}`;
+
+/**
+ * A downloaded thumbnail, ready to shrink. An SVG is drawn at the density that gives its longer
+ * side `THUMB_EDGE` pixels: at its own size (an Iconify icon is `1em`, which librsvg draws at 12 px)
+ * the tile showed a dozen pixels blown up into a blur.
+ */
+async function thumbImage(raw: Buffer): Promise<ReturnType<typeof sharp>> {
+  const { format, width = 0, height = 0 } = await sharp(raw).metadata();
+  const side = Math.max(width, height);
+  if (format !== 'svg' || side <= 0) return sharp(raw);
+  return sharp(raw, { density: Math.min(100_000, (SVG_DENSITY * THUMB_EDGE) / side) });
+}
 /** Hits remembered: enough for a long browsing session, bounded so memory cannot grow. */
 const MAX_REMEMBERED = 3000;
 
@@ -124,7 +143,7 @@ export function createStickerService(options: StickerServiceOptions): StickerSer
   }
 
   async function fetchThumb(url: string): Promise<Thumb> {
-    const cached = await thumbCache.get(url);
+    const cached = await thumbCache.get(thumbCacheKey(url));
     if (cached !== undefined) {
       try {
         const parsed = JSON.parse(cached) as { opaque: boolean; webp: string };
@@ -138,7 +157,9 @@ export function createStickerService(options: StickerServiceOptions): StickerSer
     let opaque: boolean;
     try {
       opaque = !(await hasTransparency(raw));
-      bytes = await sharp(raw)
+      bytes = await (
+        await thumbImage(raw)
+      )
         .resize({ width: THUMB_EDGE, height: THUMB_EDGE, fit: 'inside', withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer();
@@ -146,7 +167,7 @@ export function createStickerService(options: StickerServiceOptions): StickerSer
       throw new SourceError('badAnswer', 'The thumbnail is not a usable image', { cause: error });
     }
     await thumbCache
-      .set(url, JSON.stringify({ opaque, webp: bytes.toString('base64') }))
+      .set(thumbCacheKey(url), JSON.stringify({ opaque, webp: bytes.toString('base64') }))
       .catch(() => undefined);
     return { bytes, opaque };
   }
