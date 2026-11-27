@@ -1347,7 +1347,7 @@ export const fr = {
     rename: (title: string) => `Renommer ${title}`,
     renameLabel: 'Renommer',
     renameTitle: 'Renommer l’album',
-    renameHelp: 'Le dossier de l’album garde son nom.',
+    renameHelp: 'Son dossier sur l’ordinateur prend le même nom.',
     renameCancel: 'Annuler',
     renameConfirm: 'Renommer',
     renameFailed:

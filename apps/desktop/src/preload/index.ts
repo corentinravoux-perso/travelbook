@@ -39,6 +39,7 @@ const tb: TbApi = {
     duplicate: (dir) => ipcRenderer.invoke(CHANNEL.projectDuplicate, dir),
     delete: (dir) => ipcRenderer.invoke(CHANNEL.projectDelete, dir),
     rename: (dir, title) => ipcRenderer.invoke(CHANNEL.projectRename, dir, title),
+    close: (bookId) => ipcRenderer.invoke(CHANNEL.projectClose, bookId),
     reveal: () => ipcRenderer.invoke(CHANNEL.projectReveal),
     pickFolder: () => ipcRenderer.invoke(CHANNEL.projectPickFolder),
     captureCover: (rect) => ipcRenderer.invoke(CHANNEL.projectCaptureCover, rect),

@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import type { AssetRef, Book } from '@travelbook/core';
 import { coverDirOf } from './project/cover-thumb';
 import type { TbExportJob, TbRoots } from './protocol';
@@ -21,6 +22,13 @@ export interface Session {
 }
 
 let current: Session | null = null;
+
+/**
+ * The queue of what writes into a project folder in the background: imports (photos, stickers,
+ * backgrounds, fonts, map geometries) and the copy of the fonts a save needs. They run one at a
+ * time, and closing the project waits for them.
+ */
+export const projectQueue = (dir: string): string => `import:${resolve(dir)}`;
 
 export function openSession(dir: string, book: Book): Session {
   const session: Session = { dir, book, assets: new Map() };

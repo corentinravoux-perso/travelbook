@@ -16,7 +16,7 @@ const info = (label: SnapshotInfo['label']): SnapshotInfo => ({
   pages: 24,
 });
 
-function setup(flushCover?: () => Promise<void>) {
+function setup(flushCover?: () => Promise<void>, importsSettled?: () => Promise<void>) {
   const save = vi.fn<(book: Book) => Promise<void>>(() => Promise.resolve());
   const editor = createEditorStore({ save });
   const api = {
@@ -26,9 +26,10 @@ function setup(flushCover?: () => Promise<void>) {
     duplicate: vi.fn<(dir: string) => Promise<ProjectInfo>>(),
     delete: vi.fn<(dir: string) => Promise<void>>(),
     rename: vi.fn<(dir: string, title: string) => Promise<ProjectInfo>>(),
+    close: vi.fn<(bookId?: string) => Promise<void>>(() => Promise.resolve()),
     snapshot: vi.fn((label: SnapshotInfo['label']) => Promise.resolve(info(label))),
   };
-  const store = createProjectStore({ editor, api, flushCover });
+  const store = createProjectStore({ editor, api, flushCover, importsSettled });
   return { save, editor, api, store };
 }
 
@@ -124,6 +125,58 @@ describe('project store', () => {
     await store.getState().goHome();
     expect(store.getState().view).toBe('home');
     expect(api.recent).toHaveBeenCalled();
+  });
+
+  it('goHome closes the album in main, once saved, so the home screen may rename or delete it', async () => {
+    const { store, editor, api, save } = setup();
+    const book = newBook({ title: 'A' });
+    api.open.mockResolvedValue(opened(book));
+    await store.getState().openProject('/a');
+    editor.getState().apply(retitle('A2'), 'Renommer');
+    await store.getState().goHome();
+    expect(api.close).toHaveBeenCalledExactlyOnceWith(book.id);
+    expect(save.mock.invocationCallOrder[0]).toBeLessThan(api.close.mock.invocationCallOrder[0]!);
+    // the list is read again once the album is closed (its folder may have a new name)
+    expect(api.recent.mock.invocationCallOrder.at(-1)).toBeGreaterThan(
+      api.close.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it('goHome waits for a running import, and saves what it brought, before it closes', async () => {
+    let settle: () => void = () => undefined;
+    const settled = new Promise<void>((resolve) => (settle = resolve));
+    const { store, editor, api, save } = setup(undefined, () => settled);
+    api.open.mockResolvedValue(opened(newBook({ title: 'A' })));
+    await store.getState().openProject('/a');
+    const home = store.getState().goHome();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.getState().view).toBe('home');
+    expect(api.close).not.toHaveBeenCalled();
+    // the import ends: its photos go into the book
+    editor.getState().apply(retitle('A2'), 'Importer');
+    settle();
+    await home;
+    expect(save).toHaveBeenCalled();
+    expect(save.mock.invocationCallOrder.at(-1)).toBeLessThan(
+      api.close.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it('a home screen action waits for the close of the album left', async () => {
+    let finish: () => void = () => undefined;
+    const { store, api } = setup();
+    api.open.mockResolvedValue(opened(newBook({ title: 'A' })));
+    await store.getState().openProject('/a');
+    api.close.mockImplementationOnce(() => new Promise((resolve) => (finish = resolve)));
+    void store.getState().goHome();
+    await vi.advanceTimersByTimeAsync(0);
+    api.delete.mockResolvedValue(undefined);
+    const deleting = store.getState().deleteProject('/a');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(api.delete).not.toHaveBeenCalled();
+    finish();
+    expect(await deleting).toBe(true);
+    expect(api.delete).toHaveBeenCalledWith('/a');
   });
 
   it('goHome brings the cover thumbnail up to date after the save, while the editor shows', async () => {

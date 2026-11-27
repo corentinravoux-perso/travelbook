@@ -21,6 +21,11 @@ export interface TrayState {
   failures: ImportFailure[];
   /** Names of the files whose original the last import put back in the album. */
   restored: string[];
+  /**
+   * Imports started and not yet in the book (their photos added, or dropped): closing the album
+   * waits until this is 0, so that none lands after it.
+   */
+  running: number;
 
   setSort(sort: SortKey): void;
   setFilter(filter: UsageFilter): void;
@@ -34,6 +39,8 @@ export interface TrayState {
   setProgress(progress: TrayState['progress']): void;
   setFailures(failures: ImportFailure[]): void;
   setRestored(names: string[]): void;
+  /** An import starts (+1) or is over (−1). */
+  countImport(step: 1 | -1): void;
 }
 
 export type TrayStore = StoreApi<TrayState>;
@@ -47,6 +54,7 @@ export function createTrayStore(): TrayStore {
     progress: null,
     failures: [],
     restored: [],
+    running: 0,
 
     setSort(sort) {
       set({ sort });
@@ -84,11 +92,26 @@ export function createTrayStore(): TrayStore {
     setRestored(restored) {
       set({ restored });
     },
+    countImport(step) {
+      set({ running: Math.max(0, get().running + step) });
+    },
   }));
 }
 
 /** The app's tray state: how the photo panel sorts, filters and what it has ticked. */
 export const trayStore = createTrayStore();
+
+/** Resolves once no import of `tray` is running (at once when none is). */
+export function importsSettled(tray: TrayStore = trayStore): Promise<void> {
+  return new Promise((resolve) => {
+    if (tray.getState().running === 0) return resolve();
+    const stop = tray.subscribe((s) => {
+      if (s.running !== 0) return;
+      stop();
+      resolve();
+    });
+  });
+}
 
 export function useTray<T>(selector: (state: TrayState) => T): T {
   return useStore(trayStore, selector);
