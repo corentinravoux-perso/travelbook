@@ -80,7 +80,7 @@ tests with `npm test`.
         layout, `dist/linux-unpacked/`) pass `e2e/packaged/packaged.spec.ts` and the whole
         scenario: bundled fonts, stickers and templates are found, sharp loads from outside the
         asar, a book is made, exported and reopened.
-  - [ ] `apt install ./travelbook_1.3.0_amd64.deb` on a clean Ubuntu, and the launcher entry
+  - [ ] `apt install ./travelbook_1.3.1_amd64.deb` on a clean Ubuntu, and the launcher entry
         opens the app. **Not run**: this task must not install the package. To do by hand once.
   - [ ] The `.exe` installs on Windows 10/11. **Not run**: there is no Windows machine here, and
         the installer is built by `.github/workflows/release.yml` on a version tag, which is not

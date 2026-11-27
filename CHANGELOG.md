@@ -5,6 +5,8 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-27
+
 ### Added
 
 - Albums: an album can be renamed, from its card on the home screen ("Renommer") or by
@@ -222,7 +224,8 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 
-[Unreleased]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.0.0...v1.1.0
