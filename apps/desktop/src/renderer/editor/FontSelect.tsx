@@ -25,6 +25,8 @@ interface Props {
   className?: string;
   /** Offer "Plus de polices…" (not in the toolbar over the canvas: a dialog would end the typing). */
   more?: boolean;
+  /** The text has several fonts: none is shown as chosen ("Plusieurs polices"). */
+  mixed?: boolean;
 }
 
 /**
@@ -32,7 +34,15 @@ interface Props {
  * first, by category, then the user's own, then the families only the album has. "Plus de
  * polices…" opens the catalogue and the file import.
  */
-export function FontSelect({ value, onChange, id, label, className, more = false }: Props) {
+export function FontSelect({
+  value,
+  onChange,
+  id,
+  label,
+  className,
+  more = false,
+  mixed = false,
+}: Props) {
   const families = useFontList((s) => s.families);
   const book = useEditor((s) => s.book);
   const [dialog, setDialog] = useState(false);
@@ -41,7 +51,7 @@ export function FontSelect({ value, onChange, id, label, className, more = false
   }, []);
 
   const albumOnly = albumOnlyFamilies(book, families);
-  const current = familyNamed([...families, ...albumOnly], value);
+  const current = mixed ? undefined : familyNamed([...families, ...albumOnly], value);
   const bundled = families.filter((f) => f.origin === 'bundled');
   const own = families.filter((f) => f.origin === 'library');
 
@@ -63,7 +73,7 @@ export function FontSelect({ value, onChange, id, label, className, more = false
       >
         {current === undefined && (
           <option value="" disabled>
-            {firstFamily(value) || t.other}
+            {mixed ? t.mixed : firstFamily(value) || t.other}
           </option>
         )}
         {CATEGORIES.map((category) => {

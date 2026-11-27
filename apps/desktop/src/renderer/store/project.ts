@@ -10,6 +10,7 @@ import type {
 import { geometryCache } from '../maps/geometryCache';
 import { captureCoverThumb, createCoverThumbs } from '../editor/coverThumb';
 import { editorStore, type EditorStore } from './editor';
+import { importsSettled, trayStore } from './tray';
 
 /** An automatic snapshot is taken this often while the book has changed since the last one. */
 export const AUTO_SNAPSHOT_MS = 10 * 60 * 1000;
@@ -45,7 +46,11 @@ export interface ProjectState {
   deleteProject(dir: string): Promise<boolean>;
   /** Give the album in `dir` a new title and refresh the list; false when it failed. */
   renameProject(dir: string, title: string): Promise<boolean>;
-  /** Save the open book, then show the home screen. A failed save keeps the editor on screen. */
+  /**
+   * Save the open book, then show the home screen, then close the album in main once its imports
+   * are in (it can then be renamed or deleted, and its folder takes its title). A failed save
+   * keeps the editor on screen.
+   */
   goHome(): Promise<void>;
   dismissMissing(): void;
   /** Originals that were put back: they are no longer missing. */
@@ -58,6 +63,8 @@ export interface ProjectState {
 
 export interface ProjectStoreDeps {
   editor: EditorStore;
+  /** Resolves once no photo import is running (they land in the open book). */
+  importsSettled?(): Promise<void>;
   /** Brings the cover thumbnail up to date; called while the editor is still on screen. */
   flushCover?(): Promise<void>;
   api: {
@@ -67,17 +74,40 @@ export interface ProjectStoreDeps {
     duplicate(dir: string): Promise<ProjectInfo>;
     delete(dir: string): Promise<void>;
     rename(dir: string, title: string): Promise<ProjectInfo>;
+    close(bookId?: string): Promise<void>;
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
   };
 }
 
 export type ProjectStore = StoreApi<ProjectState>;
 
-export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps): ProjectStore {
+export function createProjectStore({
+  editor,
+  api,
+  flushCover,
+  importsSettled,
+}: ProjectStoreDeps): ProjectStore {
   /** The book as it was at the last snapshot (or when it was opened): the baseline of "changed". */
   let snapshotBase: Book | null = null;
   let noteTimer: ReturnType<typeof setTimeout> | undefined;
   let snapshotting: Promise<void> = Promise.resolve();
+  /** The close of the album left for the home screen; the home screen's actions wait for it. */
+  let closing: Promise<void> = Promise.resolve();
+
+  /**
+   * Close the album of book `bookId` in main once its imports are in the book and saved: the
+   * home screen may then rename or delete it, and its folder takes its title. Never rejects: an
+   * album main keeps open only refuses those two.
+   */
+  const closeAlbum = async (bookId: string): Promise<void> => {
+    try {
+      await importsSettled?.();
+      await editor.getState().flush();
+      await api.close(bookId);
+    } catch (error) {
+      console.warn('Could not close the album:', error);
+    }
+  };
 
   return createStore<ProjectState>()((set, get) => {
     const note = (value: SnapshotNote) => {
@@ -105,6 +135,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
       if (get().busy) return null;
       set({ busy: true, error: null });
       try {
+        await closing;
         const opened = await editor.getState().openWith(open);
         if (opened) {
           snapshotBase = opened.book;
@@ -147,6 +178,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         if (get().busy) return false;
         set({ busy: true, duplicating: dir, error: null });
         try {
+          await closing;
           await api.duplicate(dir);
         } catch (error) {
           console.warn('Could not duplicate the album:', error);
@@ -162,6 +194,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         if (get().busy) return false;
         set({ busy: true, error: null });
         try {
+          await closing;
           await api.delete(dir);
         } catch (error) {
           console.warn('Could not delete the album:', error);
@@ -177,6 +210,7 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         if (get().busy) return false;
         set({ busy: true, error: null });
         try {
+          await closing;
           await api.rename(dir, title);
         } catch (error) {
           console.warn('Could not rename the album:', error);
@@ -197,6 +231,9 @@ export function createProjectStore({ editor, api, flushCover }: ProjectStoreDeps
         await flushCover?.(); // never rejects: the thumbnail is a cache
         set({ view: 'home' });
         geometryCache.clear();
+        const bookId = editor.getState().book?.id;
+        if (bookId !== undefined) closing = closeAlbum(bookId);
+        await closing;
         await get().refreshRecent();
       },
       dismissMissing() {
@@ -242,6 +279,7 @@ export const coverThumbs = createCoverThumbs({
 /** The app's project store, over `window.tb` and the app's editor store. */
 export const projectStore = createProjectStore({
   editor: editorStore,
+  importsSettled: () => importsSettled(trayStore),
   flushCover: () => coverThumbs.flush(),
   api: {
     create: (o) => window.tb.project.create(o),
@@ -250,6 +288,7 @@ export const projectStore = createProjectStore({
     duplicate: (d) => window.tb.project.duplicate(d),
     delete: (d) => window.tb.project.delete(d),
     rename: (d, t) => window.tb.project.rename(d, t),
+    close: (id) => window.tb.project.close(id),
     snapshot: (l) => window.tb.project.snapshot(l),
   },
 });

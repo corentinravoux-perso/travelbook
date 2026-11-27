@@ -76,6 +76,25 @@ export async function retitleRecentProject(projectDir: string, title: string): P
 }
 
 /**
+ * The project in `fromDir` moved to `toDir` (its folder was renamed): its entry follows, in its
+ * place and with its date. Its cover thumbnail is looked up again in the new folder.
+ */
+export async function moveRecentProject(fromDir: string, toDir: string): Promise<void> {
+  const dir = await userDataDir();
+  const file = join(dir, FILE_NAME);
+  await serialize(`recent:${file}`, async () => {
+    const list = await readList(file);
+    const entry = list.find((r) => resolve(r.dir) === resolve(fromDir));
+    if (entry === undefined) return;
+    const moved: RecentProject = { dir: toDir, title: entry.title, openedAt: entry.openedAt };
+    const updated = list
+      .filter((r) => r === entry || resolve(r.dir) !== resolve(toDir))
+      .map((r) => (r === entry ? moved : r));
+    await writeFileAtomic(file, JSON.stringify(updated, null, 2) + '\n');
+  });
+}
+
+/**
  * Put a project at the front of the recent list (de-duplicated by `dir`, at most 20 entries).
  * A re-add that carries no `coverThumb` keeps the one already stored.
  */

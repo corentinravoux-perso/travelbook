@@ -43,7 +43,8 @@ import { SourceError } from './library/stickers/source';
 import { recentProjects } from './project/recent';
 import { setUserDataDir } from './user-data';
 import { resolveTbUrl } from './protocol';
-import { closeSession, currentSession, knownAssets, tbRoots } from './session';
+import { closeSession, currentSession, knownAssets, projectQueue, tbRoots } from './session';
+import { serialize } from './project/atomic-write';
 import { AUTO_SNAPSHOTS_KEPT } from './project/snapshots';
 
 let root: string;
@@ -480,25 +481,99 @@ describe('project', () => {
     });
   });
 
+  describe('close', () => {
+    const onDisk = async (dir: string): Promise<Book> =>
+      JSON.parse(await readFile(join(dir, 'book.json'), 'utf8')) as Book;
+
+    it('closes the open album: the home screen may then delete it', async () => {
+      const album = await create('Islande');
+      await call(CHANNEL.projectClose, album.book.id);
+      expect(currentSession()).toBeNull();
+      await call(CHANNEL.projectDelete, album.dir);
+      expect(host.trashItem).toHaveBeenCalledExactlyOnceWith(album.dir);
+    });
+
+    it('gives the folder the title the editor saved, and the recent list follows', async () => {
+      const album = await create('Brouillon');
+      await call(CHANNEL.projectSave, { ...album.book, title: 'Pérou - Alex' });
+      await call(CHANNEL.projectClose, album.book.id);
+      const moved = join(albums, 'perou-alex.travelbook');
+      expect((await onDisk(moved)).title).toBe('Pérou - Alex');
+      expect(await readdir(albums)).toEqual(['perou-alex.travelbook']);
+      const [entry] = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect([entry?.dir, entry?.title]).toEqual([moved, 'Pérou - Alex']);
+    });
+
+    it('leaves another album open, and waits for an import into the folder', async () => {
+      const album = await create('Brouillon');
+      await call(CHANNEL.projectSave, { ...album.book, title: 'Islande' });
+      await call(CHANNEL.projectClose, 'another-book');
+      expect(currentSession()?.dir).toBe(album.dir);
+      let finish: () => void = () => undefined;
+      const importing = serialize(
+        projectQueue(album.dir),
+        () => new Promise<void>((resolve) => (finish = resolve)),
+      );
+      const closing = call(CHANNEL.projectClose);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(await readdir(albums)).toEqual(['brouillon.travelbook']);
+      finish();
+      await importing;
+      await closing;
+      expect(await readdir(albums)).toEqual(['islande.travelbook']);
+    });
+
+    it('closes the album open until now when another one is opened', async () => {
+      const first = await create('Brouillon');
+      await call(CHANNEL.projectSave, { ...first.book, title: 'Islande' });
+      await create('Japon');
+      expect((await readdir(albums)).sort()).toEqual(['islande.travelbook', 'japon.travelbook']);
+    });
+
+    it.each([
+      ['a number', [1]],
+      ['an empty id', ['']],
+      ['an extra argument', ['a', 'b']],
+    ] as const)('rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.projectClose, ...args)).rejects.toThrow(/project:close/);
+    });
+  });
+
   describe('rename', () => {
     const onDisk = async (dir: string): Promise<Book> =>
       JSON.parse(await readFile(join(dir, 'book.json'), 'utf8')) as Book;
 
-    it('retitles book.json and the recent list, where the album stands, and keeps the folder', async () => {
+    it('retitles book.json, renames the folder, and keeps the album in its place in the list', async () => {
       const first = await create('Islande');
       const second = await create('Japon');
       closeSession();
       const before = await call<RecentProject[]>(CHANNEL.projectRecent);
       const renamed = await call<ProjectInfo>(CHANNEL.projectRename, first.dir, '  Pérou - Alex  ');
-      expect(renamed.dir).toBe(first.dir);
+      const moved = join(albums, 'perou-alex.travelbook');
+      expect(renamed.dir).toBe(moved);
       expect(renamed.book.title).toBe('Pérou - Alex');
-      expect((await onDisk(first.dir)).title).toBe('Pérou - Alex');
-      expect((await onDisk(first.dir)).id).toBe(first.book.id);
+      expect((await onDisk(moved)).title).toBe('Pérou - Alex');
+      expect((await onDisk(moved)).id).toBe(first.book.id);
+      await expect(stat(first.dir)).rejects.toThrow();
       const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
       expect(recent.map((r) => [r.dir, r.title, r.openedAt])).toEqual([
         [second.dir, 'Japon', before[0]?.openedAt],
-        [first.dir, 'Pérou - Alex', before[1]?.openedAt],
+        [moved, 'Pérou - Alex', before[1]?.openedAt],
       ]);
+    });
+
+    it('gives the folder a free name when another album has it, and opens from there', async () => {
+      const islande = await create('Islande');
+      await create('Japon');
+      closeSession();
+      const renamed = await call<ProjectInfo>(CHANNEL.projectRename, islande.dir, 'Japon');
+      expect(renamed.dir).toBe(join(albums, 'japon-2.travelbook'));
+      const opened = await call<ProjectInfo>(CHANNEL.projectOpen, renamed.dir);
+      expect(opened.book.title).toBe('Japon');
+      // A name that already fits is kept: no -3 for a title that did not change its slug.
+      closeSession();
+      const again = await call<ProjectInfo>(CHANNEL.projectRename, renamed.dir, 'JAPON');
+      expect(again.dir).toBe(renamed.dir);
     });
 
     it('renames the album main still has open: the next snapshot keeps the new title', async () => {

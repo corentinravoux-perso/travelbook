@@ -38,7 +38,7 @@ test('the picker lists the bundled fonts, a user font joins the album and surviv
     await page.keyboard.type('Été « œuvre »');
     await page.keyboard.press('Escape');
     // Escape ends the typing and leaves the text selected: the inspector has its font field.
-    const select = page.getByLabel('Police');
+    const select = page.getByLabel('Police', { exact: true });
     await expect(select).toBeVisible();
 
     await test.step('the picker offers about forty bundled fonts, by category, in their own face', async () => {

@@ -24,6 +24,7 @@ import { exportJobLookup } from './export/images';
 import { ensureProxies } from './photos/proxies';
 import { denyAllPermissions } from './permissions';
 import { installTbProtocol, TB_PRIVILEGES, TB_SCHEME } from './protocol';
+import { closeProject } from './project/close';
 import { currentSession, setLibraryFileLookup, tbRoots } from './session';
 import { enforceSingleInstance } from './single-instance';
 import { restrictToAppPage } from './window-guard';
@@ -57,6 +58,12 @@ function createWindow(): BrowserWindow {
     },
   });
   restrictToAppPage(win.webContents, appPage);
+  // A page that (re)loads starts on the home screen, with no album open: main closes its own.
+  win.webContents.on('did-start-loading', () => {
+    void closeProject().catch((error: unknown) =>
+      console.warn('Could not close the album:', error),
+    );
+  });
   guardWindowClose(win, { ipcMain, isTrusted: isTrustedSender, askUser: askCloseChoice });
   win.once('ready-to-show', () => win.show());
   win.on('closed', () => {
@@ -133,6 +140,18 @@ void app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
+
+// The album still open when the app quits is closed, so that its folder takes its title. A
+// folder that something still writes into keeps its name: the next close of the album renames it.
+let closedOnQuit = false;
+app.on('will-quit', (event) => {
+  if (closedOnQuit || currentSession() === null) return;
+  closedOnQuit = true;
+  event.preventDefault();
+  void closeProject({ onlyIfIdle: true })
+    .catch((error: unknown) => console.warn('Could not close the album:', error))
+    .finally(() => app.quit());
 });
 
 app.on('window-all-closed', () => {

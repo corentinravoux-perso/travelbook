@@ -39,7 +39,7 @@ test('search avion, place the first result and tint it; import alpha.png, place 
       null,
     );
     await expect(page.getByRole('img', { name: 'Double page 2' })).toBeVisible();
-    await page.getByRole('button', { name: 'Stickers' }).click();
+    await page.getByRole('button', { name: 'Stickers', exact: true }).click();
     await expect(page.getByRole('tablist', { name: 'Origine des stickers' })).toBeVisible();
 
     const stickers = () =>

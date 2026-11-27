@@ -384,7 +384,12 @@ export function Canvas() {
                 />
               )}
               {editing?.type === 'text' && textEditor && (
-                <TextToolbar editor={textEditor} element={editing} scale={scale} />
+                <TextToolbar
+                  editor={textEditor}
+                  element={editing}
+                  spreadId={spread.id}
+                  scale={scale}
+                />
               )}
               {draw.draft?.kind === 'box' && (
                 <div className="canvas-draft" style={frame(draw.draft.rect, scale)} />

@@ -131,7 +131,11 @@ export function createPhotoImporter(deps: ImportDeps): PhotoImporter {
 
   return {
     importPaths(paths) {
-      const result = queue.then(() => run(paths));
+      // Counted from the moment it is asked for, queued or running, until its photos are in.
+      deps.tray.getState().countImport(1);
+      const result = queue
+        .then(() => run(paths))
+        .finally(() => deps.tray.getState().countImport(-1));
       queue = result.catch(() => undefined);
       return result;
     },

@@ -1,7 +1,8 @@
-import type { Editor } from '@tiptap/core';
-import { boundingBox, type TextElement } from '@travelbook/core';
+import type { ChainedCommands, Editor } from '@tiptap/core';
+import { boundingBox, updateElements, type TextElement } from '@travelbook/core';
 import { useEffect, useReducer, type ReactNode } from 'react';
 import { FontSelect } from './FontSelect';
+import { editorStore } from '../store/editor';
 import { fr } from '../strings/fr';
 import { Icon } from '../theme/Icon';
 import type { IconName } from '../theme/icons';
@@ -49,16 +50,19 @@ function Tool({
 
 /**
  * The floating toolbar over the text being edited: font, size, colour, bold, italic, underline,
- * lists and alignment, for the selection. It sits above the box (below it near the top of the
- * page); `scale` is px per mm of the canvas. The inspector sets the same things for the whole box.
+ * lists and alignment, for the selection. With nothing selected, the font, size and colour go to
+ * the whole text, as the inspector sets them, so that both show the same. It sits above the box
+ * (below it near the top of the page); `scale` is px per mm of the canvas.
  */
 export function TextToolbar({
   editor,
   element,
+  spreadId,
   scale,
 }: {
   editor: Editor;
   element: TextElement;
+  spreadId: string;
   scale: number;
 }) {
   const [, redraw] = useReducer((n: number) => n + 1, 0);
@@ -70,6 +74,35 @@ export function TextToolbar({
   const box = boundingBox(element);
   const above = box.y * scale > 56;
   const run = () => editor.chain().focus();
+
+  /**
+   * Font, size or colour: on the selected text; with nothing selected, on all of it, the caret
+   * staying where it is. A box with no text yet takes it as its style: there is no run to set.
+   * `focus` is false for the colour, whose system picker a change of focus would close.
+   */
+  const restyle = (
+    set: (chain: ChainedCommands) => ChainedCommands,
+    style: Partial<TextElement['style']>,
+    label: string,
+    focus = true,
+    mergeKey?: string,
+  ) => {
+    const start = focus ? editor.chain().focus() : editor.chain();
+    const { empty, from, to } = editor.state.selection;
+    if (!empty) return void set(start).run();
+    if (editor.isEmpty) {
+      editorStore
+        .getState()
+        .apply(
+          (b) =>
+            updateElements(b, spreadId, [element.id], { style: { ...element.style, ...style } }),
+          label,
+          mergeKey,
+        );
+      return void (focus && editor.commands.focus());
+    }
+    set(start.selectAll()).setTextSelection({ from, to }).run();
+  };
 
   const marks = editor.getAttributes('textStyle') as {
     fontFamily?: string | null;
@@ -101,7 +134,9 @@ export function TextToolbar({
         className="input text-toolbar__font"
         label={t.font}
         value={family}
-        onChange={(css) => run().setFontFamily(css).run()}
+        onChange={(css) =>
+          restyle((c) => c.setFontFamily(css), { fontFamily: css }, fr.textInspector.undoFont)
+        }
       />
       <span
         className="text-toolbar__size"
@@ -116,15 +151,24 @@ export function TextToolbar({
           value={Math.round(sizePt * 10) / 10}
           min={1}
           max={400}
-          onCommit={(pt) => run().setFontSize(`${pt}pt`).run()}
+          onCommit={(pt) =>
+            restyle((c) => c.setFontSize(`${pt}pt`), { fontSizePt: pt }, fr.textInspector.undoSize)
+          }
         />
       </span>
       <span className="text-toolbar__color">
         <ColorField
           label={t.color}
           value={splitColor(color).hex}
-          // No focus change: it would close the system colour picker.
-          onChange={(hex) => editor.chain().setColor(hex).run()}
+          onChange={(hex, gesture) =>
+            restyle(
+              (c) => c.setColor(hex),
+              { color: hex },
+              fr.textInspector.undoColor,
+              false,
+              gesture,
+            )
+          }
         />
       </span>
       <span className="text-toolbar__sep" />

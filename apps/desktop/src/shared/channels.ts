@@ -13,6 +13,7 @@ export const CHANNEL = {
   projectDuplicate: 'project:duplicate',
   projectDelete: 'project:delete',
   projectRename: 'project:rename',
+  projectClose: 'project:close',
   settingsMenuLanguage: 'settings:menuLanguage',
   settingsSetMenuLanguage: 'settings:setMenuLanguage',
   projectReveal: 'project:reveal',

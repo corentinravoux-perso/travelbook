@@ -86,7 +86,7 @@ test('a 240 × 320 book opens on an empty first spread and comes back from the r
   }
 });
 
-test('an album is renamed from the top bar and from the home screen; its folder keeps its name', async () => {
+test('an album is renamed from the top bar and from the home screen; its folder follows', async () => {
   const app = await launchApp(userData);
   try {
     await pickFolders(app, albums);
@@ -103,10 +103,12 @@ test('an album is renamed from the top bar and from the home screen; its folder 
     await expect(topBar(page).getByRole('button', { name: /Islande 2026/ })).toBeVisible();
     await expect.poll(async () => (await readBook('islande')).title).toBe('Islande 2026');
 
-    // On the home screen the card shows it, and its "Renommer" asks for another one.
+    // Back home, the album is closed: its folder takes the new title, its card shows it, and
+    // its "Renommer" asks for another one.
     await page.getByRole('button', { name: 'Accueil' }).click();
     const card = page.locator('button.album').filter({ hasText: 'Islande 2026' });
     await expect(card).toBeVisible();
+    await expect.poll(() => readdir(albums)).toEqual(['islande-2026.travelbook']);
     await page.getByRole('button', { name: 'Renommer Islande 2026' }).click();
     const dialog = page.getByRole('dialog', { name: 'Renommer l’album' });
     await expect(dialog.getByLabel('Titre')).toHaveValue('Islande 2026');
@@ -114,11 +116,41 @@ test('an album is renamed from the top bar and from the home screen; its folder 
     await dialog.getByRole('button', { name: 'Renommer' }).click();
     await expect(dialog).toBeHidden();
     await expect(page.locator('button.album').filter({ hasText: 'Pérou - Alex' })).toBeVisible();
-    expect((await readBook('islande')).title).toBe('Pérou - Alex');
-    expect(await readdir(albums)).toEqual(['islande.travelbook']);
+    expect((await readBook('perou-alex')).title).toBe('Pérou - Alex');
+    expect(await readdir(albums)).toEqual(['perou-alex.travelbook']);
 
     await openAlbumCard(page, 'Pérou - Alex');
     await expect(topBar(page)).toContainText('Pérou - Alex');
+  } finally {
+    await app.close().catch(() => {});
+  }
+});
+
+test('the album just left can be deleted from the home screen', async () => {
+  const app = await launchApp(userData);
+  try {
+    await pickFolders(app, albums);
+    // Into a scratch folder, not the user's trash.
+    const trash = join(work, 'trash');
+    await app.evaluate(({ shell }, to) => {
+      const fs = process.getBuiltinModule('node:fs/promises');
+      const path = process.getBuiltinModule('node:path');
+      shell.trashItem = async (item: string) => {
+        await fs.mkdir(to, { recursive: true });
+        await fs.rename(item, path.join(to, path.basename(item)));
+      };
+    }, trash);
+    const page = await app.firstWindow();
+    await createFromHome(page, 'Islande');
+    await expect(topBar(page)).toContainText('Enregistré');
+    await page.getByRole('button', { name: 'Accueil' }).click();
+    await page.getByRole('button', { name: 'Supprimer Islande' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Supprimer « Islande » ?' });
+    await dialog.getByRole('button', { name: 'Mettre à la corbeille' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText('Aucun album pour le moment')).toBeVisible();
+    expect(await readdir(albums)).toEqual([]);
+    expect(await readdir(trash)).toEqual(['islande.travelbook']);
   } finally {
     await app.close().catch(() => {});
   }
@@ -138,7 +170,8 @@ test('closing the window right after an edit saves it', async () => {
       editor.getState().apply((book) => ({ ...book, title: 'Modifié à la fermeture' }), 'Renommer');
     });
     await closeWindowAndWait(app);
-    expect((await readBook('brouillon')).title).toBe('Modifié à la fermeture');
+    // Saved, and the folder took the title as the app quit.
+    expect((await readBook('modifie-a-la-fermeture')).title).toBe('Modifié à la fermeture');
 
     app = await launchApp(userData);
     const again = await app.firstWindow();

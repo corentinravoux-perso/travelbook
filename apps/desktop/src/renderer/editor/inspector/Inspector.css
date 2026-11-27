@@ -297,6 +297,22 @@
   width: 150px;
   height: 26px;
 }
+/*
+ * The font: the label and the list on one line like the other fields, "Plus de polices…" on its
+ * own line under the list. On one line, the three did not fit the inspector's default width.
+ */
+.insp-field--font {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--s4);
+  row-gap: var(--s2);
+  align-items: center;
+}
+.insp-field--font .font-more {
+  grid-column: 2;
+  justify-self: end;
+  margin-top: 0;
+}
 
 /* Tabs of the inspector: properties, layers, history. */
 .insp-head {

@@ -90,10 +90,13 @@ import { menuLanguage, setMenuLanguage } from './app-settings';
 import { deleteProject } from './project/delete';
 import { duplicateProject } from './project/duplicate';
 import { MAX_TITLE_LENGTH, renameProject } from './project/rename';
+import { closeProject } from './project/close';
 import { createProject, openProject, saveBook } from './project/store';
 import {
   knownAssets,
+  currentSession,
   openSession,
+  projectQueue,
   recordAssets,
   recordBook,
   requireSession,
@@ -220,6 +223,7 @@ const schemas = {
   duplicate: z.tuple([absolutePath]),
   delete: z.tuple([absolutePath]),
   rename: z.tuple([absolutePath, z.string().trim().min(1).max(MAX_TITLE_LENGTH)]),
+  close: z.tuple([z.string().min(1).max(200).optional()]),
   menuLanguage: z.tuple([z.enum(['fr', 'en'])]),
   save: z.tuple([BookSchema]),
   captureRect: z.tuple([captureRect]),
@@ -281,7 +285,7 @@ function parseArgs<S extends z.ZodType>(channel: InvokeChannel, schema: S, args:
 }
 
 /** Imports into a project run one at a time: two of them could remove each other's files. */
-const importQueue = (session: Session): string => `import:${resolve(session.dir)}`;
+const importQueue = (session: Session): string => projectQueue(session.dir);
 
 /**
  * Whether the text of `book` draws with a family the app does not bundle, so that saving it may
@@ -353,6 +357,7 @@ export function createHandlers(host: Host): IpcHandlers {
         parentDir,
         ...(options.format ? { format: options.format } : {}),
       });
+      await closeProject(); // the album open until now: its folder may take its title
       openSession(dir, book);
       return { dir, book };
     },
@@ -362,6 +367,9 @@ export function createHandlers(host: Host): IpcHandlers {
       const dir = given ?? (await host.pickFolder('open'));
       if (dir === null) return null;
       const opened = await openProject(dir);
+      // The album open until now is closed (its folder may take its title), unless it is this one.
+      const open = currentSession();
+      if (open && resolve(open.dir) !== resolve(opened.dir)) await closeProject();
       openSession(opened.dir, opened.book);
       return opened;
     },
@@ -385,6 +393,11 @@ export function createHandlers(host: Host): IpcHandlers {
     [CHANNEL.projectDelete]: async (_ctx, ...args) => {
       const [dir] = parseArgs(CHANNEL.projectDelete, schemas.delete, args);
       await deleteProject(dir, (path) => host.trashItem(path));
+    },
+
+    [CHANNEL.projectClose]: async (_ctx, ...args) => {
+      const [bookId] = parseArgs(CHANNEL.projectClose, schemas.close, args);
+      await closeProject(bookId === undefined ? {} : { bookId });
     },
 
     [CHANNEL.projectRename]: async (_ctx, ...args) => {

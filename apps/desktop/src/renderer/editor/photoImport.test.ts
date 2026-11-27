@@ -2,7 +2,7 @@ import { newBook, type AssetRef, type Book } from '@travelbook/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ImportReport } from '../../shared/api';
 import { createEditorStore } from '../store/editor';
-import { createTrayStore } from '../store/tray';
+import { createTrayStore, importsSettled } from '../store/tray';
 import {
   baseName,
   createPhotoImporter,
@@ -274,5 +274,30 @@ describe('photo importer', () => {
     const { importer, calls } = await setup([]);
     expect(await importer.importPaths([])).toEqual([]);
     expect(calls).toEqual([]);
+  });
+});
+
+describe('imports running', () => {
+  it('counts an import from the request until its photos are in the book', async () => {
+    let answer: (r: ImportReport) => void = () => undefined;
+    const { editor, tray, importer } = await setup(
+      () => new Promise<ImportReport>((resolve) => (answer = resolve)),
+    );
+    let settled = false;
+    const first = importer.importPaths(['/p/a.jpg']);
+    const second = importer.importPaths(['/p/b.jpg']); // queued behind the first
+    void importsSettled(tray).then(() => (settled = true));
+    expect(tray.getState().running).toBe(2);
+    await vi.waitFor(() => expect(tray.getState().progress).not.toBeNull());
+    answer(report({ added: [asset('a')] }));
+    await first;
+    expect(tray.getState().running).toBe(1);
+    expect(settled).toBe(false);
+    await vi.waitFor(() => expect(tray.getState().progress).not.toBeNull());
+    answer(report({ added: [asset('b')] }));
+    await second;
+    await vi.waitFor(() => expect(settled).toBe(true));
+    expect(tray.getState().running).toBe(0);
+    expect(Object.keys(editor.getState().book?.assets ?? {}).sort()).toEqual(['a', 'b']);
   });
 });

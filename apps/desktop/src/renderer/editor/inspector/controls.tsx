@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
+import { fr } from '../../strings/fr';
 import { parseField } from './parseField';
 
 // The small controls an inspector is made of: a titled section, a number field, a slider, a
@@ -29,6 +30,7 @@ export function NumberField({
   min,
   max,
   disabled,
+  mixed = false,
   onCommit,
 }: {
   label: string;
@@ -37,6 +39,11 @@ export function NumberField({
   min: number;
   max: number;
   disabled?: boolean;
+  /**
+   * The things it sets do not all have the same value (the runs of a text): the field shows
+   * "mixte" instead of `value`, and any valid number is committed, `value` included.
+   */
+  mixed?: boolean;
   onCommit(value: number): void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -47,7 +54,7 @@ export function NumberField({
     if (draft === null) return;
     const parsed = parseField(draft, min, max);
     setDraft(null);
-    if (parsed !== null && parsed !== value) onCommit(parsed);
+    if (parsed !== null && (mixed || parsed !== value)) onCommit(parsed);
   };
 
   return (
@@ -60,7 +67,8 @@ export function NumberField({
           id={id}
           className="insp-field__input"
           inputMode="decimal"
-          value={draft ?? formatNumber(value)}
+          value={draft ?? (mixed ? '' : formatNumber(value))}
+          placeholder={mixed ? fr.inspector.mixed : undefined}
           aria-invalid={invalid || undefined}
           disabled={disabled}
           onFocus={(e) => e.currentTarget.select()}

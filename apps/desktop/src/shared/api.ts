@@ -446,10 +446,17 @@ export interface TbApi {
     delete(dir: string): Promise<void>;
     /**
      * Give the album in `dir` (one of the recent list) a new title, 1 to 200 characters once
-     * trimmed: in its `book.json` and in the recent list, where it keeps its place. Its folder
-     * keeps its name. Rejects when it is not such an album or the write fails.
+     * trimmed: in its `book.json` and in the recent list, where it keeps its place, and its
+     * folder takes that name (`<slug>.travelbook`; `dir` in the answer is where it now is). Rejects
+     * when it is not such an album or the write fails.
      */
     rename(dir: string, title: string): Promise<ProjectInfo>;
+    /**
+     * Close the album main has open (only the one of book `bookId`, when given), once its imports
+     * and font copies are done; its folder then takes the name of its title. The home screen
+     * calls it: an album that is closed can be renamed or deleted there.
+     */
+    close(bookId?: string): Promise<void>;
     /** Copy the book as last saved (or opened) into `history/`. */
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
     listSnapshots(): Promise<SnapshotInfo[]>;
