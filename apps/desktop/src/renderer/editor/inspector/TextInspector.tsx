@@ -1,4 +1,11 @@
-import { updateElements, type Element, type TextElement } from '@travelbook/core';
+import {
+  textLook,
+  updateElements,
+  withoutRunStyle,
+  type Element,
+  type RunStyleKey,
+  type TextElement,
+} from '@travelbook/core';
 import { useEffect, useRef } from 'react';
 import { FontSelect } from '../FontSelect';
 import { editorStore } from '../../store/editor';
@@ -30,8 +37,9 @@ let changes = 0;
 /**
  * The sections of the inspector for one text element, setting its whole box: font, size, colour,
  * line height, letter spacing, alignment, fill, padding, outline and shadow. The floating toolbar
- * of the editor sets the same things for a selection of the text. A change that makes the text
- * need more room grows the box in the same undo step.
+ * of the editor sets the font, size and colour of a selection of the text: the fields show what
+ * the whole text has (`mixte` when its runs differ), and set it on all of it. A change that makes
+ * the text need more room grows the box in the same undo step.
  */
 export function TextInspector({ spreadId, element }: { spreadId: string; element: TextElement }) {
   /** Merge key of the last change, until the box has been fitted to it. */
@@ -46,6 +54,21 @@ export function TextInspector({ spreadId, element }: { spreadId: string; element
   };
   const setStyle = (patch: Partial<TextElement['style']>, label: string, mergeKey?: string) =>
     change({ style: { ...element.style, ...patch } }, label, mergeKey);
+  /**
+   * The font, size or colour of the whole text: the box takes it, and the runs the floating
+   * toolbar gave their own let go of it, so that all of the text shows it, and the toolbar too.
+   */
+  const setRunStyle = (
+    key: RunStyleKey,
+    patch: Partial<TextElement['style']>,
+    label: string,
+    mergeKey?: string,
+  ) =>
+    change(
+      { style: { ...element.style, ...patch }, doc: withoutRunStyle(element.doc, key) },
+      label,
+      mergeKey,
+    );
 
   // After the canvas has drawn the change: a box too short for its text grows, as part of the step.
   useEffect(() => {
@@ -56,6 +79,8 @@ export function TextInspector({ spreadId, element }: { spreadId: string; element
   }, [spreadId, element]);
 
   const { style, box, outline, shadow } = element;
+  // What the text shows, toolbar changes included: `null` where its runs differ.
+  const look = textLook(element);
   const shadowColor = shadow ? splitColor(shadow.color) : null;
 
   return (
@@ -69,23 +94,25 @@ export function TextInspector({ spreadId, element }: { spreadId: string; element
             id="text-font"
             className="input insp-select"
             label={t.font}
-            value={style.fontFamily}
+            value={look.fontFamily ?? style.fontFamily}
+            mixed={look.fontFamily === null}
             more
-            onChange={(css) => setStyle({ fontFamily: css }, t.undoFont)}
+            onChange={(css) => setRunStyle('fontFamily', { fontFamily: css }, t.undoFont)}
           />
         </div>
         <NumberField
           label={t.size}
           unit={fr.text.sizeUnit}
-          value={style.fontSizePt}
+          value={look.fontSizePt ?? style.fontSizePt}
+          mixed={look.fontSizePt === null}
           min={1}
           max={400}
-          onCommit={(fontSizePt) => setStyle({ fontSizePt }, t.undoSize)}
+          onCommit={(fontSizePt) => setRunStyle('fontSize', { fontSizePt }, t.undoSize)}
         />
         <ColorField
           label={t.color}
-          value={splitColor(style.color).hex}
-          onChange={(hex, gesture) => setStyle({ color: hex }, t.undoColor, gesture)}
+          value={splitColor(look.color ?? style.color).hex}
+          onChange={(hex, gesture) => setRunStyle('color', { color: hex }, t.undoColor, gesture)}
         />
         <NumberField
           label={t.lineHeight}

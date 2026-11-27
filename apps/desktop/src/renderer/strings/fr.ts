@@ -888,6 +888,7 @@ export const fr = {
   // Inspector frame, and the common section of any element.
   inspector: {
     tabs: "Volets de l'inspecteur",
+    mixed: 'mixte',
     properties: 'Propriétés',
     layers: 'Calques',
     history: 'Historique',
@@ -1159,6 +1160,7 @@ export const fr = {
     pickerLabel: 'Police',
     more: 'Plus de polices…',
     other: 'Autre police',
+    mixed: 'Plusieurs polices',
     groupOwn: 'Mes polices',
     groupAlbum: "Polices de l'album",
     category: {

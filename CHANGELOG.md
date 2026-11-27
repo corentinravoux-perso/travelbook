@@ -11,6 +11,20 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   With the cover included, the export is one file, `<album>.pdf`: the front cover, the pages,
   then the back cover, each the size of a page (the spine is left out).
 
+### Changed
+
+- Albums: the folder of an album takes its title (`<titre>.travelbook`, as for a new album;
+  `-2`… when the name is taken). Renamed from the home screen, it follows at once; renamed in
+  the editor, when the album is closed (home screen, another album, or quitting the app).
+- Text: the floating toolbar and the inspector show the same font, size and colour. With
+  nothing selected, the toolbar sets them on the whole text; the inspector shows what the whole
+  text has ("mixte" when parts differ) and sets it on all of it.
+
+### Fixed
+
+- Albums: the album just left with "Accueil" can be deleted from the home screen; it was still
+  open in the background, and "Supprimer" failed.
+
 ## [1.3.1] - 2026-11-27
 
 ### Added

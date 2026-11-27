@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import type { TextElement } from '@travelbook/core';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -34,6 +34,20 @@ function runs(
   walk(doc as Parameters<typeof walk>[0]);
   return out;
 }
+
+/** The text selected in the editor, as its state has it. */
+const selectedText = (page: Page): Promise<string> =>
+  page.evaluate(() => {
+    type Pm = {
+      state: {
+        selection: { from: number; to: number };
+        doc: { textBetween(a: number, b: number): string };
+      };
+    };
+    const host = document.querySelector('.ProseMirror') as unknown as { editor?: Pm } | null;
+    const state = host?.editor?.state;
+    return state ? state.doc.textBetween(state.selection.from, state.selection.to) : '';
+  });
 
 test('creates a title, types with French spacing, and the static text has the editing box', async () => {
   const app = await launchApp(join(work, 'user data'));
@@ -89,6 +103,69 @@ test('creates a title, types with French spacing, and the static text has the ed
       fontFamily: "'Oswald', sans-serif",
       fontSize: '36pt',
     });
+  } finally {
+    await app.close();
+  }
+});
+
+test('the floating toolbar and the inspector show and set the same font, size and colour', async () => {
+  const app = await launchApp(join(work, 'user data'));
+  try {
+    await pickFolders(app, albums);
+    const page = await app.firstWindow();
+    await openAlbum(page, 'texte');
+    await page.getByRole('button', { name: 'Texte', exact: true }).click();
+    await page.locator('[data-preset="title"]').click();
+    const editor = page.getByTestId('text-editor');
+    await expect(editor.locator('.ProseMirror')).toBeFocused();
+    await page.keyboard.type('Lima Cusco');
+    await page.keyboard.press('End'); // nothing selected
+
+    const toolbar = page.getByTestId('text-toolbar');
+    const inspector = page.locator('#shell-inspector');
+    const barSize = toolbar.getByLabel('Taille');
+    const sideSize = inspector.getByLabel('Taille', { exact: true });
+
+    // Nothing selected: the toolbar sets the whole text, and the inspector shows it.
+    await barSize.fill('30');
+    await barSize.press('Enter');
+    await expect(sideSize).toHaveValue('30');
+    await toolbar.getByLabel('Police').selectOption({ label: 'Oswald' });
+    await expect(inspector.getByLabel('Police')).toHaveValue("'Oswald', sans-serif");
+
+    // Part of it at another size: the inspector says the sizes differ.
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press('Shift+ArrowRight');
+    // ProseMirror reads the new selection a moment after the keys
+    await expect.poll(() => selectedText(page)).toBe('Li');
+    await barSize.fill('40');
+    await barSize.press('Enter');
+    await expect(sideSize).toHaveValue('');
+    await expect(sideSize).toHaveAttribute('placeholder', 'mixte');
+
+    // The inspector sets the whole text: every run takes it, and the toolbar shows it.
+    await sideSize.fill('18');
+    await sideSize.press('Enter');
+    await expect(sideSize).toHaveValue('18');
+    await expect(barSize).toHaveValue('18');
+    await page.getByTestId('text-editor').locator('.ProseMirror').click();
+    await expect(barSize).toHaveValue('18');
+
+    const [text] = texts(await savedBook(page, albums, 'texte'));
+    expect(text!.style.fontSizePt).toBe(18);
+    const sizes = runs(text!.doc).map(
+      (r) => r.marks.find((m) => m.type === 'textStyle')?.attrs?.['fontSize'] ?? null,
+    );
+    expect(sizes.every((v) => v === null)).toBe(true);
+    // the font the toolbar gave all of it is still there
+    expect(
+      runs(text!.doc).every(
+        (r) =>
+          r.marks.find((m) => m.type === 'textStyle')?.attrs?.['fontFamily'] ===
+          "'Oswald', sans-serif",
+      ),
+    ).toBe(true);
   } finally {
     await app.close();
   }
