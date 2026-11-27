@@ -100,7 +100,7 @@ async function openAlbum(app: ElectronApplication, page: Page, title: string) {
     null,
   );
   await expect(page.getByRole('img', { name: 'Double page 2' })).toBeVisible();
-  await page.getByRole('button', { name: 'Modèles' }).click();
+  await page.getByRole('button', { name: 'Modèles', exact: true }).click();
   await expect(page.getByRole('tablist', { name: 'Type de modèles' })).toBeVisible();
 }
 
