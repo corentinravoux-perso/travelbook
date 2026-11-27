@@ -4,7 +4,7 @@ A desktop application for composing printed travel photo albums. Import your pho
 double pages from templates, add text, stickers and backgrounds, and export a print-ready PDF or
 one image per page. It works offline, needs no account, and never changes your original photos.
 
-**Version 1.3.1** ([CHANGELOG.md](CHANGELOG.md)). The Linux package is built and checked by the test suites
+**Version 1.3.2** ([CHANGELOG.md](CHANGELOG.md)). The Linux package is built and checked by the test suites
 ([docs/acceptance.md](docs/acceptance.md) lists what each goal rests on). The Windows installer is
 built by CI but has not been run on a real machine yet.
 

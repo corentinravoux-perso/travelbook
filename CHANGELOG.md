@@ -5,6 +5,8 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-11-27
+
 ### Added
 
 - Export: a "Couverture en première et dernière pages (un seul PDF)" box on the PDF route.
@@ -24,6 +26,8 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Albums: the album just left with "Accueil" can be deleted from the home screen; it was still
   open in the background, and "Supprimer" failed.
+- Text: the "Police" row of the inspector fits its default width; "Plus de polices…" is on its
+  own line under the list (the label was cut to "P" and the button clipped).
 
 ## [1.3.1] - 2026-11-27
 
@@ -244,7 +248,8 @@ First release. Every package of the repository (`travelbook`, `@travelbook/core`
 - Scrolling the sticker grid or the photo tray no longer blanks the window; a render error now
   shows a message with a reload button instead of a white window.
 
-[Unreleased]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/corentinravoux-perso/travelbook/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/corentinravoux-perso/travelbook/compare/v1.1.0...v1.2.0
