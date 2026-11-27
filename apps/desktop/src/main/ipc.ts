@@ -77,7 +77,7 @@ import { isBusy, serialize } from './project/atomic-write';
 import { describeError, importPhotos } from './photos/import';
 import { ensureProxies } from './photos/proxies';
 import { COVER_THUMB_EDGE, coverThumbUrl, writeCoverThumb } from './project/cover-thumb';
-import { recentProjects } from './project/recent';
+import { recentProjects, retitleRecentProject } from './project/recent';
 import {
   SNAPSHOT_ID_PATTERN,
   listSnapshots,
@@ -88,6 +88,7 @@ import {
 import { menuLanguage, setMenuLanguage } from './app-settings';
 import { deleteProject } from './project/delete';
 import { duplicateProject } from './project/duplicate';
+import { MAX_TITLE_LENGTH, renameProject } from './project/rename';
 import { createProject, openProject, saveBook } from './project/store';
 import {
   knownAssets,
@@ -217,6 +218,7 @@ const schemas = {
   open: z.tuple([absolutePath.optional()]),
   duplicate: z.tuple([absolutePath]),
   delete: z.tuple([absolutePath]),
+  rename: z.tuple([absolutePath, z.string().trim().min(1).max(MAX_TITLE_LENGTH)]),
   menuLanguage: z.tuple([z.enum(['fr', 'en'])]),
   save: z.tuple([BookSchema]),
   captureRect: z.tuple([captureRect]),
@@ -384,6 +386,11 @@ export function createHandlers(host: Host): IpcHandlers {
       await deleteProject(dir, (path) => host.trashItem(path));
     },
 
+    [CHANNEL.projectRename]: async (_ctx, ...args) => {
+      const [dir, title] = parseArgs(CHANNEL.projectRename, schemas.rename, args);
+      return renameProject(dir, title);
+    },
+
     [CHANNEL.projectPickFolder]: async (_ctx, ...args) => {
       parseArgs(CHANNEL.projectPickFolder, schemas.none, args);
       return host.pickFolder('create');
@@ -400,8 +407,15 @@ export function createHandlers(host: Host): IpcHandlers {
       const importing = isBusy(queue);
       const fonts = carriesLibraryFonts(book) ? queueFontCopy(session, book) : undefined;
       if (!importing) await fonts;
+      const retitled = book.title !== session.book.title;
       await saveBook(session.dir, book);
       recordBook(session, book);
+      // A title changed in the editor shows on the home screen too.
+      if (retitled) {
+        await retitleRecentProject(session.dir, book.title).catch((error: unknown) =>
+          console.warn('Could not update the recent projects list:', error),
+        );
+      }
     },
 
     [CHANNEL.projectCaptureCover]: async (_ctx, ...args) => {

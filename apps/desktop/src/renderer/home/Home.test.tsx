@@ -162,3 +162,76 @@ describe('Home: delete an album', () => {
     expect(screen.getByText('Islande')).toBeTruthy();
   });
 });
+
+describe('Home: rename an album', () => {
+  let list: RecentProject[];
+  let rename: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    list = [
+      album('Islande', '/albums/islande.travelbook'),
+      album('Japon', '/albums/japon.travelbook'),
+    ];
+    rename = vi.fn((dir: string, title: string) => {
+      list = list.map((p) => (p.dir === dir ? { ...p, title } : p));
+      return Promise.resolve({ dir, book: newBook({ title }) });
+    });
+    (window as unknown as { tb: unknown }).tb = {
+      project: { recent: () => Promise.resolve(list), rename },
+    };
+    projectStore.setState({
+      recent: [],
+      busy: false,
+      duplicating: null,
+      error: null,
+      view: 'home',
+    });
+  });
+
+  const ask = async (title: string) => {
+    render(<Home />);
+    await screen.findByText(title);
+    fireEvent.click(screen.getByRole('button', { name: fr.home.rename(title) }));
+    const dialog = screen.getByRole('dialog', { name: fr.home.renameTitle });
+    return { dialog, field: within(dialog).getByRole('textbox', { name: fr.newBook.titleField }) };
+  };
+
+  it('starts from the current title, and cannot rename to a blank or the same title', async () => {
+    const { dialog, field } = await ask('Islande');
+    const confirm = within(dialog).getByRole('button', { name: fr.home.renameConfirm });
+    expect((field as HTMLInputElement).value).toBe('Islande');
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(field, { target: { value: '   ' } });
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(within(dialog).getByRole('button', { name: fr.home.renameCancel }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(rename).not.toHaveBeenCalled();
+  });
+
+  it('renames the album, trimmed, and shows the new title in its place', async () => {
+    const { dialog, field } = await ask('Islande');
+    fireEvent.change(field, { target: { value: '  Pérou - Alex ' } });
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: fr.home.renameConfirm }));
+    });
+    expect(rename).toHaveBeenCalledExactlyOnceWith('/albums/islande.travelbook', 'Pérou - Alex');
+    await screen.findByText('Pérou - Alex');
+    expect(screen.queryByText('Islande')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(projectStore.getState().view).toBe('home');
+  });
+
+  it('keeps the dialog open with an error when the rename fails', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    rename.mockRejectedValue(new Error('read-only'));
+    const { dialog, field } = await ask('Islande');
+    fireEvent.change(field, { target: { value: 'Pérou' } });
+    await act(async () => {
+      fireEvent.submit(field);
+    });
+    await waitFor(() =>
+      expect(within(dialog).getByRole('alert').textContent).toBe(fr.home.renameFailed),
+    );
+    expect(screen.getByText('Islande')).toBeTruthy();
+  });
+});

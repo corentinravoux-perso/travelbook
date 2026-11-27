@@ -439,6 +439,12 @@ export interface TbApi {
      * take it out of the recent list. Rejects when it is not such an album or the trash fails.
      */
     delete(dir: string): Promise<void>;
+    /**
+     * Give the album in `dir` (one of the recent list) a new title, 1 to 200 characters once
+     * trimmed: in its `book.json` and in the recent list, where it keeps its place. Its folder
+     * keeps its name. Rejects when it is not such an album or the write fails.
+     */
+    rename(dir: string, title: string): Promise<ProjectInfo>;
     /** Copy the book as last saved (or opened) into `history/`. */
     snapshot(label: SnapshotInfo['label']): Promise<SnapshotInfo>;
     listSnapshots(): Promise<SnapshotInfo[]>;

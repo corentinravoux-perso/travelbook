@@ -60,6 +60,22 @@ export async function removeRecentProject(projectDir: string): Promise<void> {
 }
 
 /**
+ * Give a project of the recent list a new title where it stands: its place, its date and its
+ * cover are kept. A project not in the list is left out of it.
+ */
+export async function retitleRecentProject(projectDir: string, title: string): Promise<void> {
+  const dir = await userDataDir();
+  const file = join(dir, FILE_NAME);
+  await serialize(`recent:${file}`, async () => {
+    const list = await readList(file);
+    const entry = list.find((r) => resolve(r.dir) === resolve(projectDir));
+    if (entry === undefined || entry.title === title) return;
+    const updated = list.map((r) => (r === entry ? { ...r, title } : r));
+    await writeFileAtomic(file, JSON.stringify(updated, null, 2) + '\n');
+  });
+}
+
+/**
  * Put a project at the front of the recent list (de-duplicated by `dir`, at most 20 entries).
  * A re-add that carries no `coverThumb` keeps the one already stored.
  */

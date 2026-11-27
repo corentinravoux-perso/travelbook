@@ -55,6 +55,26 @@
   font-weight: var(--w-semibold);
   letter-spacing: -0.005em;
 }
+button.shell-top__title {
+  margin-inline: calc(-1 * var(--s2));
+  padding: 2px var(--s2);
+  border-radius: var(--r1);
+  color: inherit;
+  cursor: text;
+  transition: background var(--fast) var(--ease);
+}
+button.shell-top__title:hover {
+  background: var(--sunken);
+}
+/* The title being renamed: as wide as a long title, and narrower when the bar runs short. */
+.shell-top > .shell-top__title-input {
+  flex: 0 1 28ch;
+  min-width: 10ch;
+  height: var(--control-h);
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: var(--w-semibold);
+}
 .shell-top__grow {
   flex: 1;
 }

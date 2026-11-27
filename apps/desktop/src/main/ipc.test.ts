@@ -480,6 +480,64 @@ describe('project', () => {
     });
   });
 
+  describe('rename', () => {
+    const onDisk = async (dir: string): Promise<Book> =>
+      JSON.parse(await readFile(join(dir, 'book.json'), 'utf8')) as Book;
+
+    it('retitles book.json and the recent list, where the album stands, and keeps the folder', async () => {
+      const first = await create('Islande');
+      const second = await create('Japon');
+      closeSession();
+      const before = await call<RecentProject[]>(CHANNEL.projectRecent);
+      const renamed = await call<ProjectInfo>(CHANNEL.projectRename, first.dir, '  Pérou - Alex  ');
+      expect(renamed.dir).toBe(first.dir);
+      expect(renamed.book.title).toBe('Pérou - Alex');
+      expect((await onDisk(first.dir)).title).toBe('Pérou - Alex');
+      expect((await onDisk(first.dir)).id).toBe(first.book.id);
+      const recent = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(recent.map((r) => [r.dir, r.title, r.openedAt])).toEqual([
+        [second.dir, 'Japon', before[0]?.openedAt],
+        [first.dir, 'Pérou - Alex', before[1]?.openedAt],
+      ]);
+    });
+
+    it('renames the album main still has open: the next snapshot keeps the new title', async () => {
+      const album = await create('Islande');
+      await call(CHANNEL.projectRename, album.dir, 'Islande 2026');
+      const info = await call<SnapshotInfo>(CHANNEL.projectSnapshot, 'manual');
+      expect((await call<Book>(CHANNEL.projectReadSnapshot, info.id)).title).toBe('Islande 2026');
+    });
+
+    it('shows a title changed in the editor on the home screen once saved', async () => {
+      const album = await create('Islande');
+      await call(CHANNEL.projectSave, { ...album.book, title: 'Islande 2026' });
+      const [entry] = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(entry?.title).toBe('Islande 2026');
+    });
+
+    it('refuses a folder that is not in the recent list, or holds no album', async () => {
+      const album = await create('Islande');
+      closeSession();
+      await expect(
+        call(CHANNEL.projectRename, join(albums, 'ailleurs'), 'Ailleurs'),
+      ).rejects.toThrow(/recent list/);
+      await rm(join(album.dir, 'book.json'));
+      await expect(call(CHANNEL.projectRename, album.dir, 'Ailleurs')).rejects.toThrow();
+      const [entry] = await call<RecentProject[]>(CHANNEL.projectRecent);
+      expect(entry?.title).toBe('Islande');
+    });
+
+    it.each([
+      ['no title', ['/tmp/x']],
+      ['a blank title', ['/tmp/x', '   ']],
+      ['an over-long title', ['/tmp/x', 'a'.repeat(201)]],
+      ['a relative path', ['albums/x', 'Islande']],
+      ['an extra argument', ['/tmp/x', 'Islande', 'y']],
+    ] as const)('rejects %s', async (_label, args) => {
+      await expect(call(CHANNEL.projectRename, ...args)).rejects.toThrow(/project:rename/);
+    });
+  });
+
   describe('cover thumbnail', () => {
     const rect = { x: 4, y: 8, width: 320, height: 240 };
 
