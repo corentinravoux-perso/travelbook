@@ -25,6 +25,7 @@ const OPTIONS: ExportOptions = {
   jpegQuality: 96,
   perSpread: true,
   coverMode: 'panels',
+  coverAsPages: false,
   outDir: '/tmp/out',
 };
 
@@ -76,6 +77,21 @@ describe('fromOptions / toOptions', () => {
     const form = { ...fromOptions({ ...OPTIONS, route: 'images' }), cropMarks: true };
     expect(toOptions(form, 24).options?.cropMarks).toBe(false);
     expect(toOptions({ ...form, route: 'pdf' }, 24).options?.cropMarks).toBe(true);
+  });
+
+  it('keeps the cover as first and last pages only on the PDF route, with the cover', () => {
+    const form = {
+      ...fromOptions({ ...OPTIONS, route: 'pdf', includeCover: true }),
+      coverAsPages: true,
+    };
+    expect(toOptions(form, 24).options?.coverAsPages).toBe(true);
+    expect(toOptions({ ...form, route: 'images' }, 24).options?.coverAsPages).toBe(false);
+    expect(toOptions({ ...form, includeCover: false }, 24).options?.coverAsPages).toBe(false);
+    // A preset saved before the option existed reads as unticked.
+    const older: ExportOptions = { ...OPTIONS };
+    delete older.coverAsPages;
+    expect(fromOptions(older).coverAsPages).toBe(false);
+    expect(sameOptions(older, { ...older, coverAsPages: false }, true)).toBe(true);
   });
 });
 

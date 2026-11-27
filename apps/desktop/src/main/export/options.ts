@@ -30,5 +30,6 @@ export const exportOptions = z.strictObject({
   jpegQuality: z.number().int().min(1).max(100).default(DEFAULT_JPEG_QUALITY),
   perSpread: z.boolean(),
   coverMode: z.enum(['flat', 'panels']),
+  coverAsPages: z.boolean().optional(),
   outDir: absolutePath,
 });

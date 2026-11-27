@@ -53,6 +53,7 @@ const DEFAULT_FORM: FormState = {
   jpegQuality: 98,
   perSpread: false,
   coverMode: 'flat',
+  coverAsPages: false,
   outDir: '',
 };
 
@@ -559,6 +560,20 @@ export function ExportDialog({ book, onClose }: { book: Book; onClose(): void })
               />
               <span>{fr.exporter.includeCover}</span>
             </label>
+            {isPdf && (
+              <label className="check settings-group__wide">
+                <input
+                  type="checkbox"
+                  checked={form.coverAsPages}
+                  disabled={!form.includeCover}
+                  onChange={(e) => set('coverAsPages', e.target.checked)}
+                />
+                <span>
+                  {fr.exporter.coverAsPages}
+                  <span className="field__help">{fr.exporter.coverAsPagesHelp}</span>
+                </span>
+              </label>
+            )}
           </Group>
 
           <Group title={fr.exporter.resolution}>

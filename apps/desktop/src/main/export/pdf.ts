@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PDFDocument, cmyk, type PDFPage } from 'pdf-lib';
 import sharp from '../imaging';
-import type { Book, Mm, Rect } from '@travelbook/core';
+import { pageBox, type Book, type Mm, type Rect, type Side } from '@travelbook/core';
 import type { ExportOptions } from '../../shared/api';
 import { slugify } from '../project/store';
 import {
@@ -144,7 +144,9 @@ function pageBoxes(
   o: ExportOptions,
   target: PageTarget,
 ): { trim: Rect; bleed: Mm; markOffset: Mm } {
-  const bookBleed = target.name.startsWith('couverture') ? book.coverBleed : book.bleed;
+  // A cover page among the pages takes their bleed, so that every page of the file is one size.
+  const bookBleed =
+    target.name.startsWith('couverture') && !o.coverAsPages ? book.coverBleed : book.bleed;
   const bleed = o.bleed ? bookBleed : 0;
   return {
     bleed,
@@ -156,6 +158,27 @@ function pageBoxes(
 export interface PdfExportDeps extends ImageExportDeps {
   /** Pages to send to the raster fallback whatever they hold (tests). */
   forceRaster?: (target: PageTarget) => boolean;
+}
+
+/**
+ * The targets of a PDF with the cover as pages (`coverAsPages`): the front cover, the pages in
+ * `o.pages`, the back cover. Each cover is cut like a page, with the pages' bleed.
+ */
+export function coverAsPagesTargets(book: Book, o: ExportOptions): PageTarget[] {
+  const b = o.bleed ? book.bleed : 0;
+  const cover = (name: string, side: Side): PageTarget => {
+    const box = pageBox(book, book.cover, side) as Rect;
+    return {
+      name,
+      spreadId: book.cover.id,
+      clip: { x: box.x - b, y: box.y - b, w: box.w + 2 * b, h: box.h + 2 * b },
+    };
+  };
+  return [
+    cover('couverture-avant', 'right'),
+    ...renderPageTargets(book, { ...o, includeCover: false }),
+    cover('couverture-dos', 'left'),
+  ];
 }
 
 /** A page printed or captured, as it waits on disk for the merge: its bytes are in `file`. */
@@ -177,7 +200,8 @@ async function* readSpilled(group: SpilledPage[]): AsyncGenerator<PdfPageInput> 
 /**
  * Export `book` as print PDFs in `o.outDir`: `<slug>-interieur.pdf` and, with `includeCover`,
  * `<slug>-couverture.pdf` (the flat sheet). With `perSpread` (screen reading) the cover is page 1
- * of the single file. Each page is printed by Chromium one at a time, photos as the baked JPEG
+ * of the single file. With `includeCover` and `coverAsPages`, one file `<slug>.pdf`: the front
+ * cover, the pages, the back cover. Each page is printed by Chromium one at a time, photos as the baked JPEG
  * derivatives; a page that holds an effect known to rasterise at low resolution is captured at
  * 600 dpi instead and embedded as an image.
  *
@@ -191,7 +215,10 @@ export function runPdfExport(
   o: ExportOptions,
   deps: PdfExportDeps,
 ): ReturnType<typeof runPages> {
-  const targets = renderPageTargets(book, { ...o, coverMode: 'flat' });
+  const coverPages = o.includeCover && o.coverAsPages === true;
+  const targets = coverPages
+    ? coverAsPagesTargets(book, o)
+    : renderPageTargets(book, { ...o, coverMode: 'flat' });
   const isCover = (t: PageTarget): boolean => t.name.startsWith('couverture');
   const spilled = new Map<PageTarget, SpilledPage>();
   const slug = slugify(book.title);
@@ -226,12 +253,14 @@ export function runPdfExport(
     },
     finish: async (outputs, staging) => {
       const inOrder = targets.filter((t) => spilled.has(t));
-      const groups: [string, PageTarget[]][] = o.perSpread
-        ? [[`${slug}-interieur.pdf`, inOrder]]
-        : [
-            [`${slug}-couverture.pdf`, inOrder.filter(isCover)],
-            [`${slug}-interieur.pdf`, inOrder.filter((t) => !isCover(t))],
-          ];
+      const groups: [string, PageTarget[]][] = coverPages
+        ? [[`${slug}.pdf`, inOrder]]
+        : o.perSpread
+          ? [[`${slug}-interieur.pdf`, inOrder]]
+          : [
+              [`${slug}-couverture.pdf`, inOrder.filter(isCover)],
+              [`${slug}-interieur.pdf`, inOrder.filter((t) => !isCover(t))],
+            ];
       for (const [name, group] of groups) {
         if (group.length === 0) continue;
         const pages = readSpilled(group.map((t) => spilled.get(t) as SpilledPage));
