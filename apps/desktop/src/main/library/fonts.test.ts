@@ -7,6 +7,7 @@ import { newBook, newElement, type AssetRef, type Book } from '@travelbook/core'
 import { setUserDataDir } from '../user-data';
 import {
   addFromCatalogue,
+  bundledFontFiles,
   bundledFonts,
   categoryFromFontsource,
   createFontCatalogue,
@@ -85,6 +86,18 @@ describe('bundled fonts', () => {
       '700italic',
     ]);
     expect(lora.faces[0]!.url).toBe('tb://resource/fonts/lora/lora-latin-400-normal.woff2');
+  });
+
+  it('gives the faces of the bundled families named, whatever the case, and skips the others', () => {
+    const files = bundledFontFiles(['pacifico', 'Lora', 'Not A Font']);
+    expect(new Set(files.map((f) => f.family))).toEqual(new Set(['Pacifico', 'Lora']));
+    expect(files.filter((f) => f.family === 'Lora')).toHaveLength(4);
+    expect(files.find((f) => f.family === 'Pacifico')).toMatchObject({
+      weight: 400,
+      style: 'normal',
+      url: expect.stringMatching(/^tb:\/\/resource\/fonts\/pacifico\/.+\.woff2$/),
+    });
+    expect(bundledFontFiles([])).toEqual([]);
   });
 
   it('has a file for every face, and no file that fonts.json does not list', async () => {

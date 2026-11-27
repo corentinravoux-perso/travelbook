@@ -19,6 +19,7 @@ import {
 import type { ExportOptions, ExportProgress, ExportReport } from '../../shared/api';
 import type { ExportPageJob } from '../../shared/exportPage';
 import { projectFilePath, type TbExportJob } from '../protocol';
+import type { FontFile } from '@travelbook/render/src/fonts.ts';
 import { patternTileMm } from '@travelbook/render/src/patternTile.ts';
 import { makeDerivative } from './derivatives';
 import { bakePatternTile } from './patternTile';
@@ -29,6 +30,8 @@ export interface PageTarget {
   name: string;
   spreadId: string;
   clip: Rect;
+  /** The page of an inner spread this target is, when it is one page: see `pageOnly`. */
+  side?: Side;
 }
 
 /** The hidden window, as the export loop sees it. Electron's is in `exportWindow.ts`. */
@@ -116,6 +119,7 @@ export function renderPageTargets(book: Book, o: ExportOptions): PageTarget[] {
         name: `page-${pad(numbers[side] as number)}`,
         spreadId: spread.id,
         clip: exportBox(book, spread, side, o.bleed),
+        side,
       });
     }
   }
@@ -213,6 +217,28 @@ async function orientedSize(file: string): Promise<{ w: number; h: number }> {
   return orientation >= 5 ? { w: height, h: width } : { w: width, h: height };
 }
 
+/** How far (mm) an element may reach past the spine and still count as lying on its own page. */
+const SPINE_TOLERANCE = 0.1;
+
+/**
+ * `spread` as its `side` page exports it alone: the other page's background, and the elements
+ * that lie on the other page, are left out. With a bleed, a page's box reaches past the spine
+ * into the facing page, and would otherwise show the facing page's photos there. An element that
+ * crosses the spine (a panorama) belongs to both pages and stays on both.
+ */
+export function pageOnly(book: Book, spread: Spread, side: Side): Spread {
+  const spine = book.format.width;
+  const onOtherPage = (el: Element): boolean => {
+    const box = boundingBox(el);
+    return side === 'left'
+      ? box.x >= spine - SPINE_TOLERANCE
+      : box.x + box.w <= spine + SPINE_TOLERANCE;
+  };
+  const background = { ...spread.background };
+  delete background[side === 'left' ? 'right' : 'left'];
+  return { ...spread, background, elements: spread.elements.filter((el) => !onOtherPage(el)) };
+}
+
 /** The spread with only the photos that reach `clip`: the others would be fetched for nothing. */
 function spreadFor(spread: Spread, clip: Rect): { spread: Spread; photos: PhotoElement[] } {
   const elements = spread.elements.filter((el) => el.type !== 'photo' || touches(el, clip));
@@ -242,6 +268,11 @@ async function encode(
 export interface ImageExportDeps {
   openRenderer(): Promise<ExportRenderer>;
   onProgress(progress: ExportProgress): void;
+  /**
+   * Faces of the bundled fonts the album uses: the export page declares them (it has no font
+   * list of its own), so that no text is drawn with a fallback font.
+   */
+  fonts?: FontFile[];
 }
 
 /** What a route's per-page step is given. */
@@ -324,7 +355,11 @@ export async function runPages(
       const progress = (step: string): void =>
         deps.onProgress({ page, total: targets.length, step });
       const label = pageLabel(target.name);
-      const { spread, photos } = spreadFor(spreads.get(target.spreadId) as Spread, target.clip);
+      const whole = spreads.get(target.spreadId) as Spread;
+      const { spread, photos } = spreadFor(
+        target.side === undefined ? whole : pageOnly(book, whole, target.side),
+        target.clip,
+      );
 
       progress('derivatives');
       await rm(dir, { recursive: true, force: true });
@@ -386,6 +421,7 @@ export async function runPages(
         clip: target.clip,
         derivatives,
         patternTiles,
+        ...(deps.fonts === undefined ? {} : { fonts: deps.fonts }),
       };
       await loop.page({ target, job, renderer, photos, label, progress, staging, outputs });
       await rm(dir, { recursive: true, force: true });

@@ -1,4 +1,10 @@
-import { projectFontFiles, SpreadView, whenFontsReady, type AssetUrl } from '@travelbook/render';
+import {
+  fontFaceCss,
+  projectFontFiles,
+  SpreadView,
+  whenFontsReady,
+  type AssetUrl,
+} from '@travelbook/render';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { ExportPageHandle, ExportPageJob } from '../../shared/exportPage';
@@ -113,9 +119,17 @@ export function installExportPage(host: HTMLElement): void {
   // `printToPDF` takes the size of a page from here (`preferCSSPageSize`): the export box.
   const pageRule = document.createElement('style');
   document.head.append(pageRule);
+  // The bundled fonts the album uses beyond the six of `bookFonts`: the editor declares them from
+  // its font list, which this page does not have.
+  const albumFonts = document.createElement('style');
+  document.head.append(albumFonts);
   window.__tbExport = {
     show: async (job) => {
       pageRule.textContent = `@page { size: ${job.clip.w}mm ${job.clip.h}mm; margin: 0; }`;
+      const declared = new Set(BOOK_FONTS.map((f) => f.family));
+      const bundled = (job.fonts ?? []).filter((f) => !declared.has(f.family));
+      const css = fontFaceCss(bundled);
+      if (albumFonts.textContent !== css) albumFonts.textContent = css;
       // The geometry of every map of the page is read before the page is drawn (a map drawn
       // empty would be captured empty); an unreadable one is drawn as the hatched frame.
       const geometries = geometriesOf(job.token);
@@ -144,7 +158,11 @@ export function installExportPage(host: HTMLElement): void {
       const projectFamilies = projectFontFiles(job.book.assets, assetUrlOf(job)).map(
         (f) => f.family,
       );
-      await whenFontsReady([...BOOK_FONTS.map((f) => f.family), ...projectFamilies]);
+      await whenFontsReady([
+        ...BOOK_FONTS.map((f) => f.family),
+        ...bundled.map((f) => f.family),
+        ...projectFamilies,
+      ]);
       await imagesReady(host);
       await nextFrame();
       await nextFrame();

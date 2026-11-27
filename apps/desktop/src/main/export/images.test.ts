@@ -3,13 +3,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { newBook, type Book } from '@travelbook/core';
+import { newBook, newElement, type Book, type Spread } from '@travelbook/core';
 import type { ExportOptions } from '../../shared/api';
 import {
   ExportCancelledError,
   cancelExport,
   exportJobLookup,
   pageLabel,
+  pageOnly,
   pixelSize,
   renderPageTargets,
   runImageExport,
@@ -44,12 +45,14 @@ describe('renderPageTargets', () => {
       name: 'page-001',
       spreadId: b.spreads[0]?.id,
       clip: { x: 207, y: -3, w: 216, h: 303 },
+      side: 'right',
     });
     expect(targets.map((t) => t.name).slice(1, 4)).toEqual(['page-002', 'page-003', 'page-004']);
     expect(targets[23]).toMatchObject({
       name: 'page-024',
       spreadId: b.spreads[12]?.id,
       clip: { x: -3, y: -3, w: 216, h: 303 },
+      side: 'left',
     });
     // Every page has the same size, so that the files print alike.
     expect(new Set(targets.map((t) => `${t.clip.w}x${t.clip.h}`))).toEqual(new Set(['216x303']));
@@ -67,11 +70,14 @@ describe('renderPageTargets', () => {
   });
 
   it('gives the first spread, the doubles and the last spread per double page', () => {
-    const targets = renderPageTargets(book(), { ...OPTIONS, perSpread: true });
+    const b = book();
+    const targets = renderPageTargets(b, { ...OPTIONS, perSpread: true });
     expect(targets).toHaveLength(13);
-    expect(targets[0]?.name).toBe('page-001');
-    expect(targets[1]).toMatchObject({
+    expect(targets[0]).toMatchObject({ name: 'page-001', side: 'right' });
+    // A double page is the whole spread: no side, nothing left out.
+    expect(targets[1]).toEqual({
       name: 'double-002-003',
+      spreadId: b.spreads[1]?.id,
       clip: { x: -3, y: -3, w: 426, h: 303 },
     });
     expect(targets[11]?.name).toBe('double-022-023');
@@ -107,6 +113,46 @@ describe('renderPageTargets', () => {
       pages: { from: 1, to: 2 },
     });
     expect(withCover.map((t) => t.name)).toEqual(['couverture-a-plat', 'page-001', 'page-002']);
+  });
+});
+
+describe('pageOnly', () => {
+  /** A4 spread: the spine is at x = 210 mm. */
+  const spreadWith = (b: Book): Spread => ({
+    ...b.spreads[1]!,
+    background: {
+      spread: { kind: 'color', color: '#eeeeee' },
+      left: { kind: 'color', color: '#ff0000' },
+      right: { kind: 'color', color: '#0000ff' },
+    },
+    elements: [
+      { ...newElement('photo', { x: 20, y: 20, w: 100, h: 80 }), id: 'left' },
+      // Flush with the spine, on the right page: a left page's bleed reaches it.
+      { ...newElement('photo', { x: 210, y: 20, w: 100, h: 80 }), id: 'right' },
+      // A panorama across the spine.
+      { ...newElement('photo', { x: 150, y: 150, w: 120, h: 80 }), id: 'across' },
+      // Snapped a hair short of the spine: still on the left page alone.
+      { ...newElement('text', { x: 100, y: 250, w: 109.95, h: 20 }), id: 'short' },
+    ],
+  });
+
+  it("leaves the other page's background and elements out, and keeps what crosses the spine", () => {
+    const b = book();
+    const left = pageOnly(b, spreadWith(b), 'left');
+    expect(left.elements.map((e) => e.id)).toEqual(['left', 'across', 'short']);
+    expect(Object.keys(left.background).sort()).toEqual(['left', 'spread']);
+    const right = pageOnly(b, spreadWith(b), 'right');
+    expect(right.elements.map((e) => e.id)).toEqual(['right', 'across']);
+    expect(Object.keys(right.background).sort()).toEqual(['right', 'spread']);
+  });
+
+  it('judges a rotated element by the box it covers', () => {
+    const b = book();
+    // 100 x 10 mm centred 4 mm right of the spine, turned upright: it covers 205 to 215 mm.
+    const tilted = { ...newElement('shape', { x: 164, y: 100, w: 100, h: 10 }), rotation: 90 };
+    const spread = { ...b.spreads[1]!, elements: [tilted] };
+    expect(pageOnly(b, spread, 'left').elements).toHaveLength(1);
+    expect(pageOnly(b, spread, 'right').elements).toHaveLength(1);
   });
 });
 
@@ -174,6 +220,32 @@ describe('runImageExport', () => {
     expect(new Set(shown).size).toBe(1);
     expect(seen[0], 'the route knows the export while a page is drawn').toMatch(/derivatives$/);
     expect(exportJobLookup(shown[0]!)).toBeUndefined();
+  });
+
+  it("hands the page the album's bundled fonts and the page alone, without the facing page", async () => {
+    const out = join(work, 'out');
+    const b = book();
+    const spreads = [...b.spreads];
+    // Page 3 has a text flush with the spine: page 2's bleed reaches it, page 2 must not draw it.
+    spreads[1] = {
+      ...spreads[1]!,
+      elements: [{ ...newElement('text', { x: 210, y: 20, w: 50, h: 20 }), id: 'on-page-3' }],
+    };
+    const fonts = [{ family: 'Pacifico', weight: 400, style: 'normal' as const, url: 'tb://x' }];
+    const jobs: { fonts: unknown; ids: string[] }[] = [];
+    const base = renderer();
+    await runImageExport({ ...b, spreads }, work, options(out), {
+      openRenderer: async () => ({
+        ...base,
+        show: async (job) => {
+          jobs.push({ fonts: job.fonts, ids: job.spread.elements.map((e) => e.id) });
+        },
+      }),
+      onProgress: () => undefined,
+      fonts,
+    });
+    expect(jobs.map((j) => j.fonts)).toEqual([fonts, fonts, fonts]);
+    expect(jobs.map((j) => j.ids)).toEqual([[], [], ['on-page-3']]);
   });
 
   it('removes what it wrote and rejects when cancelled, after the page it is on', async () => {

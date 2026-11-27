@@ -17,6 +17,12 @@ the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   blown up into a blur.
 - Stickers: "Afficher plus" on an Iconify search loads the next icons; it answered "La source a
   répondu de façon inattendue".
+- Export: every bundled font the album uses is in the PDF and the images. Only six of the 42
+  were loaded by the export, so a text or map label in any other one (Pacifico, Montserrat,
+  Amatic SC…) came out in a default font.
+- Export: a page exported on its own with a bleed no longer shows, past the spine, the
+  photos and background of the facing page. What crosses the spine (a panorama) still runs
+  on into the bleed.
 
 ## [1.3.0] - 2026-11-25
 

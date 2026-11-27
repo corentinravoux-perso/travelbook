@@ -6,15 +6,24 @@ import type { ExportPageJob } from '../../shared/exportPage';
 import { imagesReady, installExportPage } from './ExportPage';
 
 const renders: { mapGeometry?: (id: string) => unknown }[] = [];
+/** The families each `whenFontsReady` call waited for. */
+const awaitedFonts: string[][] = [];
 vi.mock('@travelbook/render', () => ({
   SpreadView: (props: { mapGeometry?: (id: string) => unknown }) => {
     renders.push(props);
     return null;
   },
+  fontFaceCss: (files: { family: string; url: string }[]) =>
+    files.map((f) => `@font-face{font-family:"${f.family}";src:url("${f.url}")}`).join('\n'),
   projectFontFiles: () => [],
-  whenFontsReady: async () => undefined,
+  whenFontsReady: async (families: string[]) => {
+    awaitedFonts.push(families);
+  },
 }));
-vi.mock('../fonts/bookFonts', () => ({ BOOK_FONTS: [], installBookFonts: () => undefined }));
+vi.mock('../fonts/bookFonts', () => ({
+  BOOK_FONTS: [{ family: 'Inter' }],
+  installBookFonts: () => undefined,
+}));
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -132,5 +141,24 @@ describe('export page maps', () => {
     // A second page of the same export reads nothing again.
     await window.__tbExport?.show(job('tok1', ['map-ok', 'map-bad']));
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('declares the bundled fonts of the job that bookFonts does not, and waits for them', async () => {
+    vi.stubGlobal('fetch', async () => new Response(JSON.stringify(geometry)));
+    awaitedFonts.length = 0;
+    const host = document.createElement('div');
+    document.body.append(host);
+    installExportPage(host);
+    const face = (family: string) => ({
+      family,
+      weight: 400,
+      style: 'normal' as const,
+      url: `tb://resource/fonts/${family}.woff2`,
+    });
+    await window.__tbExport?.show({ ...job('tok2', []), fonts: [face('Pacifico'), face('Inter')] });
+    const css = [...document.head.querySelectorAll('style')].map((e) => e.textContent).join('\n');
+    expect(css).toContain('tb://resource/fonts/Pacifico.woff2');
+    expect(css).not.toContain('tb://resource/fonts/Inter.woff2');
+    expect(awaitedFonts.at(-1)).toEqual(['Inter', 'Pacifico']);
   });
 });
